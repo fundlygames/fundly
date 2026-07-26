@@ -64,46 +64,15 @@
         <div class="dash-head">
           <div>
             <h1>Přehled</h1>
-            <p>Fáze 1 · Betflow výzva</p>
+            <p id="ovSubtitle">Fáze 1 · Betflow výzva</p>
           </div>
           <span class="spacer"></span>
-          <span class="chip-phase">Fáze 1</span>
+          <span class="chip-phase" id="ovPhaseChip">Fáze 1</span>
         </div>
 
-        <div class="balance-card">
-          <div class="balance-top">
-            <div>
-              <div class="bc-plan">Balíček Elite</div>
-              <div class="bc-amount">206 400 Kč</div>
-              <div class="bc-sub">Aktuální zůstatek</div>
-            </div>
-            <span class="chip-phase">85 % podíl</span>
-          </div>
-          <div class="bc-goal">
-            <div class="bc-goal-row"><span>Cíl fáze: <b>240 000 Kč</b></span><span><b>16 %</b></span></div>
-            <div class="progress"><span style="width:16%"></span></div>
-            <div class="bc-meta"><span>23 dní zbývá</span><span>Do cíle 33 600 Kč</span></div>
-          </div>
-        </div>
+        <div class="balance-card" id="balanceCard"><!-- JS: renderPrehled() --></div>
 
-        <div class="stat-grid">
-          <div class="dstat">
-            <div class="lbl"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M1.5 11.5l4-4 3 3 5-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Zisk</div>
-            <div class="val green">+6 400 Kč</div>
-          </div>
-          <div class="dstat">
-            <div class="lbl"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.6"/><circle cx="7" cy="7" r="2" fill="currentColor"/></svg>Do cíle</div>
-            <div class="val">33 600 Kč</div>
-          </div>
-          <div class="dstat">
-            <div class="lbl"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M4.5 2h6v4a3 3 0 01-6 0V2z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M7.5 9v2.5M5 13h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Výhry</div>
-            <div class="val">4 <small>/ 10</small></div>
-          </div>
-          <div class="dstat">
-            <div class="lbl"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 5a1.5 1.5 0 001.5-1.5h8A1.5 1.5 0 0013 5v1.6a1.9 1.9 0 000 3.8V12a1.5 1.5 0 00-1.5 1.5h-8A1.5 1.5 0 002 12V5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" transform="translate(0,-1.2)"/></svg>Tikety</div>
-            <div class="val">6</div>
-          </div>
-        </div>
+        <div class="stat-grid" id="ovStatGrid"><!-- JS: renderPrehled() --></div>
 
         <button class="btn btn-primary btn-lg cta-bet" data-view-link="sazeni">Sázet teď</button>
 
@@ -114,54 +83,11 @@
           <button data-ovtab="tipy" role="tab" aria-selected="false">Tipy</button>
         </div>
 
-        <div class="panel" data-ovpanel="limity">
-          <div class="limit-row">
-            <span class="k">Trailing drawdown <small>(HWM: 206 400 Kč)</small></span>
-            <span class="v">16 000 Kč zbývá</span>
-          </div>
-          <div class="dd-bar">
-            <span class="cap lo">Floor: 190 400</span>
-            <span class="cursor" style="left:92%"></span>
-            <span class="cap hi">206 400</span>
-          </div>
-        </div>
+        <div class="panel" data-ovpanel="limity" id="ovLimity"><!-- JS: renderPrehled() --></div>
 
-        <div class="panel" data-ovpanel="pravidla" hidden>
-          <div class="rules-grid">
-            <div class="rule-tile"><div class="k">Profit split</div><div class="v green">85 %</div></div>
-            <div class="rule-tile"><div class="k">Max. sázka</div><div class="v">8 000 Kč</div></div>
-            <div class="rule-tile"><div class="k">Kurzy</div><div class="v">1.00 až 8.00</div></div>
-            <div class="rule-tile"><div class="k">Drawdown</div><div class="v">16 000 Kč</div></div>
-            <div class="rule-tile"><div class="k">Časový limit</div><div class="v">30 dní / fáze</div></div>
-            <div class="rule-tile"><div class="k">Min. tiketů</div><div class="v">10</div></div>
-          </div>
-        </div>
+        <div class="panel" data-ovpanel="pravidla" hidden id="ovPravidla"><!-- JS: renderPrehled() --></div>
 
-        <div class="panel" data-ovpanel="cesta" hidden>
-          <div class="journey">
-            <div class="j-step now">
-              <div class="j-dot-col"><span class="j-dot">1</span><span class="j-line"></span></div>
-              <div class="j-body">
-                <img class="j-thumb" src="assets/card2-vyzva.jpg" alt="" />
-                <span><span class="t">Fáze 1 · Betflow výzva</span><br /><span class="d">Cíl +40 000 Kč, právě probíhá. Máte 16 % splněno.</span></span>
-              </div>
-            </div>
-            <div class="j-step">
-              <div class="j-dot-col"><span class="j-dot">2</span><span class="j-line"></span></div>
-              <div class="j-body">
-                <img class="j-thumb" src="assets/card2-verifikace.jpg" alt="" />
-                <span><span class="t">Fáze 2 · Verifikace</span><br /><span class="d">Cíl +20 000 Kč, potvrzení konzistence.</span></span>
-              </div>
-            </div>
-            <div class="j-step">
-              <div class="j-dot-col"><span class="j-dot">✓</span></div>
-              <div class="j-body">
-                <img class="j-thumb" src="assets/card2-tiper.jpg" alt="" />
-                <span><span class="t">Financovaný účet</span><br /><span class="d">85 % podíl na zisku, neomezený čas, pravidelné výplaty.</span></span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <div class="panel" data-ovpanel="cesta" hidden id="ovCesta"><!-- JS: renderPrehled() --></div>
 
         <div class="panel" data-ovpanel="tipy" hidden>
           <ul class="tip-list">

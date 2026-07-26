@@ -669,3 +669,100 @@ if (nickSave) {
     setTimeout(() => (nickSave.textContent = "Uložit"), 1500);
   });
 }
+
+// ---------- přehled: render z reálného stavu portfolia ----------
+function renderPrehled() {
+  const view = document.getElementById("view-prehled");
+  if (!view) return;
+  const state = Portfolio.ensure("advanced");
+  const phaseLabel = state.phase === "funded" ? "Financovaný účet" : `Fáze ${state.phase}`;
+  document.getElementById("ovSubtitle").textContent = `${phaseLabel} · Betflow výzva`;
+  document.getElementById("ovPhaseChip").textContent = phaseLabel;
+
+  const target = Portfolio.phaseTarget(state);
+  const profit = state.balance - state.phaseBaseline;
+  const pct = target > 0 ? Math.max(0, Math.min(100, Math.round((profit / target) * 100))) : 100;
+  const toGoal = Math.max(0, target - profit);
+  const daysLeft = Portfolio.daysRemaining(state);
+
+  document.getElementById("balanceCard").innerHTML = `
+    <div class="balance-top">
+      <div>
+        <div class="bc-plan">Balíček ${state.packageName}</div>
+        <div class="bc-amount">${czk(state.balance)}</div>
+        <div class="bc-sub">Aktuální zůstatek</div>
+      </div>
+      <span class="chip-phase">${state.profitSplit} % podíl</span>
+    </div>
+    ${state.phase === "funded" ? `
+    <div class="bc-goal"><div class="bc-goal-row"><span>Financovaný účet</span><span><b>Neomezeno</b></span></div></div>
+    ` : `
+    <div class="bc-goal">
+      <div class="bc-goal-row"><span>Cíl fáze: <b>${czk(state.phaseBaseline + target)}</b></span><span><b>${pct} %</b></span></div>
+      <div class="progress"><span style="width:${pct}%"></span></div>
+      <div class="bc-meta"><span>${daysLeft} dní zbývá</span><span>Do cíle ${czk(toGoal)}</span></div>
+    </div>`}`;
+
+  const s = Portfolio.summary(state);
+  document.getElementById("ovStatGrid").innerHTML = `
+    <div class="dstat">
+      <div class="lbl"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M1.5 11.5l4-4 3 3 5-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Zisk</div>
+      <div class="val ${s.netProfit >= 0 ? "green" : ""}">${s.netProfit >= 0 ? "+" : ""}${czk(s.netProfit)}</div>
+    </div>
+    <div class="dstat">
+      <div class="lbl"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.6"/><circle cx="7" cy="7" r="2" fill="currentColor"/></svg>Do cíle</div>
+      <div class="val">${state.phase === "funded" ? "—" : czk(toGoal)}</div>
+    </div>
+    <div class="dstat">
+      <div class="lbl"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M4.5 2h6v4a3 3 0 01-6 0V2z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M7.5 9v2.5M5 13h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Výhry</div>
+      <div class="val">${s.won} <small>/ ${s.won + s.lost}</small></div>
+    </div>
+    <div class="dstat">
+      <div class="lbl"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 5a1.5 1.5 0 001.5-1.5h8A1.5 1.5 0 0013 5v1.6a1.9 1.9 0 000 3.8V12a1.5 1.5 0 00-1.5 1.5h-8A1.5 1.5 0 002 12V5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" transform="translate(0,-1.2)"/></svg>Tikety</div>
+      <div class="val">${s.total}</div>
+    </div>`;
+
+  const dd = Portfolio.drawdownInfo(state);
+  document.getElementById("ovLimity").innerHTML = `
+    <div class="limit-row">
+      <span class="k">Trailing drawdown <small>(HWM: ${czk(dd.hwm)})</small></span>
+      <span class="v">${czk(Math.round(dd.remaining))} zbývá</span>
+    </div>
+    <div class="dd-bar">
+      <span class="cap lo">Floor: ${dd.floor.toLocaleString("cs-CZ")}</span>
+      <span class="cursor" style="left:${dd.pct}%"></span>
+      <span class="cap hi">${state.balance.toLocaleString("cs-CZ")}</span>
+    </div>`;
+
+  document.getElementById("ovPravidla").innerHTML = `
+    <div class="rules-grid">
+      <div class="rule-tile"><div class="k">Profit split</div><div class="v green">${state.profitSplit} %</div></div>
+      <div class="rule-tile"><div class="k">Max. sázka</div><div class="v">${czk(state.maxStake)}</div></div>
+      <div class="rule-tile"><div class="k">Kurzy</div><div class="v">${ODDS_MIN.toFixed(2)} až ${ODDS_MAX.toFixed(2)}</div></div>
+      <div class="rule-tile"><div class="k">Drawdown</div><div class="v">${czk(state.drawdown)}</div></div>
+      <div class="rule-tile"><div class="k">Časový limit</div><div class="v">30 dní / fáze</div></div>
+      <div class="rule-tile"><div class="k">Min. tiketů</div><div class="v">7</div></div>
+    </div>`;
+
+  const steps = [
+    { title: "Fáze 1 · Betflow výzva", desc: `Cíl +${czk(state.target1)}`, img: "assets/card2-vyzva.jpg" },
+    { title: "Fáze 2 · Verifikace", desc: `Cíl +${czk(state.target2)}`, img: "assets/card2-verifikace.jpg" },
+    { title: "Financovaný účet", desc: `${state.profitSplit} % podíl na zisku, neomezený čas, pravidelné výplaty.`, img: "assets/card2-tiper.jpg" },
+  ];
+  const currentIndex = state.phase === "funded" ? 2 : state.phase - 1;
+  document.getElementById("ovCesta").innerHTML = `<div class="journey">${steps.map((step, i) => {
+    const cls = i < currentIndex ? "done" : i === currentIndex ? "now" : "";
+    const dot = i < 2 ? String(i + 1) : "✓";
+    const desc = i === currentIndex && state.phase !== "funded"
+      ? `${step.desc}, právě probíhá. Máte ${pct} % splněno.`
+      : step.desc;
+    return `<div class="j-step ${cls}">
+      <div class="j-dot-col"><span class="j-dot">${dot}</span>${i < steps.length - 1 ? '<span class="j-line"></span>' : ""}</div>
+      <div class="j-body">
+        <img class="j-thumb" src="${step.img}" alt="" />
+        <span><span class="t">${step.title}</span><br /><span class="d">${desc}</span></span>
+      </div>
+    </div>`;
+  }).join("")}</div>`;
+}
+renderPrehled();
