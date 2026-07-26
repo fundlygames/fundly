@@ -37,12 +37,11 @@ document.querySelectorAll("#ovTabs button").forEach((btn) => {
 });
 
 // ---------- sázení (živá data z odds-api.io) ----------
-// API_BASE/API_KEY/BOOKMAKER/cacheGet/cacheSet/cacheDrop/apiGet: viz js/portfolio.js
+// API_BASE/API_KEY/BOOKMAKER/CACHE_TTL/cacheGet/cacheSet/cacheDrop/apiGet: viz js/portfolio.js
 const MAX_STAKE = 8000;
 const ODDS_MIN = 1.0;
 const ODDS_MAX = 8.0;
 const EVENTS_PER_SPORT = 10; // /odds/multi bere max 10 eventů na 1 request
-const CACHE_TTL = 5 * 60 * 1000; // 5 min, free tier má 100 requestů/hod
 
 // sporty jako na původním dashboardu
 const SPORTS = [

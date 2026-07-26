@@ -6,13 +6,14 @@ const API_BASE = "https://api.odds-api.io/v3";
 // POZOR: klíč je v klientském JS viditelný, pro produkci patří za vlastní proxy.
 const API_KEY = "da7bd5cd5dc1335c1fe30d8c2dbb71f9aa6f5b4867691654d593b3b3a56dcb88";
 const BOOKMAKER = "Bet365";
+const CACHE_TTL = 5 * 60 * 1000; // 5 min, free tier má 100 requestů/hod
 
 function cacheGet(key, ttl) {
   try {
     const raw = localStorage.getItem("bf1:" + key);
     if (!raw) return null;
     const { t, d } = JSON.parse(raw);
-    if (Date.now() - t > ttl) return null;
+    if (Date.now() - t > (ttl || CACHE_TTL)) return null;
     return d;
   } catch (e) { return null; }
 }
