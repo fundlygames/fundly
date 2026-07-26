@@ -37,14 +37,10 @@ document.querySelectorAll("#ovTabs button").forEach((btn) => {
 });
 
 // ---------- sázení (živá data z odds-api.io) ----------
+// API_BASE/API_KEY/BOOKMAKER/cacheGet/cacheSet/cacheDrop/apiGet: viz js/portfolio.js
 const MAX_STAKE = 8000;
 const ODDS_MIN = 1.0;
 const ODDS_MAX = 8.0;
-
-const API_BASE = "https://api.odds-api.io/v3";
-// POZOR: klíč je v klientském JS viditelný, pro produkci patří za vlastní proxy.
-const API_KEY = "da7bd5cd5dc1335c1fe30d8c2dbb71f9aa6f5b4867691654d593b3b3a56dcb88";
-const BOOKMAKER = "Bet365";
 const EVENTS_PER_SPORT = 10; // /odds/multi bere max 10 eventů na 1 request
 const CACHE_TTL = 5 * 60 * 1000; // 5 min, free tier má 100 requestů/hod
 
@@ -65,34 +61,6 @@ const filters = { q: "", date: "", league: "", odds: "", live: false, high: fals
 const sportTabs = document.getElementById("sportTabs");
 const matchList = document.getElementById("matchList");
 const slipBody = document.getElementById("slipBody");
-
-// -- cache přes localStorage --
-function cacheGet(key, ttl) {
-  try {
-    const raw = localStorage.getItem("bf1:" + key);
-    if (!raw) return null;
-    const { t, d } = JSON.parse(raw);
-    if (Date.now() - t > (ttl || CACHE_TTL)) return null;
-    return d;
-  } catch (e) { return null; }
-}
-function cacheSet(key, d) {
-  try { localStorage.setItem("bf1:" + key, JSON.stringify({ t: Date.now(), d })); } catch (e) {}
-}
-function cacheDrop(key) {
-  try { localStorage.removeItem("bf1:" + key); } catch (e) {}
-}
-
-async function apiGet(path, params) {
-  const q = new URLSearchParams({ ...params, apiKey: API_KEY });
-  const res = await fetch(`${API_BASE}${path}?${q}`);
-  if (!res.ok) {
-    const err = new Error(`HTTP ${res.status}`);
-    err.status = res.status;
-    throw err;
-  }
-  return res.json();
-}
 
 // eventy + ML kurzy, 2 requesty na sport, cache 5 min (LIVE 1 min)
 async function loadSportEvents(sport, live) {
