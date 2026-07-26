@@ -13,6 +13,8 @@ function showView(name) {
     b.classList.toggle("active", b.dataset.view === name);
   });
   window.scrollTo({ top: 0, behavior: "instant" });
+  if (name === "prehled" && typeof renderPrehled === "function") renderPrehled();
+  if (name === "vykon" && typeof renderVykon === "function") renderVykon();
 }
 
 document.addEventListener("click", (e) => {
@@ -35,6 +37,16 @@ document.querySelectorAll("#ovTabs button").forEach((btn) => {
     });
   });
 });
+
+// ---------- portfolio: nastartuje simulaci a průběžně vyhodnocuje tikety ----------
+Portfolio.ensure("advanced");
+async function refreshAfterSettlement() {
+  await Portfolio.checkSettlements();
+  if (typeof renderPrehled === "function") renderPrehled();
+  if (typeof renderVykon === "function") renderVykon();
+}
+refreshAfterSettlement();
+setInterval(refreshAfterSettlement, 60 * 1000);
 
 // ---------- sázení (živá data z odds-api.io) ----------
 // API_BASE/API_KEY/BOOKMAKER/CACHE_TTL/cacheGet/cacheSet/cacheDrop/apiGet: viz js/portfolio.js
@@ -337,7 +349,20 @@ function resolvePick(id) {
     const hdp = row.hdp !== undefined ? ` ${row.hdp}` : "";
     pick = `${marketLabel(marketName)}${hdp}: ${PICK_LABELS[field] || field}`;
   }
-  return { id, match: `${m.home} – ${m.away}`, pick, odds };
+  return {
+    id, match: `${m.home} – ${m.away}`, pick, odds,
+    eventId: Number(eid),
+    sport: activeSport,
+    league: m.league,
+    homeTeam: m.home,
+    awayTeam: m.away,
+    startTime: m.date,
+    marketName,
+    field,
+    hdp: row.hdp,
+    oddValue: odds,
+    pickLabel: pick,
+  };
 }
 
 function renderError(err) {
@@ -375,6 +400,8 @@ function renderSlip() {
     slipBody.innerHTML = `<p class="slip-empty"><img src="assets/fan-1.jpg" alt="" />Váš tiket je prázdný.<br />Vyberte si kurzy z nabídky.</p>`;
     return;
   }
+  const portfolio = Portfolio.ensure("advanced");
+  const maxStake = portfolio.maxStake;
   const totalOdds = slip.reduce((a, s) => a * s.odds, 1);
   slipBody.innerHTML = `
     ${slip.map((s) => `
@@ -390,8 +417,8 @@ function renderSlip() {
       </div>`).join("")}
     <div class="slip-total"><span>Celkový kurz</span><b>${totalOdds.toFixed(2)}</b></div>
     <div class="field">
-      <label for="stakeInput">Vklad (max. ${czk(MAX_STAKE)})</label>
-      <input class="input" id="stakeInput" type="number" min="100" max="${MAX_STAKE}" value="${Math.min(2000, MAX_STAKE)}" />
+      <label for="stakeInput">Vklad (max. ${czk(maxStake)})</label>
+      <input class="input" id="stakeInput" type="number" min="100" max="${maxStake}" value="${Math.min(2000, maxStake)}" />
     </div>
     <div class="slip-total"><span>Možná výhra</span><b class="green" id="potWin"></b></div>
     <button class="btn btn-primary" style="width:100%" id="placeBet">Vsadit</button>
@@ -400,7 +427,7 @@ function renderSlip() {
   const stakeInput = document.getElementById("stakeInput");
   const potWin = document.getElementById("potWin");
   const updateWin = () => {
-    let v = Math.min(Number(stakeInput.value) || 0, MAX_STAKE);
+    let v = Math.min(Number(stakeInput.value) || 0, maxStake);
     potWin.textContent = czk(Math.round(v * totalOdds));
   };
   stakeInput.addEventListener("input", updateWin);
@@ -408,8 +435,21 @@ function renderSlip() {
 
   document.getElementById("placeBet").addEventListener("click", () => {
     const note = document.getElementById("betNote");
-    note.textContent = "Designový náhled, sázky zatím nejsou připojené na backend.";
+    const btn = document.getElementById("placeBet");
+    const result = Portfolio.placeBet(slip, Number(stakeInput.value));
+    if (!result.ok) {
+      note.textContent = result.error;
+      note.hidden = false;
+      return;
+    }
+    note.textContent = "Tiket přijat! Sledujte ho v Přehledu.";
     note.hidden = false;
+    btn.disabled = true;
+    setTimeout(() => {
+      slip = [];
+      renderMatches();
+      renderSlip();
+    }, 900);
   });
 }
 
