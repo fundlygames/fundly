@@ -262,6 +262,11 @@ authForm.addEventListener("submit", (e) => {
   authSubmit.disabled = true;
   authSubmit.textContent = authMode === "login" ? "Přihlašování…" : "Vytváření účtu…";
   setTimeout(() => {
+    if (authMode === "register") {
+      Portfolio.init(activeKey);
+    } else {
+      Portfolio.ensure(activeKey);
+    }
     window.location.href = "dashboard.html";
   }, 700);
 });
