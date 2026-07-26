@@ -1,15 +1,6 @@
 /* Betflow × Upcomers — interakce */
 
-// ---------- data balíčků ----------
-// Advanced odpovídá přesně původnímu webu (cíl 20 %, drawdown 8 %,
-// fáze 2 = 10 %, max vklad 4 % kapitálu), ostatní balíčky jsou škálované.
-const PACKAGES = [
-  { key: "starter",  name: "Starter",  cap: 10000,  price: 490 },
-  { key: "standard", name: "Standard", cap: 25000,  price: 890 },
-  { key: "advanced", name: "Advanced", cap: 50000,  price: 1590, top: true },
-  { key: "pro",      name: "Pro",      cap: 100000, price: 2990 },
-  { key: "elite",    name: "Elite",    cap: 200000, price: 4990 },
-];
+// data balíčků: viz js/packages.js (sdílené s dashboard.html)
 
 const czk = (n) => n.toLocaleString("cs-CZ") + " Kč";
 const czkSigned = (n) => (n > 0 ? "+" : "-") + Math.abs(n).toLocaleString("cs-CZ") + " Kč";
