@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard | Betflow</title>
+  <meta name="description" content="Přehled vašeho financovaného účtu Betflow." />
+  <meta name="theme-color" content="#020204" />
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+</head>
+<body>
+
+  <!-- ============ NAV ============ -->
+  <header class="nav scrolled">
+    <div class="container nav-inner">
+      <a href="index.html" class="logo" aria-label="Betflow, domů">
+        <img src="assets/logo.png" alt="" width="24" height="24" />
+        betflow
+      </a>
+      <nav class="dnav-links" aria-label="Dashboard">
+        <button class="dnav-link active" data-view="prehled">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><rect x="1.5" y="1.5" width="5" height="5" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="8.5" y="1.5" width="5" height="5" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="1.5" y="8.5" width="5" height="5" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="8.5" y="8.5" width="5" height="5" rx="1.5" stroke="currentColor" stroke-width="1.6"/></svg>
+          Přehled
+        </button>
+        <button class="dnav-link" data-view="vykon">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M1.5 11.5l4-4 3 3 5-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Výkon
+        </button>
+        <button class="dnav-link" data-view="sazeni">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 5a1.5 1.5 0 001.5-1.5h8A1.5 1.5 0 0013 5v1.6a1.9 1.9 0 000 3.8V12a1.5 1.5 0 00-1.5 1.5h-8A1.5 1.5 0 002 12V5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" transform="translate(0,-1.2)"/></svg>
+          Sázení
+        </button>
+        <button class="dnav-link" data-view="zebricek">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M4.5 2h6v4a3 3 0 01-6 0V2zM4.5 3.5h-2a2 2 0 002 2.5M10.5 3.5h2a2 2 0 01-2 2.5M7.5 9v2.5M5 13h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Žebříček
+        </button>
+        <button class="dnav-link" data-view="vyplaty">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><rect x="1.5" y="3.5" width="12" height="8.5" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M9.5 7.75h2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          Výplaty
+        </button>
+        <button class="dnav-link" data-view="profil">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><circle cx="7.5" cy="4.75" r="2.75" stroke="currentColor" stroke-width="1.4"/><path d="M2.5 13c.7-2.4 2.7-3.75 5-3.75S11.8 10.6 12.5 13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          Profil
+        </button>
+      </nav>
+      <div class="nav-cta">
+        <button class="icon-btn" aria-label="Notifikace">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 2a4 4 0 00-4 4v2.2L2.8 10.6a.7.7 0 00.6 1.05h9.2a.7.7 0 00.6-1.05L12 8.2V6a4 4 0 00-4-4zM6.5 13.5a1.5 1.5 0 003 0" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <a class="icon-btn" href="index.html" aria-label="Odhlásit se">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6.5 2h-2A1.5 1.5 0 003 3.5v9A1.5 1.5 0 004.5 14h2M10 5l3 3-3 3M13 8H6.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="dash-main">
+    <div class="container">
+
+      <!-- ============ PŘEHLED ============ -->
+      <section class="dash-view" id="view-prehled">
+        <div class="dash-head">
+          <div>
+            <h1>Přehled</h1>
+            <p>Fáze 1 · Betflow výzva</p>
+          </div>
+          <span class="spacer"></span>
+          <span class="chip-phase">Fáze 1</span>
+        </div>
+
+        <div class="balance-card">
+          <div class="balance-top">
+            <div>
+              <div class="bc-plan">Balíček Elite</div>
+              <div class="bc-amount">206 400 Kč</div>
+              <div class="bc-sub">Aktuální zůstatek</div>
+            </div>
+            <span class="chip-phase">85 % podíl</span>
+          </div>
+          <div class="bc-goal">
+            <div class="bc-goal-row"><span>Cíl fáze: <b>240 000 Kč</b></span><span><b>16 %</b></span></div>
+            <div class="progress"><span style="width:16%"></span></div>
+            <div class="bc-meta"><span>23 dní zbývá</span><span>Do cíle 33 600 Kč</span></div>
+          </div>
+        </div>
+
+        <div class="stat-grid">
+          <div class="dstat">
+            <div class="lbl"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M1.5 11.5l4-4 3 3 5-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Zisk</div>
+            <div class="val green">+6 400 Kč</div>
+          </div>
+          <div class="dstat">
+            <div class="lbl"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.6"/><circle cx="7" cy="7" r="2" fill="currentColor"/></svg>Do cíle</div>
+            <div class="val">33 600 Kč</div>
+          </div>
+          <div class="dstat">
+            <div class="lbl"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M4.5 2h6v4a3 3 0 01-6 0V2z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M7.5 9v2.5M5 13h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Výhry</div>
+            <div class="val">4 <small>/ 10</small></div>
+          </div>
+          <div class="dstat">
+            <div class="lbl"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 5a1.5 1.5 0 001.5-1.5h8A1.5 1.5 0 0013 5v1.6a1.9 1.9 0 000 3.8V12a1.5 1.5 0 00-1.5 1.5h-8A1.5 1.5 0 002 12V5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" transform="translate(0,-1.2)"/></svg>Tikety</div>
+            <div class="val">6</div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-lg cta-bet" data-view-link="sazeni">Sázet teď</button>
+
+        <div class="subtabs" role="tablist" aria-label="Detail výzvy" id="ovTabs">
+          <button class="active" data-ovtab="limity" role="tab" aria-selected="true">Limity</button>
+          <button data-ovtab="pravidla" role="tab" aria-selected="false">Pravidla</button>
+          <button data-ovtab="cesta" role="tab" aria-selected="false">Cesta</button>
+          <button data-ovtab="tipy" role="tab" aria-selected="false">Tipy</button>
+        </div>
+
+        <div class="panel" data-ovpanel="limity">
+          <div class="limit-row">
+            <span class="k">Trailing drawdown <small>(HWM: 206 400 Kč)</small></span>
+            <span class="v">16 000 Kč zbývá</span>
+          </div>
+          <div class="dd-bar">
+            <span class="cap lo">Floor: 190 400</span>
+            <span class="cursor" style="left:92%"></span>
+            <span class="cap hi">206 400</span>
+          </div>
+        </div>
+
+        <div class="panel" data-ovpanel="pravidla" hidden>
+          <div class="rules-grid">
+            <div class="rule-tile"><div class="k">Profit split</div><div class="v green">85 %</div></div>
+            <div class="rule-tile"><div class="k">Max. sázka</div><div class="v">8 000 Kč</div></div>
+            <div class="rule-tile"><div class="k">Kurzy</div><div class="v">1.00 až 8.00</div></div>
+            <div class="rule-tile"><div class="k">Drawdown</div><div class="v">16 000 Kč</div></div>
+            <div class="rule-tile"><div class="k">Časový limit</div><div class="v">30 dní / fáze</div></div>
+            <div class="rule-tile"><div class="k">Min. tiketů</div><div class="v">10</div></div>
+          </div>
+        </div>
+
+        <div class="panel" data-ovpanel="cesta" hidden>
+          <div class="journey">
+            <div class="j-step now">
+              <div class="j-dot-col"><span class="j-dot">1</span><span class="j-line"></span></div>
+              <div class="j-body">
+                <img class="j-thumb" src="assets/card2-vyzva.jpg" alt="" />
+                <span><span class="t">Fáze 1 · Betflow výzva</span><br /><span class="d">Cíl +40 000 Kč, právě probíhá. Máte 16 % splněno.</span></span>
+              </div>
+            </div>
+            <div class="j-step">
+              <div class="j-dot-col"><span class="j-dot">2</span><span class="j-line"></span></div>
+              <div class="j-body">
+                <img class="j-thumb" src="assets/card2-verifikace.jpg" alt="" />
+                <span><span class="t">Fáze 2 · Verifikace</span><br /><span class="d">Cíl +20 000 Kč, potvrzení konzistence.</span></span>
+              </div>
+            </div>
+            <div class="j-step">
+              <div class="j-dot-col"><span class="j-dot">✓</span></div>
+              <div class="j-body">
+                <img class="j-thumb" src="assets/card2-tiper.jpg" alt="" />
+                <span><span class="t">Financovaný účet</span><br /><span class="d">85 % podíl na zisku, neomezený čas, pravidelné výplaty.</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" data-ovpanel="tipy" hidden>
+          <ul class="tip-list">
+            <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Sázejte konzistentní částky, 1 až 2 % kapitálu na tiket bohatě stačí.</li>
+            <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Držte se sportů a lig, které opravdu znáte, kvantita cíl nesplní.</li>
+            <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Trailing drawdown se posouvá s každým novým maximem, hlídejte si rezervu.</li>
+            <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Na cíl máte 30 dní, nespěchejte. Průměrně stačí +1 400 Kč denně.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ============ VÝKON ============ -->
+      <section class="dash-view" id="view-vykon" hidden>
+        <div class="dash-head">
+          <div>
+            <h1>Výkon</h1>
+            <p>Statistiky balíčku Elite</p>
+          </div>
+        </div>
+
+        <div class="stat-grid" style="margin-top:0">
+          <div class="dstat"><div class="lbl">Aktuální zisk</div><div class="val green">+6 400 Kč</div></div>
+          <div class="dstat"><div class="lbl">Úspěšnost</div><div class="val green">67 %</div></div>
+          <div class="dstat"><div class="lbl">Průměrný kurz</div><div class="val">2.14</div></div>
+          <div class="dstat"><div class="lbl">Čekající</div><div class="val">1</div></div>
+        </div>
+
+        <div class="two-col">
+          <div class="panel">
+            <h3>Přehled tiketů</h3>
+            <div class="k-rows">
+              <div class="k-row win">Výherní<span class="n">4</span></div>
+              <div class="k-row loss">Prohrané<span class="n">1</span></div>
+              <div class="k-row pend">Čekající<span class="n">1</span></div>
+            </div>
+          </div>
+          <div class="panel">
+            <h3>Finanční přehled</h3>
+            <div class="k-rows">
+              <div class="k-row neutral">Vsazeno<span class="n">34 000 Kč</span></div>
+              <div class="k-row neutral">Vráceno<span class="n">40 400 Kč</span></div>
+              <div class="k-row neutral">Čistý zisk<span class="n green">+6 400 Kč</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="panel">
+            <h3>Denní bilance, posledních 7 dní</h3>
+            <div class="bar-chart" role="img" aria-label="Sloupcový graf denní bilance">
+              <div class="bc-col"><span class="bar pos" style="height:34%"></span><span class="d">Čt</span></div>
+              <div class="bc-col"><span class="bar neg" style="height:22%"></span><span class="d">Pá</span></div>
+              <div class="bc-col"><span class="bar pos" style="height:58%"></span><span class="d">So</span></div>
+              <div class="bc-col"><span class="bar" style="height:6%"></span><span class="d">Ne</span></div>
+              <div class="bc-col"><span class="bar pos" style="height:42%"></span><span class="d">Po</span></div>
+              <div class="bc-col"><span class="bar pos" style="height:76%"></span><span class="d">Út</span></div>
+              <div class="bc-col"><span class="bar" style="height:10%"></span><span class="d">St</span></div>
+            </div>
+          </div>
+          <div class="panel">
+            <h3>Poslední tikety</h3>
+            <div style="overflow-x:auto">
+              <table class="ticket-table">
+                <thead><tr><th>Zápas</th><th>Tip</th><th>Kurz</th><th>Vklad</th><th>Stav</th></tr></thead>
+                <tbody>
+                  <tr><td>Sparta – Slavia</td><td>1</td><td class="odds">2.35</td><td>4 000 Kč</td><td><span class="tag win">Výhra</span></td></tr>
+                  <tr><td>Lakers – Celtics</td><td>2</td><td class="odds">1.85</td><td>6 000 Kč</td><td><span class="tag win">Výhra</span></td></tr>
+                  <tr><td>Third – Oceláři</td><td>Přes 5.5</td><td class="odds">1.92</td><td>6 000 Kč</td><td><span class="tag loss">Prohra</span></td></tr>
+                  <tr><td>Alcaraz – Sinner</td><td>2</td><td class="odds">2.60</td><td>4 000 Kč</td><td><span class="tag win">Výhra</span></td></tr>
+                  <tr><td>Plzeň – Baník</td><td>Oba dají gól</td><td class="odds">1.78</td><td>8 000 Kč</td><td><span class="tag win">Výhra</span></td></tr>
+                  <tr><td>Arsenal – City</td><td>X</td><td class="odds">3.40</td><td>6 000 Kč</td><td><span class="tag pend">Čeká</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ SÁZENÍ ============ -->
+      <section class="dash-view" id="view-sazeni" hidden>
+        <div class="dash-head">
+          <div>
+            <h1>Sázení</h1>
+            <p>Vyberte zápasy a sestavte tiket</p>
+          </div>
+        </div>
+
+        <div class="bank-bar">
+          <span>Zůstatek: <b>206 400 Kč</b></span>
+          <span class="right"><span>Max. sázka: <b>8 000 Kč</b></span><span>Kurzy: <b>1.00 až 8.00</b></span></span>
+        </div>
+
+        <div class="panel bet-filters" id="betFiltersPanel">
+          <div class="bf-grid">
+            <div class="field">
+              <label for="betSearch">Vyhledávání</label>
+              <input class="input" id="betSearch" type="search" placeholder="Tým nebo liga…" />
+            </div>
+            <div class="field">
+              <label for="fDate">Datum</label>
+              <select class="input" id="fDate">
+                <option value="">Všechny datumy</option>
+                <option value="dnes">Dnes</option>
+                <option value="zitra">Zítra</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="fLeague">Liga</label>
+              <select class="input" id="fLeague">
+                <option value="">Všechny ligy</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="fOdds">Kurz</label>
+              <select class="input" id="fOdds">
+                <option value="">Všechny kurzy</option>
+                <option value="0-1.5">Do 1.50</option>
+                <option value="1.5-2.5">1.50 až 2.50</option>
+                <option value="2.5-4">2.50 až 4.00</option>
+                <option value="4-8">4.00 až 8.00</option>
+              </select>
+            </div>
+          </div>
+          <div class="bf-quick">
+            <span class="bf-label">Rychlé filtry:</span>
+            <button class="filter-chip" id="qLive" aria-pressed="false"><span class="live-dot" aria-hidden="true"></span>LIVE</button>
+            <button class="filter-chip" id="qToday" aria-pressed="false">Dnes</button>
+            <button class="filter-chip" id="qHigh" aria-pressed="false">Vysoké kurzy</button>
+            <button class="filter-chip" id="betRefresh" style="margin-left:auto">
+              <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M12 7A5 5 0 112.8 4.2M2.5 1.5v3h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Obnovit
+            </button>
+          </div>
+        </div>
+
+        <div class="sport-tabs" role="tablist" aria-label="Sporty" id="sportTabs"><!-- JS --></div>
+
+        <p class="match-count" id="matchCountRow">Zápasy: <b id="matchCount">–</b></p>
+
+        <div class="bet-layout">
+          <div class="panel" style="padding:6px 4px">
+            <div id="matchList"><!-- JS --></div>
+          </div>
+          <aside class="panel slip">
+            <h3>Tiket</h3>
+            <div id="slipBody"><!-- JS --></div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ============ ŽEBŘÍČEK ============ -->
+      <section class="dash-view" id="view-zebricek" hidden>
+        <div class="dash-head">
+          <div>
+            <h1>Žebříček</h1>
+            <p>Top tipéři, zobrazují se jen ti se zapnutým sdílením v profilu.</p>
+          </div>
+        </div>
+
+        <div class="hero-panel lb">
+          <div>
+            <div class="t">Souboj o trofej měsíce</div>
+            <div class="d">Nejlepší tipéři podle profitu, ROI a úspěšnosti.</div>
+          </div>
+        </div>
+
+        <div class="subtabs" style="margin-top:0" role="tablist" aria-label="Období" id="lbPeriod">
+          <button data-period="tyden">Tento týden</button>
+          <button class="active" data-period="mesic">Měsíc</button>
+          <button data-period="celkem">Celkově</button>
+        </div>
+        <div class="subtabs" style="margin-top:0" role="tablist" aria-label="Metrika" id="lbMetric">
+          <button class="active" data-metric="profit">Profit</button>
+          <button data-metric="roi">ROI</button>
+          <button data-metric="uspesnost">Úspěšnost</button>
+        </div>
+
+        <div class="panel" style="padding:6px 4px">
+          <div id="lbList"><!-- JS --></div>
+        </div>
+      </section>
+
+      <!-- ============ VÝPLATY ============ -->
+      <section class="dash-view" id="view-vyplaty" hidden>
+        <div class="dash-head">
+          <div>
+            <h1>Výplaty</h1>
+            <p>Nejprve si vybudujte rezervu, poté vybírejte zisky.</p>
+          </div>
+        </div>
+
+        <div class="hero-panel wd">
+          <div>
+            <div class="t">Váš trezor se otevře s financovaným účtem</div>
+            <div class="d">85 % z každého zisku, výplaty do 48 hodin od schválení.</div>
+          </div>
+        </div>
+
+        <div class="notice">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><rect x="3" y="6.5" width="9" height="6" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M5 6.5V5a2.5 2.5 0 015 0v1.5" stroke="currentColor" stroke-width="1.4"/></svg>
+          Výběry jsou dostupné až pro financovaný účet. Nejdřív dokončete Fázi 1 a Fázi 2.
+        </div>
+
+        <div class="two-col" style="margin-top:10px">
+          <div class="panel">
+            <h3>Nová žádost o výběr</h3>
+            <form id="wdForm" novalidate>
+              <div class="field">
+                <label for="wdAmount">Částka k výběru (Kč)</label>
+                <input class="input" id="wdAmount" type="number" min="250" placeholder="0" />
+                <span class="t-meta">Min. 250 Kč · Max. váš podíl ze zisku</span>
+              </div>
+              <div class="field">
+                <label for="wdMethod">Způsob výplaty</label>
+                <select class="input" id="wdMethod">
+                  <option value="">Vyberte způsob</option>
+                  <option>Bankovní převod</option>
+                  <option>Kryptoměny</option>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-primary" style="width:100%">Odeslat žádost ke schválení</button>
+              <p class="auth-note mt" id="wdNote" hidden></p>
+            </form>
+          </div>
+          <div class="stack">
+            <div class="panel">
+              <h3>Jak to funguje</h3>
+              <ol class="ol-steps">
+                <li>Před prvním výběrem dosáhněte bufferu 10 % z kapitálu.</li>
+                <li>Vyberte si částku, maximálně váš podíl ze zisku.</li>
+                <li>Žádost schválíme do 24 hodin a vyplatíme.</li>
+                <li>Po výběru musí zůstatek zůstat nad bezpečnostní hranicí.</li>
+              </ol>
+            </div>
+            <div class="panel">
+              <h3>Způsoby výplaty</h3>
+              <div class="method">
+                <span class="ic"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="1.5" y="3.5" width="13" height="9" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M1.5 6.5h13" stroke="currentColor" stroke-width="1.4"/></svg></span>
+                <span><span class="t">Bankovní převod</span><br /><span class="d">1 až 3 pracovní dny</span></span>
+              </div>
+              <div class="method">
+                <span class="ic"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.4"/><path d="M6 5.5h2.6a1.5 1.5 0 010 3H6m0 0h3a1.5 1.5 0 010 3H6m1.5-7.5v9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span>
+                <span><span class="t">Kryptoměny</span><br /><span class="d">Do 24 hodin</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel mt">
+          <h3>Historie výběrů</h3>
+          <p class="slip-empty">Zatím žádné výběry. Odemknou se s financovaným účtem.</p>
+        </div>
+      </section>
+
+      <!-- ============ PROFIL ============ -->
+      <section class="dash-view" id="view-profil" hidden>
+        <div class="dash-head">
+          <div>
+            <h1>Profil</h1>
+            <p>Spravujte své údaje, odznaky a nastavení</p>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Odznaky · <span style="color:var(--text-muted);font-weight:500">3 / 12</span></h3>
+          <div class="badges" id="badgeGrid"><!-- JS --></div>
+        </div>
+
+        <div class="two-col">
+          <div class="panel">
+            <h3>Pozvěte přátele</h3>
+            <p class="t-small">Za každého přítele, který si koupí balíček, dostanete 5 % cashback do challenge balance.</p>
+            <div class="ref-box">
+              <input class="input" readonly value="https://betflow.fund/auth?ref=tiper42" id="refLink" />
+              <button class="btn btn-ghost" style="height:auto" id="refCopy">Kopírovat</button>
+            </div>
+            <div class="ref-stats">
+              <div><div class="num">2</div><div class="lbl">Pozvaných</div></div>
+              <div><div class="num green">1</div><div class="lbl">Aktivních</div></div>
+              <div><div class="num green">890 Kč</div><div class="lbl">Bonus</div></div>
+            </div>
+          </div>
+          <div class="stack">
+            <div class="panel">
+              <div class="switch-row">
+                <span class="grow">
+                  <span class="t">Sdílet v žebříčku</span><br />
+                  <span class="d">Bez přezdívky se zobrazíte anonymně jako Hráč #4f2c.</span>
+                </span>
+                <button class="switch" role="switch" aria-checked="true" id="lbShare" aria-label="Sdílet v žebříčku"></button>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="field" style="margin-bottom:8px">
+                <label for="nickInput">Přezdívka v žebříčku</label>
+                <div class="ref-box" style="margin-top:0">
+                  <input class="input" id="nickInput" value="Tipér42" style="font-family:inherit" />
+                  <button class="btn btn-primary" style="height:auto" id="nickSave">Uložit</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel mt">
+          <div class="acct-head">
+            <span class="a-ic">
+              <svg width="20" height="20" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M4.5 2h6v4a3 3 0 01-6 0V2z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M7.5 9v2.5M5 13h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            </span>
+            <span class="grow" style="flex:1">
+              <span class="t">Elite</span><br />
+              <span class="d">Kapitál: 200 000 Kč</span>
+            </span>
+            <span class="chip-phase">Fáze 1</span>
+          </div>
+          <div class="stat-grid">
+            <div class="dstat"><div class="lbl">Aktuální zůstatek</div><div class="val green">206 400 Kč</div></div>
+            <div class="dstat"><div class="lbl">Celkový zisk</div><div class="val green">+6 400 Kč</div></div>
+            <div class="dstat"><div class="lbl">Tiketů celkem</div><div class="val">6</div></div>
+            <div class="dstat"><div class="lbl">Úspěšnost</div><div class="val green">67 %</div></div>
+          </div>
+          <div class="bc-goal">
+            <div class="bc-goal-row"><span>Postup k cíli (40 000 Kč)</span><span><b>16 %</b></span></div>
+            <div class="progress"><span style="width:16%"></span></div>
+            <div class="bc-meta"><span>Potřebujete 10 výherních tiketů · Máte 4</span></div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="panel">
+            <h3>Rizikové limity</h3>
+            <p class="t-small" style="margin-bottom:12px">Žádný denní limit. Jediné pravidlo selhání je trailing drawdown.</p>
+            <div class="limit-row">
+              <span class="k">Trailing drawdown <small>(HWM 206 400 · Floor 190 400)</small></span>
+              <span class="v">16 000 Kč zbývá</span>
+            </div>
+            <div class="progress"><span style="width:100%"></span></div>
+          </div>
+          <div class="panel">
+            <h3>Časový limit</h3>
+            <div class="val green" style="font-size:1.75rem;font-weight:800">23 dní</div>
+            <p class="t-small">Zbývá do konce fáze · Deadline: 2. 8. 2026</p>
+          </div>
+        </div>
+
+        <div class="panel mt">
+          <h3>Pravidla balíčku</h3>
+          <div class="rules-grid">
+            <div class="rule-tile"><div class="k">Profit split</div><div class="v green">85 %</div></div>
+            <div class="rule-tile"><div class="k">Max. sázka</div><div class="v">8 000 Kč</div></div>
+            <div class="rule-tile"><div class="k">Kurzy</div><div class="v">1.00 až 8.00</div></div>
+            <div class="rule-tile"><div class="k">Drawdown</div><div class="v">16 000 Kč</div></div>
+            <div class="rule-tile"><div class="k">Časový limit</div><div class="v">30 dní / fáze</div></div>
+            <div class="rule-tile"><div class="k">Min. tiketů</div><div class="v">10</div></div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- mobilní navigace -->
+  <nav class="dnav-mobile" aria-label="Dashboard, mobilní">
+    <button class="active" data-view="prehled">Přehled</button>
+    <button data-view="vykon">Výkon</button>
+    <button data-view="sazeni">Sázení</button>
+    <button data-view="zebricek">Žebříček</button>
+    <button data-view="vyplaty">Výplaty</button>
+    <button data-view="profil">Profil</button>
+  </nav>
+
+  <script src="js/dashboard.js"></script>
+</body>
+</html>
