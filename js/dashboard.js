@@ -671,6 +671,44 @@ if (nickSave) {
 }
 
 // ---------- přehled: render z reálného stavu portfolia ----------
+function renderEquityChart(state) {
+  const points = state.equityHistory;
+  if (points.length < 2) {
+    return `<p class="bet-msg">Graf se naplní, jakmile proběhne první vsazený a vyhodnocený tiket.</p>`;
+  }
+  const w = 600, h = 140, pad = 8;
+  const values = points.map((p) => p.balance);
+  const min = Math.min(...values), max = Math.max(...values);
+  const span = max - min || 1;
+  const stepX = (w - pad * 2) / (points.length - 1);
+  const coords = points.map((p, i) => {
+    const x = pad + i * stepX;
+    const y = pad + (h - pad * 2) * (1 - (p.balance - min) / span);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  });
+  const stroke = values[values.length - 1] >= values[0] ? "var(--accent)" : "#ff6b6b";
+  return `
+    <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" class="equity-svg" role="img" aria-label="Graf vývoje zůstatku">
+      <polyline points="${coords.join(" ")}" fill="none" stroke="${stroke}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
+    </svg>
+    <div class="equity-range"><span>${czk(min)}</span><span>${czk(max)}</span></div>`;
+}
+
+function renderRecentTickets(state) {
+  const recent = state.tickets.slice(0, 5);
+  if (!recent.length) {
+    return `<p class="bet-msg">Zatím žádné tikety. Vsaďte první v sekci Sázení.</p>`;
+  }
+  return recent.map((t) => {
+    const label = t.selections.length > 1
+      ? `${t.selections.length}× akumulátor`
+      : `${t.selections[0].homeTeam} – ${t.selections[0].awayTeam}`;
+    const tag = t.status === "won" ? "win" : t.status === "lost" ? "loss" : t.status === "push" ? "" : "pend";
+    const tagText = t.status === "won" ? "Výhra" : t.status === "lost" ? "Prohra" : t.status === "push" ? "Vráceno" : "Čeká";
+    return `<div class="k-row neutral">${label} · ${czk(t.stake)}<span class="n"><span class="tag ${tag}">${tagText}</span></span></div>`;
+  }).join("");
+}
+
 function renderPrehled() {
   const view = document.getElementById("view-prehled");
   if (!view) return;
@@ -703,6 +741,8 @@ function renderPrehled() {
       <div class="bc-meta"><span>${daysLeft} dní zbývá</span><span>Do cíle ${czk(toGoal)}</span></div>
     </div>`}`;
 
+  document.getElementById("equityChart").innerHTML = renderEquityChart(state);
+
   const s = Portfolio.summary(state);
   document.getElementById("ovStatGrid").innerHTML = `
     <div class="dstat">
@@ -721,6 +761,8 @@ function renderPrehled() {
       <div class="lbl"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 5a1.5 1.5 0 001.5-1.5h8A1.5 1.5 0 0013 5v1.6a1.9 1.9 0 000 3.8V12a1.5 1.5 0 00-1.5 1.5h-8A1.5 1.5 0 002 12V5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" transform="translate(0,-1.2)"/></svg>Tikety</div>
       <div class="val">${s.total}</div>
     </div>`;
+
+  document.getElementById("recentTickets").innerHTML = renderRecentTickets(state);
 
   const dd = Portfolio.drawdownInfo(state);
   document.getElementById("ovLimity").innerHTML = `

@@ -761,3 +761,6 @@
 
 .stack { display: flex; flex-direction: column; gap: 10px; }
 .mt { margin-top: 10px; }
+
+.equity-svg { width: 100%; height: 140px; display: block; }
+.equity-range { display: flex; justify-content: space-between; font-size: .6875rem; color: var(--text-muted); margin-top: 4px; }

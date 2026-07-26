@@ -72,9 +72,19 @@
 
         <div class="balance-card" id="balanceCard"><!-- JS: renderPrehled() --></div>
 
+        <div class="panel" id="equityPanel">
+          <h3>Vývoj zůstatku</h3>
+          <div id="equityChart"><!-- JS: renderPrehled() --></div>
+        </div>
+
         <div class="stat-grid" id="ovStatGrid"><!-- JS: renderPrehled() --></div>
 
         <button class="btn btn-primary btn-lg cta-bet" data-view-link="sazeni">Sázet teď</button>
+
+        <div class="panel" id="recentTicketsPanel">
+          <h3>Poslední tikety</h3>
+          <div id="recentTickets"><!-- JS: renderPrehled() --></div>
+        </div>
 
         <div class="subtabs" role="tablist" aria-label="Detail výzvy" id="ovTabs">
           <button class="active" data-ovtab="limity" role="tab" aria-selected="true">Limity</button>
