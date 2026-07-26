@@ -808,3 +808,47 @@ function renderPrehled() {
   }).join("")}</div>`;
 }
 renderPrehled();
+
+// ---------- výkon: render z reálného stavu portfolia ----------
+function renderVykon() {
+  const view = document.getElementById("view-vykon");
+  if (!view) return;
+  const state = Portfolio.ensure("advanced");
+  document.getElementById("vykonSubtitle").textContent = `Statistiky balíčku ${state.packageName}`;
+  const s = Portfolio.summary(state);
+
+  document.getElementById("vykonStatGrid").innerHTML = `
+    <div class="dstat"><div class="lbl">Aktuální zisk</div><div class="val ${s.netProfit >= 0 ? "green" : ""}">${s.netProfit >= 0 ? "+" : ""}${czk(s.netProfit)}</div></div>
+    <div class="dstat"><div class="lbl">Úspěšnost</div><div class="val ${s.winRate >= 50 ? "green" : ""}">${s.winRate} %</div></div>
+    <div class="dstat"><div class="lbl">Průměrný kurz</div><div class="val">${s.avgOdds.toFixed(2)}</div></div>
+    <div class="dstat"><div class="lbl">Čekající</div><div class="val">${s.pending}</div></div>`;
+
+  document.getElementById("vykonBreakdown").innerHTML = `
+    <div class="k-row win">Výherní<span class="n">${s.won}</span></div>
+    <div class="k-row loss">Prohrané<span class="n">${s.lost}</span></div>
+    <div class="k-row pend">Čekající<span class="n">${s.pending}</span></div>`;
+
+  document.getElementById("vykonFinancials").innerHTML = `
+    <div class="k-row neutral">Vsazeno<span class="n">${czk(s.staked)}</span></div>
+    <div class="k-row neutral">Vráceno<span class="n">${czk(s.returned)}</span></div>
+    <div class="k-row neutral">Čistý zisk<span class="n ${s.netProfit >= 0 ? "green" : ""}">${s.netProfit >= 0 ? "+" : ""}${czk(s.netProfit)}</span></div>`;
+
+  const days = Portfolio.dailyNet(state, 7);
+  const maxAbs = Math.max(1, ...days.map((d) => Math.abs(d.net)));
+  document.getElementById("vykonBarChart").innerHTML = days.map((d) => {
+    const heightPct = d.net === 0 ? 4 : Math.max(6, Math.round((Math.abs(d.net) / maxAbs) * 100));
+    const cls = d.net > 0 ? "pos" : d.net < 0 ? "neg" : "";
+    return `<div class="bc-col"><span class="bar ${cls}" style="height:${heightPct}%"></span><span class="d">${d.label}</span></div>`;
+  }).join("");
+
+  const recent = state.tickets.slice(0, 8);
+  document.getElementById("vykonTicketTable").innerHTML = recent.length ? recent.map((t) => {
+    const label = t.selections.length > 1
+      ? `${t.selections.length}× akumulátor`
+      : `${t.selections[0].homeTeam} – ${t.selections[0].awayTeam}`;
+    const tip = t.selections.length > 1 ? "AKU" : (t.selections[0].pickLabel || "");
+    const tag = t.status === "won" ? "win" : t.status === "lost" ? "loss" : t.status === "push" ? "" : "pend";
+    const tagText = t.status === "won" ? "Výhra" : t.status === "lost" ? "Prohra" : t.status === "push" ? "Vráceno" : "Čeká";
+    return `<tr><td>${label}</td><td>${tip}</td><td class="odds">${t.combinedOdds.toFixed(2)}</td><td>${czk(t.stake)}</td><td><span class="tag ${tag}">${tagText}</span></td></tr>`;
+  }).join("") : `<tr><td colspan="5">Zatím žádné tikety.</td></tr>`;
+}

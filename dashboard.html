@@ -114,62 +114,34 @@
         <div class="dash-head">
           <div>
             <h1>Výkon</h1>
-            <p>Statistiky balíčku Elite</p>
+            <p id="vykonSubtitle">Statistiky balíčku</p>
           </div>
         </div>
 
-        <div class="stat-grid" style="margin-top:0">
-          <div class="dstat"><div class="lbl">Aktuální zisk</div><div class="val green">+6 400 Kč</div></div>
-          <div class="dstat"><div class="lbl">Úspěšnost</div><div class="val green">67 %</div></div>
-          <div class="dstat"><div class="lbl">Průměrný kurz</div><div class="val">2.14</div></div>
-          <div class="dstat"><div class="lbl">Čekající</div><div class="val">1</div></div>
-        </div>
+        <div class="stat-grid" style="margin-top:0" id="vykonStatGrid"><!-- JS: renderVykon() --></div>
 
         <div class="two-col">
           <div class="panel">
             <h3>Přehled tiketů</h3>
-            <div class="k-rows">
-              <div class="k-row win">Výherní<span class="n">4</span></div>
-              <div class="k-row loss">Prohrané<span class="n">1</span></div>
-              <div class="k-row pend">Čekající<span class="n">1</span></div>
-            </div>
+            <div class="k-rows" id="vykonBreakdown"><!-- JS: renderVykon() --></div>
           </div>
           <div class="panel">
             <h3>Finanční přehled</h3>
-            <div class="k-rows">
-              <div class="k-row neutral">Vsazeno<span class="n">34 000 Kč</span></div>
-              <div class="k-row neutral">Vráceno<span class="n">40 400 Kč</span></div>
-              <div class="k-row neutral">Čistý zisk<span class="n green">+6 400 Kč</span></div>
-            </div>
+            <div class="k-rows" id="vykonFinancials"><!-- JS: renderVykon() --></div>
           </div>
         </div>
 
         <div class="two-col">
           <div class="panel">
             <h3>Denní bilance, posledních 7 dní</h3>
-            <div class="bar-chart" role="img" aria-label="Sloupcový graf denní bilance">
-              <div class="bc-col"><span class="bar pos" style="height:34%"></span><span class="d">Čt</span></div>
-              <div class="bc-col"><span class="bar neg" style="height:22%"></span><span class="d">Pá</span></div>
-              <div class="bc-col"><span class="bar pos" style="height:58%"></span><span class="d">So</span></div>
-              <div class="bc-col"><span class="bar" style="height:6%"></span><span class="d">Ne</span></div>
-              <div class="bc-col"><span class="bar pos" style="height:42%"></span><span class="d">Po</span></div>
-              <div class="bc-col"><span class="bar pos" style="height:76%"></span><span class="d">Út</span></div>
-              <div class="bc-col"><span class="bar" style="height:10%"></span><span class="d">St</span></div>
-            </div>
+            <div class="bar-chart" role="img" aria-label="Sloupcový graf denní bilance" id="vykonBarChart"><!-- JS: renderVykon() --></div>
           </div>
           <div class="panel">
             <h3>Poslední tikety</h3>
             <div style="overflow-x:auto">
               <table class="ticket-table">
                 <thead><tr><th>Zápas</th><th>Tip</th><th>Kurz</th><th>Vklad</th><th>Stav</th></tr></thead>
-                <tbody>
-                  <tr><td>Sparta – Slavia</td><td>1</td><td class="odds">2.35</td><td>4 000 Kč</td><td><span class="tag win">Výhra</span></td></tr>
-                  <tr><td>Lakers – Celtics</td><td>2</td><td class="odds">1.85</td><td>6 000 Kč</td><td><span class="tag win">Výhra</span></td></tr>
-                  <tr><td>Third – Oceláři</td><td>Přes 5.5</td><td class="odds">1.92</td><td>6 000 Kč</td><td><span class="tag loss">Prohra</span></td></tr>
-                  <tr><td>Alcaraz – Sinner</td><td>2</td><td class="odds">2.60</td><td>4 000 Kč</td><td><span class="tag win">Výhra</span></td></tr>
-                  <tr><td>Plzeň – Baník</td><td>Oba dají gól</td><td class="odds">1.78</td><td>8 000 Kč</td><td><span class="tag win">Výhra</span></td></tr>
-                  <tr><td>Arsenal – City</td><td>X</td><td class="odds">3.40</td><td>6 000 Kč</td><td><span class="tag pend">Čeká</span></td></tr>
-                </tbody>
+                <tbody id="vykonTicketTable"><!-- JS: renderVykon() --></tbody>
               </table>
             </div>
           </div>
