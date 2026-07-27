@@ -211,12 +211,13 @@ const Portfolio = (() => {
 
   async function fetchEventStatus(id) {
     const cached = cacheGet("eventStatus:" + id, 2 * 60 * 1000);
-    if (cached) return cached;
+    if (cached !== null) return cached;
     try {
       const ev = await apiGet(`/events/${id}`, {});
       cacheSet("eventStatus:" + id, ev);
       return ev;
     } catch (e) {
+      cacheSet("eventStatus:" + id, null); // negative-cache the failure so we don't retry every tick
       return null;
     }
   }

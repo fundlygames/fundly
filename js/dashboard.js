@@ -15,6 +15,7 @@ function showView(name) {
   window.scrollTo({ top: 0, behavior: "instant" });
   if (name === "prehled" && typeof renderPrehled === "function") renderPrehled();
   if (name === "vykon" && typeof renderVykon === "function") renderVykon();
+  if (name === "sazeni" && typeof renderBankBar === "function") renderBankBar();
 }
 
 document.addEventListener("click", (e) => {
@@ -44,13 +45,13 @@ async function refreshAfterSettlement() {
   await Portfolio.checkSettlements();
   if (typeof renderPrehled === "function") renderPrehled();
   if (typeof renderVykon === "function") renderVykon();
+  if (typeof renderBankBar === "function") renderBankBar();
 }
 refreshAfterSettlement();
-setInterval(refreshAfterSettlement, 60 * 1000);
+setInterval(refreshAfterSettlement, 5 * 60 * 1000);
 
 // ---------- sázení (živá data z odds-api.io) ----------
 // API_BASE/API_KEY/BOOKMAKER/CACHE_TTL/cacheGet/cacheSet/cacheDrop/apiGet: viz js/portfolio.js
-const MAX_STAKE = 8000;
 const ODDS_MIN = 1.0;
 const ODDS_MAX = 8.0;
 const EVENTS_PER_SPORT = 10; // /odds/multi bere max 10 eventů na 1 request
@@ -395,6 +396,15 @@ async function selectSport(slug, force) {
   }
 }
 
+function renderBankBar() {
+  const bal = document.getElementById("bankBalance");
+  if (!bal) return;
+  const state = Portfolio.ensure("advanced");
+  bal.textContent = czk(state.balance);
+  document.getElementById("bankMaxStake").textContent = czk(state.maxStake);
+  document.getElementById("bankOddsRange").textContent = `${ODDS_MIN.toFixed(2)} až ${ODDS_MAX.toFixed(2)}`;
+}
+
 function renderSlip() {
   if (!slip.length) {
     slipBody.innerHTML = `<p class="slip-empty"><img src="assets/fan-1.jpg" alt="" />Váš tiket je prázdný.<br />Vyberte si kurzy z nabídky.</p>`;
@@ -449,6 +459,7 @@ function renderSlip() {
       slip = [];
       renderMatches();
       renderSlip();
+      renderBankBar();
     }, 900);
   });
 }
@@ -456,6 +467,7 @@ function renderSlip() {
 if (sportTabs) {
   renderSportTabs();
   renderSlip();
+  renderBankBar();
   selectSport(activeSport);
 
   sportTabs.addEventListener("click", (e) => {
