@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Editorial Analytics — Koncept 2 | Betflow</title>
+  <meta name="description" content="Editorial Analytics — koncept dashboardu Betflow s magazínovým typografickým jazykem." />
+  <meta name="theme-color" content="#030303" />
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/dashboard-concept-2-editorial.css" />
+</head>
+<body class="ed-body">
+
+  <!-- ============ MASTHEAD NAV ============ -->
+  <header class="ed-nav">
+    <div class="ed-nav-inner">
+      <a href="index.html" class="ed-logo" aria-label="Betflow, domů">
+        <img src="assets/logo.png" alt="" width="18" height="18" />
+        <span>betflow</span>
+      </a>
+      <nav class="ed-view-tabs" aria-label="Sekce">
+        <button class="ed-view-tab active" data-view="prehled">Přehled</button>
+        <button class="ed-view-tab" data-view="vykon">Výkon</button>
+      </nav>
+      <a class="ed-back" href="dashboard.html">← Zpět na dashboard</a>
+    </div>
+  </header>
+
+  <main class="ed-main">
+
+    <!-- ============================================================ -->
+    <!-- PŘEHLED (OVERVIEW)                                            -->
+    <!-- ============================================================ -->
+    <section class="ed-view" id="view-prehled">
+
+      <!-- 1. Masthead strip -->
+      <div class="ed-masthead-strip" id="edMastheadStrip">
+        <span id="edMastPackage">–</span>
+        <span class="ed-dot">·</span>
+        <span id="edMastPhase">–</span>
+        <span class="ed-dot">·</span>
+        <span id="edMastDay">–</span>
+      </div>
+
+      <!-- 2. Hero: the balance story -->
+      <section class="ed-hero">
+        <div class="ed-hero-left">
+          <div class="ed-kicker">ÚČET · ZŮSTATEK</div>
+          <div class="ed-hero-number" id="edBalance">–</div>
+          <p class="ed-prose" id="edBalanceProse">Načítání příběhu vašeho účtu…</p>
+        </div>
+        <div class="ed-hero-right">
+          <div class="ed-kicker">KŘIVKA</div>
+          <div class="ed-sparkline" id="edSparkline"></div>
+        </div>
+      </section>
+
+      <!-- 3. Phase progress, typographic fraction -->
+      <section class="ed-progress" id="edProgressSection">
+        <div class="ed-kicker" id="edProgressKicker">POSTUP · FÁZE 1</div>
+        <div class="ed-fraction">
+          <span class="ed-fraction-current" id="edProgressCurrent">0</span>
+          <span class="ed-fraction-slash">/</span>
+          <span class="ed-fraction-target" id="edProgressTarget">0</span>
+          <span class="ed-fraction-unit">Kč</span>
+        </div>
+        <div class="ed-progress-rule"><span id="edProgressFill"></span></div>
+        <p class="ed-prose" id="edProgressProse">–</p>
+      </section>
+
+      <!-- 4. Equity curve, told large -->
+      <section class="ed-equity">
+        <div class="ed-kicker">RIZIKO · KŘIVKA ZŮSTATKU</div>
+        <div class="ed-equity-wrap">
+          <div class="ed-equity-annotation" id="edEquityAnnotation"></div>
+          <div class="ed-equity-chart" id="edEquityChart"></div>
+        </div>
+      </section>
+
+      <!-- 5. Drawdown, single quiet stat -->
+      <section class="ed-drawdown">
+        <div class="ed-drawdown-inner">
+          <div class="ed-kicker">REZERVA · TRAILING DRAWDOWN</div>
+          <div class="ed-drawdown-number" id="edDrawdownAmount">–</div>
+          <p class="ed-prose" id="edDrawdownProse">–</p>
+        </div>
+      </section>
+
+      <!-- 6. Recent tickets, editorial log -->
+      <section class="ed-log">
+        <div class="ed-kicker">HISTORIE · POSLEDNÍ TIKETY</div>
+        <div class="ed-log-list" id="edTicketLog"></div>
+      </section>
+
+      <!-- 7. Subtabs: reference material -->
+      <section class="ed-detail">
+        <div class="ed-kicker">PODROBNOSTI VÝZVY</div>
+        <div class="ed-subtabs" role="tablist" aria-label="Detail výzvy" id="edSubtabs">
+          <button class="active" data-subtab="limity" role="tab" aria-selected="true">Limity</button>
+          <button data-subtab="pravidla" role="tab" aria-selected="false">Pravidla</button>
+          <button data-subtab="cesta" role="tab" aria-selected="false">Cesta</button>
+          <button data-subtab="tipy" role="tab" aria-selected="false">Tipy</button>
+        </div>
+
+        <div class="ed-subpanel" data-subpanel="limity" id="edLimity"></div>
+
+        <div class="ed-subpanel" data-subpanel="pravidla" id="edPravidla" hidden></div>
+
+        <div class="ed-subpanel" data-subpanel="cesta" id="edCesta" hidden></div>
+
+        <div class="ed-subpanel" data-subpanel="tipy" hidden>
+          <p class="ed-prose">Sázejte konzistentní částky, 1 až 2 % kapitálu na tiket bohatě stačí. Držte se sportů a lig, které opravdu znáte, kvantita cíl nesplní. Trailing drawdown se posouvá s každým novým maximem, hlídejte si rezervu. Na cíl máte 30 dní, nespěchejte — průměrně stačí menší denní přírůstek než si myslíte.</p>
+        </div>
+      </section>
+
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- VÝKON (PERFORMANCE)                                           -->
+    <!-- ============================================================ -->
+    <section class="ed-view" id="view-vykon" hidden>
+
+      <!-- 1. Section masthead -->
+      <div class="ed-section-head">
+        <h1 class="ed-title">Výkon</h1>
+        <div class="ed-kicker" id="edVykonKicker">STATISTIKY · 0 TIKETŮ CELKEM</div>
+      </div>
+
+      <!-- 2. Headline stat + ticker strip -->
+      <section class="ed-hero ed-hero-vykon">
+        <div class="ed-kicker" id="edHeroStatKicker">ČISTÝ ZISK</div>
+        <div class="ed-hero-number" id="edHeroStat">–</div>
+      </section>
+      <div class="ed-ticker-strip" id="edTickerStrip"></div>
+
+      <!-- 3. Daily P&L, bar essay -->
+      <section class="ed-bars">
+        <div class="ed-kicker">DENNÍ BILANCE · POSLEDNÍCH 30 DNÍ</div>
+        <div class="ed-bars-wrap" id="edBarsChart"></div>
+        <div class="ed-bars-baseline"></div>
+      </section>
+
+      <!-- 4. Ticket history, real editorial table -->
+      <section class="ed-table-section">
+        <div class="ed-kicker">ZÁZNAM · VŠECHNY TIKETY</div>
+        <div class="ed-table-wrap">
+          <table class="ed-table" id="edTicketTable">
+            <thead>
+              <tr>
+                <th data-sort="match">Zápas / Tip</th>
+                <th data-sort="odds" class="num">Kurz</th>
+                <th data-sort="stake" class="num">Vklad</th>
+                <th data-sort="status">Stav</th>
+                <th data-sort="payout" class="num">Výplata</th>
+              </tr>
+            </thead>
+            <tbody id="edTicketTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 5. Editor's note -->
+      <p class="ed-editor-note" id="edEditorNote"></p>
+
+    </section>
+
+  </main>
+
+  <script src="js/packages.js"></script>
+  <script src="js/portfolio.js"></script>
+  <script src="js/dashboard-concept-2-editorial.js"></script>
+</body>
+</html>

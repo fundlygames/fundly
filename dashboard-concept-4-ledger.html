@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brutalist Ledger | Betflow Dashboard Concept</title>
+  <meta name="description" content="Koncept 1/5: Brutalist Ledger — účetní výpis místo dashboardu, jedno písmo, jedno inkoustové zvýraznění." />
+  <meta name="theme-color" content="#F5F4F0" />
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+  <link rel="stylesheet" href="css/dashboard-concept-4-ledger.css" />
+</head>
+<body class="ledger-body">
+
+  <div class="ledger-wrap">
+
+    <a href="dashboard.html" class="ledger-backlink">&larr; BACK TO LIVE DASHBOARD.HTML</a>
+
+    <!-- ============ MASTHEAD ============ -->
+    <header class="ledger-masthead">
+      <div>
+        <div class="ledger-wordmark">BETFLOW <span>// LEDGER</span></div>
+        <div class="ledger-acct-line" id="acctLine">ADVANCED — $50,000 CAP</div>
+      </div>
+      <div class="ledger-meta">
+        <div>ACCT PHASE<span id="metaPhase">01</span></div>
+        <div>DOC ID<span id="metaDocId">BF-0000</span></div>
+        <div>ISSUED<span id="metaDate">2026.01.01 00:00</span></div>
+        <div id="metaLiveWrap" style="display:none;"><span class="live-dot">LIVE</span></div>
+      </div>
+    </header>
+
+    <!-- ============ TABS ============ -->
+    <nav class="ledger-tabs" aria-label="Ledger views">
+      <button class="ledger-tab active" data-view="prehled">01 · PŘEHLED</button>
+      <button class="ledger-tab" data-view="vykon">02 · VÝKON</button>
+    </nav>
+
+    <!-- ============================================================
+         VIEW 1 — PŘEHLED (OVERVIEW)
+         ============================================================ -->
+    <section class="ledger-view active" id="view-prehled">
+
+      <!-- balance ledger row -->
+      <div class="ledger-balance-row">
+        <div class="ledger-balance-cell">
+          <span class="micro">OPENING BALANCE</span>
+          <div class="ledger-balance-num mono-num" id="ovOpening">$0.00</div>
+        </div>
+        <div class="ledger-balance-cell">
+          <span class="micro">NET P&amp;L (CURRENT PHASE)</span>
+          <div class="ledger-balance-num mono-num" id="ovNet">+$0.00</div>
+        </div>
+        <div class="ledger-balance-cell hero">
+          <span class="micro">CURRENT BALANCE</span>
+          <div class="ledger-balance-num mono-num" id="ovBalance">$0.00</div>
+        </div>
+      </div>
+
+      <!-- phase progress -->
+      <div class="ledger-section">
+        <div class="ledger-section-title">
+          <span>PHASE PROGRESS</span>
+          <span id="phaseStampWrap"></span>
+        </div>
+        <div class="tick-row" id="phaseTicks"></div>
+        <div class="tick-readout" id="phaseReadout">0.0% · $0 / $0 TO TARGET</div>
+        <table class="ledger-table">
+          <thead>
+            <tr>
+              <th>ROW</th>
+              <th>TARGET 1</th>
+              <th>TARGET 2</th>
+              <th>DRAWDOWN</th>
+              <th>MAX STAKE</th>
+              <th>PROFIT SPLIT</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>RULE</td>
+              <td class="mono-num" id="ruleT1">$0</td>
+              <td class="mono-num" id="ruleT2">$0</td>
+              <td class="mono-num" id="ruleDD">$0</td>
+              <td class="mono-num" id="ruleMax">$0</td>
+              <td class="mono-num" id="ruleSplit">0%</td>
+            </tr>
+            <tr class="you-row">
+              <td>YOU</td>
+              <td class="mono-num" id="youT1">—</td>
+              <td class="mono-num" id="youT2">—</td>
+              <td class="mono-num" id="youDD">$0</td>
+              <td class="mono-num" id="youMax">$0</td>
+              <td class="mono-num" id="youSplit">—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- drawdown strip -->
+      <div class="ledger-section">
+        <div class="ledger-section-title"><span>DRAWDOWN — HWM TO FLOOR</span></div>
+        <div class="dd-strip" id="ddStrip">
+          <span class="dd-label" style="left:12px;">HWM<br><strong id="ddHwmVal">$0</strong></span>
+          <span class="dd-label end-right">FLOOR<br><strong id="ddFloorVal">$0</strong></span>
+          <div class="dd-track"></div>
+          <div class="dd-tick" id="ddCurTick"></div>
+          <div class="dd-cur-label" id="ddCurLabel">$0</div>
+        </div>
+      </div>
+
+      <!-- equity curve -->
+      <div class="ledger-section">
+        <div class="ledger-section-title"><span>EQUITY CURVE — LAST 14 DAYS (DAILY NET)</span></div>
+        <div class="spark-cell" id="sparkCell"></div>
+        <div style="overflow-x:auto; margin-top:8px;">
+          <table class="ledger-table" id="sparkTable" style="min-width:640px;">
+            <thead>
+              <tr><th>DATE</th><th>NET</th><th>RUNNING TOTAL</th></tr>
+            </thead>
+            <tbody id="sparkTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- recent tickets -->
+      <div class="ledger-section" style="border-bottom:none; padding-bottom:0;">
+        <div class="ledger-section-title"><span>RECENT TICKETS</span></div>
+        <table class="ledger-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>MATCH</th>
+              <th>PICK</th>
+              <th>ODDS</th>
+              <th>STAKE</th>
+              <th>STATUS</th>
+            </tr>
+          </thead>
+          <tbody id="recentTicketsBody"></tbody>
+        </table>
+      </div>
+      <button class="ledger-view-all" id="viewAllBtn" type="button">VIEW ALL TICKETS &rarr; 02 · VÝKON</button>
+
+    </section>
+
+    <!-- ============================================================
+         VIEW 2 — VÝKON (PERFORMANCE)
+         ============================================================ -->
+    <section class="ledger-view" id="view-vykon">
+
+      <!-- stat header rail -->
+      <div class="stat-rail">
+        <div class="stat-rail-cell">
+          <span class="micro">WIN RATE</span>
+          <div class="stat-rail-num mono-num" id="stWinRate">0%</div>
+        </div>
+        <div class="stat-rail-cell">
+          <span class="micro">AVG ODDS</span>
+          <div class="stat-rail-num mono-num" id="stAvgOdds">0.00</div>
+        </div>
+        <div class="stat-rail-cell">
+          <span class="micro">TOTAL STAKED</span>
+          <div class="stat-rail-num mono-num" id="stStaked">$0.00</div>
+        </div>
+        <div class="stat-rail-cell net">
+          <span class="micro">NET P&amp;L (ALL TIME)</span>
+          <div class="stat-rail-num mono-num" id="stNet">+$0.00</div>
+        </div>
+        <div class="stat-rail-cell">
+          <span class="micro">RECORD (W–L–P)</span>
+          <div class="stat-rail-num mono-num" id="stRecord">0W–0L–0P</div>
+        </div>
+      </div>
+
+      <!-- daily p&l chart -->
+      <div class="ledger-section">
+        <div class="ledger-section-title"><span>DAILY P&amp;L — LAST 14 DAYS</span></div>
+        <div class="bar-chart" id="barChart"></div>
+        <div class="pl-summary-line" id="plSummaryLine"></div>
+      </div>
+
+      <!-- ticket history -->
+      <div class="ledger-section">
+        <div class="ledger-section-title"><span>TRANSACTION LEDGER — FULL TICKET HISTORY</span></div>
+        <div class="ticket-table-wrap">
+          <table class="ticket-table" id="ticketHistoryTable">
+            <thead>
+              <tr>
+                <th data-sort="id">TICKET ID <span class="sort-arrow">▲</span></th>
+                <th data-sort="placedAt">PLACED <span class="sort-arrow">▲</span></th>
+                <th data-sort="match">MATCH / LEAGUE <span class="sort-arrow">▲</span></th>
+                <th data-sort="market">MARKET <span class="sort-arrow">▲</span></th>
+                <th data-sort="pick">PICK <span class="sort-arrow">▲</span></th>
+                <th data-sort="odds">ODDS <span class="sort-arrow">▲</span></th>
+                <th data-sort="stake">STAKE <span class="sort-arrow">▲</span></th>
+                <th data-sort="payout">PAYOUT <span class="sort-arrow">▲</span></th>
+                <th data-sort="net">NET <span class="sort-arrow">▲</span></th>
+                <th data-sort="status">STATUS <span class="sort-arrow">▲</span></th>
+              </tr>
+            </thead>
+            <tbody id="ticketHistoryBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- footer tally -->
+      <div class="ledger-footer-tally" id="footerTally">
+        TOTAL TICKETS: 0 <span class="sep">·</span> TOTAL STAKED: $0.00 <span class="sep">·</span> TOTAL RETURNED: $0.00 <span class="sep">·</span> NET: $0.00
+      </div>
+
+    </section>
+
+  </div>
+
+  <script src="js/packages.js"></script>
+  <script src="js/portfolio.js"></script>
+  <script src="js/dashboard-concept-4-ledger.js"></script>
+</body>
+</html>

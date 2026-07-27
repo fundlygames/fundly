@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Glass Command Center | Betflow</title>
+  <meta name="description" content="Koncept 3: Glass Command Center — HUD-styl přehled financovaného účtu Betflow." />
+  <meta name="theme-color" content="#05060a" />
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/dashboard-concept-3-glass.css" />
+</head>
+<body class="gcc-body">
+
+  <!-- ============ AMBIENT BACKDROP ============ -->
+  <div class="gcc-ambient" id="gccAmbient" aria-hidden="true">
+    <div class="gcc-ambient-layer gcc-ambient-overview active" id="gccAmbientOverview"></div>
+    <div class="gcc-ambient-layer gcc-ambient-performance" id="gccAmbientPerformance"></div>
+    <div class="gcc-ambient-vignette"></div>
+    <div class="gcc-ambient-grain"></div>
+  </div>
+
+  <!-- ============ HUD BAR ============ -->
+  <header class="gcc-hud">
+    <div class="gcc-hud-inner">
+      <div class="gcc-hud-left">
+        <a href="dashboard.html" class="gcc-back" aria-label="Zpět na živý dashboard">
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M8.5 2.5L3 7l5.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>DASHBOARD</span>
+        </a>
+        <div class="gcc-hud-div"></div>
+        <span class="gcc-tag" id="hudPlanName">BALÍČEK //</span>
+        <span class="gcc-pill" id="hudPhasePill">PHASE 01 / 02</span>
+      </div>
+
+      <nav class="gcc-hud-center" id="viewNav" aria-label="Zobrazení">
+        <button class="gcc-seg active" data-view="overview" type="button">PŘEHLED</button>
+        <button class="gcc-seg" data-view="performance" type="button">VÝKON</button>
+      </nav>
+
+      <div class="gcc-hud-right">
+        <span class="gcc-status" aria-hidden="true"><i class="gcc-status-dot"></i>ACTIVE</span>
+        <span class="gcc-clock" id="hudClock">00:00:00</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="gcc-main">
+
+    <!-- ============ VIEW: PŘEHLED ============ -->
+    <section class="gcc-view" id="view-overview">
+
+      <!-- HERO COMMAND PANEL -->
+      <div class="gcc-panel gcc-hero" id="heroPanel">
+        <div class="gcc-hero-sweep" aria-hidden="true"></div>
+
+        <div class="gcc-hero-zone gcc-hero-balance">
+          <span class="gcc-tag">BALANCE // LIVE</span>
+          <div class="gcc-hero-number" id="heroBalance">0 Kč</div>
+          <div class="gcc-hero-delta" id="heroDelta">+0 Kč od startu</div>
+          <div class="gcc-hero-sub">
+            <span class="gcc-tag" id="heroHwm">HWM // —</span>
+            <span class="gcc-tag" id="heroCap">KAPITÁL // —</span>
+          </div>
+        </div>
+
+        <div class="gcc-hero-zone gcc-hero-ring">
+          <span class="gcc-tag">CÍL FÁZE</span>
+          <svg class="gcc-ring-svg" viewBox="0 0 200 200" aria-hidden="true">
+            <circle class="gcc-ring-track" cx="100" cy="100" r="84" />
+            <circle class="gcc-ring-fill" id="phaseRingFill" cx="100" cy="100" r="84" />
+          </svg>
+          <div class="gcc-ring-center">
+            <span class="gcc-ring-pct" id="phaseRingPct">0%</span>
+            <span class="gcc-ring-label" id="phaseRingLabel">PHASE 1</span>
+          </div>
+          <div class="gcc-ring-targets">
+            <span class="gcc-tag" id="ringTarget1">T1 // —</span>
+            <span class="gcc-tag" id="ringTarget2">T2 // —</span>
+          </div>
+        </div>
+
+        <div class="gcc-hero-zone gcc-hero-dd">
+          <span class="gcc-tag">DD FLOOR</span>
+          <svg class="gcc-dd-svg" viewBox="0 0 140 160" aria-hidden="true">
+            <path class="gcc-dd-track" id="ddTrack" d="" />
+            <path class="gcc-dd-fill" id="ddFill" d="" />
+          </svg>
+          <div class="gcc-dd-readout">
+            <div class="gcc-dd-row"><span class="gcc-tag">HWM</span><span class="gcc-mono-sm" id="ddHwm">—</span></div>
+            <div class="gcc-dd-row"><span class="gcc-tag">FLOOR</span><span class="gcc-mono-sm" id="ddFloor">—</span></div>
+            <div class="gcc-dd-row"><span class="gcc-tag">REMAINING</span><span class="gcc-mono-sm" id="ddRemaining">—</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TWO COLUMN SPLIT -->
+      <div class="gcc-split">
+        <div class="gcc-panel gcc-equity-panel">
+          <div class="gcc-panel-head">
+            <span class="gcc-tag">EQUITY CURVE // BALANCE HISTORY</span>
+          </div>
+          <div class="gcc-equity-wrap">
+            <svg class="gcc-equity-svg" id="equitySvg" viewBox="0 0 600 220" preserveAspectRatio="none" aria-hidden="true"></svg>
+          </div>
+        </div>
+
+        <div class="gcc-panel gcc-radar-panel">
+          <div class="gcc-panel-head">
+            <span class="gcc-tag">RISK RADAR</span>
+          </div>
+          <div class="gcc-radar-body">
+            <div class="gcc-radar-track">
+              <div class="gcc-radar-marker gcc-radar-hwm" id="radarHwmMarker"><span>HWM</span></div>
+              <div class="gcc-radar-fill" id="radarFill"></div>
+              <div class="gcc-radar-marker gcc-radar-current" id="radarCurrentMarker"><span id="radarCurrentLabel">—</span></div>
+              <div class="gcc-radar-marker gcc-radar-floor" id="radarFloorMarker"><span>FLOOR</span></div>
+            </div>
+            <div class="gcc-radar-legend">
+              <span class="gcc-mono-sm" id="radarPct">—%</span>
+              <span class="gcc-tag">BUFFER LEFT</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RECENT TICKETS STRIP -->
+      <div class="gcc-panel gcc-tickets-strip">
+        <div class="gcc-panel-head">
+          <span class="gcc-tag">RECENT TICKETS</span>
+        </div>
+        <div class="gcc-chip-row" id="ticketChips"><!-- JS --></div>
+      </div>
+
+      <!-- FOOTER MICRO-READOUT -->
+      <div class="gcc-footer-row" id="footerChips"><!-- JS --></div>
+
+    </section>
+
+    <!-- ============ VIEW: VÝKON ============ -->
+    <section class="gcc-view" id="view-performance" hidden>
+
+      <!-- INSTRUMENT PANEL ROW -->
+      <div class="gcc-panel gcc-instrument-panel">
+        <div class="gcc-panel-head">
+          <span class="gcc-tag">INSTRUMENT CLUSTER // PERFORMANCE</span>
+        </div>
+        <div class="gcc-instrument-grid">
+
+          <div class="gcc-instr gcc-instr-winrate">
+            <svg class="gcc-dial-svg" viewBox="0 0 160 160" aria-hidden="true">
+              <circle class="gcc-dial-track" cx="80" cy="80" r="68" />
+              <circle class="gcc-dial-fill" id="winrateDialFill" cx="80" cy="80" r="68" />
+            </svg>
+            <div class="gcc-dial-center">
+              <span class="gcc-dial-value" id="winrateValue">0%</span>
+              <span class="gcc-tag">WIN RATE</span>
+            </div>
+          </div>
+
+          <div class="gcc-instr gcc-instr-odds">
+            <svg class="gcc-dial-svg gcc-dial-svg-sm" viewBox="0 0 110 110" aria-hidden="true">
+              <circle class="gcc-dial-track" cx="55" cy="55" r="46" />
+              <circle class="gcc-dial-fill gcc-dial-fill-cyan" id="oddsDialFill" cx="55" cy="55" r="46" />
+            </svg>
+            <div class="gcc-dial-center">
+              <span class="gcc-dial-value gcc-dial-value-sm" id="oddsValue">0.00</span>
+              <span class="gcc-tag">AVG ODDS</span>
+            </div>
+          </div>
+
+          <div class="gcc-instr gcc-instr-staked">
+            <span class="gcc-tag">STAKED vs RETURNED</span>
+            <div class="gcc-bar-compare">
+              <div class="gcc-bar-row">
+                <span class="gcc-tag gcc-bar-label">STAKED</span>
+                <div class="gcc-bar-track"><div class="gcc-bar-fill gcc-bar-staked" id="stakedBar"></div></div>
+                <span class="gcc-mono-sm" id="stakedValue">—</span>
+              </div>
+              <div class="gcc-bar-row">
+                <span class="gcc-tag gcc-bar-label">RETURNED</span>
+                <div class="gcc-bar-track"><div class="gcc-bar-fill gcc-bar-returned" id="returnedBar"></div></div>
+                <span class="gcc-mono-sm" id="returnedValue">—</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="gcc-instr gcc-instr-net">
+            <span class="gcc-tag">NET P&amp;L</span>
+            <div class="gcc-net-number" id="netPnlValue">0 Kč</div>
+            <div class="gcc-net-sub">
+              <span class="gcc-tag" id="netWon">WON // 0</span>
+              <span class="gcc-tag" id="netLost">LOST // 0</span>
+              <span class="gcc-tag" id="netPending">PENDING // 0</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- DAILY P&L BAR CHART -->
+      <div class="gcc-panel gcc-daily-panel">
+        <div class="gcc-panel-head">
+          <span class="gcc-tag">DAILY P&amp;L // LAST 14 DAYS</span>
+        </div>
+        <div class="gcc-daily-wrap">
+          <div class="gcc-daily-grid" aria-hidden="true"></div>
+          <div class="gcc-daily-bars" id="dailyBars"><!-- JS --></div>
+          <div class="gcc-tooltip" id="dailyTooltip" hidden></div>
+        </div>
+      </div>
+
+      <!-- MISSION LOG -->
+      <div class="gcc-panel gcc-log-panel">
+        <div class="gcc-panel-head gcc-log-head">
+          <span class="gcc-tag">MISSION LOG // TICKET HISTORY</span>
+          <div class="gcc-hud-center gcc-log-filters" id="logFilters">
+            <button class="gcc-seg active" data-filter="all" type="button">ALL</button>
+            <button class="gcc-seg" data-filter="won" type="button">WON</button>
+            <button class="gcc-seg" data-filter="lost" type="button">LOST</button>
+            <button class="gcc-seg" data-filter="pending" type="button">PENDING</button>
+          </div>
+        </div>
+        <div class="gcc-log-list" id="missionLog"><!-- JS --></div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <script src="js/packages.js"></script>
+  <script src="js/portfolio.js"></script>
+  <script src="js/dashboard-concept-3-glass.js"></script>
+</body>
+</html>

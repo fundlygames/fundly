@@ -1,0 +1,555 @@
+/* ============================================================
+   Betflow — Concept 4: BRUTALIST LEDGER
+   Near-monochrome, paper-and-ink, single-typeface financial-document
+   dashboard. No cards, no radius, no shadow, no glow. Ink and rules only.
+   ============================================================ */
+
+:root {
+  --ledger-bg: #F5F4F0;
+  --ledger-paper-2: #EBE9E2;
+  --ledger-ink: #0A0A0A;
+  --ledger-ink-2: #4A4A46;
+  --ledger-rule: #0A0A0A;
+  --ledger-red: #D62E1F;
+  --ledger-blue: #1A3AD6;
+  --ledger-mono: "JetBrains Mono", "IBM Plex Mono", var(--mono, ui-monospace), "SF Mono", Menlo, Consolas, monospace;
+}
+
+/* This concept commits to light mode as its identity — it is a printed
+   document, not a themed app surface, so it does not flip with the
+   viewer's OS theme preference. */
+
+* { box-sizing: border-box; }
+
+html, body.ledger-body {
+  background: var(--ledger-bg);
+}
+
+body.ledger-body {
+  position: relative;
+  margin: 0;
+  font-family: var(--ledger-mono);
+  color: var(--ledger-ink);
+  font-size: 13px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  background-color: var(--ledger-bg);
+}
+
+/* faint tiled paper texture, kept near-imperceptible per the brief (~5%
+   opacity) so the flat ledger paper color never reads as a digital hex
+   swatch — sits behind all content via a fixed full-viewport layer */
+body.ledger-body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url("../assets/concept4-paper-texture.jpg");
+  background-repeat: repeat;
+  background-size: 480px 480px;
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+}
+
+.ledger-wrap {
+  position: relative;
+  z-index: 1;
+}
+
+.ledger-wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 20px 80px;
+}
+
+a { color: inherit; }
+
+/* ---------- generic ledger primitives ---------- */
+
+.rule-2 { border: 0; border-top: 2px solid var(--ledger-rule); }
+.rule-1 { border: 0; border-top: 1px solid var(--ledger-rule); }
+
+.micro {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ledger-ink-2);
+}
+
+.mono-num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+.uc {
+  text-transform: uppercase;
+}
+
+.ink-red { color: var(--ledger-red) !important; }
+.ink-blue { color: var(--ledger-blue) !important; }
+
+/* ---------- back-to-app link ---------- */
+
+.ledger-backlink {
+  display: block;
+  padding: 10px 0 4px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ledger-ink-2);
+  text-decoration: none;
+}
+.ledger-backlink:hover { color: var(--ledger-ink); text-decoration: underline; }
+
+/* ---------- masthead ---------- */
+
+.ledger-masthead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  border-bottom: 2px solid var(--ledger-rule);
+  padding-bottom: 14px;
+  margin-bottom: 0;
+  flex-wrap: wrap;
+}
+
+.ledger-wordmark {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+.ledger-wordmark span {
+  color: var(--ledger-ink-2);
+  font-weight: 500;
+}
+
+.ledger-acct-line {
+  font-size: 12px;
+  color: var(--ledger-ink-2);
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.ledger-meta {
+  display: flex;
+  gap: 22px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ledger-ink-2);
+  text-align: right;
+}
+
+.ledger-meta div span {
+  display: block;
+  color: var(--ledger-ink);
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.live-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ledger-red);
+  font-weight: 700;
+}
+.live-dot::before {
+  content: "\25CF";
+  font-size: 9px;
+}
+
+/* ---------- tab nav ---------- */
+
+.ledger-tabs {
+  display: flex;
+  border-bottom: 2px solid var(--ledger-rule);
+}
+.ledger-tab {
+  font-family: var(--ledger-mono);
+  background: none;
+  border: none;
+  border-right: 1px solid var(--ledger-rule);
+  padding: 10px 22px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  color: var(--ledger-ink-2);
+}
+.ledger-tab:first-child { padding-left: 0; }
+.ledger-tab.active {
+  color: var(--ledger-ink);
+  font-weight: 700;
+  background: var(--ledger-ink);
+  color: var(--ledger-bg);
+}
+
+.ledger-view { display: none; }
+.ledger-view.active { display: block; }
+
+/* ---------- balance ledger row ---------- */
+
+.ledger-balance-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  border-bottom: 2px solid var(--ledger-rule);
+}
+.ledger-balance-cell {
+  padding: 22px 20px;
+  border-right: 2px solid var(--ledger-rule);
+}
+.ledger-balance-cell:last-child { border-right: none; }
+
+.ledger-balance-cell .micro { display: block; margin-bottom: 8px; }
+
+.ledger-balance-num {
+  font-size: clamp(34px, 6vw, 72px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.ledger-balance-cell.hero .ledger-balance-num {
+  font-size: clamp(40px, 7vw, 88px);
+}
+
+/* ---------- phase progress ---------- */
+
+.ledger-section {
+  border-bottom: 2px solid var(--ledger-rule);
+  padding: 18px 0;
+}
+
+.ledger-section-title {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ledger-ink-2);
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.tick-row {
+  display: flex;
+  gap: 2px;
+  font-size: 15px;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.tick-cell {
+  width: 20px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--ledger-rule);
+  font-weight: 700;
+}
+.tick-cell.filled { background: var(--ledger-ink); color: var(--ledger-bg); }
+.tick-cell.filled.danger { background: var(--ledger-red); border-color: var(--ledger-red); color: var(--ledger-bg); }
+
+.tick-readout {
+  font-size: 12px;
+  color: var(--ledger-ink-2);
+  margin-bottom: 16px;
+}
+.tick-readout strong { color: var(--ledger-ink); font-weight: 700; }
+
+table.ledger-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+table.ledger-table th,
+table.ledger-table td {
+  border: 1px solid var(--ledger-rule);
+  padding: 6px 10px;
+  text-align: right;
+}
+table.ledger-table th:first-child,
+table.ledger-table td:first-child {
+  text-align: left;
+}
+table.ledger-table thead th {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ledger-ink-2);
+  font-weight: 500;
+  background: var(--ledger-paper-2);
+}
+table.ledger-table tbody tr.you-row td {
+  font-weight: 700;
+}
+
+.funded-stamp {
+  display: inline-block;
+  width: 74px;
+  height: 74px;
+  object-fit: contain;
+  margin-left: 10px;
+  vertical-align: middle;
+}
+
+/* ---------- drawdown strip ---------- */
+
+.dd-strip {
+  position: relative;
+  height: 56px;
+  border: 1px solid var(--ledger-rule);
+  margin-top: 6px;
+}
+.dd-track {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 26px;
+  height: 2px;
+  background: var(--ledger-rule);
+}
+.dd-tick {
+  position: absolute;
+  top: 14px;
+  bottom: 14px;
+  width: 2px;
+  background: var(--ledger-ink);
+}
+.dd-tick.danger { background: var(--ledger-red); }
+.dd-label {
+  position: absolute;
+  top: 4px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ledger-ink-2);
+  white-space: nowrap;
+}
+.dd-label.end-right { right: 0; text-align: right; }
+.dd-cur-label {
+  position: absolute;
+  bottom: 2px;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+.dd-cur-label.danger { color: var(--ledger-red); }
+
+/* ---------- equity curve / sparkline ---------- */
+
+.spark-cell {
+  border: 1px solid var(--ledger-rule);
+  padding: 10px 12px;
+  height: 84px;
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  margin-top: 6px;
+}
+.spark-bar {
+  flex: 1 1 0;
+  background: var(--ledger-ink);
+  min-height: 2px;
+}
+.spark-bar.neg { background: var(--ledger-red); }
+
+/* ---------- recent tickets (overview) ---------- */
+
+.ledger-view-all {
+  display: block;
+  text-align: right;
+  padding: 8px 10px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border: 1px solid var(--ledger-rule);
+  border-top: none;
+  text-decoration: none;
+  color: var(--ledger-ink);
+  background: var(--ledger-paper-2);
+  cursor: pointer;
+}
+.ledger-view-all:hover { background: var(--ledger-ink); color: var(--ledger-bg); }
+
+.status-tag { font-weight: 700; white-space: nowrap; }
+.status-tag.won { color: var(--ledger-ink); }
+.status-tag.lost { color: var(--ledger-red); }
+.status-tag.pending { color: var(--ledger-ink-2); }
+.status-tag.push { color: var(--ledger-blue); }
+
+tr.zebra { background: var(--ledger-paper-2); }
+
+/* ---------- Výkon: stat header rail ---------- */
+
+.stat-rail {
+  display: grid;
+  grid-template-columns: 12% 12% 20% 22% 1fr;
+  border-bottom: 2px solid var(--ledger-rule);
+}
+.stat-rail-cell {
+  padding: 14px 14px;
+  border-right: 1px solid var(--ledger-rule);
+}
+.stat-rail-cell:last-child { border-right: none; }
+.stat-rail-cell .micro { display: block; margin-bottom: 8px; }
+.stat-rail-num {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+.stat-rail-cell.net .stat-rail-num { font-size: 40px; }
+
+/* ---------- daily bar chart ---------- */
+
+.bar-chart {
+  position: relative;
+  border: 1px solid var(--ledger-rule);
+  margin-top: 8px;
+  padding: 4px 10px 0;
+  display: flex;
+  align-items: stretch;
+}
+.bar-col {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  min-width: 0;
+}
+.bar-half {
+  width: 60%;
+  height: 62px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.bar-half.top { align-items: flex-end; }
+.bar-half.bottom { align-items: flex-start; }
+.bar-fill {
+  width: 100%;
+  background: var(--ledger-ink);
+  min-height: 0;
+}
+.bar-fill.neg { background: var(--ledger-red); }
+.bar-zero {
+  width: 100%;
+  height: 2px;
+  background: var(--ledger-rule);
+}
+.bar-date {
+  font-size: 9px;
+  color: var(--ledger-ink-2);
+  margin-top: 4px;
+  white-space: nowrap;
+}
+.bar-val {
+  font-size: 9.5px;
+  font-weight: 700;
+  margin-top: 1px;
+  white-space: nowrap;
+}
+.bar-val.neg { color: var(--ledger-red); }
+
+.pl-summary-line {
+  font-size: 11.5px;
+  color: var(--ledger-ink-2);
+  margin-top: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.pl-summary-line strong { color: var(--ledger-ink); }
+
+/* ---------- ticket history table ---------- */
+
+.ticket-table-wrap {
+  overflow-x: auto;
+  margin-top: 8px;
+}
+table.ticket-table {
+  width: 100%;
+  min-width: 900px;
+  border-collapse: collapse;
+  font-size: 11.5px;
+}
+table.ticket-table th,
+table.ticket-table td {
+  border: 1px solid var(--ledger-rule);
+  padding: 7px 9px;
+  text-align: right;
+  white-space: nowrap;
+}
+table.ticket-table th:nth-child(1), table.ticket-table td:nth-child(1),
+table.ticket-table th:nth-child(2), table.ticket-table td:nth-child(2),
+table.ticket-table th:nth-child(3), table.ticket-table td:nth-child(3),
+table.ticket-table th:nth-child(4), table.ticket-table td:nth-child(4),
+table.ticket-table th:nth-child(5), table.ticket-table td:nth-child(5) {
+  text-align: left;
+  white-space: normal;
+}
+table.ticket-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--ledger-paper-2);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+table.ticket-table thead th .sort-arrow {
+  opacity: 0.35;
+  margin-left: 4px;
+  font-size: 9px;
+}
+table.ticket-table thead th.sorted .sort-arrow { opacity: 1; }
+table.ticket-table tbody td.net-pos { font-weight: 700; }
+table.ticket-table tbody td.net-neg { font-weight: 700; color: var(--ledger-red); }
+
+/* ---------- footer tally ---------- */
+
+.ledger-footer-tally {
+  border-top: 2px solid var(--ledger-rule);
+  margin-top: 10px;
+  padding: 14px 0;
+  text-align: right;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.ledger-footer-tally .sep { color: var(--ledger-ink-2); margin: 0 10px; font-weight: 400; }
+
+/* ---------- empty state ---------- */
+
+.ledger-empty {
+  padding: 40px 10px;
+  text-align: center;
+  color: var(--ledger-ink-2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 12px;
+  border: 1px dashed var(--ledger-ink-2);
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 760px) {
+  .ledger-balance-row { grid-template-columns: 1fr; }
+  .ledger-balance-cell { border-right: none; border-bottom: 2px solid var(--ledger-rule); }
+  .ledger-balance-cell:last-child { border-bottom: none; }
+  .stat-rail { grid-template-columns: 1fr 1fr; }
+  .stat-rail-cell { border-bottom: 1px solid var(--ledger-rule); }
+  .ledger-meta { display: none; }
+  .tick-cell { width: 12px; }
+}

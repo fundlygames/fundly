@@ -1,0 +1,543 @@
+/* ============================================================
+   Betflow — "Editorial Analytics" concept
+   Ink-on-paper magazine system. No cards, no shadows, no gradients.
+   Structural device = hairline rules only. One hero number per section.
+   ============================================================ */
+
+:root {
+  --ed-bg: #030303;
+  --ed-paper: #0A0A0C;
+  --ed-ink: #F5F4F0;
+  --ed-ink-dim: #8A8A85;
+  --ed-ink-faint: #55534d;
+  --ed-rule: #2A2A28;
+  --ed-profit: #14F195;
+  --ed-loss: #FF5D5D;
+  --ed-flag: #E8B84B;
+}
+
+/* Light theme override — same editorial logic, inverted onto a warm paper base */
+@media (prefers-color-scheme: light) {
+  :root {
+    --ed-bg: #F5F4F0;
+    --ed-paper: #EDECE6;
+    --ed-ink: #16160f;
+    --ed-ink-dim: #6b6a63;
+    --ed-ink-faint: #a4a299;
+    --ed-rule: #d8d6cc;
+  }
+}
+:root[data-theme="light"] {
+  --ed-bg: #F5F4F0;
+  --ed-paper: #EDECE6;
+  --ed-ink: #16160f;
+  --ed-ink-dim: #6b6a63;
+  --ed-ink-faint: #a4a299;
+  --ed-rule: #d8d6cc;
+}
+:root[data-theme="dark"] {
+  --ed-bg: #030303;
+  --ed-paper: #0A0A0C;
+  --ed-ink: #F5F4F0;
+  --ed-ink-dim: #8A8A85;
+  --ed-ink-faint: #55534d;
+  --ed-rule: #2A2A28;
+}
+
+.ed-body {
+  background: var(--ed-bg);
+  color: var(--ed-ink);
+  position: relative;
+}
+
+/* fine warm paper-grain overlay, 2.5% opacity */
+.ed-body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.025;
+  mix-blend-mode: overlay;
+  background-image: url("../assets/concept2-paper-grain.jpg");
+  background-size: 480px 480px;
+  background-repeat: repeat;
+}
+
+/* ---------- Nav ---------- */
+.ed-nav {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: var(--ed-bg);
+  border-bottom: 1px solid var(--ed-rule);
+}
+.ed-nav-inner {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+.ed-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  letter-spacing: 0.02em;
+  color: var(--ed-ink);
+  text-transform: lowercase;
+}
+.ed-logo img { border-radius: 3px; opacity: 0.9; }
+.ed-view-tabs {
+  display: flex;
+  gap: 22px;
+  flex: 1;
+}
+.ed-view-tab {
+  appearance: none;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--ed-ink-dim);
+  font-family: var(--font);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  padding: 4px 0 12px;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+.ed-view-tab:hover { color: var(--ed-ink); }
+.ed-view-tab.active { color: var(--ed-ink); border-bottom-color: var(--ed-flag); }
+.ed-back {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--ed-ink-dim);
+  white-space: nowrap;
+}
+.ed-back:hover { color: var(--ed-ink); }
+
+/* ---------- Layout shell ---------- */
+.ed-main {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 56px 24px 140px;
+}
+.ed-view > * + * { margin-top: 128px; }
+@media (max-width: 640px) {
+  .ed-view > * + * { margin-top: 88px; }
+}
+
+/* ---------- Typographic primitives ---------- */
+.ed-kicker {
+  font-family: var(--mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ed-ink-dim);
+  margin-bottom: 20px;
+}
+.ed-hero-number {
+  font-family: var(--font);
+  font-weight: 900;
+  font-size: clamp(4.5rem, 14vw, 11rem);
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+  color: var(--ed-ink);
+  font-variant-numeric: tabular-nums;
+}
+.ed-prose {
+  font-family: var(--font);
+  font-weight: 400;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  color: var(--ed-ink-dim);
+  max-width: 46ch;
+  margin-top: 20px;
+}
+.ed-title {
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: clamp(2.25rem, 6vw, 3.5rem);
+  letter-spacing: -0.02em;
+  color: var(--ed-ink);
+}
+.ed-dot { color: var(--ed-ink-faint); margin: 0 4px; }
+
+/* ---------- 1. Masthead strip ---------- */
+.ed-masthead-strip {
+  font-family: var(--mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ed-ink-dim);
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--ed-rule);
+}
+
+/* ---------- 2. Hero balance ---------- */
+.ed-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+}
+.ed-hero-left { flex: 1; min-width: 0; }
+.ed-hero-right {
+  flex-shrink: 0;
+  text-align: right;
+}
+.ed-sparkline {
+  width: 120px;
+  height: 48px;
+}
+.ed-sparkline svg { display: block; }
+@media (max-width: 640px) {
+  .ed-hero { flex-direction: column; align-items: flex-start; }
+  .ed-hero-right { align-self: flex-start; }
+}
+
+/* ---------- 3. Phase progress, typographic fraction ---------- */
+.ed-fraction {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25em;
+  flex-wrap: wrap;
+}
+.ed-fraction-current {
+  font-family: var(--font);
+  font-weight: 900;
+  font-size: clamp(3rem, 9vw, 6.5rem);
+  letter-spacing: -0.02em;
+  color: var(--ed-ink);
+  font-variant-numeric: tabular-nums;
+}
+.ed-fraction-slash {
+  font-family: var(--font);
+  font-weight: 400;
+  font-size: clamp(2rem, 6vw, 4rem);
+  color: var(--ed-ink-faint);
+  margin: 0 0.15em;
+}
+.ed-fraction-target {
+  font-family: var(--font);
+  font-weight: 500;
+  font-size: clamp(1.75rem, 5vw, 3.25rem);
+  color: var(--ed-ink-dim);
+  font-variant-numeric: tabular-nums;
+}
+.ed-fraction-unit {
+  font-family: var(--mono);
+  font-size: 0.875rem;
+  color: var(--ed-ink-dim);
+  margin-left: 0.35em;
+  align-self: center;
+}
+.ed-progress-rule {
+  height: 1px;
+  background: var(--ed-rule);
+  margin-top: 24px;
+  position: relative;
+}
+.ed-progress-rule span {
+  position: absolute;
+  left: 0;
+  top: -1px;
+  height: 3px;
+  background: var(--ed-profit);
+  width: 0%;
+  transition: width 0.6s var(--ease, ease);
+}
+
+/* ---------- 4. Equity curve, told large ---------- */
+.ed-equity-wrap {
+  position: relative;
+}
+.ed-equity-chart {
+  width: 100%;
+  height: 360px;
+}
+@media (max-width: 640px) {
+  .ed-equity-chart { height: 260px; }
+}
+.ed-equity-chart svg { display: block; width: 100%; height: 100%; }
+.ed-equity-annotation {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--ed-flag);
+  position: absolute;
+  top: -8px;
+  right: 0;
+  text-align: right;
+  max-width: 280px;
+  line-height: 1.5;
+}
+@media (max-width: 640px) {
+  .ed-equity-annotation { position: static; margin-bottom: 12px; text-align: left; }
+}
+
+/* ---------- 5. Drawdown, quiet stat ---------- */
+.ed-drawdown {
+  display: flex;
+  justify-content: flex-end;
+}
+.ed-drawdown-inner {
+  text-align: right;
+  max-width: 420px;
+}
+.ed-drawdown-inner .ed-kicker { text-align: right; }
+.ed-drawdown-number {
+  font-family: var(--font);
+  font-weight: 800;
+  font-size: 2.5rem;
+  letter-spacing: -0.015em;
+  color: var(--ed-ink);
+  font-variant-numeric: tabular-nums;
+}
+.ed-drawdown-inner .ed-prose { margin-left: auto; text-align: right; }
+@media (max-width: 640px) {
+  .ed-drawdown { justify-content: flex-start; }
+  .ed-drawdown-inner { text-align: left; }
+  .ed-drawdown-inner .ed-kicker { text-align: left; }
+  .ed-drawdown-inner .ed-prose { margin-left: 0; text-align: left; }
+}
+
+/* ---------- 6. Ticket log ---------- */
+.ed-log-list { display: flex; flex-direction: column; }
+.ed-log-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding: 18px 0;
+  border-top: 1px solid var(--ed-rule);
+}
+.ed-log-list .ed-log-row:last-child { border-bottom: 1px solid var(--ed-rule); }
+.ed-log-main { min-width: 0; }
+.ed-log-match {
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 1.0625rem;
+  color: var(--ed-ink);
+}
+.ed-log-pick {
+  font-family: var(--font);
+  font-weight: 400;
+  font-size: 0.875rem;
+  color: var(--ed-ink-dim);
+  margin-top: 2px;
+}
+.ed-log-outcome {
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  text-align: right;
+  white-space: nowrap;
+  color: var(--ed-ink-dim);
+}
+.ed-log-outcome b { color: var(--ed-ink); font-weight: 600; display: block; }
+.ed-log-outcome.won b { color: var(--ed-profit); }
+.ed-log-outcome.lost b { color: var(--ed-loss); }
+.ed-log-empty {
+  font-family: var(--font);
+  color: var(--ed-ink-dim);
+  padding: 24px 0;
+  border-top: 1px solid var(--ed-rule);
+  border-bottom: 1px solid var(--ed-rule);
+}
+
+/* ---------- 7. Detail subtabs ---------- */
+.ed-subtabs {
+  display: flex;
+  gap: 24px;
+  border-bottom: 1px solid var(--ed-rule);
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+.ed-subtabs button {
+  appearance: none;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--ed-ink-dim);
+  font-family: var(--font);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  padding: 0 0 12px;
+  cursor: pointer;
+}
+.ed-subtabs button:hover { color: var(--ed-ink); }
+.ed-subtabs button.active { color: var(--ed-ink); border-bottom-color: var(--ed-flag); }
+
+.ed-rule-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-top: 1px solid var(--ed-rule);
+  font-family: var(--mono);
+  font-size: 0.875rem;
+  color: var(--ed-ink-dim);
+}
+.ed-rule-row:last-child { border-bottom: 1px solid var(--ed-rule); }
+.ed-rule-row b { color: var(--ed-ink); font-weight: 600; }
+.ed-rule-row .flag { color: var(--ed-flag); }
+
+.ed-journey { display: flex; flex-direction: column; }
+.ed-journey-step {
+  padding: 16px 0;
+  border-top: 1px solid var(--ed-rule);
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
+}
+.ed-journey-step:last-child { border-bottom: 1px solid var(--ed-rule); }
+.ed-journey-num {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--ed-ink-faint);
+  flex-shrink: 0;
+  width: 1.5em;
+}
+.ed-journey-step.now .ed-journey-num { color: var(--ed-flag); }
+.ed-journey-step.done .ed-journey-num { color: var(--ed-profit); }
+.ed-journey-body .t { font-weight: 700; color: var(--ed-ink); }
+.ed-journey-body .d {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--ed-ink-dim);
+  margin-top: 2px;
+  font-family: var(--font);
+}
+
+/* ============================================================
+   VÝKON view
+   ============================================================ */
+.ed-section-head { border-bottom: 1px solid var(--ed-rule); padding-bottom: 20px; }
+.ed-section-head .ed-kicker { margin-top: 10px; margin-bottom: 0; }
+
+.ed-hero-vykon .ed-hero-number { line-height: 0.9; }
+
+.ed-ticker-strip {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 32px;
+  border-top: 1px solid var(--ed-rule);
+  border-bottom: 1px solid var(--ed-rule);
+}
+.ed-ticker-item {
+  flex: 1;
+  min-width: 140px;
+  padding: 16px 20px;
+  border-left: 1px solid var(--ed-rule);
+}
+.ed-ticker-item:first-child { border-left: none; padding-left: 0; }
+.ed-ticker-label {
+  font-family: var(--mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ed-ink-dim);
+}
+.ed-ticker-value {
+  font-family: var(--mono);
+  font-size: 1.375rem;
+  font-weight: 600;
+  color: var(--ed-ink);
+  margin-top: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Daily P&L bar essay ---------- */
+.ed-bars-wrap {
+  position: relative;
+  height: 220px;
+  display: flex;
+  align-items: stretch;
+  gap: 3px;
+}
+.ed-bar-col {
+  flex: 1;
+  position: relative;
+  min-width: 4px;
+}
+.ed-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: var(--ed-ink-faint);
+}
+.ed-bar.pos { bottom: 50%; background: var(--ed-profit); }
+.ed-bar.neg { top: 50%; background: var(--ed-loss); }
+.ed-bars-baseline {
+  height: 1px;
+  background: var(--ed-rule);
+  margin-top: -110px;
+  pointer-events: none;
+}
+.ed-bar-callout {
+  position: absolute;
+  font-family: var(--mono);
+  font-size: 0.6875rem;
+  color: var(--ed-flag);
+  white-space: nowrap;
+  transform: translateX(-50%);
+  line-height: 1.4;
+}
+.ed-bar-callout.best { top: -2px; text-align: center; }
+.ed-bar-callout.worst { bottom: -46px; text-align: center; }
+
+/* ---------- Ticket table ---------- */
+.ed-table-wrap { overflow-x: auto; }
+.ed-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+}
+.ed-table th {
+  text-align: left;
+  font-family: var(--mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ed-ink-dim);
+  padding: 0 12px 12px 0;
+  border-bottom: 1px solid var(--ed-rule);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+.ed-table th:hover { color: var(--ed-ink); }
+.ed-table th.num, .ed-table td.num { text-align: right; }
+.ed-table th.sorted { color: var(--ed-flag); }
+.ed-table td {
+  padding: 14px 12px 14px 0;
+  border-bottom: 1px solid var(--ed-rule);
+  color: var(--ed-ink);
+  white-space: nowrap;
+}
+.ed-table td.match {
+  white-space: normal;
+  font-family: var(--font);
+}
+.ed-table td.match .m { font-weight: 600; }
+.ed-table td.match .p { display: block; color: var(--ed-ink-dim); font-size: 0.8125rem; margin-top: 2px; }
+.ed-status { font-family: var(--mono); letter-spacing: 0.04em; }
+.ed-status.won { color: var(--ed-profit); }
+.ed-status.lost { color: var(--ed-loss); }
+.ed-status.pending { color: var(--ed-ink-dim); }
+.ed-status.push { color: var(--ed-flag); }
+.ed-table-empty { color: var(--ed-ink-dim); font-family: var(--font); padding: 24px 0; }
+
+.ed-editor-note {
+  font-family: var(--font);
+  font-style: normal;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  color: var(--ed-ink-dim);
+  border-top: 1px solid var(--ed-rule);
+  padding-top: 28px;
+  max-width: 62ch;
+}

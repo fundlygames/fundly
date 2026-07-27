@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cinematic Vault | Betflow</title>
+  <meta name="description" content="Koncept 3/5 — Betflow dashboard v duchu private-banking trezoru: zlato-smaragdové duotone, sériové číslice zůstatku, coin-stack denní bilance." />
+  <meta name="theme-color" content="#06050a" />
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/dashboard-concept-5-vault.css" />
+</head>
+<body>
+
+  <!-- ============ NAV ============ -->
+  <header class="vnav">
+    <div class="vnav-inner">
+      <a href="index.html" class="vnav-logo" aria-label="Betflow, domů">
+        <img src="assets/logo.png" alt="" width="20" height="20" />
+        betflow <span class="vnav-tag">vault</span>
+      </a>
+      <nav class="vnav-tabs" aria-label="Sekce">
+        <button class="vtab active" data-view="prehled">Přehled</button>
+        <button class="vtab" data-view="vykon">Výkon</button>
+      </nav>
+      <a href="dashboard.html" class="vnav-back">← Zpět na dashboard</a>
+    </div>
+  </header>
+
+  <main class="vmain">
+
+    <!-- ============================================================ -->
+    <!-- PŘEHLED                                                        -->
+    <!-- ============================================================ -->
+    <section class="vview" id="view-prehled">
+
+      <!-- 1. Hero Vault Panel -->
+      <section class="hero-vault">
+        <div class="hero-vault-bg"></div>
+        <div class="hero-vault-scrim"></div>
+        <div class="hero-vault-content">
+          <div class="eyebrow" id="heroEyebrow">CAPITÁL PORTFOLIA · FÁZE 1</div>
+          <div class="hero-balance">
+            <span class="hero-balance-num" id="heroBalance">–</span>
+            <span class="hero-balance-cur">Kč</span>
+          </div>
+          <div class="hero-rail" id="heroRailWrap">
+            <div class="hero-rail-track">
+              <div class="hero-rail-fill" id="railFill"></div>
+              <div class="hero-rail-marker" id="railMarker"></div>
+            </div>
+            <div class="hero-rail-labels">
+              <span id="railFromLabel">Start –</span>
+              <span id="railTargetLabel">Cíl –</span>
+            </div>
+          </div>
+          <div class="hero-meta" id="heroMeta">–</div>
+        </div>
+        <div class="vault-seal" id="vaultSeal">
+          <div class="seal-bg"></div>
+          <div class="seal-ring"></div>
+          <div class="seal-text">
+            <div class="seal-name" id="sealName">ADVANCED</div>
+            <div class="seal-cap" id="sealCap">50 000</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. Equity Curve — Ledger Line -->
+      <section class="vsection">
+        <div class="panel-vault ledger-line-panel">
+          <div class="eyebrow">VÝVOJ ZŮSTATKU · LEDGER LINE</div>
+          <div class="ledger-chart-wrap">
+            <div class="hwm-line" id="hwmLine"><span class="hwm-label">HWM</span></div>
+            <svg id="ledgerSvg" viewBox="0 0 1000 320" preserveAspectRatio="none" role="img" aria-label="Graf vývoje zůstatku od začátku výzvy po aktuální stav"></svg>
+          </div>
+          <div class="ledger-ticks">
+            <div class="tick-block">
+              <span class="tick-label">POČÁTEK</span>
+              <span class="tick-val" id="tickStart">–</span>
+            </div>
+            <div class="tick-block right">
+              <span class="tick-label">AKTUÁLNĚ</span>
+              <span class="tick-val" id="tickCurrent">–</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. Drawdown / Days Remaining -->
+      <section class="vsection two-col-vault">
+        <div class="panel-vault floor-panel">
+          <div class="eyebrow">DRAWDOWN · THE FLOOR</div>
+          <div class="floor-body">
+            <div class="floor-rail">
+              <span class="floor-tick top">HWM</span>
+              <div class="floor-rail-track">
+                <div class="floor-position" id="floorPosition"></div>
+              </div>
+              <span class="floor-tick bottom">FLOOR</span>
+            </div>
+            <div class="floor-numbers">
+              <div class="floor-headline" id="floorRemaining">–</div>
+              <div class="floor-caption">Kč rezervy do porušení pravidla</div>
+            </div>
+          </div>
+        </div>
+        <div class="panel-vault days-panel">
+          <div class="eyebrow">ČASOVÝ RÁMEC</div>
+          <div class="days-headline" id="daysRemaining">–</div>
+          <div class="days-caption" id="daysCaption">dní zbývá do konce fáze</div>
+        </div>
+      </section>
+
+      <!-- 4. Recent Tickets — Vault Entries -->
+      <section class="vsection">
+        <div class="panel-vault entries-panel">
+          <div class="eyebrow">POSLEDNÍ TIKETY · VAULT ENTRIES</div>
+          <div class="entries-list" id="entriesList"><!-- JS --></div>
+          <a href="#" class="entries-more" data-view-link="vykon">Zobrazit vše →</a>
+        </div>
+      </section>
+
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- VÝKON                                                          -->
+    <!-- ============================================================ -->
+    <section class="vview" id="view-vykon" hidden>
+
+      <!-- 1. Header strip -->
+      <section class="vsection report-header">
+        <div class="report-header-top">
+          <div>
+            <div class="eyebrow">VÝKONNOSTNÍ ZPRÁVA</div>
+            <div class="report-range" id="reportRange">–</div>
+          </div>
+          <div class="report-winrate">
+            <span class="wr-num" id="winRateVal">–</span>
+            <span class="wr-label">ÚSPĚŠNOST</span>
+          </div>
+        </div>
+        <div class="ratio-bar" id="ratioBar" role="img" aria-label="Poměr vyhraných, prohraných a čekajících tiketů"></div>
+        <div class="ratio-legend">
+          <span><i class="dot won"></i>Vyhráno <b id="legendWon">–</b></span>
+          <span><i class="dot lost"></i>Prohráno <b id="legendLost">–</b></span>
+          <span><i class="dot pending"></i>Čeká <b id="legendPending">–</b></span>
+        </div>
+      </section>
+
+      <!-- 2. Asymmetric stat row -->
+      <section class="vsection asym-row">
+        <div class="hero-stat">
+          <div class="eyebrow">ČISTÝ ZISK</div>
+          <div class="hero-stat-val" id="netProfitVal">–</div>
+          <div class="hero-stat-caption" id="netProfitCaption">–</div>
+        </div>
+        <div class="secondary-stats">
+          <div class="sec-stat">
+            <span class="sec-label">PRŮMĚRNÝ KURZ</span>
+            <span class="sec-val" id="avgOddsVal">–</span>
+          </div>
+          <div class="sec-stat">
+            <span class="sec-label">CELKEM VSAZENO</span>
+            <span class="sec-val" id="totalStakedVal">–</span>
+          </div>
+          <div class="sec-stat">
+            <span class="sec-label">CELKEM VYPLACENO</span>
+            <span class="sec-val" id="totalReturnedVal">–</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. Coin Stack daily P&L -->
+      <section class="vsection">
+        <div class="panel-vault ingot-panel">
+          <div class="eyebrow">DENNÍ BILANCE · COIN STACK, POSLEDNÍCH 7 DNÍ</div>
+          <div class="ingot-strip" id="ingotStrip"><!-- JS --></div>
+        </div>
+      </section>
+
+      <!-- 4. Ledger Table -->
+      <section class="vsection">
+        <div class="panel-vault ledger-table-panel">
+          <div class="eyebrow">HISTORIE TIKETŮ · LEDGER</div>
+          <div class="ledger-table-wrap">
+            <table class="ledger-table">
+              <thead>
+                <tr>
+                  <th>Datum</th>
+                  <th>Zápas / Výběr</th>
+                  <th class="num">Kurz</th>
+                  <th class="num">Vklad</th>
+                  <th class="num">Výplata</th>
+                  <th>Stav</th>
+                </tr>
+              </thead>
+              <tbody id="ledgerTableBody"><!-- JS --></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </section>
+
+  </main>
+
+  <script src="js/packages.js"></script>
+  <script src="js/portfolio.js"></script>
+  <script src="js/dashboard-concept-5-vault.js"></script>
+</body>
+</html>

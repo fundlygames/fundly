@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trading Terminal | Betflow</title>
+  <meta name="description" content="Betflow Trading Terminal — hustý ledger-style pohled na váš challenge účet." />
+  <meta name="theme-color" content="#000000" />
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/dashboard-concept-1-terminal.css" />
+</head>
+<body class="term-body">
+
+  <!-- ============ NAV ============ -->
+  <header class="term-nav">
+    <div class="term-nav-inner">
+      <a href="index.html" class="term-logo" aria-label="Betflow, domů">
+        <img src="assets/logo.png" alt="" width="18" height="18" />
+        BETFLOW <span class="term-logo-tag">TERMINAL</span>
+      </a>
+      <nav class="term-tabs" aria-label="Terminal views">
+        <button class="term-tab active" data-view="prehled">PŘEHLED</button>
+        <button class="term-tab" data-view="vykon">VÝKON</button>
+      </nav>
+      <div class="term-nav-right">
+        <span class="term-live-dot" aria-hidden="true"></span>
+        <span class="term-live-label">LIVE</span>
+        <a href="dashboard.html" class="term-back-link">← ZPĚT NA DASHBOARD</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ TICKER STRIP ============ -->
+  <div class="ticker-strip" id="tickerStrip" role="status" aria-label="Live ukazatele účtu">
+    <div class="ticker-track" id="tickerTrack"><!-- JS: renderTicker() --></div>
+  </div>
+
+  <main class="term-main">
+
+    <!-- ============ PŘEHLED ============ -->
+    <section class="term-view" id="view-prehled">
+
+      <div class="term-header-row">
+        <div class="term-header-left">
+          <span class="term-pkg-name" id="hdrPkgName">—</span>
+          <span class="term-phase-chip" id="hdrPhaseChip">FÁZE 1</span>
+        </div>
+        <div class="term-header-right">
+          <span class="term-daycounter" id="hdrDayCounter">DAY —/30</span>
+        </div>
+      </div>
+
+      <div class="term-grid">
+
+        <!-- LEFT COLUMN -->
+        <div class="term-col term-col-left">
+
+          <div class="term-panel" id="equityPanel">
+            <div class="term-panel-head">
+              <span class="term-panel-title">EQUITY CURVE</span>
+              <span class="term-panel-sub" id="equityRange">—</span>
+            </div>
+            <div class="term-chart-wrap">
+              <svg id="equitySvg" class="equity-svg" viewBox="0 0 600 160" preserveAspectRatio="none" aria-hidden="true"></svg>
+            </div>
+            <div class="term-readout" id="equityReadout"><!-- JS --></div>
+          </div>
+
+          <div class="term-panel" id="drawdownPanel">
+            <div class="term-panel-head">
+              <span class="term-panel-title">DRAWDOWN LEDGER</span>
+              <span class="term-panel-sub" id="ddPctLabel">—</span>
+            </div>
+            <div class="dd-bar-wrap">
+              <div class="dd-bar-labels">
+                <span id="ddFloorLabel">FLOOR —</span>
+                <span id="ddHwmLabel">HWM —</span>
+              </div>
+              <div class="dd-bar-track">
+                <div class="dd-bar-fill" id="ddBarFill"></div>
+                <div class="dd-bar-marker" id="ddBarMarker"></div>
+              </div>
+            </div>
+            <div class="term-kv-table" id="ddTable"><!-- JS --></div>
+          </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div class="term-col term-col-right">
+
+          <div class="term-panel" id="phasePanel">
+            <div class="term-panel-head">
+              <span class="term-panel-title">PHASE PROGRESS</span>
+              <span class="term-panel-sub" id="phaseLabelSub">—</span>
+            </div>
+            <div class="term-kv-table term-kv-table--phase" id="phaseTable"><!-- JS --></div>
+          </div>
+
+          <div class="term-panel" id="pnlSnapshotPanel">
+            <div class="term-panel-head">
+              <span class="term-panel-title">LIVE P&amp;L SNAPSHOT</span>
+              <span class="term-panel-sub">TODAY / 7D / 30D</span>
+            </div>
+            <div class="pnl-rows" id="pnlRows"><!-- JS --></div>
+          </div>
+
+          <button class="term-cta" id="ctaBet" type="button">[ SÁZET TEĎ ]</button>
+
+        </div>
+
+      </div>
+
+      <!-- TICKETS TABLE -->
+      <div class="term-panel term-panel--full" id="ticketsPanel">
+        <div class="term-panel-head">
+          <span class="term-panel-title">RECENT TICKETS</span>
+          <span class="term-panel-sub" id="ticketsCount">—</span>
+        </div>
+        <div class="ticket-table-wrap">
+          <table class="term-table" id="ticketsTable">
+            <thead>
+              <tr>
+                <th>TIME</th>
+                <th>MATCH</th>
+                <th>MARKET</th>
+                <th class="num-col">ODDS</th>
+                <th class="num-col">STAKE</th>
+                <th>STATUS</th>
+                <th class="num-col">P&amp;L</th>
+              </tr>
+            </thead>
+            <tbody id="ticketsTbody"><!-- JS --></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SUBTABS -->
+      <div class="term-subtabs" role="tablist" aria-label="Detail výzvy" id="ovSubtabs">
+        <button class="active" data-ovtab="limity" role="tab" aria-selected="true">LIMITY</button>
+        <button data-ovtab="pravidla" role="tab" aria-selected="false">PRAVIDLA</button>
+        <button data-ovtab="cesta" role="tab" aria-selected="false">CESTA</button>
+        <button data-ovtab="tipy" role="tab" aria-selected="false">TIPY</button>
+      </div>
+
+      <div class="term-panel term-panel--full term-ledger" data-ovpanel="limity" id="ovLimity"><!-- JS --></div>
+      <div class="term-panel term-panel--full term-ledger" data-ovpanel="pravidla" hidden id="ovPravidla"><!-- JS --></div>
+      <div class="term-panel term-panel--full term-ledger" data-ovpanel="cesta" hidden id="ovCesta"><!-- JS --></div>
+      <div class="term-panel term-panel--full term-ledger" data-ovpanel="tipy" hidden id="ovTipy">
+        <div class="ledger-line"><span class="ledger-k">01</span><span class="ledger-v">Sázejte konzistentní částky, 1–2 % kapitálu na tiket bohatě stačí.</span></div>
+        <div class="ledger-line"><span class="ledger-k">02</span><span class="ledger-v">Držte se sportů a lig, které opravdu znáte, kvantita cíl nesplní.</span></div>
+        <div class="ledger-line"><span class="ledger-k">03</span><span class="ledger-v">Trailing drawdown se posouvá s každým novým maximem, hlídejte si rezervu.</span></div>
+        <div class="ledger-line"><span class="ledger-k">04</span><span class="ledger-v">Na cíl máte 30 dní, nespěchejte. Průměrně stačí menší denní přírůstek.</span></div>
+      </div>
+
+    </section>
+
+    <!-- ============ VÝKON ============ -->
+    <section class="term-view" id="view-vykon" hidden>
+
+      <div class="term-header-row">
+        <div class="term-header-left">
+          <span class="term-pkg-name">QUOTE BOARD</span>
+        </div>
+        <div class="term-header-right">
+          <span class="term-daycounter" id="vykonSubtitle">STATISTIKY BALÍČKU</span>
+        </div>
+      </div>
+
+      <!-- QUOTE BOARD -->
+      <div class="quote-board" id="quoteBoard"><!-- JS --></div>
+
+      <!-- DAILY P&L BAR STRIP -->
+      <div class="term-panel term-panel--full" id="barStripPanel">
+        <div class="term-panel-head">
+          <span class="term-panel-title">DAILY P&amp;L — LAST 14 DAYS</span>
+          <span class="term-panel-sub" id="barStripSub">ZERO-LINE BAR STRIP</span>
+        </div>
+        <div class="bar-strip-wrap">
+          <div class="bar-strip" id="barStrip"><!-- JS --></div>
+        </div>
+        <div class="bar-strip-tooltip" id="barTooltip" hidden></div>
+      </div>
+
+      <!-- FULL TICKET HISTORY -->
+      <div class="term-panel term-panel--full" id="historyPanel">
+        <div class="term-panel-head">
+          <span class="term-panel-title">TICKET HISTORY — FULL LEDGER</span>
+          <span class="term-panel-sub" id="historyCount">—</span>
+        </div>
+        <div class="ticket-table-wrap ticket-table-wrap--scroll" id="historyScrollWrap">
+          <table class="term-table term-table--sticky" id="historyTable">
+            <thead>
+              <tr>
+                <th>TIME <span class="sort-glyph">▲▼</span></th>
+                <th>MATCH <span class="sort-glyph">▲▼</span></th>
+                <th>MARKET <span class="sort-glyph">▲▼</span></th>
+                <th class="num-col">ODDS <span class="sort-glyph">▲▼</span></th>
+                <th class="num-col">STAKE <span class="sort-glyph">▲▼</span></th>
+                <th>STATUS <span class="sort-glyph">▲▼</span></th>
+                <th class="num-col">P&amp;L <span class="sort-glyph">▲▼</span></th>
+              </tr>
+            </thead>
+            <tbody id="historyTbody"><!-- JS --></tbody>
+          </table>
+        </div>
+        <button class="load-more-link" id="loadMoreBtn" type="button">LOAD MORE ROWS ↓</button>
+      </div>
+
+    </section>
+
+  </main>
+
+  <script src="js/packages.js"></script>
+  <script src="js/portfolio.js"></script>
+  <script src="js/dashboard-concept-1-terminal.js"></script>
+</body>
+</html>

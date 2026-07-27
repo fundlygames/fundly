@@ -1,0 +1,672 @@
+/* ==========================================================================
+   Betflow — Concept 3/5: "Cinematic Vault"
+   Dark luxury private-banking duotone (antique gold + bottle emerald).
+   Overrides the shipped mint/purple token system for this page only.
+   ========================================================================== */
+
+:root {
+  --vault-bg: #06050a;
+  --vault-surface-1: #100d14;
+  --vault-surface-2: #171220;
+  --vault-line: #d4af6a14;
+  --vault-line-strong: #d4af6a2e;
+  --vault-gold: #d4af6a;
+  --vault-gold-bright: #f0cf8e;
+  --vault-emerald: #0f6e52;
+  --vault-emerald-bright: #29c98f;
+  --vault-loss: #a8433a;
+  --vault-loss-bright: #d1685d;
+  --vault-text-primary: #f2ead9;
+  --vault-text-secondary: #a89a82;
+  --vault-text-muted: #6b6154;
+
+  /* re-point shared tokens so any inherited component reads vault colors */
+  --bg: var(--vault-bg);
+  --surface-1: var(--vault-surface-1);
+  --surface-2: var(--vault-surface-2);
+  --line: var(--vault-line);
+  --text-primary: var(--vault-text-primary);
+  --text-secondary: var(--vault-text-secondary);
+  --text-muted: var(--vault-text-muted);
+  --accent: var(--vault-emerald-bright);
+}
+
+body {
+  background: var(--vault-bg);
+  background-image:
+    radial-gradient(ellipse 900px 500px at 12% -8%, rgb(212 175 106 / 0.05), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 20%, rgb(15 110 82 / 0.08), transparent 55%);
+  background-attachment: fixed;
+  color: var(--vault-text-primary);
+}
+
+::selection { background: rgb(212 175 106 / 0.25); color: var(--vault-text-primary); }
+
+/* ---------- eyebrow / small-caps bank-statement label ---------- */
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--vault-text-muted);
+  font-weight: 500;
+}
+
+/* ---------- nav ---------- */
+.vnav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgb(6 5 10 / 0.82);
+  backdrop-filter: blur(14px) saturate(1.1);
+  border-bottom: 1px solid var(--vault-line);
+}
+.vnav-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 16px 28px;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+.vnav-logo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--font);
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  color: var(--vault-text-primary);
+  text-decoration: none;
+}
+.vnav-logo img { filter: grayscale(1) brightness(1.6) sepia(0.4) hue-rotate(-10deg); border-radius: 5px; }
+.vnav-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--vault-gold);
+  border: 1px solid var(--vault-line-strong);
+  border-radius: 100px;
+  padding: 2px 8px;
+  background: rgb(212 175 106 / 0.06);
+}
+.vnav-tabs { display: flex; gap: 4px; }
+.vtab {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--vault-text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 100px;
+  padding: 7px 16px;
+  cursor: pointer;
+  transition: color .2s var(--ease), border-color .2s var(--ease), background .2s var(--ease);
+}
+.vtab:hover { color: var(--vault-text-secondary); }
+.vtab.active {
+  color: var(--vault-gold-bright);
+  border-color: var(--vault-line-strong);
+  background: rgb(212 175 106 / 0.07);
+}
+.vnav-back {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  color: var(--vault-text-secondary);
+  text-decoration: none;
+  white-space: nowrap;
+  border-bottom: 1px solid transparent;
+  transition: color .2s var(--ease), border-color .2s var(--ease);
+}
+.vnav-back:hover { color: var(--vault-gold-bright); border-color: var(--vault-line-strong); }
+
+/* ---------- main / rhythm ---------- */
+.vmain { max-width: 1180px; margin: 0 auto; padding: 0 28px 160px; }
+.vview { display: block; }
+.vview[hidden] { display: none; }
+.vsection { margin-top: 120px; }
+@media (max-width: 720px) { .vsection { margin-top: 88px; } }
+
+/* ==========================================================================
+   1. HERO VAULT PANEL
+   ========================================================================== */
+.hero-vault {
+  position: relative;
+  min-height: 68vh;
+  margin: 0 -28px;
+  padding: 0 28px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+.hero-vault-bg {
+  position: absolute; inset: 0;
+  background-image: url("../assets/concept5-hero-vault-ambient.jpg");
+  background-size: cover;
+  background-position: center 42%;
+  opacity: 0.26;
+}
+.hero-vault-scrim {
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(0deg, rgb(6 5 10) 8%, rgb(6 5 10 / 0.55) 42%, rgb(6 5 10 / 0.35) 65%, rgb(6 5 10 / 0.7) 100%),
+    linear-gradient(100deg, rgb(6 5 10 / 0.55) 0%, transparent 45%);
+}
+.hero-vault-content {
+  position: relative;
+  padding: 64px 0 56px;
+  max-width: 680px;
+}
+.hero-vault .eyebrow { margin-bottom: 22px; }
+.hero-balance {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  line-height: 1;
+}
+.hero-balance-num {
+  font-family: var(--font);
+  font-weight: 200;
+  font-size: clamp(56px, 9vw, 112px);
+  letter-spacing: -0.03em;
+  color: var(--vault-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.hero-balance-cur {
+  font-family: var(--mono);
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  color: var(--vault-gold);
+  transform: translateY(-2.4em);
+  font-weight: 500;
+}
+
+.hero-rail { margin-top: 34px; max-width: 520px; }
+.hero-rail-track {
+  position: relative;
+  height: 1px;
+  background: var(--vault-line-strong);
+  border-radius: 2px;
+}
+.hero-rail-fill {
+  position: absolute; top: 0; left: 0; height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, rgb(15 110 82 / .5), var(--vault-emerald-bright));
+  border-radius: 2px;
+}
+.hero-rail-marker {
+  position: absolute; top: 50%; left: 0%;
+  width: 7px; height: 7px;
+  background: var(--vault-emerald-bright);
+  border: 2px solid var(--vault-bg);
+  transform: translate(-50%, -50%) rotate(45deg);
+  box-shadow: 0 0 10px rgb(41 201 143 / .6);
+}
+.hero-rail-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--vault-text-secondary);
+  letter-spacing: 0.02em;
+}
+.hero-meta {
+  margin-top: 22px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--vault-text-muted);
+  letter-spacing: 0.04em;
+}
+
+.vault-seal {
+  position: absolute;
+  right: 28px;
+  bottom: 40px;
+  width: 108px;
+  height: 108px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--vault-line-strong);
+  box-shadow: 0 0 0 5px rgb(6 5 10 / .5), 0 12px 30px -8px rgb(0 0 0 / .6);
+}
+.seal-bg {
+  position: absolute; inset: 0;
+  background-image: url("../assets/concept5-seal-emblem-bg.jpg");
+  background-size: cover;
+  background-position: center;
+  opacity: 0.75;
+}
+.seal-ring {
+  position: absolute; inset: 7px;
+  border-radius: 50%;
+  border: 1px solid rgb(212 175 106 / .4);
+}
+.seal-text {
+  position: relative;
+  text-align: center;
+  text-shadow: 0 1px 6px rgb(0 0 0 / .8);
+}
+.seal-name {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  color: var(--vault-gold-bright);
+  font-weight: 600;
+}
+.seal-cap {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--vault-text-primary);
+  margin-top: 3px;
+  font-weight: 600;
+}
+
+@media (max-width: 720px) {
+  .hero-vault { min-height: 56vh; margin: 0 -20px; padding: 0 20px; }
+  .vault-seal { position: static; margin-top: 32px; width: 92px; height: 92px; }
+  .hero-vault-content { padding: 44px 0 40px; }
+}
+
+/* ==========================================================================
+   PANEL — shared "gilt edge" surface
+   ========================================================================== */
+.panel-vault {
+  background: var(--vault-surface-1);
+  border: 1px solid var(--vault-line);
+  border-radius: 14px;
+  padding: 32px 32px 28px;
+}
+@media (max-width: 640px) { .panel-vault { padding: 24px 20px 22px; } }
+
+/* ==========================================================================
+   2. LEDGER LINE (equity curve)
+   ========================================================================== */
+.ledger-line-panel .eyebrow { margin-bottom: 26px; }
+.ledger-chart-wrap { position: relative; height: 220px; }
+#ledgerSvg { width: 100%; height: 100%; display: block; overflow: visible; }
+.hwm-line {
+  position: absolute;
+  left: 0; right: 0;
+  border-top: 1px dashed var(--vault-line-strong);
+}
+.hwm-label {
+  position: absolute;
+  right: 0;
+  top: -16px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  color: var(--vault-gold);
+}
+.ledger-ticks {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--vault-line);
+}
+.tick-block { display: flex; flex-direction: column; gap: 5px; }
+.tick-block.right { align-items: flex-end; }
+.tick-label {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  color: var(--vault-text-muted);
+}
+.tick-val {
+  font-family: var(--mono);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--vault-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   3. DRAWDOWN / DAYS — two-col quiet panels
+   ========================================================================== */
+.two-col-vault {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 20px;
+}
+@media (max-width: 780px) { .two-col-vault { grid-template-columns: 1fr; } }
+
+.floor-panel, .days-panel {
+  background:
+    linear-gradient(160deg, rgb(23 18 32 / .88), rgb(23 18 32 / .96)),
+    url("../assets/concept5-texture-brushed-metal-gold.jpg");
+  background-size: cover;
+  background-position: center;
+}
+.floor-panel .eyebrow, .days-panel .eyebrow { margin-bottom: 24px; }
+
+.floor-body { display: flex; align-items: center; gap: 28px; }
+.floor-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.floor-tick {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--vault-text-muted);
+}
+.floor-rail-track {
+  position: relative;
+  width: 2px;
+  height: 130px;
+  background: linear-gradient(180deg, var(--vault-gold), var(--vault-loss));
+  opacity: 0.55;
+  border-radius: 2px;
+}
+.floor-position {
+  position: absolute;
+  left: 50%;
+  top: 0%;
+  width: 9px; height: 9px;
+  background: var(--vault-emerald-bright);
+  border: 2px solid var(--vault-bg);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 10px rgb(41 201 143 / .55);
+}
+.floor-numbers { flex: 1; min-width: 0; }
+.floor-headline {
+  font-family: var(--font);
+  font-weight: 300;
+  font-size: clamp(28px, 4vw, 38px);
+  letter-spacing: -0.02em;
+  color: var(--vault-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.floor-caption {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--vault-text-secondary);
+}
+
+.days-headline {
+  font-family: var(--font);
+  font-weight: 300;
+  font-size: clamp(36px, 5vw, 52px);
+  letter-spacing: -0.02em;
+  color: var(--vault-gold-bright);
+}
+.days-caption { margin-top: 6px; font-size: 13px; color: var(--vault-text-secondary); }
+
+/* ==========================================================================
+   4. VAULT ENTRIES (recent tickets)
+   ========================================================================== */
+.entries-panel .eyebrow { margin-bottom: 6px; }
+.entries-list { margin-top: 18px; }
+.entry-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  border-top: 1px solid var(--vault-line);
+  font-size: 14px;
+}
+.entry-row:last-child { border-bottom: 1px solid var(--vault-line); }
+.entry-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.entry-dot.pending { background: var(--vault-gold); box-shadow: 0 0 8px rgb(212 175 106 / .5); }
+.entry-dot.won { background: var(--vault-emerald-bright); box-shadow: 0 0 8px rgb(41 201 143 / .5); }
+.entry-dot.lost { background: var(--vault-loss-bright); box-shadow: 0 0 8px rgb(168 67 58 / .5); }
+.entry-dot.push { background: var(--vault-text-muted); }
+.entry-label { flex: 1; min-width: 0; color: var(--vault-text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.entry-odds { font-family: var(--mono); font-size: 12.5px; color: var(--vault-text-secondary); flex-shrink: 0; }
+.entry-stake { font-family: var(--mono); font-size: 12.5px; color: var(--vault-text-secondary); flex-shrink: 0; width: 84px; text-align: right; }
+.entry-status { font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; flex-shrink: 0; width: 76px; text-align: right; }
+.entry-status.pending { color: var(--vault-gold); }
+.entry-status.won { color: var(--vault-emerald-bright); }
+.entry-status.lost { color: var(--vault-loss-bright); }
+.entry-status.push { color: var(--vault-text-muted); }
+.entries-empty { padding: 18px 0; color: var(--vault-text-muted); font-size: 14px; }
+.entries-more {
+  display: inline-block;
+  margin-top: 22px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--vault-gold);
+  text-decoration: none;
+  border-bottom: 1px solid var(--vault-line-strong);
+  padding-bottom: 2px;
+  transition: color .2s var(--ease);
+}
+.entries-more:hover { color: var(--vault-gold-bright); }
+
+/* ==========================================================================
+   VÝKON — 1. Header strip
+   ========================================================================== */
+.report-header-top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.report-range {
+  margin-top: 10px;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--vault-text-secondary);
+}
+.report-winrate { text-align: right; }
+.wr-num {
+  font-family: var(--font);
+  font-weight: 300;
+  font-size: clamp(34px, 5vw, 48px);
+  letter-spacing: -0.02em;
+  color: var(--vault-gold-bright);
+  font-variant-numeric: tabular-nums;
+}
+.wr-label {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  color: var(--vault-text-muted);
+}
+.ratio-bar {
+  margin-top: 22px;
+  height: 3px;
+  border-radius: 2px;
+  overflow: hidden;
+  display: flex;
+  background: var(--vault-surface-2);
+}
+.ratio-seg.won { background: linear-gradient(90deg, var(--vault-emerald), var(--vault-emerald-bright)); }
+.ratio-seg.lost { background: linear-gradient(90deg, var(--vault-loss), var(--vault-loss-bright)); }
+.ratio-seg.pending { background: var(--vault-text-muted); opacity: .5; }
+.ratio-legend {
+  margin-top: 12px;
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--vault-text-secondary);
+}
+.ratio-legend .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 7px; }
+.ratio-legend .dot.won { background: var(--vault-emerald-bright); }
+.ratio-legend .dot.lost { background: var(--vault-loss-bright); }
+.ratio-legend .dot.pending { background: var(--vault-text-muted); }
+.ratio-legend b { color: var(--vault-text-primary); font-weight: 600; margin-left: 3px; }
+
+/* ==========================================================================
+   VÝKON — 2. Asymmetric stat row
+   ========================================================================== */
+.asym-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.7fr);
+  gap: 56px;
+  align-items: end;
+}
+@media (max-width: 780px) { .asym-row { grid-template-columns: 1fr; gap: 36px; } }
+
+.hero-stat .eyebrow { margin-bottom: 16px; }
+.hero-stat-val {
+  font-family: var(--font);
+  font-weight: 200;
+  font-size: clamp(48px, 7vw, 88px);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.hero-stat-val.pos { color: var(--vault-emerald-bright); }
+.hero-stat-val.neg { color: var(--vault-loss-bright); }
+.hero-stat-caption { margin-top: 10px; font-size: 13.5px; color: var(--vault-text-secondary); }
+
+.secondary-stats { display: flex; flex-direction: column; }
+.sec-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--vault-line);
+}
+.sec-stat:first-child { padding-top: 0; }
+.sec-label {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  color: var(--vault-text-muted);
+}
+.sec-val {
+  font-family: var(--mono);
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--vault-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   VÝKON — 3. Coin Stack (daily P&L ingots)
+   ========================================================================== */
+.ingot-panel .eyebrow { margin-bottom: 30px; }
+.ingot-strip {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+  height: 160px;
+  padding-top: 20px;
+  border-bottom: 1px solid var(--vault-gold);
+  border-image: linear-gradient(90deg, transparent, var(--vault-line-strong) 15%, var(--vault-line-strong) 85%, transparent) 1;
+}
+.ingot {
+  flex: 1;
+  max-width: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+}
+.ingot-bar {
+  width: 100%;
+  border-radius: 5px 5px 2px 2px;
+  min-height: 4px;
+  transition: transform .18s var(--ease);
+  cursor: default;
+}
+.ingot-bar.pos { background: linear-gradient(180deg, var(--vault-emerald-bright), var(--vault-emerald)); }
+.ingot-bar.neg { background: linear-gradient(0deg, var(--vault-loss-bright), var(--vault-loss)); }
+.ingot-bar.zero { background: var(--vault-text-muted); opacity: .35; }
+.ingot:hover .ingot-bar { transform: translateY(-2px); }
+.ingot-day {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--vault-text-muted);
+}
+.ingot-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: var(--vault-surface-2);
+  border: 1px solid var(--vault-line-strong);
+  border-radius: 6px;
+  padding: 5px 9px;
+  font-family: var(--mono);
+  font-size: 11px;
+  white-space: nowrap;
+  color: var(--vault-text-primary);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s var(--ease), transform .15s var(--ease);
+  z-index: 5;
+}
+.ingot:hover .ingot-tooltip { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ==========================================================================
+   VÝKON — 4. Ledger table
+   ========================================================================== */
+.ledger-table-panel { padding: 0; overflow: hidden; }
+.ledger-table-panel .eyebrow { padding: 26px 32px 0; display: block; }
+.ledger-table-wrap { overflow-x: auto; margin-top: 18px; }
+.ledger-table { width: 100%; border-collapse: collapse; min-width: 620px; }
+.ledger-table thead th {
+  position: sticky;
+  top: 0;
+  background:
+    linear-gradient(160deg, rgb(16 13 20 / .93), rgb(16 13 20 / .97)),
+    url("../assets/concept5-texture-brushed-metal-gold.jpg");
+  background-size: cover;
+  background-position: center;
+  text-align: left;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--vault-text-muted);
+  font-weight: 500;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--vault-line-strong);
+}
+.ledger-table thead th.num, .ledger-table td.num { text-align: right; }
+.ledger-table th:first-child, .ledger-table td:first-child { padding-left: 32px; }
+.ledger-table th:last-child, .ledger-table td:last-child { padding-right: 32px; }
+.ledger-table tbody td {
+  padding: 13px 12px;
+  border-bottom: 1px solid var(--vault-line);
+  font-size: 13.5px;
+  color: var(--vault-text-primary);
+}
+.ledger-table tbody tr:nth-child(even) td { background: rgb(255 255 255 / 0.02); }
+.ledger-table tbody tr { border-left: 2px solid transparent; transition: border-color .15s var(--ease); }
+.ledger-table tbody tr:hover { border-left-color: var(--vault-gold); }
+.ledger-table tbody tr:hover td { background: rgb(212 175 106 / 0.03); }
+.ledger-table td.mono, .ledger-table td.num {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+.ledger-table td.match { color: var(--vault-text-secondary); max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ledger-status { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; }
+.ledger-status .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.ledger-status.pending .dot { background: var(--vault-gold); }
+.ledger-status.won .dot { background: var(--vault-emerald-bright); }
+.ledger-status.lost .dot { background: var(--vault-loss-bright); }
+.ledger-status.push .dot { background: var(--vault-text-muted); }
+.ledger-empty { padding: 40px 32px; color: var(--vault-text-muted); font-size: 14px; }
