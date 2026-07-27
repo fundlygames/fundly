@@ -715,7 +715,7 @@ function renderRecentTickets(state) {
     const label = t.selections.length > 1
       ? `${t.selections.length}× akumulátor`
       : `${t.selections[0].homeTeam} – ${t.selections[0].awayTeam}`;
-    const tag = t.status === "won" ? "win" : t.status === "lost" ? "loss" : t.status === "push" ? "" : "pend";
+    const tag = t.status === "won" ? "win" : t.status === "lost" ? "loss" : t.status === "push" ? "push" : "pend";
     const tagText = t.status === "won" ? "Výhra" : t.status === "lost" ? "Prohra" : t.status === "push" ? "Vráceno" : "Čeká";
     return `<div class="k-row neutral">${label} · ${czk(t.stake)}<span class="n"><span class="tag ${tag}">${tagText}</span></span></div>`;
   }).join("");
@@ -859,7 +859,7 @@ function renderVykon() {
       ? `${t.selections.length}× akumulátor`
       : `${t.selections[0].homeTeam} – ${t.selections[0].awayTeam}`;
     const tip = t.selections.length > 1 ? "AKU" : (t.selections[0].pickLabel || "");
-    const tag = t.status === "won" ? "win" : t.status === "lost" ? "loss" : t.status === "push" ? "" : "pend";
+    const tag = t.status === "won" ? "win" : t.status === "lost" ? "loss" : t.status === "push" ? "push" : "pend";
     const tagText = t.status === "won" ? "Výhra" : t.status === "lost" ? "Prohra" : t.status === "push" ? "Vráceno" : "Čeká";
     return `<tr><td>${label}</td><td>${tip}</td><td class="odds">${t.combinedOdds.toFixed(2)}</td><td>${czk(t.stake)}</td><td><span class="tag ${tag}">${tagText}</span></td></tr>`;
   }).join("") : `<tr><td colspan="5">Zatím žádné tikety.</td></tr>`;

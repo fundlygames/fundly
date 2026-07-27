@@ -328,6 +328,7 @@
 .tag.win { color: var(--accent); background: var(--accent-tint); }
 .tag.loss { color: #ff9d9d; background: rgb(255 77 77 / .12); }
 .tag.pend { color: #ffce7a; background: rgb(255 153 0 / .12); }
+.tag.push { color: var(--text-secondary); background: rgb(255 255 255 / .06); }
 
 /* ---------- Sázení ---------- */
 .bank-bar {
