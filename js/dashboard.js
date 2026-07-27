@@ -701,7 +701,7 @@ function renderEquityChart(state) {
   const stroke = values[values.length - 1] >= values[0] ? "var(--accent)" : "#ff6b6b";
   return `
     <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" class="equity-svg" role="img" aria-label="Graf vývoje zůstatku">
-      <polyline points="${coords.join(" ")}" fill="none" stroke="${stroke}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
+      <polyline points="${coords.join(" ")}" fill="none" stroke="${stroke}" style="color:${stroke}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
     </svg>
     <div class="equity-range"><span>${czk(min)}</span><span>${czk(max)}</span></div>`;
 }
@@ -758,19 +758,19 @@ function renderPrehled() {
   const s = Portfolio.summary(state);
   document.getElementById("ovStatGrid").innerHTML = `
     <div class="dstat">
-      <div class="lbl"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M1.5 11.5l4-4 3 3 5-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Zisk</div>
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M1.5 11.5l4-4 3 3 5-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Zisk</div>
       <div class="val ${s.netProfit >= 0 ? "green" : ""}">${s.netProfit >= 0 ? "+" : ""}${czk(s.netProfit)}</div>
     </div>
     <div class="dstat">
-      <div class="lbl"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.6"/><circle cx="7" cy="7" r="2" fill="currentColor"/></svg>Do cíle</div>
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.8"/><circle cx="7" cy="7" r="2" fill="currentColor"/></svg></span>Do cíle</div>
       <div class="val">${state.phase === "funded" ? "—" : czk(toGoal)}</div>
     </div>
     <div class="dstat">
-      <div class="lbl"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M4.5 2h6v4a3 3 0 01-6 0V2z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M7.5 9v2.5M5 13h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Výhry</div>
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M4.5 2h6v4a3 3 0 01-6 0V2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M7.5 9v2.5M5 13h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>Výhry</div>
       <div class="val">${s.won} <small>/ ${s.won + s.lost}</small></div>
     </div>
     <div class="dstat">
-      <div class="lbl"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 5a1.5 1.5 0 001.5-1.5h8A1.5 1.5 0 0013 5v1.6a1.9 1.9 0 000 3.8V12a1.5 1.5 0 00-1.5 1.5h-8A1.5 1.5 0 002 12V5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" transform="translate(0,-1.2)"/></svg>Tikety</div>
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 5a1.5 1.5 0 001.5-1.5h8A1.5 1.5 0 0013 5v1.6a1.9 1.9 0 000 3.8V12a1.5 1.5 0 00-1.5 1.5h-8A1.5 1.5 0 002 12V5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" transform="translate(0,-1.2)"/></svg></span>Tikety</div>
       <div class="val">${s.total}</div>
     </div>`;
 
@@ -799,9 +799,9 @@ function renderPrehled() {
     </div>`;
 
   const steps = [
-    { title: "Fáze 1 · Betflow výzva", desc: `Cíl +${czk(state.target1)}`, img: "assets/card2-vyzva.jpg" },
-    { title: "Fáze 2 · Verifikace", desc: `Cíl +${czk(state.target2)}`, img: "assets/card2-verifikace.jpg" },
-    { title: "Financovaný účet", desc: `${state.profitSplit} % podíl na zisku, neomezený čas, pravidelné výplaty.`, img: "assets/card2-tiper.jpg" },
+    { title: "Fáze 1 · Betflow výzva", desc: `Cíl +${czk(state.target1)}`, img: "assets/journey-phase1.jpg" },
+    { title: "Fáze 2 · Verifikace", desc: `Cíl +${czk(state.target2)}`, img: "assets/journey-phase2.jpg" },
+    { title: "Financovaný účet", desc: `${state.profitSplit} % podíl na zisku, neomezený čas, pravidelné výplaty.`, img: "assets/journey-funded.jpg" },
   ];
   const currentIndex = state.phase === "funded" ? 2 : state.phase - 1;
   document.getElementById("ovCesta").innerHTML = `<div class="journey">${steps.map((step, i) => {
@@ -830,10 +830,22 @@ function renderVykon() {
   const s = Portfolio.summary(state);
 
   document.getElementById("vykonStatGrid").innerHTML = `
-    <div class="dstat"><div class="lbl">Aktuální zisk</div><div class="val ${s.netProfit >= 0 ? "green" : ""}">${s.netProfit >= 0 ? "+" : ""}${czk(s.netProfit)}</div></div>
-    <div class="dstat"><div class="lbl">Úspěšnost</div><div class="val ${s.winRate >= 50 ? "green" : ""}">${s.winRate} %</div></div>
-    <div class="dstat"><div class="lbl">Průměrný kurz</div><div class="val">${s.avgOdds.toFixed(2)}</div></div>
-    <div class="dstat"><div class="lbl">Čekající</div><div class="val">${s.pending}</div></div>`;
+    <div class="dstat">
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M1.5 11.5l4-4 3 3 5-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Aktuální zisk</div>
+      <div class="val ${s.netProfit >= 0 ? "green" : ""}">${s.netProfit >= 0 ? "+" : ""}${czk(s.netProfit)}</div>
+    </div>
+    <div class="dstat">
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M4.5 2h6v4a3 3 0 01-6 0V2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M7.5 9v2.5M5 13h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>Úspěšnost</div>
+      <div class="val ${s.winRate >= 50 ? "green" : ""}">${s.winRate} %</div>
+    </div>
+    <div class="dstat">
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 12.5l4-8 3 5 4-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Průměrný kurz</div>
+      <div class="val">${s.avgOdds.toFixed(2)}</div>
+    </div>
+    <div class="dstat">
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><circle cx="7.5" cy="7.5" r="5.5" stroke="currentColor" stroke-width="1.6"/><path d="M7.5 4.5v3.3l2.2 1.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Čekající</div>
+      <div class="val">${s.pending}</div>
+    </div>`;
 
   document.getElementById("vykonBreakdown").innerHTML = `
     <div class="k-row win">Výherní<span class="n">${s.won}</span></div>
