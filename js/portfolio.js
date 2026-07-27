@@ -209,15 +209,17 @@ const Portfolio = (() => {
     }
   }
 
+  const FAILED_LOOKUP = "__failed__"; // sentinel: cacheGet can't tell "no entry" apart from a cached null
   async function fetchEventStatus(id) {
     const cached = cacheGet("eventStatus:" + id, 2 * 60 * 1000);
+    if (cached === FAILED_LOOKUP) return null;
     if (cached !== null) return cached;
     try {
       const ev = await apiGet(`/events/${id}`, {});
       cacheSet("eventStatus:" + id, ev);
       return ev;
     } catch (e) {
-      cacheSet("eventStatus:" + id, null); // negative-cache the failure so we don't retry every tick
+      cacheSet("eventStatus:" + id, FAILED_LOOKUP); // negative-cache the failure so we don't retry every tick
       return null;
     }
   }
