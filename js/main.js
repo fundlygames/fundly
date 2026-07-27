@@ -243,6 +243,13 @@ function closeAuth() {
 }
 
 document.addEventListener("click", (e) => {
+  const quickstart = e.target.closest("[data-quickstart]");
+  if (quickstart) {
+    e.preventDefault();
+    Portfolio.init(quickstart.dataset.quickstart);
+    window.location.href = "dashboard.html";
+    return;
+  }
   const trigger = e.target.closest("[data-auth]");
   if (trigger) {
     openAuth(trigger.dataset.auth);
