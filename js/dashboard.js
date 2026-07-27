@@ -16,6 +16,7 @@ function showView(name) {
   if (name === "prehled" && typeof renderPrehled === "function") renderPrehled();
   if (name === "vykon" && typeof renderVykon === "function") renderVykon();
   if (name === "sazeni" && typeof renderBankBar === "function") renderBankBar();
+  if (name === "profil" && typeof renderBadges === "function") renderBadges(Portfolio.get());
 }
 
 document.addEventListener("click", (e) => {
@@ -39,10 +40,161 @@ document.querySelectorAll("#ovTabs button").forEach((btn) => {
   });
 });
 
+// ---------- oslavy: toast + konfety při vyhodnocení tiketu ----------
+function showToast(kind, title, detail) {
+  const layer = document.getElementById("toastLayer");
+  if (!layer) return;
+  const el = document.createElement("div");
+  el.className = `toast toast-${kind}`;
+  el.innerHTML = `<div class="toast-title">${title}</div>${detail ? `<div class="toast-detail">${detail}</div>` : ""}`;
+  layer.appendChild(el);
+  requestAnimationFrame(() => el.classList.add("in"));
+  setTimeout(() => {
+    el.classList.remove("in");
+    setTimeout(() => el.remove(), 300);
+  }, 4200);
+}
+
+function fireConfetti() {
+  const colors = ["#14f195", "#7af7c4", "#ffce7a", "#5ee8ff", "#ffffff"];
+  const container = document.createElement("div");
+  container.className = "confetti-layer";
+  document.body.appendChild(container);
+  for (let i = 0; i < 60; i++) {
+    const piece = document.createElement("span");
+    piece.className = "confetti-piece";
+    piece.style.left = Math.random() * 100 + "vw";
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.animationDuration = (1.6 + Math.random() * 1.4) + "s";
+    piece.style.animationDelay = (Math.random() * 0.3) + "s";
+    piece.style.setProperty("--rot", Math.round(Math.random() * 360) + "deg");
+    container.appendChild(piece);
+  }
+  setTimeout(() => container.remove(), 3200);
+}
+
+function celebrateTicket(ticket) {
+  const label = ticket.selections.length > 1
+    ? `${ticket.selections.length}× akumulátor`
+    : `${ticket.selections[0].homeTeam} – ${ticket.selections[0].awayTeam}`;
+  if (ticket.status === "won") {
+    showToast("win", "Tiket vyšel! 🎉", `${label} · +${czk(ticket.payout - ticket.stake)}`);
+    fireConfetti();
+  } else if (ticket.status === "lost") {
+    showToast("loss", "Tiket nevyšel", `${label} · −${czk(ticket.stake)}`);
+  } else if (ticket.status === "push") {
+    showToast("push", "Vklad vrácen", label);
+  }
+}
+
+// ---------- odznaky: reálné podmínky spočtené z dat portfolia ----------
+const BADGES = [
+  ["První vítězství", "b-prvni-vitezstvi", "b-prvni-vitezstvi"],
+  ["5 v řadě", "b-5-v-rade", "b-5-v-rade"],
+  ["10 v řadě", "b-10-v-rade", "b-10-v-rade"],
+  ["Akumulátor expert", "b-akumulator", "b-akumulator"],
+  ["Fáze 1 dokončená", "b-faze-1", "b-faze-1"],
+  ["Fáze 2 dokončená", "b-faze-2", "b-faze-2"],
+  ["Funded hráč", "b-funded", "b-funded"],
+  ["100 sázek", "b-100-sazek", "b-100-sazek"],
+  ["Lovecký instinkt", "b-lovecky", null],
+  ["Železná ruka", "b-zelezna-ruka", null],
+  ["První výběr", "b-prvni-vyber", null],
+  ["Ambasador", "b-ambasador", null],
+];
+
+function computeStreaks(state) {
+  const settled = state.tickets
+    .filter((t) => t.status === "won" || t.status === "lost")
+    .slice()
+    .sort((a, b) => new Date(a.settledAt) - new Date(b.settledAt));
+  let current = 0, currentType = null, bestWin = 0;
+  settled.forEach((t) => {
+    current = t.status === currentType ? current + 1 : 1;
+    currentType = t.status;
+    if (currentType === "won") bestWin = Math.max(bestWin, current);
+  });
+  return { current, type: currentType, bestWin };
+}
+
+function computeBadgeUnlocks(state) {
+  const streaks = computeStreaks(state);
+  const wonCount = state.tickets.filter((t) => t.status === "won").length;
+  const hasAccumulator = state.tickets.some((t) => t.selections.length > 1);
+  return {
+    "b-prvni-vitezstvi": wonCount >= 1,
+    "b-5-v-rade": streaks.bestWin >= 5,
+    "b-10-v-rade": streaks.bestWin >= 10,
+    "b-akumulator": hasAccumulator,
+    "b-faze-1": state.phase === 2 || state.phase === "funded",
+    "b-faze-2": state.phase === "funded",
+    "b-funded": state.phase === "funded",
+    "b-100-sazek": state.tickets.length >= 100,
+  };
+}
+
+function renderBadges(state) {
+  const badgeGrid = document.getElementById("badgeGrid");
+  if (!badgeGrid) return;
+  const unlocks = computeBadgeUnlocks(state);
+  const unlockedCount = BADGES.filter(([, , key]) => key && unlocks[key]).length;
+  const countEl = document.getElementById("badgeCount");
+  if (countEl) countEl.textContent = `${unlockedCount} / ${BADGES.length}`;
+  badgeGrid.innerHTML = BADGES.map(([name, img, key]) => {
+    const unlocked = key ? !!unlocks[key] : false;
+    return `<div class="badge-tile ${unlocked ? "unlocked" : ""}" title="${name}">
+      <img src="assets/badges/${img}.png" alt="" />${name}
+    </div>`;
+  }).join("");
+}
+
+// ---------- přehled: momentum/série pod hlavičkou ----------
+function renderMomentum(state) {
+  const el = document.getElementById("ovMomentum");
+  if (!el) return;
+  const streaks = computeStreaks(state);
+  if (streaks.current < 2) {
+    el.hidden = true;
+    return;
+  }
+  el.hidden = false;
+  if (streaks.type === "won") {
+    el.textContent = `🔥 ${streaks.current}× výhra v řadě`;
+    el.classList.remove("chip-momentum-cold");
+  } else {
+    el.textContent = `${streaks.current}× prohra v řadě`;
+    el.classList.add("chip-momentum-cold");
+  }
+}
+
 // ---------- portfolio: nastartuje simulaci a průběžně vyhodnocuje tikety ----------
 Portfolio.ensure("advanced");
+renderBadges(Portfolio.get());
+
 async function refreshAfterSettlement() {
+  const beforeState = Portfolio.get();
+  const beforeStatus = beforeState ? Object.fromEntries(beforeState.tickets.map((t) => [t.id, t.status])) : {};
+  const beforeUnlocks = beforeState ? computeBadgeUnlocks(beforeState) : {};
+
   await Portfolio.checkSettlements();
+
+  const afterState = Portfolio.get();
+  if (afterState) {
+    afterState.tickets.forEach((t) => {
+      if (beforeStatus[t.id] === "pending" && t.status !== "pending") {
+        celebrateTicket(t);
+      }
+    });
+    const afterUnlocks = computeBadgeUnlocks(afterState);
+    BADGES.forEach(([name, , key]) => {
+      if (key && afterUnlocks[key] && !beforeUnlocks[key]) {
+        showToast("badge", "Nový odznak! 🏅", name);
+      }
+    });
+    renderBadges(afterState);
+    renderMomentum(afterState);
+  }
+
   if (typeof renderPrehled === "function") renderPrehled();
   if (typeof renderVykon === "function") renderVykon();
   if (typeof renderBankBar === "function") renderBankBar();
@@ -631,28 +783,7 @@ if (wdForm) {
 }
 
 // ---------- profil ----------
-const BADGES = [
-  ["První vítězství", "b-prvni-vitezstvi", true],
-  ["5 v řadě", "b-5-v-rade", true],
-  ["10 v řadě", "b-10-v-rade", false],
-  ["Akumulátor expert", "b-akumulator", true],
-  ["Fáze 1 dokončená", "b-faze-1", false],
-  ["Fáze 2 dokončená", "b-faze-2", false],
-  ["Funded hráč", "b-funded", false],
-  ["100 sázek", "b-100-sazek", false],
-  ["Lovecký instinkt", "b-lovecky", false],
-  ["Železná ruka", "b-zelezna-ruka", false],
-  ["První výběr", "b-prvni-vyber", false],
-  ["Ambasador", "b-ambasador", false],
-];
-
-const badgeGrid = document.getElementById("badgeGrid");
-if (badgeGrid) {
-  badgeGrid.innerHTML = BADGES.map(([name, img, unlocked]) => `
-    <div class="badge-tile ${unlocked ? "unlocked" : ""}" title="${name}">
-      <img src="assets/badges/${img}.png" alt="" />${name}
-    </div>`).join("");
-}
+// odznaky se renderují přes renderBadges() výše (volané z refreshAfterSettlement)
 
 const refCopy = document.getElementById("refCopy");
 if (refCopy) {
@@ -728,6 +859,7 @@ function renderPrehled() {
   const phaseLabel = state.phase === "funded" ? "Financovaný účet" : `Fáze ${state.phase}`;
   document.getElementById("ovSubtitle").textContent = `${phaseLabel} · Betflow výzva`;
   document.getElementById("ovPhaseChip").textContent = phaseLabel;
+  renderMomentum(state);
 
   const target = Portfolio.phaseTarget(state);
   const profit = state.balance - state.phaseBaseline;

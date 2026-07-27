@@ -67,6 +67,7 @@
             <p id="ovSubtitle">Fáze 1 · Betflow výzva</p>
           </div>
           <span class="spacer"></span>
+          <span class="chip-momentum" id="ovMomentum" hidden></span>
           <span class="chip-phase" id="ovPhaseChip">Fáze 1</span>
         </div>
 
@@ -334,7 +335,7 @@
         </div>
 
         <div class="panel">
-          <h3>Odznaky · <span style="color:var(--text-muted);font-weight:500">3 / 12</span></h3>
+          <h3>Odznaky · <span style="color:var(--text-muted);font-weight:500" id="badgeCount">0 / 12</span></h3>
           <div class="badges" id="badgeGrid"><!-- JS --></div>
         </div>
 
@@ -440,6 +441,8 @@
     <button data-view="vyplaty">Výplaty</button>
     <button data-view="profil">Profil</button>
   </nav>
+
+  <div id="toastLayer" class="toast-layer" aria-live="polite"></div>
 
   <script src="js/packages.js"></script>
   <script src="js/portfolio.js"></script>
