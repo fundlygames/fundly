@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin | Betflow</title>
+  <meta name="description" content="Interní administrace Betflow — finance, hráči, diagnostika." />
+  <meta name="theme-color" content="#020204" />
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+</head>
+<body>
+
+  <!-- ============ NAV ============ -->
+  <header class="nav scrolled">
+    <div class="container nav-inner">
+      <a href="index.html" class="logo" aria-label="Betflow, domů">
+        <img src="assets/logo.png" alt="" width="24" height="24" />
+        betflow <span class="admin-badge">admin</span>
+      </a>
+      <nav class="dnav-links" aria-label="Admin">
+        <button class="dnav-link active" data-view="finance">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M1.5 11.5l4-4 3 3 5-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Finance
+        </button>
+        <button class="dnav-link" data-view="hraci">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><circle cx="5.5" cy="4.75" r="2.25" stroke="currentColor" stroke-width="1.4"/><circle cx="10.5" cy="5.5" r="1.75" stroke="currentColor" stroke-width="1.4"/><path d="M1.5 13c.6-2.2 2.3-3.4 4-3.4S8.9 10.8 9.5 13M9 9.7c1.5.1 2.9 1.2 3.5 3.3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          Hráči
+        </button>
+        <button class="dnav-link" data-view="diagnostika">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M1.5 8h2.5l1.5-4 2 8 1.5-4H13.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Diagnostika
+        </button>
+      </nav>
+      <div class="nav-cta">
+        <span class="chip-phase admin-env">Produkce</span>
+        <a class="icon-btn" href="dashboard.html" aria-label="Zpět do hráčského dashboardu">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M9.5 2h2A1.5 1.5 0 0113 3.5v9a1.5 1.5 0 01-1.5 1.5h-2M6 5L3 8l3 3M3 8h6.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="dash-main">
+    <div class="container">
+
+      <!-- ============ FINANCE ============ -->
+      <section class="dash-view" id="view-finance">
+        <div class="dash-head">
+          <div>
+            <h1>Finanční přehled</h1>
+            <p>Tržby, výplaty a marketing · Červenec 2026</p>
+          </div>
+          <span class="spacer"></span>
+          <span class="chip-phase" id="finPeriodChip">Tento měsíc</span>
+        </div>
+
+        <div class="stat-grid" id="finStatGrid"><!-- JS --></div>
+
+        <div class="panel">
+          <h3>Vývoj tržeb</h3>
+          <div id="finRevenueChart"><!-- JS --></div>
+        </div>
+
+        <div class="two-col">
+          <div class="panel">
+            <h3>Rozpad tržeb</h3>
+            <div class="k-rows" id="finBreakdown"><!-- JS --></div>
+          </div>
+          <div class="panel">
+            <h3>Poslední výplaty</h3>
+            <div class="k-rows" id="finPayouts"><!-- JS --></div>
+          </div>
+        </div>
+
+        <div class="panel mt">
+          <h3>Marketingové kanály</h3>
+          <div class="table-scroll">
+            <table class="ticket-table" id="finChannelsTable"><!-- JS --></table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ HRÁČI ============ -->
+      <section class="dash-view" id="view-hraci" hidden>
+        <div class="dash-head">
+          <div>
+            <h1>Přehled hráčů</h1>
+            <p>Registrace, výzvy a financované účty</p>
+          </div>
+        </div>
+
+        <div class="stat-grid" id="playersStatGrid"><!-- JS --></div>
+
+        <div class="panel">
+          <h3>Nové registrace</h3>
+          <div class="bar-chart" id="playersGrowthChart"><!-- JS --></div>
+        </div>
+
+        <div class="subtabs" role="tablist" aria-label="Filtr hráčů" id="playersTabs">
+          <button class="active" data-ptab="vse" role="tab" aria-selected="true">Vše</button>
+          <button data-ptab="aktivni" role="tab" aria-selected="false">Aktivní</button>
+          <button data-ptab="funded" role="tab" aria-selected="false">Financovaní</button>
+          <button data-ptab="breached" role="tab" aria-selected="false">Breached</button>
+        </div>
+
+        <div class="panel">
+          <div class="table-scroll">
+            <table class="ticket-table" id="playersTable"><!-- JS --></table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ DIAGNOSTIKA ============ -->
+      <section class="dash-view" id="view-diagnostika" hidden>
+        <div class="dash-head">
+          <div>
+            <h1>Diagnostika systému</h1>
+            <p>Stav služeb, fronta vyhodnocení a upozornění</p>
+          </div>
+        </div>
+
+        <div class="stat-grid" id="diagStatGrid"><!-- JS --></div>
+
+        <div class="panel">
+          <h3>Stav služeb</h3>
+          <div class="k-rows" id="diagServices"><!-- JS --></div>
+        </div>
+
+        <div class="panel mt">
+          <h3>Poslední upozornění</h3>
+          <div class="k-rows" id="diagAlerts"><!-- JS --></div>
+        </div>
+
+        <div class="panel mt">
+          <h3>Fronta vyhodnocení tiketů</h3>
+          <div class="table-scroll">
+            <table class="ticket-table" id="diagQueueTable"><!-- JS --></table>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- mobilní navigace -->
+  <nav class="dnav-mobile" aria-label="Admin, mobilní">
+    <button class="active" data-view="finance">Finance</button>
+    <button data-view="hraci">Hráči</button>
+    <button data-view="diagnostika">Diagnostika</button>
+  </nav>
+
+  <script src="js/admin.js"></script>
+</body>
+</html>
