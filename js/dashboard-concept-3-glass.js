@@ -1,4 +1,4 @@
-/* Betflow — Concept 3: "Glass Command Center"
+/* Fundly — Concept 3: "Glass Command Center"
    Reads the real shared Portfolio/packages APIs (js/packages.js,
    js/portfolio.js) and renders live bf1:portfolio state into the
    HUD/glass dashboard markup. This file only ever READS state via

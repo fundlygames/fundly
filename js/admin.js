@@ -1,4 +1,4 @@
-/* Betflow admin — finance, hráči, diagnostika (interní, mock data) */
+/* Fundly admin — finance, hráči, diagnostika (interní, mock data) */
 
 const czk = (n) => n.toLocaleString("cs-CZ") + " Kč";
 

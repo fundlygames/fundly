@@ -1,4 +1,4 @@
-/* Betflow — sdílená API/cache vrstva pro odds-api.io + stav portfolia
+/* Fundly — sdílená API/cache vrstva pro odds-api.io + stav portfolia
    (balíček, zůstatek, tikety). Načítá se před dashboard.js (a main.js),
    obojí sdílí tyto globální funkce/objekty. */
 

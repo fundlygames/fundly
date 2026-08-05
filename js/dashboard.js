@@ -1,4 +1,4 @@
-/* Betflow dashboard — přepínání sekcí, sázení, žebříček, profil */
+/* Fundly dashboard — přepínání sekcí, sázení, žebříček, profil */
 
 const czk = (n) => n.toLocaleString("cs-CZ") + " Kč";
 
@@ -857,7 +857,7 @@ function renderPrehled() {
   if (!view) return;
   const state = Portfolio.ensure("advanced");
   const phaseLabel = state.phase === "funded" ? "Financovaný účet" : `Fáze ${state.phase}`;
-  document.getElementById("ovSubtitle").textContent = `${phaseLabel} · Betflow výzva`;
+  document.getElementById("ovSubtitle").textContent = `${phaseLabel} · Fundly výzva`;
   document.getElementById("ovPhaseChip").textContent = phaseLabel;
   renderMomentum(state);
 
@@ -931,7 +931,7 @@ function renderPrehled() {
     </div>`;
 
   const steps = [
-    { title: "Fáze 1 · Betflow výzva", desc: `Cíl +${czk(state.target1)}`, img: "assets/journey-phase1.jpg" },
+    { title: "Fáze 1 · Fundly výzva", desc: `Cíl +${czk(state.target1)}`, img: "assets/journey-phase1.jpg" },
     { title: "Fáze 2 · Verifikace", desc: `Cíl +${czk(state.target2)}`, img: "assets/journey-phase2.jpg" },
     { title: "Financovaný účet", desc: `${state.profitSplit} % podíl na zisku, neomezený čas, pravidelné výplaty.`, img: "assets/journey-funded.jpg" },
   ];

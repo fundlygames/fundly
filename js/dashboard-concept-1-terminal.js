@@ -1,4 +1,4 @@
-/* Betflow — Trading Terminal concept
+/* Fundly — Trading Terminal concept
    Renders REAL data from the shared Portfolio/packages layer (js/portfolio.js,
    js/packages.js, loaded before this file) into the dense ledger-style UI
    described in the Trading Terminal design brief. No fake numbers. */

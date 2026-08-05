@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make betting on the static Betflow demo actually work client-side (buy package → real balance → place real bets → real settlement) and make `Přehled`/`Výkon` reflect that real state instead of hardcoded demo numbers.
+**Goal:** Make betting on the static Fundly demo actually work client-side (buy package → real balance → place real bets → real settlement) and make `Přehled`/`Výkon` reflect that real state instead of hardcoded demo numbers.
 
 **Architecture:** Two new plain `<script>` files (`js/packages.js`, `js/portfolio.js`) add a shared package config and a localStorage-backed portfolio module. `index.html`/`main.js` initialize the portfolio on signup; `dashboard.html`/`dashboard.js` place bets against it, poll odds-api.io to settle them against real match results, and render `Přehled`/`Výkon` from it instead of static markup.
 
@@ -15,7 +15,7 @@
 - API response caching reuses the existing `cacheGet`/`cacheSet`/`cacheDrop` TTL-envelope pattern (`{t, d}` JSON wrapper).
 - UI copy stays in Czech, matching existing tone.
 - This project has **no git repository** — plan steps that would normally end in `git commit` instead end in a plain "done" checkpoint. Do not run `git init` as part of this plan unless the user asks.
-- Verification is manual: start a local static server (`python3 -m http.server <port>` from `/Users/matejcaban/betflow-upcomers-static`) and drive the browser (or curl the odds-api.io endpoints directly) — there is no automated test suite in this project.
+- Verification is manual: start a local static server (`python3 -m http.server <port>` from `/Users/matejcaban/fundly-upcomers-static`) and drive the browser (or curl the odds-api.io endpoints directly) — there is no automated test suite in this project.
 - Script load order matters (classic, non-module scripts share one global scope): `js/packages.js` → `js/portfolio.js` → `js/main.js` (on `index.html`) or `js/dashboard.js` (on `dashboard.html`). `packages.js` must never be loaded twice with conflicting `const` names — it's the single source of truth for `PACKAGES`.
 - Known, accepted simplification (from the approved spec): Asian handicap settlement applies `hdp` to the home side and doesn't split quarter-lines (.25/.75) into half win/half loss — a single win/loss is returned instead. Markets the settlement logic doesn't confidently model (corners, correct score, half-time-specific markets) settle as `push` (stake refunded) rather than guessing.
 
@@ -34,7 +34,7 @@
 - [ ] **Step 1: Create `js/packages.js`**
 
 ```js
-/* Betflow — sdílená konfigurace balíčků (index.html i dashboard.html). */
+/* Fundly — sdílená konfigurace balíčků (index.html i dashboard.html). */
 
 const PACKAGES = [
   { key: "starter",  name: "Starter",  cap: 10000,  price: 490 },
@@ -67,7 +67,7 @@ function packageMeta(pkg) {
 In `js/main.js`, replace lines 1-12:
 
 ```js
-/* Betflow × Upcomers — interakce */
+/* Fundly × Upcomers — interakce */
 
 // ---------- data balíčků ----------
 // Advanced odpovídá přesně původnímu webu (cíl 20 %, drawdown 8 %,
@@ -84,7 +84,7 @@ const PACKAGES = [
 with:
 
 ```js
-/* Betflow × Upcomers — interakce */
+/* Fundly × Upcomers — interakce */
 
 // data balíčků: viz js/packages.js (sdílené s dashboard.html)
 ```
@@ -106,7 +106,7 @@ with:
 
 - [ ] **Step 4: Verify in browser**
 
-Run: `cd /Users/matejcaban/betflow-upcomers-static && python3 -m http.server 8791`
+Run: `cd /Users/matejcaban/fundly-upcomers-static && python3 -m http.server 8791`
 Open `http://localhost:8791/index.html`, scroll to "Vyberte si svůj kapitál", click through the 10K/25K/50K/100K/200K package chips.
 Expected: pricing cards update exactly as before (same capitals/prices/targets) — this confirms `packages.js` loaded correctly and `main.js` reads `PACKAGES` from it with no console errors (check via right-click → Inspect → Console: no "PACKAGES is not defined" or duplicate-declaration errors).
 Stop the server: `pkill -f "http.server 8791"`
@@ -136,7 +136,7 @@ Stop the server: `pkill -f "http.server 8791"`
 - [ ] **Step 1: Create `js/portfolio.js`**
 
 ```js
-/* Betflow — sdílená API/cache vrstva pro odds-api.io + stav portfolia
+/* Fundly — sdílená API/cache vrstva pro odds-api.io + stav portfolia
    (balíček, zůstatek, tikety). Načítá se před dashboard.js (a main.js),
    obojí sdílí tyto globální funkce/objekty. */
 
@@ -545,7 +545,7 @@ with:
 
 - [ ] **Step 4: Verify regression — match listing still works**
 
-Run: `cd /Users/matejcaban/betflow-upcomers-static && python3 -m http.server 8791`
+Run: `cd /Users/matejcaban/fundly-upcomers-static && python3 -m http.server 8791`
 Open `http://localhost:8791/dashboard.html`, click "Sázení" in the top nav.
 Expected: real upcoming matches still load per sport tab (Basketbal/Fotbal/Hokej/Stolní tenis/Tenis), exactly as before — confirms `cacheGet`/`cacheSet`/`apiGet` still work for `dashboard.js` from their new home in `portfolio.js`. Check DevTools Console: no errors.
 
@@ -656,7 +656,7 @@ with:
 
 - [ ] **Step 3: Verify register flow sets the right starting capital**
 
-Run: `cd /Users/matejcaban/betflow-upcomers-static && python3 -m http.server 8791`
+Run: `cd /Users/matejcaban/fundly-upcomers-static && python3 -m http.server 8791`
 Open `http://localhost:8791/index.html`, open DevTools console and clear state: `localStorage.removeItem("bf1:portfolio")`.
 Scroll to "Vyberte si svůj kapitál", select the **10K** (Starter) chip, click "Koupit výzvu", fill in any email/password, submit.
 Expected: redirected to `dashboard.html`. In DevTools console run `JSON.parse(localStorage.getItem("bf1:portfolio"))` — expect `cap: 10000, balance: 10000, packageKey: "starter", phase: 1, target1: 2000, maxStake: 400`.
@@ -910,7 +910,7 @@ setInterval(refreshAfterSettlement, 60 * 1000);
 
 - [ ] **Step 5: Verify placing a real bet end-to-end**
 
-Run: `cd /Users/matejcaban/betflow-upcomers-static && python3 -m http.server 8791`
+Run: `cd /Users/matejcaban/fundly-upcomers-static && python3 -m http.server 8791`
 Open `http://localhost:8791/dashboard.html`, open DevTools console and run `localStorage.removeItem("bf1:portfolio")`, reload the page.
 Go to "Sázení", pick any sport with matches, click an odd to add it to the slip, set a stake (e.g. 500), click "Vsadit".
 Expected: note shows "Tiket přijat! Sledujte ho v Přehledu.", the slip clears after ~900ms. In console, run `JSON.parse(localStorage.getItem("bf1:portfolio")).tickets[0]` — expect a ticket with `status: "pending"`, correct `stake`, `selections[0].eventId/marketName/field/oddValue` populated, and `JSON.parse(localStorage.getItem("bf1:portfolio")).balance` reduced by the stake.
@@ -944,7 +944,7 @@ In `dashboard.html`, replace lines 63-174:
         <div class="dash-head">
           <div>
             <h1>Přehled</h1>
-            <p>Fáze 1 · Betflow výzva</p>
+            <p>Fáze 1 · Fundly výzva</p>
           </div>
           <span class="spacer"></span>
           <span class="chip-phase">Fáze 1</span>
@@ -1023,7 +1023,7 @@ In `dashboard.html`, replace lines 63-174:
               <div class="j-dot-col"><span class="j-dot">1</span><span class="j-line"></span></div>
               <div class="j-body">
                 <img class="j-thumb" src="assets/card2-vyzva.jpg" alt="" />
-                <span><span class="t">Fáze 1 · Betflow výzva</span><br /><span class="d">Cíl +40 000 Kč, právě probíhá. Máte 16 % splněno.</span></span>
+                <span><span class="t">Fáze 1 · Fundly výzva</span><br /><span class="d">Cíl +40 000 Kč, právě probíhá. Máte 16 % splněno.</span></span>
               </div>
             </div>
             <div class="j-step">
@@ -1061,7 +1061,7 @@ with:
         <div class="dash-head">
           <div>
             <h1>Přehled</h1>
-            <p id="ovSubtitle">Fáze 1 · Betflow výzva</p>
+            <p id="ovSubtitle">Fáze 1 · Fundly výzva</p>
           </div>
           <span class="spacer"></span>
           <span class="chip-phase" id="ovPhaseChip">Fáze 1</span>
@@ -1109,7 +1109,7 @@ function renderPrehled() {
   if (!view) return;
   const state = Portfolio.ensure("advanced");
   const phaseLabel = state.phase === "funded" ? "Financovaný účet" : `Fáze ${state.phase}`;
-  document.getElementById("ovSubtitle").textContent = `${phaseLabel} · Betflow výzva`;
+  document.getElementById("ovSubtitle").textContent = `${phaseLabel} · Fundly výzva`;
   document.getElementById("ovPhaseChip").textContent = phaseLabel;
 
   const target = Portfolio.phaseTarget(state);
@@ -1178,7 +1178,7 @@ function renderPrehled() {
     </div>`;
 
   const steps = [
-    { title: "Fáze 1 · Betflow výzva", desc: `Cíl +${czk(state.target1)}`, img: "assets/card2-vyzva.jpg" },
+    { title: "Fáze 1 · Fundly výzva", desc: `Cíl +${czk(state.target1)}`, img: "assets/card2-vyzva.jpg" },
     { title: "Fáze 2 · Verifikace", desc: `Cíl +${czk(state.target2)}`, img: "assets/card2-verifikace.jpg" },
     { title: "Financovaný účet", desc: `${state.profitSplit} % podíl na zisku, neomezený čas, pravidelné výplaty.`, img: "assets/card2-tiper.jpg" },
   ];
@@ -1205,7 +1205,7 @@ The trailing `renderPrehled();` call renders the view once immediately on script
 
 - [ ] **Step 3: Verify in browser**
 
-Run: `cd /Users/matejcaban/betflow-upcomers-static && python3 -m http.server 8791`
+Run: `cd /Users/matejcaban/fundly-upcomers-static && python3 -m http.server 8791`
 Open `http://localhost:8791/index.html`, clear state via console (`localStorage.removeItem("bf1:portfolio")`), buy the **200K (Elite)** package, submit registration.
 Expected on the resulting `dashboard.html` Přehled view: "Balíček Elite", zůstatek "200 000 Kč", "Cíl fáze: 240 000 Kč", "0 %", "23 dní zbývá" → should read "30 dní zbývá" (fresh start), "Do cíle 40 000 Kč", stat-grid shows "Zisk +0 Kč", "Do cíle 40 000 Kč", "Výhry 0 / 0", "Tikety 0". Click the "Limity"/"Pravidla"/"Cesta" tabs — expect drawdown meter at Floor 184 000 / cursor near 100%, rule tiles matching Elite (Max. sázka 8 000 Kč, Drawdown 16 000 Kč), and the journey highlighting "Fáze 1" as current with "0 %" progress text.
 Stop the server: `pkill -f "http.server 8791"`
@@ -1324,7 +1324,7 @@ At the end of `css/dashboard.css`, append:
 
 - [ ] **Step 4: Verify in browser**
 
-Run: `cd /Users/matejcaban/betflow-upcomers-static && python3 -m http.server 8791`
+Run: `cd /Users/matejcaban/fundly-upcomers-static && python3 -m http.server 8791`
 Open `http://localhost:8791/dashboard.html` with an existing `bf1:portfolio` state (from Task 5's verification, or re-buy a package). On first load with only the initial equity point, expect the "Graf se naplní…" placeholder message and "Zatím žádné tikety…" in the recent-tickets panel.
 Place a bet in Sázení, then in DevTools console manually settle it (reuse the Task 2, Step 5 pattern: seed `state.tickets[0]` to reference the known-settled match `72278396` with a `startTime` in the past, call `await Portfolio.checkSettlements()`), then click back to "Přehled".
 Expected: the equity chart now renders a visible polyline (2+ points), and "Poslední tikety" shows the settled ticket with a "Výhra"/"Prohra"/"Vráceno" tag matching its `status`.
@@ -1511,7 +1511,7 @@ function renderVykon() {
 
 - [ ] **Step 3: Verify in browser**
 
-Run: `cd /Users/matejcaban/betflow-upcomers-static && python3 -m http.server 8791`
+Run: `cd /Users/matejcaban/fundly-upcomers-static && python3 -m http.server 8791`
 Open `http://localhost:8791/dashboard.html` with the portfolio state from Task 6's verification (one settled ticket). Click "Výkon".
 Expected: stat-grid shows real "Aktuální zisk"/"Úspěšnost"/"Průměrný kurz"/"Čekající" derived from that one ticket (e.g. if it won: Zisk positive, Úspěšnost 100%, Čekající 0), "Přehled tiketů" shows 1 in Výherní (or Prohrané), "Finanční přehled" shows matching Vsazeno/Vráceno/Čistý zisk, the daily bar chart shows one non-zero bar on today's weekday, and "Poslední tikety" table shows the one real ticket instead of the old hardcoded 6 rows.
 Place a second bet (leave it pending) and switch to Výkon again — expect "Čekající" to increase and the new ticket to appear in the table with a "Čeká" tag.

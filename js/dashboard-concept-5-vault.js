@@ -1,4 +1,4 @@
-/* Betflow — Concept 3/5 "Cinematic Vault"
+/* Fundly — Concept 3/5 "Cinematic Vault"
    Reads the REAL shared Portfolio/packages state (js/packages.js + js/portfolio.js,
    loaded before this file) and renders it into the vault-themed markup below.
    No fake numbers: every figure on this page comes from Portfolio.ensure()/summary()/

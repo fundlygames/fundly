@@ -2,13 +2,13 @@
 
 ## Problem
 
-The static demo (`betflow-upcomers-static`) has real match/odds data (odds-api.io) and a working
+The static demo (`fundly-upcomers-static`) has real match/odds data (odds-api.io) and a working
 bet-slip UI, but placing a bet ("Vsadit") is a no-op stub — no balance change, no ticket recorded.
 The `Přehled` (Overview) view has hardcoded demo numbers and, aside from a chart, is largely already
 structured like a prop-firm dashboard (drawdown meter, rules, phase journey) but none of it reflects
 anything the user actually does. There is no way to test the betting loop end-to-end.
 
-A separate, real backend already exists for the React app (`betflow-upcomers`, Supabase-backed: 59
+A separate, real backend already exists for the React app (`fundly-upcomers`, Supabase-backed: 59
 migrations, tables for matches/odds/bets/challenges/withdrawals, edge functions including
 `odds-sync` and `settle-bets`). That is the eventual production backend. This spec is scoped only to
 making the **static demo** self-contained and testable client-side — it does not touch Supabase or
@@ -129,6 +129,6 @@ all recompute from `Portfolio.get().tickets` instead of the hardcoded rows that 
 
 - Challenge failure / drawdown-breach handling (locking the account, "you failed" state).
 - Splitting quarter-line Asian handicap tickets into half win / half loss.
-- Any change to `betflow-upcomers` (the React/Supabase app) — this is static-demo only.
+- Any change to `fundly-upcomers` (the React/Supabase app) — this is static-demo only.
 - Výplaty (Withdrawals) view — not wired to portfolio state in this pass.
 - Per-leg settlement display for accumulators beyond the combined ticket (matches today's slip UX).

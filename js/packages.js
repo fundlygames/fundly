@@ -1,4 +1,4 @@
-/* Betflow — sdílená konfigurace balíčků (index.html i dashboard.html). */
+/* Fundly — sdílená konfigurace balíčků (index.html i dashboard.html). */
 
 const PACKAGES = [
   { key: "starter",  name: "Starter",  cap: 10000,  price: 490 },

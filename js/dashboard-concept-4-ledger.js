@@ -1,4 +1,4 @@
-/* Betflow — Concept 4: BRUTALIST LEDGER
+/* Fundly — Concept 4: BRUTALIST LEDGER
    Reads the real, shared Portfolio/packages data layer (js/packages.js +
    js/portfolio.js, loaded before this file, both untouched) and renders
    it into the ledger-document markup in dashboard-concept-4-ledger.html.

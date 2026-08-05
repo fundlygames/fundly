@@ -1,5 +1,5 @@
 /* ============================================================
-   Betflow — "Editorial Analytics" concept (koncept 2)
+   Fundly — "Editorial Analytics" concept (koncept 2)
    Reads REAL Portfolio/packages state, renders it into the
    magazine-style layout defined in dashboard-concept-2-editorial.html.
    ============================================================ */
@@ -162,7 +162,7 @@ function edRenderPrehled() {
     <div class="ed-rule-row"><span>Trailing drawdown</span><span><b>${eczk(state.drawdown)}</b></span></div>`;
 
   const steps = [
-    { title: "Fáze 1 · Betflow výzva", desc: `Cíl +${eczk(state.target1)}` },
+    { title: "Fáze 1 · Fundly výzva", desc: `Cíl +${eczk(state.target1)}` },
     { title: "Fáze 2 · Verifikace", desc: `Cíl +${eczk(state.target2)}` },
     { title: "Financovaný účet", desc: `${state.profitSplit} % podíl na zisku, neomezený čas, pravidelné výplaty.` },
   ];

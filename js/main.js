@@ -1,4 +1,4 @@
-/* Betflow × Upcomers — interakce */
+/* Fundly × Upcomers — interakce */
 
 // data balíčků: viz js/packages.js (sdílené s dashboard.html)
 
@@ -31,7 +31,7 @@ function renderPlan(animate) {
       <div class="ph-art" style="background-image:url(assets/card2-vyzva.jpg)" aria-hidden="true"></div>
       <div class="ph-body">
         <span class="ph-tag">Fáze 1</span>
-        <div class="ph-name">Betflow výzva</div>
+        <div class="ph-name">Fundly výzva</div>
         <div class="ph-rows">
           <div class="ph-row"><span class="k">Cíl zisku</span><span class="v green">${czkSigned(target1)}</span></div>
           <div class="ph-row"><span class="k">Drawdown (trailing)</span><span class="v red">${czkSigned(-dd)}</span></div>
@@ -57,7 +57,7 @@ function renderPlan(animate) {
       <div class="ph-art" style="background-image:url(assets/card2-tiper.jpg)" aria-hidden="true"></div>
       <div class="ph-body">
         <span class="ph-tag">Financovaný účet</span>
-        <div class="ph-name">Betflow tipér</div>
+        <div class="ph-name">Fundly tipér</div>
         <div class="ph-rows">
           <div class="ph-row"><span class="k">Váš podíl</span><span class="v green">80 %</span></div>
           <div class="ph-row"><span class="k">Drawdown (trailing)</span><span class="v red">${czkSigned(-dd)}</span></div>
