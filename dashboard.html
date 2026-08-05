@@ -13,7 +13,7 @@
   <script defer src="js/config.js"></script>
   <script defer src="js/whop.js"></script>
 </head>
-<body>
+<body class="with-sidebar">
 
   <!-- ============ TOP BAR (mobil <1024px; na desktopu schová sidebar) ============ -->
   <header class="nav scrolled">
@@ -313,6 +313,7 @@
                 </select>
               </div>
               <button type="submit" class="btn btn-primary" style="width:100%">Odeslat žádost ke schválení</button>
+              <p class="t-meta" style="margin-top:10px">Výběr je možný až po 5 obchodních dnech s aspoň 0,5 % zisku. <b id="wdRuleDays"></b></p>
               <p class="auth-note mt" id="wdNote" hidden></p>
             </form>
           </div>
@@ -321,6 +322,7 @@
               <h3>Jak to funguje</h3>
               <ol class="ol-steps">
                 <li>Před prvním výběrem dosáhněte bufferu 10 % z kapitálu.</li>
+                <li>Výběr je možný až po 5 obchodních dnech s aspoň 0,5 % zisku.</li>
                 <li>Vyberte si částku, maximálně váš podíl ze zisku.</li>
                 <li>Žádost schválíme do 24 hodin a vyplatíme.</li>
                 <li>Po výběru musí zůstatek zůstat nad bezpečnostní hranicí.</li>
@@ -400,21 +402,21 @@
               <svg width="20" height="20" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M4.5 2h6v4a3 3 0 01-6 0V2z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M7.5 9v2.5M5 13h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
             </span>
             <span class="grow" style="flex:1">
-              <span class="t">Elite</span><br />
-              <span class="d">Kapitál: 200 000 Kč</span>
+              <span class="t" id="pfName">–</span><br />
+              <span class="d">Kapitál: <span id="pfCap">–</span></span>
             </span>
-            <span class="chip-phase">Fáze 1</span>
+            <span class="chip-phase" id="pfPhase">–</span>
           </div>
           <div class="stat-grid">
-            <div class="dstat"><div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><rect x="1.5" y="4" width="12" height="8" rx="2" stroke="currentColor" stroke-width="1.6"/><circle cx="7.5" cy="8" r="1.6" fill="currentColor"/></svg></span>Aktuální zůstatek</div><div class="val green">206 400 Kč</div></div>
-            <div class="dstat"><div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M1.5 11.5l4-4 3 3 5-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Celkový zisk</div><div class="val green">+6 400 Kč</div></div>
-            <div class="dstat"><div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 5a1.5 1.5 0 001.5-1.5h8A1.5 1.5 0 0013 5v1.6a1.9 1.9 0 000 3.8V12a1.5 1.5 0 00-1.5 1.5h-8A1.5 1.5 0 002 12V5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" transform="translate(0,-1.2)"/></svg></span>Tiketů celkem</div><div class="val">6</div></div>
-            <div class="dstat"><div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M4.5 2h6v4a3 3 0 01-6 0V2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M7.5 9v2.5M5 13h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>Úspěšnost</div><div class="val green">67 %</div></div>
+            <div class="dstat"><div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><rect x="1.5" y="4" width="12" height="8" rx="2" stroke="currentColor" stroke-width="1.6"/><circle cx="7.5" cy="8" r="1.6" fill="currentColor"/></svg></span>Aktuální zůstatek</div><div class="val" id="pfBalance">–</div></div>
+            <div class="dstat"><div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M1.5 11.5l4-4 3 3 5-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Celkový zisk</div><div class="val" id="pfProfit">–</div></div>
+            <div class="dstat"><div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 5a1.5 1.5 0 001.5-1.5h8A1.5 1.5 0 0013 5v1.6a1.9 1.9 0 000 3.8V12a1.5 1.5 0 00-1.5 1.5h-8A1.5 1.5 0 002 12V5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" transform="translate(0,-1.2)"/></svg></span>Tiketů celkem</div><div class="val" id="pfTickets">–</div></div>
+            <div class="dstat"><div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M4.5 2h6v4a3 3 0 01-6 0V2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M7.5 9v2.5M5 13h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>Úspěšnost</div><div class="val" id="pfWinRate">–</div></div>
           </div>
           <div class="bc-goal">
-            <div class="bc-goal-row"><span>Postup k cíli (40 000 Kč)</span><span><b>16 %</b></span></div>
-            <div class="progress"><span style="width:16%"></span></div>
-            <div class="bc-meta"><span>Potřebujete 10 výherních tiketů · Máte 4</span></div>
+            <div class="bc-goal-row"><span id="pfGoalLabel">Postup k cíli</span><span><b id="pfGoalPct">–</b></span></div>
+            <div class="progress"><span id="pfGoalBar" style="width:0%"></span></div>
+            <div class="bc-meta"><span id="pfGoalMeta"></span></div>
           </div>
         </div>
 
@@ -423,28 +425,21 @@
             <h3>Rizikové limity</h3>
             <p class="t-small" style="margin-bottom:12px">Žádný denní limit. Jediné pravidlo selhání je trailing drawdown.</p>
             <div class="limit-row">
-              <span class="k">Trailing drawdown <small>(HWM 206 400 · Floor 190 400)</small></span>
-              <span class="v">16 000 Kč zbývá</span>
+              <span class="k">Trailing drawdown <small id="pfDdDetail">(HWM – · Floor –)</small></span>
+              <span class="v" id="pfDdRemain">–</span>
             </div>
-            <div class="progress"><span style="width:100%"></span></div>
+            <div class="progress"><span id="pfDdBar" style="width:100%"></span></div>
           </div>
           <div class="panel">
             <h3>Časový limit</h3>
-            <div class="val green" style="font-size:1.75rem;font-weight:800">23 dní</div>
-            <p class="t-small">Zbývá do konce fáze · Deadline: 2. 8. 2026</p>
+            <div class="val green" style="font-size:1.75rem;font-weight:800" id="pfDaysLeft">–</div>
+            <p class="t-small" id="pfDeadline">Zbývá do konce fáze</p>
           </div>
         </div>
 
         <div class="panel mt">
           <h3>Pravidla balíčku</h3>
-          <div class="rules-grid">
-            <div class="rule-tile"><div class="k">Profit split</div><div class="v green">85 %</div></div>
-            <div class="rule-tile"><div class="k">Max. sázka</div><div class="v">8 000 Kč</div></div>
-            <div class="rule-tile"><div class="k">Kurzy</div><div class="v">1.00 až 8.00</div></div>
-            <div class="rule-tile"><div class="k">Drawdown</div><div class="v">16 000 Kč</div></div>
-            <div class="rule-tile"><div class="k">Časový limit</div><div class="v">30 dní / fáze</div></div>
-            <div class="rule-tile"><div class="k">Min. tiketů</div><div class="v">10</div></div>
-          </div>
+          <div class="rules-grid" id="pfRules"><!-- JS: renderProfile() --></div>
         </div>
       </section>
 

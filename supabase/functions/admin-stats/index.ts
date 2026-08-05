@@ -113,7 +113,10 @@ serve(async (req) => {
       totalRevenue: Math.round(sumCzk(allPayments.data)),
       recentPayments: recentPayments.data ?? [],
       accountsByState,
-      recentAccounts: recentAccounts.data ?? [],
+      recentAccounts: (recentAccounts.data ?? []).map((a) => ({
+        ...a,
+        totalSpentCzk: Math.round(spentByEmail[a.email] ?? 0),
+      })),
       recentPayouts: enrichedPayouts,
       metaAdsSpendCzk: sum(metaSpend.data, "amount_czk"),
     });

@@ -464,7 +464,7 @@ renderPlayersTable = function () {
       ${rows.length ? rows.map((a) => {
         const status = realStatus(a.state);
         return `
-        <tr>
+        <tr class="row-player" data-acc="${esc(a.id)}" title="Otevřít detail hráče">
           <td>${esc(a.email)}</td>
           <td>${esc(a.package_key)}</td>
           <td>Fáze ${esc(a.phase)}</td>
@@ -478,6 +478,85 @@ renderPlayersTable = function () {
       }).join("") : `<tr><td colspan="7">Žádné účty pro zvolený filtr.</td></tr>`}
     </tbody>`;
 };
+
+// ---------- detail hráče (klik na řádek tabulky) ----------
+const playerModal = document.getElementById("playerModal");
+const pmBody = document.getElementById("pmBody");
+
+function closePlayerDetail() {
+  if (playerModal) playerModal.hidden = true;
+}
+
+function openPlayerDetail(acc) {
+  if (!playerModal || !REAL) return;
+  const status = realStatus(acc.state);
+  const fmtDate = (d) => new Date(d).toLocaleString("cs-CZ");
+  const fmtAmount = (p) => p.currency === "eur"
+    ? `${(Number(p.amount) || 0).toLocaleString("cs-CZ")} EUR`
+    : czk(Number(p.amount) || 0);
+
+  // pole totalSpentCzk doplní edge funkce admin-stats (suma succeeded plateb v CZK)
+  const spent = acc.totalSpentCzk != null ? czk(Number(acc.totalSpentCzk) || 0) : "—";
+
+  const payments = (REAL.recentPayments || []).filter((p) => p.email === acc.email);
+  const payouts = (REAL.recentPayouts || []).filter((p) => String(p.account_id) === String(acc.id));
+
+  const infoRow = (k, v) => `<div class="pm-row"><span class="k">${k}</span><span class="v">${v}</span></div>`;
+
+  pmBody.innerHTML = `
+    <h3 class="pm-title" id="pmTitle">${esc(acc.email || "Hráč")}</h3>
+    <div class="pm-grid">
+      ${infoRow("Balíček", esc(acc.package_key || "—"))}
+      ${infoRow("Fáze", `Fáze ${esc(acc.phase ?? "—")}`)}
+      ${infoRow("Kapitál", czk(Number(acc.capital) || 0))}
+      ${infoRow("Stav", `<span class="tag ${status.tag}">${status.label}</span>`)}
+      ${infoRow("Vytvořeno", acc.created_at ? fmtDate(acc.created_at) : "—")}
+      ${infoRow("Utratil celkem", spent)}
+    </div>
+
+    <h4 class="pm-h">Platby</h4>
+    <div class="k-rows">
+      ${payments.length ? payments.map((p) => {
+        const tag = p.status === "succeeded" ? "win" : p.status === "failed" ? "loss" : "pend";
+        const label = p.status === "succeeded" ? "zaplaceno" : p.status === "failed" ? "selhalo" : esc(p.status);
+        return `<div class="k-row neutral">${fmtAmount(p)} · ${esc(p.package_key || "?")}<span class="n"><span class="tag ${tag}">${label}</span> <span class="pm-date">${fmtDate(p.created_at)}</span></span></div>`;
+      }).join("") : `<p class="bet-msg" style="padding:16px">Žádné platby.</p>`}
+    </div>
+
+    <h4 class="pm-h">Žádosti o výplatu</h4>
+    <div class="k-rows">
+      ${payouts.length ? payouts.map((p) => {
+        const paid = p.status === "sent" || p.status === "paid";
+        const tag = paid ? "win" : p.status === "failed" || p.status === "rejected" ? "loss" : "pend";
+        const label = paid ? "vyplaceno" : p.status === "failed" ? "selhalo" : p.status === "rejected" ? "zamítnuto" : "čeká na schválení";
+        return `<div class="k-row neutral">${czk(Number(p.amount) || 0)}${p.method ? ` · ${esc(p.method)}` : ""}<span class="n"><span class="tag ${tag}">${label}</span> <span class="pm-date">${fmtDate(p.created_at)}</span></span></div>`;
+      }).join("") : `<p class="bet-msg" style="padding:16px">Žádné žádosti o výplatu.</p>`}
+    </div>
+
+    ${acc.state === "funded"
+      ? `<button class="btn btn-primary" style="width:100%;margin-top:16px" data-payout="${esc(acc.id)}" data-email="${esc(acc.email)}">Vyplatit</button>`
+      : ""}`;
+  playerModal.hidden = false;
+}
+
+// klik na řádek otevře detail (tlačítko „Vyplatit“ v řádku detail neotevírá)
+document.addEventListener("click", (e) => {
+  const row = e.target.closest("#playersTable tr[data-acc]");
+  if (!row || e.target.closest("[data-payout]")) return;
+  const acc = REAL && (REAL.recentAccounts || []).find((x) => String(x.id) === row.dataset.acc);
+  if (acc) openPlayerDetail(acc);
+});
+
+// zavření: křížek, klik na backdrop, Esc
+if (playerModal) {
+  document.getElementById("pmClose").addEventListener("click", closePlayerDetail);
+  playerModal.addEventListener("click", (e) => {
+    if (e.target === playerModal) closePlayerDetail();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !playerModal.hidden) closePlayerDetail();
+  });
+}
 
 // ---------- výplaty: tlačítko „Vyplatit“ u financovaného hráče ----------
 document.addEventListener("click", async (e) => {

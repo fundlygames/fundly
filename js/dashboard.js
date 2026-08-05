@@ -1115,6 +1115,10 @@ function renderPrehled() {
       <span class="cap lo">Floor: ${dd.floor.toLocaleString("cs-CZ")}</span>
       <span class="cursor" style="left:${dd.pct}%"></span>
       <span class="cap hi">${state.balance.toLocaleString("cs-CZ")}</span>
+    </div>
+    <div class="limit-row" style="margin-top:14px">
+      <span class="k">Výběr zisku <small>(podmínka obchodních dnů)</small></span>
+      <span class="v">5 dnů s ≥ 0,5 % ziskem</span>
     </div>`;
 
   document.getElementById("ovPravidla").innerHTML = `
@@ -1125,6 +1129,7 @@ function renderPrehled() {
       <div class="rule-tile"><div class="k">Drawdown</div><div class="v">${czk(state.drawdown)}</div></div>
       <div class="rule-tile"><div class="k">Časový limit</div><div class="v">30 dní / fáze</div></div>
       <div class="rule-tile"><div class="k">Min. tiketů</div><div class="v">7</div></div>
+      <div class="rule-tile"><div class="k">Výběr zisku</div><div class="v">5 dnů ≥ 0,5 %</div></div>
     </div>`;
 
   const steps = [
@@ -1147,8 +1152,86 @@ function renderPrehled() {
       </div>
     </div>`;
   }).join("")}</div>`;
+  renderVyplatyRule(state);
+  renderProfile(state);
 }
 renderPrehled();
+
+// ---------- výplaty: počet splněných obchodních dnů (≥ 0,5 % zisku/den) ----------
+// Počítá se z equity historie: poslední zůstatek každého dne vs. předchozí den.
+// První den historie se nehodnotí (nemá předchozí uzávěrku).
+function countQualifyingDays(state) {
+  const byDay = new Map();
+  state.equityHistory.forEach((p) => byDay.set(new Date(p.t).toDateString(), p.balance));
+  const days = [...byDay.keys()].sort((a, b) => new Date(a) - new Date(b));
+  let count = 0;
+  for (let i = 1; i < days.length; i++) {
+    if (byDay.get(days[i]) - byDay.get(days[i - 1]) >= state.cap * 0.005) count++;
+  }
+  return count;
+}
+
+function renderVyplatyRule(state) {
+  const el = document.getElementById("wdRuleDays");
+  if (!el) return;
+  el.textContent = `Splněno ${Math.min(countQualifyingDays(state), 5)} / 5 dnů.`;
+}
+
+// ---------- profil: panel účtu + limity z reálného stavu portfolia ----------
+function renderProfile(state) {
+  if (!document.getElementById("pfName")) return;
+  const s = Portfolio.summary(state);
+  const dd = Portfolio.drawdownInfo(state);
+  const target = Portfolio.phaseTarget(state);
+  const profit = state.balance - state.phaseBaseline;
+  const pct = target > 0 ? Math.max(0, Math.min(100, Math.round((profit / target) * 100))) : 100;
+  const phaseLabel = state.phase === "funded" ? "Financovaný účet" : `Fáze ${state.phase}`;
+  const set = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+
+  set("pfName", state.packageName);
+  set("pfCap", czk(state.cap));
+  set("pfPhase", phaseLabel);
+  set("pfBalance", czk(state.balance));
+  set("pfProfit", `${s.netProfit >= 0 ? "+" : ""}${czk(s.netProfit)}`);
+  document.getElementById("pfProfit").classList.toggle("green", s.netProfit >= 0);
+  document.getElementById("pfBalance").classList.add("green");
+  set("pfTickets", String(s.total));
+  set("pfWinRate", `${s.winRate} %`);
+  document.getElementById("pfWinRate").classList.toggle("green", s.winRate >= 50);
+
+  if (state.phase === "funded") {
+    set("pfGoalLabel", "Financovaný účet");
+    set("pfGoalPct", "Bez cíle");
+    document.getElementById("pfGoalBar").style.width = "100%";
+    set("pfGoalMeta", "Neomezený čas, pravidelné výplaty.");
+  } else {
+    set("pfGoalLabel", `Postup k cíli (${czk(state.phaseBaseline + target)})`);
+    set("pfGoalPct", `${pct} %`);
+    document.getElementById("pfGoalBar").style.width = pct + "%";
+    set("pfGoalMeta", `Do cíle ${czk(Math.max(0, target - profit))} · ${Portfolio.daysRemaining(state)} dní zbývá`);
+  }
+
+  set("pfDdDetail", `(HWM ${czk(dd.hwm)} · Floor ${czk(dd.floor)})`);
+  set("pfDdRemain", `${czk(Math.round(dd.remaining))} zbývá`);
+  document.getElementById("pfDdBar").style.width = Math.round(dd.pct) + "%";
+
+  const daysLeft = Portfolio.daysRemaining(state);
+  set("pfDaysLeft", state.phase === "funded" ? "Neomezeno" : `${daysLeft} dní`);
+  const deadline = new Date(new Date(state.phaseStartedAt).getTime() + 30 * 86400000);
+  set("pfDeadline", state.phase === "funded"
+    ? "Financovaný účet nemá časový limit"
+    : `Zbývá do konce fáze · Deadline: ${deadline.toLocaleDateString("cs-CZ")}`);
+
+  const rules = document.getElementById("pfRules");
+  if (rules) rules.innerHTML = `
+    <div class="rule-tile"><div class="k">Profit split</div><div class="v green">${state.profitSplit} %</div></div>
+    <div class="rule-tile"><div class="k">Max. sázka</div><div class="v">${czk(state.maxStake)}</div></div>
+    <div class="rule-tile"><div class="k">Kurzy</div><div class="v">${ODDS_MIN.toFixed(2)} až ${ODDS_MAX.toFixed(2)}</div></div>
+    <div class="rule-tile"><div class="k">Drawdown</div><div class="v">${czk(state.drawdown)}</div></div>
+    <div class="rule-tile"><div class="k">Časový limit</div><div class="v">30 dní / fáze</div></div>
+    <div class="rule-tile"><div class="k">Min. tiketů</div><div class="v">7</div></div>
+    <div class="rule-tile"><div class="k">Výběr zisku</div><div class="v">5 dnů ≥ 0,5 %</div></div>`;
+}
 
 // ---------- výkon: render z reálného stavu portfolia ----------
 function renderVykon() {
