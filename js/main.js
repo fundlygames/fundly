@@ -263,13 +263,22 @@ authForm.addEventListener("submit", (e) => {
     if (authMode === "register") {
       FundlyCheckout.buy(activeKey, email).catch((err) => fail(err.message));
     } else {
-      FundlyAuth.signInWithEmail(email).then(({ error }) => {
-        if (error) { fail(error.message); return; }
-        authNote.textContent = "Odkaz pro přihlášení jsme poslali na váš e-mail.";
-        authNote.hidden = false;
-        authSubmit.disabled = false;
-        authSubmit.textContent = AUTH_TEXTS[authMode].submit;
-      });
+      const password = document.getElementById("authPass").value;
+      // heslo vyplněné → přímé přihlášení; prázdné → magic link na e-mail
+      if (password) {
+        FundlyAuth.signInWithPassword(email, password).then(({ error }) => {
+          if (error) { fail("Nesprávný e-mail nebo heslo."); return; }
+          window.location.href = "dashboard.html";
+        }).catch(() => fail("Přihlášení se nepodařilo."));
+      } else {
+        FundlyAuth.signInWithEmail(email).then(({ error }) => {
+          if (error) { fail(error.message); return; }
+          authNote.textContent = "Odkaz pro přihlášení jsme poslali na váš e-mail.";
+          authNote.hidden = false;
+          authSubmit.disabled = false;
+          authSubmit.textContent = AUTH_TEXTS[authMode].submit;
+        });
+      }
     }
     return;
   }

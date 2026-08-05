@@ -64,6 +64,13 @@ const FundlyAuth = {
     return client.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectTo } });
   },
 
+  // Přihlášení heslem (když je vyplněné v modalu; jinak se používá magic link).
+  async signInWithPassword(email, password) {
+    const client = await FundlyBackend.getClient();
+    if (!client) return { error: { message: "Backend není nastaven." } };
+    return client.auth.signInWithPassword({ email, password });
+  },
+
   // Registrace e-mailem a heslem (checkout krok 2 — účet se zakládá před platbou).
   async signUpWithPassword(email, password) {
     const client = await FundlyBackend.getClient();
