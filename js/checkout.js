@@ -29,16 +29,20 @@
   const pkgGrid = $("pkgGrid");
 
   function renderPkgGrid() {
-    pkgGrid.innerHTML = PACKAGES.map(
-      (p) => `
+    pkgGrid.innerHTML = PACKAGES.map((p) => {
+      const m = packageMeta(p);
+      return `
       <button type="button" role="radio" aria-checked="${p.key === state.pkg}"
         class="pkg-card ${p.key === state.pkg ? "active" : ""}" data-key="${p.key}">
         ${p.top ? '<span class="top-badge">TOP</span>' : ""}
-        <span class="radio" aria-hidden="true"></span>
         <span class="nm">${p.name}</span>
         <span class="cap">${czk(p.cap)}</span>
-      </button>`
-    ).join("");
+        <span class="specs">
+          <span class="spec"><span class="k">Cíl fáze 1</span><span class="v green">${czkSigned(m.target1)}</span></span>
+          <span class="spec"><span class="k">Max. sázka</span><span class="v">${czk(m.maxStake)}</span></span>
+        </span>
+      </button>`;
+    }).join("");
   }
 
   pkgGrid.addEventListener("click", (e) => {
