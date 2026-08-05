@@ -4,7 +4,7 @@
 
 const API_BASE = "https://api.odds-api.io/v3";
 // POZOR: klíč je v klientském JS viditelný, pro produkci patří za vlastní proxy.
-const API_KEY = "da7bd5cd5dc1335c1fe30d8c2dbb71f9aa6f5b4867691654d593b3b3a56dcb88";
+const API_KEY = "6fb7b78e922814fe15b9486cfa98c42596ab7a4035c5b278989af88d3a386080";
 const BOOKMAKER = "Bet365";
 const CACHE_TTL = 5 * 60 * 1000; // 5 min, free tier má 100 requestů/hod
 
