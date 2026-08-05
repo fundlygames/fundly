@@ -17,11 +17,31 @@ function bytesToBase64(bytes: Uint8Array): string {
   return btoa(bin);
 }
 
+function hexToBytes(hex: string): Uint8Array {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < bytes.length; i++) bytes[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
+  return bytes;
+}
+
 function timingSafeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
   let diff = 0;
   for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
   return diff === 0;
+}
+
+// Možné derivace HMAC klíče ze secretu — Whop vrací secret buď jako
+// whsec_<base64> (Standard Webhooks) nebo ws_<hex> (viz create-webhook response).
+function keyCandidates(secret: string): Uint8Array[] {
+  const out: Uint8Array[] = [new TextEncoder().encode(secret)];
+  if (secret.startsWith("whsec_")) {
+    try { out.push(base64ToBytes(secret.slice(6))); } catch { /* ignore */ }
+  }
+  if (secret.startsWith("ws_")) {
+    const hex = secret.slice(3);
+    if (/^[0-9a-f]+$/i.test(hex) && hex.length % 2 === 0) out.push(hexToBytes(hex));
+  }
+  return out;
 }
 
 // Standard Webhooks: podpis = base64(HMAC_SHA256(key, "id.timestamp.rawBody")),
@@ -37,29 +57,30 @@ async function verifySignature(req: Request, rawBody: string): Promise<boolean> 
   const ts = Number(timestamp);
   if (!Number.isFinite(ts) || Math.abs(Date.now() / 1000 - ts) > 300) return false;
 
-  // secret ve formátu whsec_... → prefix se odstraní a zbytek je base64 klíč
-  const keyBytes = secret.startsWith("whsec_")
-    ? base64ToBytes(secret.slice("whsec_".length))
-    : new TextEncoder().encode(secret);
+  // zkusíme všechny derivace klíče (ws_<hex>, whsec_<base64>, raw)
+  const signatures = signatureHeader
+    .split(" ")
+    .map((part) => part.split(","))
+    .filter(([version]) => version === "v1")
+    .map(([, value]) => value ?? "");
 
-  const key = await crypto.subtle.importKey(
-    "raw",
-    keyBytes,
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const signed = await crypto.subtle.sign(
-    "HMAC",
-    key,
-    new TextEncoder().encode(`${id}.${timestamp}.${rawBody}`),
-  );
-  const expected = bytesToBase64(new Uint8Array(signed));
-
-  return signatureHeader.split(" ").some((part) => {
-    const [version, value] = part.split(",");
-    return version === "v1" && timingSafeEqual(value ?? "", expected);
-  });
+  for (const keyBytes of keyCandidates(secret)) {
+    const key = await crypto.subtle.importKey(
+      "raw",
+      keyBytes,
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"],
+    );
+    const signed = await crypto.subtle.sign(
+      "HMAC",
+      key,
+      new TextEncoder().encode(`${id}.${timestamp}.${rawBody}`),
+    );
+    const expected = bytesToBase64(new Uint8Array(signed));
+    if (signatures.some((value) => timingSafeEqual(value, expected))) return true;
+  }
+  return false;
 }
 
 // deno-lint-ignore no-explicit-any

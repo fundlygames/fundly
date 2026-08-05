@@ -15,6 +15,8 @@ export const PACKAGES: Record<string, PackageDef> = {
   advanced: { key: "advanced", name: "Advanced", cap: 50000, price: 1590, currency: "czk" },
   pro: { key: "pro", name: "Pro", cap: 100000, price: 2990, currency: "czk" },
   elite: { key: "elite", name: "Elite", cap: 200000, price: 4990, currency: "czk" },
+  // Testovací balíček pro živý end-to-end test (1 EUR) — není vidět na webu.
+  test: { key: "test", name: "TEST", cap: 1000, price: 1, currency: "eur" },
 };
 
 export function packageByKey(key: string): PackageDef | null {

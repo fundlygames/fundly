@@ -25,14 +25,14 @@ serve(async (req) => {
       return jsonResponse({ error: "Zadejte platný e-mail." }, 400);
     }
 
-    const companyId = Deno.env.get("WHOP_COMPANY_ID");
-    if (!companyId) throw new Error("WHOP_COMPANY_ID is not set");
+    // Company kontext nese samotný API klíč — company_id se do body NEPOSÍLÁ
+    // (Whop by odpověděl "Cannot provide company_id for this configuration").
+    if (!Deno.env.get("WHOP_COMPANY_ID")) throw new Error("WHOP_COMPANY_ID is not set");
 
     // Přednostně existující plan z Whop dashboardu (env WHOP_PLAN_<KEY>),
     // jinak inline plan s cenou ze serverové mapy balíčků.
     const planId = whopPlanId(pkg.key);
     const body: Record<string, unknown> = {
-      company_id: companyId,
       // po zaplacení Whop přesměruje zpět na dashboard
       redirect_url: `${SITE_URL}/dashboard.html?paid=1`,
       metadata: { package_key: pkg.key, email: String(email).trim() },
@@ -40,10 +40,7 @@ serve(async (req) => {
     if (planId) {
       body.plan_id = planId;
     } else {
-      // dle OpenAPI: company_id a currency jsou povinné uvnitř inline plan objektu;
-      // product s external_identifier se najde nebo založí (find-or-create)
       body.plan = {
-        company_id: companyId,
         currency: pkg.currency,
         initial_price: pkg.price,
         plan_type: "one_time",
