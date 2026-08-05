@@ -3,6 +3,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { packageByKey } from "../_shared/packages.ts";
+import { whopFetch, mapKycStatus } from "../_shared/whop.ts";
 
 function base64ToBytes(b64: string): Uint8Array {
   const bin = atob(b64);
@@ -206,6 +207,44 @@ serve(async (req) => {
             .from("challenge_accounts")
             .update({ state })
             .eq("email", String(email));
+        }
+        break;
+      }
+
+      // KYC: ověření identity přes Whop Verification. Podle dokumentace
+      // (docs.whop.com/developer/verification) webhook identity_profile.updated
+      // hlásí ZMĚNU profilu, ne jeho nový stav — ten případně dočteme z
+      // GET /verifications?account_id=biz_... podle id profilu z payloadu.
+      case "identity_profile.updated":
+      case "identity_profile.approved":
+      case "identity_profile.rejected":
+      case "verification.succeeded": {
+        const email = data.user?.email ?? data.email ?? data.metadata?.email ?? null;
+        const rawStatus = data.status ?? data.review_status ?? data.result ?? null;
+        let kyc = rawStatus ? mapKycStatus(String(rawStatus)) : "unknown";
+
+        if (!rawStatus && data.id) {
+          // payload stav nenese → dočteme ho z Whop API
+          try {
+            const companyId = Deno.env.get("WHOP_COMPANY_ID");
+            // deno-lint-ignore no-explicit-any
+            const list: any = await whopFetch(`/verifications?account_id=${companyId}`);
+            const items = list?.data ?? list?.verifications ?? [];
+            // deno-lint-ignore no-explicit-any
+            const prof = items.find((v: any) => v.id === data.id);
+            if (prof?.status) kyc = mapKycStatus(String(prof.status));
+          } catch (e) {
+            console.error("KYC stav se nepodařilo dočíst:", e);
+          }
+        }
+
+        if (email) {
+          await supabase
+            .from("challenge_accounts")
+            .update({ kyc_status: kyc })
+            .eq("email", String(email));
+        } else {
+          console.error("KYC webhook bez e-mailu:", event.type, data.id);
         }
         break;
       }

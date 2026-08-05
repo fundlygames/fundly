@@ -89,11 +89,27 @@ const Portfolio = (() => {
     return Math.max(0, 30 - elapsedDays);
   }
 
+  // STATICKÝ drawdown: pevný floor = kapitál − drawdown (10 %), nesouvisí
+  // s high-water mark. remaining = kolik zbývá do spálení účtu.
+  // (hwm vracíme dál jen kvůli konceptovým stránkám, hlavní dashboard ho
+  // už nikde nezobrazuje.)
   function drawdownInfo(state) {
-    const floor = state.hwm - state.drawdown;
-    const span = state.hwm - floor;
+    const floor = state.cap - state.drawdown;
+    const span = state.cap - floor;
     const pct = span > 0 ? Math.max(0, Math.min(100, ((state.balance - floor) / span) * 100)) : 100;
     return { hwm: state.hwm, floor, remaining: Math.max(0, state.balance - floor), pct };
+  }
+
+  // Kvalifikační tiket = výherný tiket s čistým ziskem (payout − stake)
+  // ≥ 0,5 % kapitálu. sinceIso omezí počítání na aktuální fázi.
+  function countQualifyingTickets(state, sinceIso) {
+    const meta = packageMeta(packageByKey(state.packageKey));
+    const minProfit = state.cap * (meta.qualifyingTicketProfitPct / 100);
+    return state.tickets.filter((t) =>
+      t.status === "won" &&
+      (t.payout || 0) - t.stake >= minProfit &&
+      (!sinceIso || (t.settledAt && t.settledAt >= sinceIso))
+    ).length;
   }
 
   function summary(state) {
@@ -228,7 +244,10 @@ const Portfolio = (() => {
     if (state.phase === "funded") return;
     const target = phaseTarget(state);
     const profit = state.balance - state.phaseBaseline;
-    if (profit >= target) {
+    const meta = packageMeta(packageByKey(state.packageKey));
+    // postup = splněný cíl zisku + min. počet kvalifikačních tiketů v této fázi
+    const qualified = countQualifyingTickets(state, state.phaseStartedAt) >= meta.qualifyingTickets;
+    if (profit >= target && qualified) {
       state.phase = state.phase === 1 ? 2 : "funded";
       state.phaseBaseline = state.balance;
       state.phaseStartedAt = new Date().toISOString();
@@ -294,6 +313,6 @@ const Portfolio = (() => {
 
   return {
     init, get, save, ensure, phaseTarget, daysRemaining, drawdownInfo,
-    summary, dailyNet, placeBet, checkSettlements,
+    summary, dailyNet, placeBet, checkSettlements, countQualifyingTickets,
   };
 })();

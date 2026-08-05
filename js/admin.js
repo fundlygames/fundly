@@ -503,6 +503,11 @@ function openPlayerDetail(acc) {
 
   const infoRow = (k, v) => `<div class="pm-row"><span class="k">${k}</span><span class="v">${v}</span></div>`;
 
+  // KYC stav účtu (zapisuje whop-webhook z Whop Verification)
+  const kyc = acc.kyc_status ?? "unknown";
+  const kycTag = kyc === "verified" ? "win" : kyc === "failed" ? "loss" : "pend";
+  const kycLabel = kyc === "verified" ? "Ověřeno" : kyc === "failed" ? "Zamítnuto" : "Neověřeno";
+
   pmBody.innerHTML = `
     <h3 class="pm-title" id="pmTitle">${esc(acc.email || "Hráč")}</h3>
     <div class="pm-grid">
@@ -510,9 +515,11 @@ function openPlayerDetail(acc) {
       ${infoRow("Fáze", `Fáze ${esc(acc.phase ?? "—")}`)}
       ${infoRow("Kapitál", czk(Number(acc.capital) || 0))}
       ${infoRow("Stav", `<span class="tag ${status.tag}">${status.label}</span>`)}
+      ${infoRow("KYC (Whop)", `<span class="tag ${kycTag}">${kycLabel}</span>`)}
       ${infoRow("Vytvořeno", acc.created_at ? fmtDate(acc.created_at) : "—")}
       ${infoRow("Utratil celkem", spent)}
     </div>
+    <p class="pm-date" style="margin-top:8px">Ověření identity probíhá přes Whop KYC — hráče nasměrujte na verification session z Whop dashboardu, stav se sem synchronizuje webhookem.</p>
 
     <h4 class="pm-h">Platby</h4>
     <div class="k-rows">

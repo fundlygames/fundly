@@ -937,7 +937,7 @@ if (nickSave) {
 }
 
 // ---------- přehled: render z reálného stavu portfolia ----------
-// Equity graf: křivka zůstatku + čárkované hladiny (cíl fáze, HWM, drawdown
+// Equity graf: křivka zůstatku + čárkované hladiny (cíl fáze, pevný drawdown
 // floor) s popisky a fialovou plochou pod křivkou. Data = state.equityHistory,
 // mění se pouze prezentace.
 function renderEquityChart(state) {
@@ -947,10 +947,10 @@ function renderEquityChart(state) {
   }
   const w = 600, h = 190, padL = 6, padR = 6, padT = 14, padB = 8;
   const targetAbs = state.phase === "funded" ? null : state.phaseBaseline + Portfolio.phaseTarget(state);
-  const floor = state.hwm - state.drawdown;
+  const floor = state.cap - state.drawdown; // statický floor, žádný HWM
   const values = points.map((p) => p.balance);
   const lo = Math.min(...values, floor);
-  const hi = Math.max(...values, state.hwm, targetAbs || 0);
+  const hi = Math.max(...values, targetAbs || 0);
   const span = hi - lo || 1;
   const X = (i) => padL + (i * (w - padL - padR)) / (points.length - 1);
   const Y = (v) => padT + (h - padT - padB) * (1 - (v - lo) / span);
@@ -959,10 +959,9 @@ function renderEquityChart(state) {
   const stroke = up ? "var(--accent)" : "#ff6b6b";
   const lastX = X(points.length - 1), lastY = Y(values[values.length - 1]);
 
-  // hladiny: cíl (zelená), high-water mark (fialová), drawdown floor (červená)
+  // hladiny: cíl fáze (zelená) a pevný drawdown floor (červená)
   const levels = [
     targetAbs !== null ? { v: targetAbs, cls: "eq-lv-target", label: `Cíl ${czk(targetAbs)}` } : null,
-    { v: state.hwm, cls: "eq-lv-hwm", label: `HWM ${czk(state.hwm)}` },
     { v: floor, cls: "eq-lv-floor", label: `Floor ${czk(floor)}` },
   ].filter(Boolean);
   // popisky se nesměj překrýt — seřadíme podle y a vynutíme min. odstup
@@ -993,8 +992,7 @@ function renderEquityChart(state) {
     </svg>
     <div class="eq-legend">
       ${targetAbs !== null ? '<span><i class="sw eq-lv-target"></i>Cíl fáze</span>' : ""}
-      <span><i class="sw eq-lv-hwm"></i>High-water mark</span>
-      <span><i class="sw eq-lv-floor"></i>Drawdown floor</span>
+      <span><i class="sw eq-lv-floor"></i>Max. ztráta (pevný floor)</span>
       <span class="eq-dates">${fmtDay(points[0].t)} – ${fmtDay(points[points.length - 1].t)}</span>
     </div>`;
 }
@@ -1079,8 +1077,11 @@ function renderPrehled() {
   const dd = Portfolio.drawdownInfo(state);
 
   // pravý sloupec: pravidla a limity s tenkými progress bary
+  const meta = packageMeta(packageByKey(state.packageKey));
   const pctTime = Math.max(0, Math.min(100, Math.round((daysLeft / 30) * 100)));
-  const pctTickets = Math.max(0, Math.min(100, Math.round((s.total / 7) * 100)));
+  // kvalifikační tikety: výherní s čistým ziskem ≥ 0,5 % kapitálu, v aktuální fázi
+  const qual = Portfolio.countQualifyingTickets(state, state.phaseStartedAt);
+  const pctTickets = Math.max(0, Math.min(100, Math.round((qual / meta.qualifyingTickets) * 100)));
   const ddTone = dd.pct < 30 ? "danger" : dd.pct < 60 ? "warn" : "";
   const rrRow = (label, value, barPct, tone, sub) => `
     <div class="rr">
@@ -1093,10 +1094,10 @@ function renderPrehled() {
     ${state.phase === "funded"
       ? rrRow("Cíl fáze", "Splněno", null, "", "Financovaný účet — bez cíle, neomezený čas")
       : rrRow("Cíl fáze", `${czk(Math.max(0, profit))} / ${czk(target)}`, pct, pct >= 100 ? "" : "", pct >= 100 ? "Splněno" : `Zbývá ${czk(toGoal)}`)}
-    ${rrRow("Trailing drawdown", `${czk(Math.round(dd.remaining))} / ${czk(state.drawdown)}`, Math.round(dd.pct), ddTone,
-      `Floor ${czk(dd.floor)} · HWM ${czk(dd.hwm)}`)}
+    ${rrRow("Max. ztráta (statická)", `${czk(Math.round(dd.remaining))} / ${czk(state.drawdown)}`, Math.round(dd.pct), ddTone,
+      `Pevný floor ${czk(dd.floor)} — neposouvá se`)}
     ${state.phase === "funded" ? "" : rrRow("Časový limit", `${daysLeft} / 30 dní`, pctTime, pctTime < 25 ? "danger" : "", "")}
-    ${rrRow("Min. tiketů", `${Math.min(s.total, 7)} / 7`, pctTickets, "", "Vyhodnocené i čekající tikety")}
+    ${rrRow("Kvalifikační tikety", `${Math.min(qual, meta.qualifyingTickets)} / ${meta.qualifyingTickets}`, pctTickets, "", "Výherní tikety s čistým ziskem ≥ +0,5 % kapitálu")}
     ${rrRow("Max. sázka", czk(state.maxStake), null, "", "Na jeden tiket")}
     ${rrRow("Kurzy", `${ODDS_MIN.toFixed(2)} – ${ODDS_MAX.toFixed(2)}`, null, "", "")}
     ${rrRow("Profit split", `${state.profitSplit} %`, null, "", "Váš podíl ze zisku")}
@@ -1108,7 +1109,7 @@ function renderPrehled() {
 
   document.getElementById("ovLimity").innerHTML = `
     <div class="limit-row">
-      <span class="k">Trailing drawdown <small>(HWM: ${czk(dd.hwm)})</small></span>
+      <span class="k">Max. celková ztráta <small>(statická, floor: ${czk(dd.floor)})</small></span>
       <span class="v">${czk(Math.round(dd.remaining))} zbývá</span>
     </div>
     <div class="dd-bar">
@@ -1117,8 +1118,12 @@ function renderPrehled() {
       <span class="cap hi">${state.balance.toLocaleString("cs-CZ")}</span>
     </div>
     <div class="limit-row" style="margin-top:14px">
-      <span class="k">Výběr zisku <small>(podmínka obchodních dnů)</small></span>
-      <span class="v">5 dnů s ≥ 0,5 % ziskem</span>
+      <span class="k">Kvalifikační tikety <small>(výherní, zisk ≥ +0,5 % kapitálu)</small></span>
+      <span class="v">${Math.min(qual, meta.qualifyingTickets)} / ${meta.qualifyingTickets}</span>
+    </div>
+    <div class="limit-row">
+      <span class="k">Výběr zisku <small>(funded účet)</small></span>
+      <span class="v">buffer +5 % · max 100 000 Kč</span>
     </div>`;
 
   document.getElementById("ovPravidla").innerHTML = `
@@ -1126,10 +1131,11 @@ function renderPrehled() {
       <div class="rule-tile"><div class="k">Profit split</div><div class="v green">${state.profitSplit} %</div></div>
       <div class="rule-tile"><div class="k">Max. sázka</div><div class="v">${czk(state.maxStake)}</div></div>
       <div class="rule-tile"><div class="k">Kurzy</div><div class="v">${ODDS_MIN.toFixed(2)} až ${ODDS_MAX.toFixed(2)}</div></div>
-      <div class="rule-tile"><div class="k">Drawdown</div><div class="v">${czk(state.drawdown)}</div></div>
+      <div class="rule-tile"><div class="k">Max. ztráta</div><div class="v">${czk(state.drawdown)}</div></div>
       <div class="rule-tile"><div class="k">Časový limit</div><div class="v">30 dní / fáze</div></div>
-      <div class="rule-tile"><div class="k">Min. tiketů</div><div class="v">7</div></div>
-      <div class="rule-tile"><div class="k">Výběr zisku</div><div class="v">5 dnů ≥ 0,5 %</div></div>
+      <div class="rule-tile"><div class="k">Kvalif. tikety</div><div class="v">5 × ≥ +0,5 %</div></div>
+      <div class="rule-tile"><div class="k">Výběr zisku</div><div class="v">buffer +5 %</div></div>
+      <div class="rule-tile"><div class="k">Max. výplata</div><div class="v">100 000 Kč</div></div>
     </div>`;
 
   const steps = [
@@ -1152,29 +1158,31 @@ function renderPrehled() {
       </div>
     </div>`;
   }).join("")}</div>`;
-  renderVyplatyRule(state);
+  renderPayoutConds(state);
   renderProfile(state);
 }
 renderPrehled();
 
-// ---------- výplaty: počet splněných obchodních dnů (≥ 0,5 % zisku/den) ----------
-// Počítá se z equity historie: poslední zůstatek každého dne vs. předchozí den.
-// První den historie se nehodnotí (nemá předchozí uzávěrku).
-function countQualifyingDays(state) {
-  const byDay = new Map();
-  state.equityHistory.forEach((p) => byDay.set(new Date(p.t).toDateString(), p.balance));
-  const days = [...byDay.keys()].sort((a, b) => new Date(a) - new Date(b));
-  let count = 0;
-  for (let i = 1; i < days.length; i++) {
-    if (byDay.get(days[i]) - byDay.get(days[i - 1]) >= state.cap * 0.005) count++;
-  }
-  return count;
-}
-
-function renderVyplatyRule(state) {
-  const el = document.getElementById("wdRuleDays");
+// ---------- výplaty: podmínky payoutu (funded účet) ----------
+// (1) ziskový buffer min. +5 % kapitálu, (2) min. 5 kvalifikačních tiketů
+// (výherních s čistým ziskem ≥ +0,5 % kapitálu), (3) max 100 000 Kč na payout.
+function renderPayoutConds(state) {
+  const el = document.getElementById("wdConds");
   if (!el) return;
-  el.textContent = `Splněno ${Math.min(countQualifyingDays(state), 5)} / 5 dnů.`;
+  if (state.phase !== "funded") {
+    el.innerHTML = `<p class="t-meta" style="margin-top:10px">Výběry se odemknou s financovaným účtem. Před každým výběrem potřebujete ziskový buffer +5 % kapitálu a 5 výherných tiketů s čistým ziskem aspoň +0,5 % kapitálu. Max. 100 000 Kč na výplatu.</p>`;
+    return;
+  }
+  const meta = packageMeta(packageByKey(state.packageKey));
+  const profit = state.balance - state.phaseBaseline;
+  const bufferNeed = Math.round(state.cap * (meta.payoutBufferPct / 100));
+  const qual = Portfolio.countQualifyingTickets(state, state.phaseStartedAt);
+  el.innerHTML = `
+    <div class="k-rows" style="margin-top:12px">
+      <div class="k-row neutral">Ziskový buffer (+${meta.payoutBufferPct} % kapitálu)<span class="n ${profit >= bufferNeed ? "green" : ""}">${czk(Math.max(0, profit))} / ${czk(bufferNeed)}</span></div>
+      <div class="k-row neutral">Kvalifikační tikety<span class="n ${qual >= meta.qualifyingTickets ? "green" : ""}">${Math.min(qual, meta.qualifyingTickets)} / ${meta.qualifyingTickets}</span></div>
+      <div class="k-row neutral">Max. výplata<span class="n">100 000 Kč</span></div>
+    </div>`;
 }
 
 // ---------- profil: panel účtu + limity z reálného stavu portfolia ----------
@@ -1211,7 +1219,7 @@ function renderProfile(state) {
     set("pfGoalMeta", `Do cíle ${czk(Math.max(0, target - profit))} · ${Portfolio.daysRemaining(state)} dní zbývá`);
   }
 
-  set("pfDdDetail", `(HWM ${czk(dd.hwm)} · Floor ${czk(dd.floor)})`);
+  set("pfDdDetail", `(pevný floor ${czk(dd.floor)})`);
   set("pfDdRemain", `${czk(Math.round(dd.remaining))} zbývá`);
   document.getElementById("pfDdBar").style.width = Math.round(dd.pct) + "%";
 
@@ -1227,10 +1235,11 @@ function renderProfile(state) {
     <div class="rule-tile"><div class="k">Profit split</div><div class="v green">${state.profitSplit} %</div></div>
     <div class="rule-tile"><div class="k">Max. sázka</div><div class="v">${czk(state.maxStake)}</div></div>
     <div class="rule-tile"><div class="k">Kurzy</div><div class="v">${ODDS_MIN.toFixed(2)} až ${ODDS_MAX.toFixed(2)}</div></div>
-    <div class="rule-tile"><div class="k">Drawdown</div><div class="v">${czk(state.drawdown)}</div></div>
+    <div class="rule-tile"><div class="k">Max. ztráta</div><div class="v">${czk(state.drawdown)}</div></div>
     <div class="rule-tile"><div class="k">Časový limit</div><div class="v">30 dní / fáze</div></div>
-    <div class="rule-tile"><div class="k">Min. tiketů</div><div class="v">7</div></div>
-    <div class="rule-tile"><div class="k">Výběr zisku</div><div class="v">5 dnů ≥ 0,5 %</div></div>`;
+    <div class="rule-tile"><div class="k">Kvalif. tikety</div><div class="v">5 × ≥ +0,5 %</div></div>
+    <div class="rule-tile"><div class="k">Výběr zisku</div><div class="v">buffer +5 %</div></div>
+    <div class="rule-tile"><div class="k">Max. výplata</div><div class="v">100 000 Kč</div></div>`;
 }
 
 // ---------- výkon: render z reálného stavu portfolia ----------

@@ -21,10 +21,11 @@ function renderSeg() {
 
 function renderPlan(animate) {
   const p = PACKAGES.find((x) => x.key === activeKey);
-  const target1 = p.cap * 0.2;
-  const target2 = p.cap * 0.1;
-  const dd = p.cap * 0.08;
-  const stake = p.cap * 0.04;
+  const m = packageMeta(p);
+  const target1 = m.target1;
+  const target2 = m.target2;
+  const dd = m.drawdown;
+  const stake = m.maxStake;
 
   phaseCards.innerHTML = `
     <article class="phase ${animate ? "pkg-anim" : ""}">
@@ -34,9 +35,9 @@ function renderPlan(animate) {
         <div class="ph-name">Fundly výzva</div>
         <div class="ph-rows">
           <div class="ph-row"><span class="k">Cíl zisku</span><span class="v green">${czkSigned(target1)}</span></div>
-          <div class="ph-row"><span class="k">Drawdown (trailing)</span><span class="v red">${czkSigned(-dd)}</span></div>
+          <div class="ph-row"><span class="k">Max. ztráta (statická)</span><span class="v red">${czkSigned(-dd)}</span></div>
           <div class="ph-row"><span class="k">Časový limit</span><span class="v">30 dní</span></div>
-          <div class="ph-row"><span class="k">Min. tiketů</span><span class="v">7</span></div>
+          <div class="ph-row"><span class="k">Kvalif. tikety</span><span class="v">5 × ≥ +0,5 %</span></div>
         </div>
       </div>
     </article>
@@ -47,9 +48,9 @@ function renderPlan(animate) {
         <div class="ph-name">Verifikace</div>
         <div class="ph-rows">
           <div class="ph-row"><span class="k">Cíl zisku</span><span class="v green">${czkSigned(target2)}</span></div>
-          <div class="ph-row"><span class="k">Drawdown (trailing)</span><span class="v red">${czkSigned(-dd)}</span></div>
+          <div class="ph-row"><span class="k">Max. ztráta (statická)</span><span class="v red">${czkSigned(-dd)}</span></div>
           <div class="ph-row"><span class="k">Časový limit</span><span class="v">30 dní</span></div>
-          <div class="ph-row"><span class="k">Min. tiketů</span><span class="v">7</span></div>
+          <div class="ph-row"><span class="k">Kvalif. tikety</span><span class="v">5 × ≥ +0,5 %</span></div>
         </div>
       </div>
     </article>
@@ -60,7 +61,7 @@ function renderPlan(animate) {
         <div class="ph-name">Fundly tipér</div>
         <div class="ph-rows">
           <div class="ph-row"><span class="k">Váš podíl</span><span class="v green">80 %</span></div>
-          <div class="ph-row"><span class="k">Drawdown (trailing)</span><span class="v red">${czkSigned(-dd)}</span></div>
+          <div class="ph-row"><span class="k">Max. ztráta (statická)</span><span class="v red">${czkSigned(-dd)}</span></div>
           <div class="ph-row"><span class="k">Časový limit</span><span class="v">Neomezeno</span></div>
           <div class="ph-row"><span class="k">Kurzy</span><span class="v">1.00 až 8.00</span></div>
         </div>
@@ -75,7 +76,7 @@ function renderPlan(animate) {
     </div>
     <ul class="price-feats ${animate ? "pkg-anim" : ""}" style="animation-delay:.05s">
       <li>${check}2 fáze evaluace</li>
-      <li>${check}80% podíl na zisku, s bonusy až 85 %</li>
+      <li>${check}80 % podíl na zisku</li>
       <li>${check}Max. vklad na tiket ${czk(stake)}</li>
       <li>${check}Neomezený čas na financovaném účtu</li>
       <li>${check}Žádný denní limit ztráty</li>

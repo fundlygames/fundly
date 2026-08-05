@@ -6,7 +6,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders, handleCors, jsonResponse } from "../_shared/cors.ts";
 import { isValidAdminKey } from "../_shared/admin.ts";
-import { whopFetch } from "../_shared/whop.ts";
+import { whopFetch, mapKycStatus } from "../_shared/whop.ts";
 
 // Vytvoří Whop transfer z firemního ledger účtu hráči (podle jeho Whop user id).
 // Endpoint podle Whop API reference: POST /transfers
@@ -82,7 +82,7 @@ serve(async (req) => {
 
     const { data: account } = await supabase
       .from("challenge_accounts")
-      .select("id, email")
+      .select("id, email, kyc_status")
       .eq("id", String(accountId))
       .maybeSingle();
     if (!account) return jsonResponse({ error: "Účet nenalezen." }, 404);
@@ -100,6 +100,41 @@ serve(async (req) => {
     if (!whopUserId) {
       return jsonResponse(
         { error: "Hráč nemá žádnou zaplacenou platbu s Whop účtem." },
+        400,
+      );
+    }
+
+    // ---------- KYC gate: bez ověřené identity transfer neprovedeme ----------
+    // Stav čteme z účtu (zapisuje whop-webhook). U 'unknown' se ho pokusíme
+    // dočíst z Whop API (GET /verifications?account_id=biz_..., profil
+    // příjemce hledáme podle jeho Whop user id) a uložíme na účet.
+    let kycStatus: string = account.kyc_status ?? "unknown";
+    if (kycStatus === "unknown") {
+      try {
+        const companyId = Deno.env.get("WHOP_COMPANY_ID");
+        // deno-lint-ignore no-explicit-any
+        const list: any = await whopFetch(`/verifications?account_id=${companyId}`);
+        const items = list?.data ?? list?.verifications ?? [];
+        const prof = items.find(
+          // deno-lint-ignore no-explicit-any
+          (v: any) => v.user_id === whopUserId || v.user?.id === whopUserId,
+        );
+        if (prof?.status) {
+          kycStatus = mapKycStatus(String(prof.status));
+          await supabase
+            .from("challenge_accounts")
+            .update({ kyc_status: kycStatus })
+            .eq("id", account.id);
+        }
+      } catch (e) {
+        // read endpoint nemusí být dostupný — transfer pak posoudí sám Whop
+        console.error("KYC read před payoutem selhal:", e);
+      }
+    }
+    if (kycStatus === "failed") {
+      // žádost NECHÁVÁME ve stavu pending
+      return jsonResponse(
+        { error: "Hráč nemá dokončené ověření identity (KYC) ve Whopu." },
         400,
       );
     }
@@ -165,6 +200,19 @@ serve(async (req) => {
 
       return jsonResponse({ status: finalStatus, transferId: transfer.id ?? null });
     } catch (transferErr) {
+      // Whop odmítl transfer kvůli chybějícímu KYC → payout NECHÁME pending,
+      // ať jde zopakovat po dokončení ověření.
+      const msg = transferErr instanceof Error ? transferErr.message : "";
+      if (/verif|kyc|identity/i.test(msg)) {
+        await supabase
+          .from("challenge_accounts")
+          .update({ kyc_status: "unknown" })
+          .eq("id", account.id);
+        return jsonResponse(
+          { error: "Hráč nemá dokončené ověření identity (KYC) ve Whopu." },
+          400,
+        );
+      }
       await supabase
         .from("payouts")
         .update({ status: "failed" })

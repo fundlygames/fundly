@@ -27,3 +27,12 @@ export async function whopFetch(
   }
   return data;
 }
+
+// Mapování stavu Whop identity profilu na náš kyc_status
+// ('verified' | 'failed' | 'unknown') — sdílené webhook ↔ payout.
+export function mapKycStatus(status: string): string {
+  const s = status.toLowerCase();
+  if (["approved", "verified", "succeeded", "passed"].includes(s)) return "verified";
+  if (["rejected", "failed", "declined"].includes(s)) return "failed";
+  return "unknown";
+}

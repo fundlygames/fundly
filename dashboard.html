@@ -120,8 +120,8 @@
               <ul class="tip-list">
                 <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Sázejte konzistentní částky, 1 až 2 % kapitálu na tiket bohatě stačí.</li>
                 <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Držte se sportů a lig, které opravdu znáte, kvantita cíl nesplní.</li>
-                <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Trailing drawdown se posouvá s každým novým maximem, hlídejte si rezervu.</li>
-                <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Na cíl máte 30 dní, nespěchejte. Průměrně stačí +1 400 Kč denně.</li>
+                <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Max. ztráta je pevná −10 % kapitálu, žádný trailing — floor se neposouvá.</li>
+                <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Na cíl máte 30 dní, nespěchejte. Průměrně stačí zhruba +0,35 % kapitálu denně.</li>
               </ul>
             </div>
           </div>
@@ -286,7 +286,7 @@
         <div class="hero-panel wd">
           <div>
             <div class="t">Váš trezor se otevře s financovaným účtem</div>
-            <div class="d">85 % z každého zisku, výplaty do 48 hodin od schválení.</div>
+            <div class="d">80 % z každého zisku, výplaty do 48 hodin od schválení.</div>
           </div>
         </div>
 
@@ -313,7 +313,7 @@
                 </select>
               </div>
               <button type="submit" class="btn btn-primary" style="width:100%">Odeslat žádost ke schválení</button>
-              <p class="t-meta" style="margin-top:10px">Výběr je možný až po 5 obchodních dnech s aspoň 0,5 % zisku. <b id="wdRuleDays"></b></p>
+              <div id="wdConds"><!-- JS: renderPayoutConds() --></div>
               <p class="auth-note mt" id="wdNote" hidden></p>
             </form>
           </div>
@@ -321,9 +321,9 @@
             <div class="panel">
               <h3>Jak to funguje</h3>
               <ol class="ol-steps">
-                <li>Před prvním výběrem dosáhněte bufferu 10 % z kapitálu.</li>
-                <li>Výběr je možný až po 5 obchodních dnech s aspoň 0,5 % zisku.</li>
-                <li>Vyberte si částku, maximálně váš podíl ze zisku.</li>
+                <li>Před výběrem vybudujte ziskový buffer aspoň +5 % kapitálu.</li>
+                <li>Před každým výběrem splňte min. 5 výherných tiketů s čistým ziskem aspoň +0,5 % kapitálu.</li>
+                <li>Vyberte si částku, maximálně 100 000 Kč na jednu výplatu.</li>
                 <li>Žádost schválíme do 24 hodin a vyplatíme.</li>
                 <li>Po výběru musí zůstatek zůstat nad bezpečnostní hranicí.</li>
               </ol>
@@ -423,9 +423,9 @@
         <div class="two-col">
           <div class="panel">
             <h3>Rizikové limity</h3>
-            <p class="t-small" style="margin-bottom:12px">Žádný denní limit. Jediné pravidlo selhání je trailing drawdown.</p>
+            <p class="t-small" style="margin-bottom:12px">Žádný denní limit. Jediné pravidlo selhání je statická max. ztráta −10 % kapitálu.</p>
             <div class="limit-row">
-              <span class="k">Trailing drawdown <small id="pfDdDetail">(HWM – · Floor –)</small></span>
+              <span class="k">Max. ztráta (statická) <small id="pfDdDetail">(pevný floor –)</small></span>
               <span class="v" id="pfDdRemain">–</span>
             </div>
             <div class="progress"><span id="pfDdBar" style="width:100%"></span></div>
