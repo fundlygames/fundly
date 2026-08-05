@@ -869,8 +869,8 @@ if (wdForm) {
       if (user) {
         const amount = Number(document.getElementById("wdAmount").value);
         const method = document.getElementById("wdMethod").value;
-        if (!Number.isFinite(amount) || amount < 250) {
-          note.textContent = "Minimální výběr je 250 Kč.";
+        if (!Number.isFinite(amount) || amount < 10) {
+          note.textContent = "Minimální výběr je 10 Kč.";
           note.hidden = false;
           return;
         }
