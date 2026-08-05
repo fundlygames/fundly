@@ -42,7 +42,7 @@ serve(async (req) => {
         .select("amount")
         .eq("status", "succeeded")
         .gte("created_at", monthStartIso),
-      supabase.from("payments").select("amount").eq("status", "succeeded"),
+      supabase.from("payments").select("email, amount, currency").eq("status", "succeeded"),
       supabase
         .from("payments")
         .select("whop_payment_id, email, package_key, amount, currency, status, created_at")
@@ -85,6 +85,28 @@ serve(async (req) => {
       accountsByState[state] = (accountsByState[state] ?? 0) + 1;
     }
 
+    // Obohacení výplat o údaje žadatele: e-mail, balíček, kapitál + celková
+    // útrata (součet jeho zaplacených plateb přepočtený na Kč).
+    // deno-lint-ignore no-explicit-any
+    const accountById: Record<string, any> = {};
+    for (const a of recentAccounts.data ?? []) accountById[a.id] = a;
+    const spentByEmail: Record<string, number> = {};
+    for (const p of allPayments.data ?? []) {
+      const amt = (Number(p.amount) || 0) * (p.currency === "eur" ? EUR_CZK : 1);
+      if (p.email) spentByEmail[p.email] = (spentByEmail[p.email] ?? 0) + amt;
+    }
+    // deno-lint-ignore no-explicit-any
+    const enrichedPayouts = (recentPayouts.data ?? []).map((p: any) => {
+      const acc = accountById[p.account_id];
+      return {
+        ...p,
+        email: acc?.email ?? null,
+        package_key: acc?.package_key ?? null,
+        capital: acc?.capital ?? null,
+        totalSpentCzk: Math.round(spentByEmail[acc?.email] ?? 0),
+      };
+    });
+
     return jsonResponse({
       monthRevenue: Math.round(sumCzk(monthPayments.data)),
       monthCount: (monthPayments.data ?? []).length,
@@ -92,7 +114,7 @@ serve(async (req) => {
       recentPayments: recentPayments.data ?? [],
       accountsByState,
       recentAccounts: recentAccounts.data ?? [],
-      recentPayouts: recentPayouts.data ?? [],
+      recentPayouts: enrichedPayouts,
       metaAdsSpendCzk: sum(metaSpend.data, "amount_czk"),
     });
   } catch (err) {

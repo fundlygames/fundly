@@ -48,9 +48,9 @@ serve(async (req) => {
   }
 
   try {
-    const { accountId, amount, payoutId } = await req.json();
+    const { accountId, amount, payoutId, action } = await req.json();
     let payoutAmount = Number(amount);
-    if (!accountId || !Number.isFinite(payoutAmount) || payoutAmount <= 0) {
+    if (!accountId || (!Number.isFinite(payoutAmount) && action !== "reject")) {
       return jsonResponse({ error: "Zadejte platný účet a částku." }, 400);
     }
 
@@ -58,6 +58,27 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
+
+    // Zamítnutí žádosti — jen změna stavu, žádný pohyb peněz.
+    if (action === "reject") {
+      if (!payoutId) return jsonResponse({ error: "Chybí payoutId." }, 400);
+      const { data: existing } = await supabase
+        .from("payouts")
+        .update({ status: "rejected" })
+        .eq("id", String(payoutId))
+        .eq("account_id", String(accountId))
+        .eq("status", "pending")
+        .select("id")
+        .maybeSingle();
+      if (!existing) {
+        return jsonResponse({ error: "Žádost nenalezena nebo už byla zpracována." }, 404);
+      }
+      return jsonResponse({ status: "rejected" });
+    }
+
+    if (payoutAmount <= 0 || payoutAmount > 100000) {
+      return jsonResponse({ error: "Částka musí být 1–100 000 Kč." }, 400);
+    }
 
     const { data: account } = await supabase
       .from("challenge_accounts")

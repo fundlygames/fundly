@@ -7,6 +7,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { handleCors, jsonResponse } from "../_shared/cors.ts";
 
 const MIN_PAYOUT = 250; // minimální výběr v Kč
+const MAX_PAYOUT = 100000; // maximální výběr na jednu žádost v Kč
 // Podíl hráče ze zisku (85 %) — zatím jen informativní, cap se uplatní až s profit sloupcem.
 
 serve(async (req) => {
@@ -40,6 +41,9 @@ serve(async (req) => {
     const payoutAmount = Number(amount);
     if (!Number.isFinite(payoutAmount) || payoutAmount < MIN_PAYOUT) {
       return jsonResponse({ error: `Minimální výběr je ${MIN_PAYOUT} Kč.` }, 400);
+    }
+    if (payoutAmount > MAX_PAYOUT) {
+      return jsonResponse({ error: `Maximální výběr na jednu žádost je ${MAX_PAYOUT.toLocaleString("cs-CZ")} Kč.` }, 400);
     }
     if (!method || typeof method !== "string") {
       return jsonResponse({ error: "Vyberte způsob výplaty." }, 400);

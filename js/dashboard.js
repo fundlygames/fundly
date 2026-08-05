@@ -821,6 +821,7 @@ const WD_STATUS = {
   paid: { tag: "win", label: "Vyplacená" },
   sent: { tag: "win", label: "Vyplacená" },
   failed: { tag: "loss", label: "Selhala" },
+  rejected: { tag: "loss", label: "Zamítnutá" },
 };
 
 // Historie výběrů z databáze — jen s backendem a přihlášeným uživatelem
@@ -871,6 +872,11 @@ if (wdForm) {
         const method = document.getElementById("wdMethod").value;
         if (!Number.isFinite(amount) || amount < 250) {
           note.textContent = "Minimální výběr je 250 Kč.";
+          note.hidden = false;
+          return;
+        }
+        if (amount > 100000) {
+          note.textContent = "Maximální výběr na jednu žádost je 100 000 Kč.";
           note.hidden = false;
           return;
         }

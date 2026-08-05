@@ -398,13 +398,18 @@ function renderRealFinance(stats) {
   document.getElementById("finPayouts").innerHTML = stats.recentPayouts.length
     ? stats.recentPayouts.map((p) => {
         const paid = p.status === "sent" || p.status === "paid";
-        const tag = paid ? "win" : p.status === "failed" ? "loss" : "pend";
-        const label = paid ? "vyplaceno" : p.status === "failed" ? "selhalo" : "čeká na schválení";
-        // čekající žádost hráče → akce „Schválit a vyplatit“ (přes whop-payout s payoutId)
+        const tag = paid ? "win" : p.status === "failed" || p.status === "rejected" ? "loss" : "pend";
+        const label = paid ? "vyplaceno" : p.status === "failed" ? "selhalo" : p.status === "rejected" ? "zamítnuto" : "čeká na schválení";
+        // čekající žádost hráče → akce „Schválit a vyplatit“ / „Zamítnout“
         const approveBtn = p.status === "pending"
-          ? ` <button class="btn btn-ghost" data-approve-payout="${esc(p.id)}" data-account="${esc(p.account_id)}" data-amount="${esc(p.amount)}">Schválit a vyplatit</button>`
+          ? ` <button class="btn btn-ghost" data-approve-payout="${esc(p.id)}" data-account="${esc(p.account_id)}" data-amount="${esc(p.amount)}">Schválit a vyplatit</button>` +
+            ` <button class="btn btn-ghost" data-reject-payout="${esc(p.id)}" data-account="${esc(p.account_id)}">Zamítnout</button>`
           : "";
-        return `<div class="k-row neutral">Výplata #${esc(String(p.id).slice(0, 8))}${p.method ? ` · ${esc(p.method)}` : ""}<span class="n"><span class="tag ${tag}">${label}</span> ${czk(Number(p.amount) || 0)}${approveBtn}</span></div>`;
+        const who = p.email
+          ? `${esc(p.email)} · ${esc(p.package_key || "?")} (kapitál ${czk(Number(p.capital) || 0)}) · utratil ${czk(Number(p.totalSpentCzk) || 0)}`
+          : `Výplata #${esc(String(p.id).slice(0, 8))}`;
+        const when = new Date(p.created_at).toLocaleString("cs-CZ");
+        return `<div class="k-row neutral"><span>${who}<br><span style="color:var(--text-muted);font-size:.8125rem">${p.method ? `${esc(p.method)} · ` : ""}${when}</span></span><span class="n"><span class="tag ${tag}">${label}</span> ${czk(Number(p.amount) || 0)}${approveBtn}</span></div>`;
       }).join("")
     : `<p class="bet-msg">Zatím žádné výplaty.</p>`;
 
@@ -514,6 +519,26 @@ document.addEventListener("click", async (e) => {
     await loadRealStats();
   } catch (err) {
     window.alert(err.message || "Výplata se nepodařila.");
+    btn.disabled = false;
+  }
+});
+
+// ---------- výplaty: zamítnutí čekající žádosti ----------
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest("[data-reject-payout]");
+  if (!btn) return;
+  if (!window.confirm(`Opravdu zamítnout žádost #${String(btn.dataset.rejectPayout).slice(0, 8)}? Peníze se nikam nepřesunou.`)) return;
+  btn.disabled = true;
+  try {
+    await adminFetch("whop-payout", {
+      accountId: btn.dataset.account,
+      amount: 0,
+      payoutId: btn.dataset.rejectPayout,
+      action: "reject",
+    });
+    await loadRealStats();
+  } catch (err) {
+    window.alert(err.message || "Zamítnutí se nepodařilo.");
     btn.disabled = false;
   }
 });
