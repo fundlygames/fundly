@@ -103,13 +103,28 @@ serve(async (req) => {
       payout = existing;
       payoutAmount = Number(existing.amount);
     } else {
-      const { data: inserted, error: payoutError } = await supabase
+      // Bez payoutId (tlačítko „Vyplatit“ u hráče): když na účtu čeká pending
+      // žádost, použijeme ji místo zakládání duplicitního řádku.
+      const { data: pending } = await supabase
         .from("payouts")
-        .insert({ account_id: account.id, amount: payoutAmount, status: "pending" })
-        .select("id")
-        .single();
-      if (payoutError) throw payoutError;
-      payout = inserted;
+        .select("id, account_id, amount, status")
+        .eq("account_id", account.id)
+        .eq("status", "pending")
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (pending) {
+        payout = pending;
+        payoutAmount = Number(pending.amount);
+      } else {
+        const { data: inserted, error: payoutError } = await supabase
+          .from("payouts")
+          .insert({ account_id: account.id, amount: payoutAmount, status: "pending" })
+          .select("id")
+          .single();
+        if (payoutError) throw payoutError;
+        payout = inserted;
+      }
     }
 
     try {
