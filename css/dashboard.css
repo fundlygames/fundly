@@ -24,21 +24,56 @@ body::after {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* ---------- Dash nav ---------- */
+/* ---------- Dash nav (levý sidebar na desktopu) ---------- */
+/* sidebar je jen pro desktop ≥1024px; mobil má horní lištu + spodní lištu */
+.dside { display: none; }
 .dnav-links {
   display: none;
   align-items: center;
   gap: 2px;
   margin: 0 auto;
 }
-@media (min-width: 1024px) { .dnav-links { display: flex; } }
+@media (min-width: 1024px) {
+  /* horní lištu na desktopu nahrazuje sidebar */
+  .nav { display: none; }
+  .dside {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 50;
+    width: 232px;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+    border-right: 1px solid var(--line);
+    padding: 20px 12px 12px;
+  }
+  .dside .logo { padding: 4px 10px 0; }
+  .dside .dnav-links {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+    margin: 20px 0 0;
+  }
+  .dside .dnav-link { width: 100%; padding: 10px 12px; font-size: .875rem; }
+  .dside-foot {
+    margin-top: auto;
+    display: flex;
+    gap: 4px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+  }
+  /* obsah se posune doprava vedle sidebaru — viz .dash-main v Layout sekci */
+}
 .dnav-link {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   color: var(--text-secondary);
   padding: 8px 14px;
-  border-radius: 9999px;
+  border-radius: var(--d-r-sm);
   font-size: .9375rem;
   font-weight: 500;
   border: none;
@@ -49,7 +84,7 @@ body::after {
 .dnav-link.active {
   color: var(--accent);
   background: var(--accent-tint);
-  box-shadow: inset 0 0 0 1px var(--accent-border-soft), 0 0 16px -4px rgb(var(--accent-rgb) / .5);
+  box-shadow: inset 0 0 0 1px var(--accent-border-soft);
 }
 .dnav-link:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .dnav-link svg { flex-shrink: 0; }
@@ -60,7 +95,7 @@ body::after {
   align-items: center;
   justify-content: center;
   border: none;
-  border-radius: 9999px;
+  border-radius: var(--d-r-sm);
   background: transparent;
   color: var(--text-muted);
   transition: color .15s var(--ease), background-color .15s var(--ease);
@@ -99,7 +134,8 @@ body::after {
 
 /* ---------- Layout ---------- */
 .dash-main { padding: 24px 0 96px; }
-@media (min-width: 1024px) { .dash-main { padding-bottom: 48px; } }
+/* desktop: místo pro levý sidebar (232px) */
+@media (min-width: 1024px) { .dash-main { padding-bottom: 48px; padding-left: 232px; } }
 .dash-view[hidden] { display: none; }
 @media (prefers-reduced-motion: no-preference) {
   .dash-view:not([hidden]) { animation: view-in .3s cubic-bezier(.16, 1, .3, 1) both; }
@@ -313,7 +349,8 @@ body::after {
 .bc-meta { margin-top: 12px; display: flex; gap: 16px; font-size: .8125rem; color: var(--text-muted); }
 
 /* pravý rail: pravidla v kostce (rules at a glance) */
-.rules-rail { position: sticky; top: 88px; }
+/* sticky jen na desktopu (tam už není horní lišta → top 24px) */
+.rules-rail { position: sticky; top: 24px; }
 @media (max-width: 1023.5px) { .rules-rail { position: static; } }
 .rr { padding: 10px 0; border-bottom: 1px solid var(--line); }
 .rr:last-of-type { border-bottom: none; }
@@ -759,6 +796,8 @@ body::after {
 .bet-msg .btn { margin-top: 14px; }
 
 .slip { position: sticky; top: 84px; }
+/* desktop: horní lišta je skrytá (sidebar), tiket může výš */
+@media (min-width: 1024px) { .slip { top: 24px; } }
 .slip-empty { text-align: center; color: var(--text-muted); font-size: .875rem; padding: 32px 0; }
 .slip-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
 .slip-item .si-info { flex: 1; }
