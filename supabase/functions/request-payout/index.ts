@@ -6,7 +6,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { handleCors, jsonResponse } from "../_shared/cors.ts";
 
-const MIN_PAYOUT = 10; // minimální výběr v Kč (dočasně nízké pro testování)
+const MIN_PAYOUT = 1; // minimální výběr v Kč (dočasně 1 Kč pro živý test transferu)
 // Podíl hráče ze zisku (85 %) — zatím jen informativní, cap se uplatní až s profit sloupcem.
 
 serve(async (req) => {
