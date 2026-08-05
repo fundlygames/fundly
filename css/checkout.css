@@ -8,6 +8,18 @@
 
 .co-main { padding: 32px 0 96px; }
 
+/* ---------- Pozadí: jemný fialový fade (jen checkout) ---------- */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(55% 45% at 12% 0%, rgb(139 92 246 / .10), transparent 65%),
+    radial-gradient(50% 45% at 88% 100%, rgb(109 40 217 / .08), transparent 70%);
+}
+
 /* lokální radiusy — ostřejší než globální --radius/--radius-lg */
 :root {
   --co-r: 4px;   /* panely, karty, boxy */
