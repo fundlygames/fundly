@@ -74,42 +74,44 @@
           <span class="chip-phase" id="ovPhaseChip">Fáze 1</span>
         </div>
 
-        <div class="balance-card" id="balanceCard"><!-- JS: renderPrehled() --></div>
+        <div class="ov-layout">
+          <div class="ov-main">
+            <div class="balance-card" id="balanceCard"><!-- JS: renderPrehled() (vč. equity grafu) --></div>
 
-        <div class="panel" id="equityPanel">
-          <h3>Vývoj zůstatku</h3>
-          <div id="equityChart"><!-- JS: renderPrehled() --></div>
-        </div>
+            <div class="stat-grid" id="ovStatGrid"><!-- JS: renderPrehled() --></div>
 
-        <div class="stat-grid" id="ovStatGrid"><!-- JS: renderPrehled() --></div>
+            <button class="btn btn-primary btn-lg cta-bet" data-view-link="sazeni">Sázet teď</button>
 
-        <button class="btn btn-primary btn-lg cta-bet" data-view-link="sazeni">Sázet teď</button>
+            <div class="panel" id="recentTicketsPanel">
+              <h3>Poslední tikety</h3>
+              <div class="k-rows" id="recentTickets"><!-- JS: renderPrehled() --></div>
+            </div>
 
-        <div class="panel" id="recentTicketsPanel">
-          <h3>Poslední tikety</h3>
-          <div class="k-rows" id="recentTickets"><!-- JS: renderPrehled() --></div>
-        </div>
+            <div class="subtabs" role="tablist" aria-label="Detail výzvy" id="ovTabs">
+              <button class="active" data-ovtab="limity" role="tab" aria-selected="true">Limity</button>
+              <button data-ovtab="pravidla" role="tab" aria-selected="false">Pravidla</button>
+              <button data-ovtab="cesta" role="tab" aria-selected="false">Cesta</button>
+              <button data-ovtab="tipy" role="tab" aria-selected="false">Tipy</button>
+            </div>
 
-        <div class="subtabs" role="tablist" aria-label="Detail výzvy" id="ovTabs">
-          <button class="active" data-ovtab="limity" role="tab" aria-selected="true">Limity</button>
-          <button data-ovtab="pravidla" role="tab" aria-selected="false">Pravidla</button>
-          <button data-ovtab="cesta" role="tab" aria-selected="false">Cesta</button>
-          <button data-ovtab="tipy" role="tab" aria-selected="false">Tipy</button>
-        </div>
+            <div class="panel" data-ovpanel="limity" id="ovLimity"><!-- JS: renderPrehled() --></div>
 
-        <div class="panel" data-ovpanel="limity" id="ovLimity"><!-- JS: renderPrehled() --></div>
+            <div class="panel" data-ovpanel="pravidla" hidden id="ovPravidla"><!-- JS: renderPrehled() --></div>
 
-        <div class="panel" data-ovpanel="pravidla" hidden id="ovPravidla"><!-- JS: renderPrehled() --></div>
+            <div class="panel" data-ovpanel="cesta" hidden id="ovCesta"><!-- JS: renderPrehled() --></div>
 
-        <div class="panel" data-ovpanel="cesta" hidden id="ovCesta"><!-- JS: renderPrehled() --></div>
+            <div class="panel" data-ovpanel="tipy" hidden>
+              <ul class="tip-list">
+                <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Sázejte konzistentní částky, 1 až 2 % kapitálu na tiket bohatě stačí.</li>
+                <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Držte se sportů a lig, které opravdu znáte, kvantita cíl nesplní.</li>
+                <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Trailing drawdown se posouvá s každým novým maximem, hlídejte si rezervu.</li>
+                <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Na cíl máte 30 dní, nespěchejte. Průměrně stačí +1 400 Kč denně.</li>
+              </ul>
+            </div>
+          </div>
 
-        <div class="panel" data-ovpanel="tipy" hidden>
-          <ul class="tip-list">
-            <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Sázejte konzistentní částky, 1 až 2 % kapitálu na tiket bohatě stačí.</li>
-            <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Držte se sportů a lig, které opravdu znáte, kvantita cíl nesplní.</li>
-            <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Trailing drawdown se posouvá s každým novým maximem, hlídejte si rezervu.</li>
-            <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Na cíl máte 30 dní, nespěchejte. Průměrně stačí +1 400 Kč denně.</li>
-          </ul>
+          <!-- pravý sloupec: pravidla a limity s postupem -->
+          <aside class="panel rules-rail" id="rulesRail"><!-- JS: renderPrehled() --></aside>
         </div>
       </section>
 

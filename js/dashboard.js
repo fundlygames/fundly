@@ -842,27 +842,66 @@ if (nickSave) {
 }
 
 // ---------- přehled: render z reálného stavu portfolia ----------
+// Equity graf: křivka zůstatku + čárkované hladiny (cíl fáze, HWM, drawdown
+// floor) s popisky a fialovou plochou pod křivkou. Data = state.equityHistory,
+// mění se pouze prezentace.
 function renderEquityChart(state) {
   const points = state.equityHistory;
   if (points.length < 2) {
     return `<p class="bet-msg">Graf se naplní, jakmile proběhne první vsazený a vyhodnocený tiket.</p>`;
   }
-  const w = 600, h = 140, pad = 8;
+  const w = 600, h = 190, padL = 6, padR = 6, padT = 14, padB = 8;
+  const targetAbs = state.phase === "funded" ? null : state.phaseBaseline + Portfolio.phaseTarget(state);
+  const floor = state.hwm - state.drawdown;
   const values = points.map((p) => p.balance);
-  const min = Math.min(...values), max = Math.max(...values);
-  const span = max - min || 1;
-  const stepX = (w - pad * 2) / (points.length - 1);
-  const coords = points.map((p, i) => {
-    const x = pad + i * stepX;
-    const y = pad + (h - pad * 2) * (1 - (p.balance - min) / span);
-    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  const lo = Math.min(...values, floor);
+  const hi = Math.max(...values, state.hwm, targetAbs || 0);
+  const span = hi - lo || 1;
+  const X = (i) => padL + (i * (w - padL - padR)) / (points.length - 1);
+  const Y = (v) => padT + (h - padT - padB) * (1 - (v - lo) / span);
+  const coords = points.map((p, i) => `${X(i).toFixed(1)},${Y(p.balance).toFixed(1)}`);
+  const up = values[values.length - 1] >= values[0];
+  const stroke = up ? "var(--accent)" : "#ff6b6b";
+  const lastX = X(points.length - 1), lastY = Y(values[values.length - 1]);
+
+  // hladiny: cíl (zelená), high-water mark (fialová), drawdown floor (červená)
+  const levels = [
+    targetAbs !== null ? { v: targetAbs, cls: "eq-lv-target", label: `Cíl ${czk(targetAbs)}` } : null,
+    { v: state.hwm, cls: "eq-lv-hwm", label: `HWM ${czk(state.hwm)}` },
+    { v: floor, cls: "eq-lv-floor", label: `Floor ${czk(floor)}` },
+  ].filter(Boolean);
+  // popisky se nesměj překrýt — seřadíme podle y a vynutíme min. odstup
+  levels.sort((a, b) => Y(a.v) - Y(b.v));
+  let prevY = -Infinity;
+  levels.forEach((lv) => {
+    lv.y = Math.max(Y(lv.v), prevY + 11);
+    prevY = lv.y;
   });
-  const stroke = values[values.length - 1] >= values[0] ? "var(--accent)" : "#ff6b6b";
+
+  const area = `${padL},${(h - padB).toFixed(1)} ` + coords.join(" ") + ` ${lastX.toFixed(1)},${(h - padB).toFixed(1)}`;
+  const fmtDay = (t) => new Date(t).toLocaleDateString("cs-CZ", { day: "numeric", month: "numeric" });
+
   return `
-    <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" class="equity-svg" role="img" aria-label="Graf vývoje zůstatku">
+    <svg viewBox="0 0 ${w} ${h}" class="equity-svg" role="img" aria-label="Graf vývoje zůstatku">
+      <defs>
+        <linearGradient id="eqArea" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="rgb(153 69 255 / .38)" />
+          <stop offset="1" stop-color="rgb(153 69 255 / 0)" />
+        </linearGradient>
+      </defs>
+      ${levels.map((lv) => `
+        <line class="eq-lv ${lv.cls}" x1="${padL}" y1="${Y(lv.v).toFixed(1)}" x2="${w - padR}" y2="${Y(lv.v).toFixed(1)}" />
+        <text class="eq-lv-label ${lv.cls}" x="${w - padR}" y="${(lv.y - 3).toFixed(1)}">${lv.label}</text>`).join("")}
+      <polygon points="${area}" fill="url(#eqArea)" />
       <polyline points="${coords.join(" ")}" fill="none" stroke="${stroke}" style="color:${stroke}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
+      <circle cx="${lastX.toFixed(1)}" cy="${lastY.toFixed(1)}" r="3" fill="${stroke}" />
     </svg>
-    <div class="equity-range"><span>${czk(min)}</span><span>${czk(max)}</span></div>`;
+    <div class="eq-legend">
+      ${targetAbs !== null ? '<span><i class="sw eq-lv-target"></i>Cíl fáze</span>' : ""}
+      <span><i class="sw eq-lv-hwm"></i>High-water mark</span>
+      <span><i class="sw eq-lv-floor"></i>Drawdown floor</span>
+      <span class="eq-dates">${fmtDay(points[0].t)} – ${fmtDay(points[points.length - 1].t)}</span>
+    </div>`;
 }
 
 function renderRecentTickets(state) {
@@ -894,28 +933,26 @@ function renderPrehled() {
   const pct = target > 0 ? Math.max(0, Math.min(100, Math.round((profit / target) * 100))) : 100;
   const toGoal = Math.max(0, target - profit);
   const daysLeft = Portfolio.daysRemaining(state);
+  const s = Portfolio.summary(state);
 
+  // hero blok: mikro-label, velký zůstatek, delta řádek, čipy, equity graf
+  const deltaPct = state.phaseBaseline > 0 ? (profit / state.phaseBaseline) * 100 : 0;
+  const sign = profit >= 0 ? "+" : "−";
+  const deltaFmt = `${sign}${Math.abs(profit).toLocaleString("cs-CZ")} Kč · ${sign}${Math.abs(deltaPct).toLocaleString("cs-CZ", { maximumFractionDigits: 2 })} %`;
   document.getElementById("balanceCard").innerHTML = `
     <div class="balance-top">
       <div>
-        <div class="bc-plan">Balíček ${state.packageName}</div>
+        <div class="bc-plan">Zůstatek účtu</div>
         <div class="bc-amount">${czk(state.balance)}</div>
-        <div class="bc-sub">Aktuální zůstatek</div>
+        <div class="bc-delta ${profit >= 0 ? "pos" : "neg"}">${deltaFmt} v této fázi</div>
       </div>
-      <span class="chip-phase">${state.profitSplit} % podíl</span>
+      <div class="bc-chips">
+        <span class="chip-phase">${phaseLabel}</span>
+        <span class="chip-ghost">${state.packageName} · ${state.profitSplit} % podíl</span>
+      </div>
     </div>
-    ${state.phase === "funded" ? `
-    <div class="bc-goal"><div class="bc-goal-row"><span>Financovaný účet</span><span><b>Neomezeno</b></span></div></div>
-    ` : `
-    <div class="bc-goal">
-      <div class="bc-goal-row"><span>Cíl fáze: <b>${czk(state.phaseBaseline + target)}</b></span><span><b>${pct} %</b></span></div>
-      <div class="progress"><span style="width:${pct}%"></span></div>
-      <div class="bc-meta"><span>${daysLeft} dní zbývá</span><span>Do cíle ${czk(toGoal)}</span></div>
-    </div>`}`;
+    <div class="bc-chart">${renderEquityChart(state)}</div>`;
 
-  document.getElementById("equityChart").innerHTML = renderEquityChart(state);
-
-  const s = Portfolio.summary(state);
   document.getElementById("ovStatGrid").innerHTML = `
     <div class="dstat">
       <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M1.5 11.5l4-4 3 3 5-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Zisk</div>
@@ -932,11 +969,48 @@ function renderPrehled() {
     <div class="dstat">
       <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 5a1.5 1.5 0 001.5-1.5h8A1.5 1.5 0 0013 5v1.6a1.9 1.9 0 000 3.8V12a1.5 1.5 0 00-1.5 1.5h-8A1.5 1.5 0 002 12V5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" transform="translate(0,-1.2)"/></svg></span>Tikety</div>
       <div class="val">${s.total}</div>
+    </div>
+    <div class="dstat">
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><circle cx="7.5" cy="7.5" r="5.5" stroke="currentColor" stroke-width="1.6"/><path d="M7.5 4.5v3.3l2.2 1.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Úspěšnost</div>
+      <div class="val ${s.winRate >= 50 ? "green" : ""}">${s.winRate} %</div>
+    </div>
+    <div class="dstat">
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 12.5l4-8 3 5 4-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Prům. kurz</div>
+      <div class="val">${s.avgOdds.toFixed(2)}</div>
     </div>`;
 
   document.getElementById("recentTickets").innerHTML = renderRecentTickets(state);
 
   const dd = Portfolio.drawdownInfo(state);
+
+  // pravý sloupec: pravidla a limity s tenkými progress bary
+  const pctTime = Math.max(0, Math.min(100, Math.round((daysLeft / 30) * 100)));
+  const pctTickets = Math.max(0, Math.min(100, Math.round((s.total / 7) * 100)));
+  const ddTone = dd.pct < 30 ? "danger" : dd.pct < 60 ? "warn" : "";
+  const rrRow = (label, value, barPct, tone, sub) => `
+    <div class="rr">
+      <div class="rr-head"><span class="rr-k">${label}</span><span class="rr-v ${tone === "danger" ? "red" : ""}">${value}</span></div>
+      ${barPct === null ? "" : `<div class="progress rr-bar ${tone || ""}"><span style="width:${barPct}%"></span></div>`}
+      ${sub ? `<div class="rr-sub">${sub}</div>` : ""}
+    </div>`;
+  document.getElementById("rulesRail").innerHTML = `
+    <h3>Pravidla v kostce</h3>
+    ${state.phase === "funded"
+      ? rrRow("Cíl fáze", "Splněno", null, "", "Financovaný účet — bez cíle, neomezený čas")
+      : rrRow("Cíl fáze", `${czk(Math.max(0, profit))} / ${czk(target)}`, pct, pct >= 100 ? "" : "", pct >= 100 ? "Splněno" : `Zbývá ${czk(toGoal)}`)}
+    ${rrRow("Trailing drawdown", `${czk(Math.round(dd.remaining))} / ${czk(state.drawdown)}`, Math.round(dd.pct), ddTone,
+      `Floor ${czk(dd.floor)} · HWM ${czk(dd.hwm)}`)}
+    ${state.phase === "funded" ? "" : rrRow("Časový limit", `${daysLeft} / 30 dní`, pctTime, pctTime < 25 ? "danger" : "", "")}
+    ${rrRow("Min. tiketů", `${Math.min(s.total, 7)} / 7`, pctTickets, "", "Vyhodnocené i čekající tikety")}
+    ${rrRow("Max. sázka", czk(state.maxStake), null, "", "Na jeden tiket")}
+    ${rrRow("Kurzy", `${ODDS_MIN.toFixed(2)} – ${ODDS_MAX.toFixed(2)}`, null, "", "")}
+    ${rrRow("Profit split", `${state.profitSplit} %`, null, "", "Váš podíl ze zisku")}
+    <div class="rr-phase">
+      <span class="rr-phase-label">Fáze</span>
+      <span class="rr-phase-name">${phaseLabel}</span>
+      <span class="rr-phase-sub">Zahájeno ${new Date(state.phaseStartedAt).toLocaleDateString("cs-CZ")}${state.phase === "funded" ? "" : ` · ${daysLeft} dní zbývá`}</span>
+    </div>`;
+
   document.getElementById("ovLimity").innerHTML = `
     <div class="limit-row">
       <span class="k">Trailing drawdown <small>(HWM: ${czk(dd.hwm)})</small></span>
@@ -1005,6 +1079,14 @@ function renderVykon() {
     <div class="dstat">
       <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><circle cx="7.5" cy="7.5" r="5.5" stroke="currentColor" stroke-width="1.6"/><path d="M7.5 4.5v3.3l2.2 1.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Čekající</div>
       <div class="val">${s.pending}</div>
+    </div>
+    <div class="dstat">
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.5v12M10.5 4.5c0-1.2-1.3-2-3-2s-3 .8-3 2 1.3 2 3 2 3 .8 3 2-1.3 2-3 2-3-.8-3-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>Vsazeno</div>
+      <div class="val">${czk(s.staked)}</div>
+    </div>
+    <div class="dstat">
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 7-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Vráceno</div>
+      <div class="val ${s.returned >= s.staked && s.staked > 0 ? "green" : ""}">${czk(s.returned)}</div>
     </div>`;
 
   document.getElementById("vykonBreakdown").innerHTML = `
