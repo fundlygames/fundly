@@ -64,6 +64,7 @@
     const m = meta();
     const check = `<svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
     $("summaryPanel").innerHTML = `
+      <h3 class="sum-h">Shrnutí</h3>
       <div class="sum-row sum-head"><span class="k">Balíček</span><span class="k">Kapitál</span></div>
       <div class="sum-row"><span class="v big">${p.name}</span><span class="v green big">${czk(p.cap)}</span></div>
       <div class="sum-row"><span class="k">Podíl na zisku</span><span class="v green">${m.profitSplit} %</span></div>

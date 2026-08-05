@@ -1,62 +1,67 @@
 /* ============================================================
    Fundly — checkout (3-krokový průvodce)
-   Staví na tokenech z css/style.css
+   Staví na tokenech z css/style.css, vizuálně na css/dashboard.css
+   (panely, subtaby, k-rows) — ploché plochy, 1px tlumené okraje,
+   akcent jen jako tenký marker, žádné zářící rámečky.
    ============================================================ */
 
-.co-main { padding: 48px 0 96px; }
+.co-main { padding: 32px 0 96px; }
 
-/* ---------- Hlavička ---------- */
-.co-hero { text-align: center; margin-bottom: 32px; }
+/* ---------- Hlavička (jako .dash-head) ---------- */
+.co-hero { margin-bottom: 24px; }
+.co-hero .t-h2 { font-size: 1.875rem; font-weight: 800; letter-spacing: -0.03em; }
 .co-hero .acc { color: var(--accent); }
-.co-hero p { margin-top: 10px; color: var(--text-secondary); }
+.co-hero p { margin-top: 2px; font-size: .9375rem; color: var(--text-muted); }
 
-/* ---------- Indikátor kroků ---------- */
+/* ---------- Indikátor kroků (jako .subtabs) ---------- */
 .co-steps {
   list-style: none;
   display: flex;
   gap: 4px;
-  max-width: 720px;
-  margin: 0 auto 28px;
-  background: var(--surface-1);
-  border-radius: var(--radius-lg);
-  box-shadow: inset 0 0 0 1px var(--line);
-  padding: 6px;
+  max-width: 560px;
+  margin: 0 0 24px;
+  padding: 4px;
+  border: 1px solid #ffffff0f;
+  border-radius: 14px;
+  background: #ffffff08;
 }
 .co-step {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 12px 8px;
-  border-radius: calc(var(--radius-lg) - 6px);
-  color: var(--text-muted);
-  font-size: .9375rem;
+  gap: 8px;
+  padding: 9px 8px;
+  border-radius: 10px;
+  color: var(--text-secondary);
+  font-size: .8125rem;
   font-weight: 600;
-  transition: background-color .2s var(--ease), color .2s var(--ease);
+  white-space: nowrap;
+  transition: color .15s var(--ease), background-color .15s var(--ease);
 }
 .co-step .dot {
   display: flex;
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
   border-radius: 9999px;
-  background: #ffffff0d;
+  color: var(--text-muted);
   box-shadow: inset 0 0 0 1px var(--line);
-  font-size: .8125rem;
+  font-size: .75rem;
   font-weight: 700;
 }
-.co-step.active {
+.co-step.active { background: var(--primary); color: var(--primary-ink); }
+.co-step.active .dot { background: rgb(4 20 12 / .22); color: var(--primary-ink); box-shadow: none; }
+.co-step.done { color: var(--accent); }
+.co-step.done .dot {
+  color: var(--accent);
   background: var(--accent-tint);
-  color: var(--text-primary);
   box-shadow: inset 0 0 0 1px var(--accent-border-soft);
 }
-.co-step.active .dot { background: var(--accent); color: var(--primary-ink); box-shadow: none; }
-.co-step.done { color: var(--text-secondary); }
-.co-step.done .dot { background: var(--accent-tint); color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent-border-soft); }
 @media (max-width: 639.5px) {
+  .co-steps { max-width: none; }
   .co-step .lbl { display: none; }
   .co-step.active .lbl { display: inline; }
 }
@@ -71,10 +76,11 @@
   .co-layout { grid-template-columns: 7fr 5fr; }
 }
 
+/* ---------- Panel (stejný povrch jako dashboard .panel) ---------- */
 .co-panel {
   background: var(--surface-1);
   border-radius: var(--radius-lg);
-  box-shadow: inset 0 0 0 1px var(--line);
+  box-shadow: inset 0 0 0 1px var(--line), inset 0 1px 0 #ffffff0a, 0 12px 32px -18px rgb(0 0 0 / .6);
   padding: 24px;
 }
 .co-panel[hidden] { display: none; }
@@ -82,14 +88,21 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 1.125rem;
+  font-size: .9375rem;
   font-weight: 700;
-  letter-spacing: -0.01em;
-  margin-bottom: 20px;
+  letter-spacing: .01em;
+  margin-bottom: 16px;
+}
+.co-h::before {
+  content: "";
+  width: 3px;
+  height: 14px;
+  border-radius: 2px;
+  background: var(--accent);
 }
 .co-h svg { color: var(--accent); }
 
-/* ---------- Karty balíčků ---------- */
+/* ---------- Karty balíčků (ploché, jako k-row / subtab) ---------- */
 .pkg-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -105,18 +118,18 @@
   align-items: flex-start;
   text-align: left;
   background: var(--bg);
-  border: 1px solid #ffffff14;
+  border: none;
   border-radius: var(--radius);
+  box-shadow: inset 0 0 0 1px var(--line), 0 6px 16px -12px rgb(0 0 0 / .7);
   padding: 14px 16px;
   color: var(--text-primary);
-  transition: border-color .15s var(--ease), background-color .15s var(--ease), box-shadow .15s var(--ease);
+  transition: box-shadow .15s var(--ease), background-color .15s var(--ease);
 }
-.pkg-card:hover { border-color: #ffffff2e; }
+.pkg-card:hover { box-shadow: inset 0 0 0 1px #ffffff2e, 0 6px 16px -12px rgb(0 0 0 / .7); }
 .pkg-card:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .pkg-card.active {
-  border-color: var(--accent);
-  background: var(--accent-tint);
-  box-shadow: 0 0 0 1px var(--accent), 0 4px 16px -4px rgb(var(--accent-rgb) / .35);
+  background: var(--bg);
+  box-shadow: inset 0 0 0 1px var(--accent-border-soft), 0 6px 16px -12px rgb(0 0 0 / .7);
 }
 .pkg-card .radio {
   display: flex;
@@ -126,7 +139,7 @@
   justify-content: center;
   border-radius: 9999px;
   border: 2px solid #ffffff33;
-  transition: border-color .15s var(--ease);
+  transition: border-color .15s var(--ease), background-color .15s var(--ease);
 }
 .pkg-card .radio::after {
   content: "";
@@ -162,7 +175,7 @@
   padding: 3px 8px;
 }
 
-/* ---------- Cíle / limity ---------- */
+/* ---------- Cíle / limity (plošky jako .k-row) ---------- */
 .co-cols {
   display: grid;
   gap: 10px;
@@ -172,7 +185,7 @@
 .co-box {
   background: var(--bg);
   border-radius: var(--radius);
-  box-shadow: inset 0 0 0 1px var(--line);
+  box-shadow: inset 0 0 0 1px var(--line), 0 6px 16px -12px rgb(0 0 0 / .7);
   padding: 16px;
 }
 .co-box-h {
@@ -273,8 +286,16 @@
 @keyframes co-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2s; } }
 
+/* kontejner embedded Whop checkoutu — vložený panel jako .k-row */
 .whop-mount:empty { display: none; }
-.whop-mount iframe { width: 100%; border: none; }
+.whop-mount {
+  background: var(--bg);
+  border-radius: var(--radius);
+  box-shadow: inset 0 0 0 1px var(--line);
+  padding: 8px;
+  overflow: hidden;
+}
+.whop-mount iframe { width: 100%; border: none; border-radius: calc(var(--radius) - 4px); }
 
 .pay-fallback {
   display: flex;
@@ -287,21 +308,35 @@
 .pay-fallback[hidden] { display: none; }
 .pay-err { color: var(--danger); font-size: .9375rem; }
 
-/* ---------- Shrnutí (pravý sloupec) ---------- */
+/* ---------- Shrnutí (pravý sloupec, dashboard .panel) ---------- */
 .co-summary {
   position: sticky;
   top: 88px;
-  background:
-    radial-gradient(120% 60% at 50% -10%, rgb(var(--accent-rgb) / .12), transparent 60%),
-    linear-gradient(180deg, var(--surface-2) 0%, var(--surface-1) 100%);
+  background: var(--surface-1);
   border-radius: var(--radius-lg);
-  box-shadow: inset 0 0 0 1px var(--accent-border-soft), inset 0 1px 0 #ffffff1a;
+  box-shadow: inset 0 0 0 1px var(--line), inset 0 1px 0 #ffffff0a, 0 12px 32px -18px rgb(0 0 0 / .6);
   padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 @media (max-width: 1023.5px) { .co-summary { position: static; } }
+.sum-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: .9375rem;
+  font-weight: 700;
+  letter-spacing: .01em;
+  margin-bottom: 12px;
+}
+.sum-h::before {
+  content: "";
+  width: 3px;
+  height: 14px;
+  border-radius: 2px;
+  background: var(--accent);
+}
 .sum-row {
   display: flex;
   justify-content: space-between;
@@ -315,8 +350,8 @@
 .sum-row .v { font-weight: 700; font-variant-numeric: tabular-nums; }
 .sum-row .v.green { color: var(--accent); }
 .sum-row .v.big { font-size: 1.125rem; }
-.sum-head .k { font-size: .8125rem; }
-.sum-head .v { font-size: 1.0625rem; }
+.sum-head { border-bottom: 1px solid var(--line); }
+.sum-head .k { font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
 .sum-total {
   display: flex;
   justify-content: space-between;

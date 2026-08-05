@@ -150,6 +150,7 @@ button { font-family: inherit; cursor: pointer; }
   background: rgb(2 2 4 / .96);
 }
 .nav-inner {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -170,7 +171,16 @@ button { font-family: inherit; cursor: pointer; }
   gap: 2px;
   margin-left: 24px;
 }
-@media (min-width: 1024px) { .nav-links { display: flex; } }
+/* na desktopu opticky vycentrované vůči celému headeru */
+@media (min-width: 1024px) {
+  .nav-links {
+    display: flex;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-left: 0;
+  }
+}
 .nav-link {
   color: var(--text-secondary);
   padding: 8px 12px;
@@ -179,9 +189,10 @@ button { font-family: inherit; cursor: pointer; }
   transition: color .15s var(--ease), background-color .15s var(--ease);
 }
 .nav-link:hover { color: var(--text-primary); background: #ffffff0f; }
-.nav-cta { margin-left: auto; display: flex; align-items: center; gap: 4px; }
-.nav-cta .nav-link { display: none; }
-@media (min-width: 640px) { .nav-cta .nav-link { display: inline-flex; } }
+.nav-cta { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+/* ghost tlačítko „Přihlášení" v hlavní hlavičce — na mobilu skryté */
+#nav .nav-cta .btn-ghost { display: none; }
+@media (min-width: 640px) { #nav .nav-cta .btn-ghost { display: inline-flex; } }
 .nav .btn { height: 40px; padding: 0 20px; }
 
 /* ---------- Hero ---------- */
@@ -597,101 +608,6 @@ section.cta-block { padding: 128px 0; }
   100% { opacity: 1; transform: none; }
 }
 @media (prefers-reduced-motion: reduce) { .pkg-anim { animation: none; } }
-
-/* ---------- Výplaty: čisté karty s pečetí ---------- */
-.payouts-wrap { margin-top: 36px; }
-.pay2 {
-  display: inline-flex;
-  flex-shrink: 0;
-  align-items: center;
-  gap: 14px;
-  padding: 16px 20px;
-  border-radius: 16px;
-  background: var(--surface-1);
-  box-shadow: inset 0 0 0 1px var(--line), inset 0 1px 0 #ffffff0a;
-  min-width: 320px;
-}
-.pay2-av {
-  display: flex;
-  width: 40px;
-  height: 40px;
-  align-items: center;
-  justify-content: center;
-  border-radius: 9999px;
-  font-size: .8125rem;
-  font-weight: 700;
-  background: var(--accent-tint);
-  color: var(--accent);
-  box-shadow: inset 0 0 0 1px var(--accent-border-soft);
-}
-.pay2-info { display: flex; flex-direction: column; }
-.pay2-info .n { font-size: .875rem; font-weight: 600; }
-.pay2-info .c { font-size: .75rem; color: var(--text-muted); }
-.pay2-amount {
-  margin-left: auto;
-  font-size: 1.375rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-.pay2-seal {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-}
-.pay2-seal .sl {
-  display: flex;
-  width: 26px;
-  height: 26px;
-  align-items: center;
-  justify-content: center;
-  border-radius: 9999px;
-  background: var(--accent);
-  color: var(--primary-ink);
-}
-.pay2-seal .tx {
-  font-size: .5625rem;
-  font-weight: 700;
-  letter-spacing: .05em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-/* ---------- Testimonials ---------- */
-.quotes {
-  margin-top: 36px;
-  display: grid;
-  gap: 10px;
-}
-@media (min-width: 768px) { .quotes { grid-template-columns: repeat(3, 1fr); } }
-.quote {
-  background: var(--surface-1);
-  border-radius: var(--radius-lg);
-  box-shadow: inset 0 0 0 1px var(--line);
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-.quote p { font-size: .9375rem; color: var(--text-secondary); }
-.quote .q-who { display: flex; align-items: center; gap: 12px; margin-top: auto; }
-.quote .av {
-  width: 40px;
-  height: 40px;
-  border-radius: 9999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: .8125rem;
-  font-weight: 700;
-  background: var(--accent-tint);
-  color: var(--accent);
-  box-shadow: inset 0 0 0 1px var(--accent-border-soft);
-}
-.quote .q-who .n { font-size: .875rem; font-weight: 600; }
-.quote .q-who .r { font-size: .75rem; color: var(--text-muted); }
 
 /* ---------- FAQ ---------- */
 .faq-list { max-width: 768px; margin: 36px auto 0; }

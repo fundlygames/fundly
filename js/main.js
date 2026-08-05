@@ -129,36 +129,6 @@ document.querySelectorAll(".marquee-track[data-row]").forEach((track, i) => {
   track.innerHTML = half + half; /* zdvojené pro plynulou smyčku */
 });
 
-// ---------- výplaty (marquee) ----------
-/* ukázková data */
-const PAYOUTS = [
-  ["Martin K.", 24800, "Praha"], ["Jana N.", 12300, "Brno"], ["Petr H.", 41600, "Ostrava"],
-  ["Tomáš V.", 8900, "Plzeň"], ["Lukáš D.", 17250, "Liberec"], ["Karolína S.", 31400, "Olomouc"],
-  ["Ondřej M.", 6700, "Hradec Králové"], ["David P.", 22150, "Zlín"],
-];
-const payTrack = document.getElementById("payTrack");
-if (payTrack) {
-  const initials = (n) => n.split(" ").map((w) => w[0]).join("").replace(".", "");
-  const check = `<svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-  const card = ([n, a, c]) => `
-    <div class="pay2">
-      <span class="pay2-av">${initials(n)}</span>
-      <span class="pay2-info">
-        <span class="n">${n}</span>
-        <span class="c">${c}</span>
-      </span>
-      <span class="pay2-amount">${a.toLocaleString("cs-CZ")} Kč</span>
-      <span class="pay2-seal">
-        <span class="sl">${check}</span>
-        <span class="tx">Ověřeno</span>
-      </span>
-    </div>`;
-  const half = PAYOUTS.map(card).join("");
-  payTrack.innerHTML = half + half;
-  payTrack.style.gap = "12px";
-  payTrack.style.padding = "8px 6px";
-}
-
 // ---------- FAQ ----------
 document.querySelectorAll(".faq-item").forEach((item) => {
   const btn = item.querySelector(".faq-q");
