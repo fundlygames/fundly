@@ -785,19 +785,6 @@ if (wdForm) {
 // ---------- profil ----------
 // odznaky se renderují přes renderBadges() výše (volané z refreshAfterSettlement)
 
-const refCopy = document.getElementById("refCopy");
-if (refCopy) {
-  refCopy.addEventListener("click", async () => {
-    try {
-      await navigator.clipboard.writeText(document.getElementById("refLink").value);
-      refCopy.textContent = "Zkopírováno";
-      setTimeout(() => (refCopy.textContent = "Kopírovat"), 1500);
-    } catch (e) {
-      document.getElementById("refLink").select();
-    }
-  });
-}
-
 const lbShare = document.getElementById("lbShare");
 if (lbShare) {
   lbShare.addEventListener("click", () => {
