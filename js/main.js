@@ -268,6 +268,32 @@ authForm.addEventListener("submit", (e) => {
   if (!authForm.reportValidity()) return;
   authSubmit.disabled = true;
   authSubmit.textContent = authMode === "login" ? "Přihlašování…" : "Vytváření účtu…";
+
+  // S nakonfigurovaným backendem (js/config.js): registrace = reálná platba
+  // přes Whop checkout, přihlášení = magic link na e-mail. Bez backendu
+  // pokračuje původní lokální simulace níže.
+  if (typeof fundlyBackendEnabled === "function" && fundlyBackendEnabled()) {
+    const email = document.getElementById("authEmail").value.trim();
+    const fail = (msg) => {
+      authNote.textContent = msg;
+      authNote.hidden = false;
+      authSubmit.disabled = false;
+      authSubmit.textContent = AUTH_TEXTS[authMode].submit;
+    };
+    if (authMode === "register") {
+      FundlyCheckout.buy(activeKey, email).catch((err) => fail(err.message));
+    } else {
+      FundlyAuth.signInWithEmail(email).then(({ error }) => {
+        if (error) { fail(error.message); return; }
+        authNote.textContent = "Odkaz pro přihlášení jsme poslali na váš e-mail.";
+        authNote.hidden = false;
+        authSubmit.disabled = false;
+        authSubmit.textContent = AUTH_TEXTS[authMode].submit;
+      });
+    }
+    return;
+  }
+
   setTimeout(() => {
     if (authMode === "register") {
       Portfolio.init(activeKey);

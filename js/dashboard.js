@@ -87,6 +87,13 @@ function celebrateTicket(ticket) {
   }
 }
 
+// ---------- návrat z Whop checkoutu (?paid=1) ----------
+if (new URLSearchParams(window.location.search).get("paid") === "1") {
+  showToast("win", "Platba proběhla! 🎉", "Váš účet připravujeme, za chvíli je vše připravené.");
+  // uklidíme parametr z adresy, aby toast nevyskočil při obnovení stránky
+  window.history.replaceState({}, "", "dashboard.html");
+}
+
 // ---------- odznaky: reálné podmínky spočtené z dat portfolia ----------
 const BADGES = [
   ["První vítězství", "b-prvni-vitezstvi", "b-prvni-vitezstvi"],
@@ -201,6 +208,40 @@ async function refreshAfterSettlement() {
 }
 refreshAfterSettlement();
 setInterval(refreshAfterSettlement, 5 * 60 * 1000);
+
+// ---------- Supabase: načtení reálného challenge účtu ----------
+// Přihlášenému uživateli převezmeme balíček z placené objednávky
+// (vlastnictví řádku hlídá RLS v databázi). Bez backendu nebo přihlášení
+// se nic nemění a dashboard běží dál čistě na localStorage.
+async function syncChallengeAccount() {
+  if (typeof FundlyBackend === "undefined" || !fundlyBackendEnabled()) return;
+  try {
+    const client = await FundlyBackend.getClient();
+    if (!client) return;
+    const user = await FundlyAuth.getUser();
+    if (!user) return;
+    const { data: accounts, error } = await client
+      .from("challenge_accounts")
+      .select("package_key, capital, phase, state")
+      .order("created_at", { ascending: false })
+      .limit(1);
+    if (error || !accounts || !accounts.length) return;
+    const account = accounts[0];
+    const state = Portfolio.get();
+    if (state && state.packageKey === account.package_key) return;
+    // zaplacený balíček je jiný než lokální → nastartujeme simulaci s ním
+    Portfolio.init(account.package_key);
+    if (typeof renderPrehled === "function") renderPrehled();
+    if (typeof renderVykon === "function") renderVykon();
+    if (typeof renderBankBar === "function") renderBankBar();
+    showToast("win", "Účet je aktivní", `Balíček ${packageByKey(account.package_key).name} byl přiřazen.`);
+  } catch (e) {
+    // tichý fallback na lokální data
+  }
+}
+// js/config.js a js/whop.js se načítají s defer → spouštíme až na DOMContentLoaded,
+// kdy už je FundlyBackend/FundlyAuth určitě k dispozici
+window.addEventListener("DOMContentLoaded", syncChallengeAccount);
 
 // ---------- sázení (živá data z odds-api.io) ----------
 // API_BASE/API_KEY/BOOKMAKER/CACHE_TTL/cacheGet/cacheSet/cacheDrop/apiGet: viz js/portfolio.js

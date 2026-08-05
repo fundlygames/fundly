@@ -14,9 +14,13 @@ Archived React/Supabase (Lovable) version: repo `matejc-beep/betflow-react-archi
 - `index.html` — landing / package picker
 - `dashboard.html` — prop-firm dashboard
 - `js/packages.js` — shared package config consumed by both `index.html` and `dashboard.html`
+- `js/config.js` — Supabase URL + anon key (placeholders until deploy); `fundlyBackendEnabled()` gates all backend features
+- `js/whop.js` — `FundlyCheckout.buy` / `FundlyAuth` (lazy-loads supabase-js from CDN)
 - `js/main.js` — landing interactions
 - `js/dashboard.js` — dashboard logic
-- `admin.html` — admin view
+- `admin.html` — admin view (admin-key unlock loads real data via edge functions)
+- `supabase/` — backend: migrations + edge functions (whop-checkout, whop-webhook, admin-stats, meta-ads-spend, whop-payout)
+- `docs/WHOP-SETUP.md` — Whop/Supabase deployment guide (Czech)
 - `docs/superpowers/` — plan + design specs
 
 ## Packages

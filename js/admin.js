@@ -288,3 +288,216 @@ function renderDiagnostika() {
 renderFinance();
 renderPlayers();
 renderDiagnostika();
+
+// ---------- reálná data ze Supabase (odemknutí admin klíčem) ----------
+// Dokud není backend nastaven v js/config.js a/nebo admin odemknutý klíčem,
+// zůstávají všechny pohledy na mock datech výše beze změny.
+
+const ADMIN_KEY_STORAGE = "fundly:adminKey";
+let REAL = null; // načtená data z edge funkce admin-stats
+
+function adminBackendReady() {
+  return typeof fundlyBackendEnabled === "function" && fundlyBackendEnabled();
+}
+
+function getAdminKey() {
+  try { return sessionStorage.getItem(ADMIN_KEY_STORAGE) || ""; } catch (e) { return ""; }
+}
+
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+async function adminFetch(fnName, body) {
+  const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/${fnName}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-admin-key": getAdminKey() },
+    body: JSON.stringify(body || {}),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+  return data;
+}
+
+// malý odemykací panel nad pohledy
+function renderAdminGate(note) {
+  const container = document.querySelector(".dash-main .container");
+  if (!container || document.getElementById("adminGate")) return;
+  const gate = document.createElement("div");
+  gate.className = "panel";
+  gate.id = "adminGate";
+  gate.innerHTML = `
+    <h3>Reálná data (Supabase)</h3>
+    <p class="bet-msg" style="margin-bottom:12px">Zadejte admin klíč pro načtení skutečných tržeb, hráčů a výplat. Bez klíče se zobrazují ukázková data.</p>
+    <div style="display:flex;gap:8px;max-width:420px">
+      <input class="input" id="adminKeyInput" type="password" placeholder="Admin klíč" autocomplete="off" />
+      <button class="btn btn-primary" id="adminUnlock">Odemknout</button>
+    </div>
+    <p class="auth-note mt" id="adminGateNote" ${note ? "" : "hidden"}>${esc(note)}</p>`;
+  container.prepend(gate);
+  document.getElementById("adminUnlock").addEventListener("click", unlockAdmin);
+  document.getElementById("adminKeyInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") unlockAdmin();
+  });
+}
+
+async function unlockAdmin() {
+  const input = document.getElementById("adminKeyInput");
+  const noteEl = document.getElementById("adminGateNote");
+  const key = input.value.trim();
+  if (!key) return;
+  try { sessionStorage.setItem(ADMIN_KEY_STORAGE, key); } catch (e) {}
+  try {
+    await loadRealStats();
+  } catch (err) {
+    try { sessionStorage.removeItem(ADMIN_KEY_STORAGE); } catch (e) {}
+    noteEl.textContent = err.message || "Data se nepodařilo načíst.";
+    noteEl.hidden = false;
+  }
+}
+
+async function loadRealStats() {
+  const stats = await adminFetch("admin-stats");
+  REAL = stats;
+  const gate = document.getElementById("adminGate");
+  if (gate) gate.hidden = true;
+  renderRealFinance(stats);
+  renderRealPlayers(stats);
+  renderPlayersTable(); // přepnutá verze níže vykreslí reálné účty
+}
+
+// ---------- Finance: reálná data ----------
+function renderRealFinance(stats) {
+  const dstat = (label, value, green) => `
+    <div class="dstat">
+      <div class="lbl">${label}</div>
+      <div class="val ${green ? "green" : ""}">${value}</div>
+    </div>`;
+
+  document.getElementById("finStatGrid").innerHTML =
+    dstat("Tržby tento měsíc", czk(stats.monthRevenue), true) +
+    dstat("Tržby celkem", czk(stats.totalRevenue), false) +
+    dstat("Úspěšné platby tento měsíc", stats.monthCount, false) +
+    dstat("Meta ads tento měsíc", czk(stats.metaAdsSpendCzk), false);
+
+  // panel „Rozpad tržeb“ přepneme na poslední platby
+  const breakdown = document.getElementById("finBreakdown");
+  breakdown.closest(".panel").querySelector("h3").textContent = "Poslední platby";
+  breakdown.innerHTML = stats.recentPayments.length
+    ? stats.recentPayments.map((p) => {
+        const tag = p.status === "succeeded" ? "win" : p.status === "failed" ? "loss" : "pend";
+        const label = p.status === "succeeded" ? "zaplaceno" : p.status === "failed" ? "selhalo" : esc(p.status);
+        return `<div class="k-row neutral">${esc(p.email || "—")} · ${esc(p.package_key || "?")}<span class="n"><span class="tag ${tag}">${label}</span> ${czk(Number(p.amount) || 0)}</span></div>`;
+      }).join("")
+    : `<p class="bet-msg">Zatím žádné platby.</p>`;
+
+  document.getElementById("finPayouts").innerHTML = stats.recentPayouts.length
+    ? stats.recentPayouts.map((p) => {
+        const tag = p.status === "sent" ? "win" : p.status === "failed" ? "loss" : "pend";
+        const label = p.status === "sent" ? "odesláno" : p.status === "failed" ? "selhalo" : "čeká";
+        return `<div class="k-row neutral">Výplata #${esc(String(p.id).slice(0, 8))}<span class="n"><span class="tag ${tag}">${label}</span> ${czk(Number(p.amount) || 0)}</span></div>`;
+      }).join("")
+    : `<p class="bet-msg">Zatím žádné výplaty.</p>`;
+
+  // reálný Meta spend jako nový řádek v tabulce marketingových kanálů
+  const table = document.getElementById("finChannelsTable");
+  const tbody = table.querySelector("tbody");
+  if (tbody) {
+    tbody.insertAdjacentHTML("beforeend", `
+      <tr>
+        <td>Meta Ads (reálný spend)</td>
+        <td class="odds"><b>${czk(stats.metaAdsSpendCzk)}</b></td>
+        <td class="odds">—</td>
+        <td class="odds">—</td>
+        <td class="odds">—</td>
+      </tr>`);
+  }
+}
+
+// ---------- Hráči: reálné účty ----------
+const REAL_STATUS = {
+  active: { tag: "push", label: "Aktivní", filter: "aktivni" },
+  funded: { tag: "win", label: "Financovaný", filter: "funded" },
+};
+const realStatus = (state) =>
+  REAL_STATUS[state] || { tag: "loss", label: esc(state || "neaktivní"), filter: "breached" };
+
+function renderRealPlayers(stats) {
+  const counts = stats.accountsByState || {};
+  const total = Object.values(counts).reduce((a, v) => a + v, 0);
+  const dstat = (label, value, green) => `
+    <div class="dstat">
+      <div class="lbl">${label}</div>
+      <div class="val ${green ? "green" : ""}">${value}</div>
+    </div>`;
+  document.getElementById("playersStatGrid").innerHTML =
+    dstat("Účty celkem", total.toLocaleString("cs-CZ"), false) +
+    dstat("Aktivní", (counts.active || 0).toLocaleString("cs-CZ"), false) +
+    dstat("Financovaní", (counts.funded || 0).toLocaleString("cs-CZ"), true) +
+    dstat("Ostatní stavy", (total - (counts.active || 0) - (counts.funded || 0)).toLocaleString("cs-CZ"), false);
+}
+
+// přepneme render tabulky hráčů na reálná data (mock verze zůstává jako fallback)
+const renderPlayersTableMock = renderPlayersTable;
+renderPlayersTable = function () {
+  if (!REAL) return renderPlayersTableMock();
+  const rows = (REAL.recentAccounts || []).filter(
+    (a) => playersFilter === "vse" || realStatus(a.state).filter === playersFilter
+  );
+  document.getElementById("playersTable").innerHTML = `
+    <thead><tr><th>E-mail</th><th>Balíček</th><th>Fáze</th><th>Kapitál</th><th>Stav</th><th>Vytvořeno</th><th></th></tr></thead>
+    <tbody>
+      ${rows.length ? rows.map((a) => {
+        const status = realStatus(a.state);
+        return `
+        <tr>
+          <td>${esc(a.email)}</td>
+          <td>${esc(a.package_key)}</td>
+          <td>Fáze ${esc(a.phase)}</td>
+          <td class="odds">${czk(Number(a.capital) || 0)}</td>
+          <td><span class="tag ${status.tag}">${status.label}</span></td>
+          <td style="color:var(--text-muted)">${new Date(a.created_at).toLocaleDateString("cs-CZ")}</td>
+          <td>${a.state === "funded"
+            ? `<button class="btn btn-ghost" data-payout="${esc(a.id)}" data-email="${esc(a.email)}">Vyplatit</button>`
+            : ""}</td>
+        </tr>`;
+      }).join("") : `<tr><td colspan="7">Žádné účty pro zvolený filtr.</td></tr>`}
+    </tbody>`;
+};
+
+// ---------- výplaty: tlačítko „Vyplatit“ u financovaného hráče ----------
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest("[data-payout]");
+  if (!btn) return;
+  const amount = window.prompt(`Částka k vyplacení pro ${btn.dataset.email} (Kč):`);
+  if (amount === null) return;
+  const value = Number(String(amount).replace(/\s/g, "").replace(",", "."));
+  if (!Number.isFinite(value) || value <= 0) {
+    window.alert("Zadejte platnou částku.");
+    return;
+  }
+  if (!window.confirm(`Opravdu vyplatit ${czk(value)} hráči ${btn.dataset.email}?`)) return;
+  btn.disabled = true;
+  try {
+    const result = await adminFetch("whop-payout", { accountId: btn.dataset.payout, amount: value });
+    window.alert(`Výplata odeslána (transfer ${result.transferId || "—"}).`);
+    await loadRealStats();
+  } catch (err) {
+    window.alert(err.message || "Výplata se nepodařila.");
+    btn.disabled = false;
+  }
+});
+
+// ---------- init: odemknutí reálných dat ----------
+if (adminBackendReady()) {
+  if (getAdminKey()) {
+    // klíč ze sessionStorage — zkusíme rovnou načíst, při chybě zpět na bránu
+    loadRealStats().catch((err) => {
+      try { sessionStorage.removeItem(ADMIN_KEY_STORAGE); } catch (e) {}
+      renderAdminGate(err.message);
+    });
+  } else {
+    renderAdminGate();
+  }
+}
