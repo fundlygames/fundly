@@ -1,10 +1,13 @@
-# fundly-upcomers-static — agent guide
+# fundly — agent guide
 
 > Migrated from Claude Code `.superpowers` session context for Kimi Code.
 
 ## Project
 
-Functional betting simulation + prop-firm dashboard. Static site, no git repo.
+Functional betting simulation + prop-firm dashboard. Static site.
+GitHub repo: `matejc-beep/fundly` (renamed from `betflow-upcomers-static`), deployed via GitHub Pages at https://matejc-beep.github.io/fundly/
+Local dir: `~/betflow-upcomers-static` (kept for compatibility).
+Archived React/Supabase (Lovable) version: repo `matejc-beep/betflow-react-archive`, source `~/betflow-upcomers` — NOT in active use.
 
 ## Key files
 
