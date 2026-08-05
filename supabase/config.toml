@@ -4,8 +4,8 @@
 # postup je popsán v docs/WHOP-SETUP.md.
 project_id = "siruaytogfsgujpwzcsb"
 
-# Edge funkce voláme z prohlížeče vlastním ověřením (x-admin-key, podpis webhooku),
-# proto je vypnutá výchozí kontrola Supabase JWT.
+# Edge funkce voláme z prohlížeče vlastním ověřením (x-admin-key, podpis webhooku,
+# vlastní ověření uživatelského tokenu), proto je vypnutá výchozí kontrola Supabase JWT.
 [functions.whop-checkout]
 verify_jwt = false
 
@@ -19,4 +19,7 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.whop-payout]
+verify_jwt = false
+
+[functions.request-payout]
 verify_jwt = false

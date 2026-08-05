@@ -17,6 +17,7 @@ function showView(name) {
   if (name === "vykon" && typeof renderVykon === "function") renderVykon();
   if (name === "sazeni" && typeof renderBankBar === "function") renderBankBar();
   if (name === "profil" && typeof renderBadges === "function") renderBadges(Portfolio.get());
+  if (name === "vyplaty" && typeof loadPayoutHistory === "function") loadPayoutHistory();
 }
 
 document.addEventListener("click", (e) => {
@@ -813,11 +814,99 @@ function renderLb() {
 if (document.getElementById("lbList")) renderLb();
 
 // ---------- výplaty ----------
+// Stavové štítky historie výběrů (hodnoty zapisují edge funkce request-payout / whop-payout).
+const WD_STATUS = {
+  pending: { tag: "pend", label: "Čeká na schválení" },
+  approved: { tag: "pend", label: "Schválená" },
+  paid: { tag: "win", label: "Vyplacená" },
+  sent: { tag: "win", label: "Vyplacená" },
+  failed: { tag: "loss", label: "Selhala" },
+};
+
+// Historie výběrů z databáze — jen s backendem a přihlášeným uživatelem
+// (vlastnictví řádků hlídá RLS). Jinak zůstává demo obsah v HTML.
+async function loadPayoutHistory() {
+  const box = document.getElementById("wdHistory");
+  if (!box || typeof FundlyBackend === "undefined" || !fundlyBackendEnabled()) return;
+  try {
+    const user = await FundlyAuth.getUser();
+    if (!user) return;
+    const client = await FundlyBackend.getClient();
+    const { data: payouts, error } = await client
+      .from("payouts")
+      .select("id, amount, status, method, created_at")
+      .order("created_at", { ascending: false })
+      .limit(20);
+    if (error) return;
+    if (!payouts || !payouts.length) {
+      box.innerHTML = `<p class="slip-empty">Zatím žádné výběry.</p>`;
+      return;
+    }
+    box.innerHTML = payouts.map((p) => {
+      const s = WD_STATUS[p.status] || { tag: "pend", label: String(p.status) };
+      const date = new Date(p.created_at).toLocaleDateString("cs-CZ");
+      return `<div class="k-row neutral">${date} · ${p.method || "—"}<span class="n"><span class="tag ${s.tag}">${s.label}</span> ${czk(Number(p.amount) || 0)}</span></div>`;
+    }).join("");
+  } catch (e) {
+    // tichý fallback na demo obsah
+  }
+}
+
 const wdForm = document.getElementById("wdForm");
 if (wdForm) {
-  wdForm.addEventListener("submit", (e) => {
+  wdForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const note = document.getElementById("wdNote");
+    // S backendem a přihlášeným uživatelem posíláme skutečnou žádost přes
+    // edge funkci request-payout; jinak zůstává demo chování beze změny.
+    if (typeof FundlyBackend !== "undefined" && fundlyBackendEnabled()) {
+      let user = null;
+      try {
+        user = await FundlyAuth.getUser();
+      } catch (e) {
+        // backend nedostupný → fallback na demo chování níže
+      }
+      if (user) {
+        const amount = Number(document.getElementById("wdAmount").value);
+        const method = document.getElementById("wdMethod").value;
+        if (!Number.isFinite(amount) || amount < 250) {
+          note.textContent = "Minimální výběr je 250 Kč.";
+          note.hidden = false;
+          return;
+        }
+        if (!method) {
+          note.textContent = "Vyberte způsob výplaty.";
+          note.hidden = false;
+          return;
+        }
+        try {
+          const client = await FundlyBackend.getClient();
+          const { data: sessionData } = await client.auth.getSession();
+          const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/request-payout`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${sessionData?.session?.access_token || ""}`,
+            },
+            body: JSON.stringify({ amount, method }),
+          });
+          const data = await res.json().catch(() => ({}));
+          const ok = res.ok && data.ok;
+          note.textContent = ok
+            ? "Žádost o výběr byla odeslána ke schválení."
+            : data.error || "Žádost se nepodařilo odeslat.";
+          note.hidden = false;
+          if (ok) {
+            wdForm.reset();
+            loadPayoutHistory();
+          }
+        } catch (err) {
+          note.textContent = "Žádost se nepodařilo odeslat.";
+          note.hidden = false;
+        }
+        return;
+      }
+    }
     note.textContent = "Výběry se odemknou s financovaným účtem po dokončení obou fází.";
     note.hidden = false;
   });

@@ -1,5 +1,7 @@
 // whop-payout — výplata hráče přes Whop transfer, volaná z admin.html.
-// POST { accountId, amount } + hlavička x-admin-key → { status, transferId }
+// POST { accountId, amount, payoutId? } + hlavička x-admin-key → { status, transferId }
+// S payoutId se schvaluje existující žádost hráče (status pending → paid),
+// bez payoutId se zakládá nový payout záznam jako doposud.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders, handleCors, jsonResponse } from "../_shared/cors.ts";
@@ -46,8 +48,8 @@ serve(async (req) => {
   }
 
   try {
-    const { accountId, amount } = await req.json();
-    const payoutAmount = Number(amount);
+    const { accountId, amount, payoutId } = await req.json();
+    let payoutAmount = Number(amount);
     if (!accountId || !Number.isFinite(payoutAmount) || payoutAmount <= 0) {
       return jsonResponse({ error: "Zadejte platný účet a částku." }, 400);
     }
@@ -81,13 +83,34 @@ serve(async (req) => {
       );
     }
 
-    // záznam payoutu předem — jeho id použijeme jako idempotency klíč transferu
-    const { data: payout, error: payoutError } = await supabase
-      .from("payouts")
-      .insert({ account_id: account.id, amount: payoutAmount, status: "pending" })
-      .select("id")
-      .single();
-    if (payoutError) throw payoutError;
+    // záznam payoutu předem — jeho id použijeme jako idempotency klíč transferu.
+    // S payoutId (schválení žádosti z admin přehledu) aktualizujeme existující
+    // řádek od hráče, bez payoutId zakládáme nový jako doposud.
+    let payout: { id: string };
+    if (payoutId) {
+      const { data: existing, error: existingError } = await supabase
+        .from("payouts")
+        .select("id, account_id, amount, status")
+        .eq("id", String(payoutId))
+        .maybeSingle();
+      if (existingError) throw existingError;
+      if (!existing || existing.account_id !== account.id) {
+        return jsonResponse({ error: "Žádost o výplatu nenalezena." }, 404);
+      }
+      if (existing.status !== "pending") {
+        return jsonResponse({ error: "Tato žádost už byla zpracována." }, 400);
+      }
+      payout = existing;
+      payoutAmount = Number(existing.amount);
+    } else {
+      const { data: inserted, error: payoutError } = await supabase
+        .from("payouts")
+        .insert({ account_id: account.id, amount: payoutAmount, status: "pending" })
+        .select("id")
+        .single();
+      if (payoutError) throw payoutError;
+      payout = inserted;
+    }
 
     try {
       const transfer = await createWhopTransfer({
@@ -98,12 +121,13 @@ serve(async (req) => {
         note: "Fundly výplata",
       });
 
+      const finalStatus = payoutId ? "paid" : "sent";
       await supabase
         .from("payouts")
-        .update({ status: "sent", whop_transfer_id: transfer.id ?? null })
+        .update({ status: finalStatus, whop_transfer_id: transfer.id ?? null })
         .eq("id", payout.id);
 
-      return jsonResponse({ status: "sent", transferId: transfer.id ?? null });
+      return jsonResponse({ status: finalStatus, transferId: transfer.id ?? null });
     } catch (transferErr) {
       await supabase
         .from("payouts")

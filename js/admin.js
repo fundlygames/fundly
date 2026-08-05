@@ -394,9 +394,14 @@ function renderRealFinance(stats) {
 
   document.getElementById("finPayouts").innerHTML = stats.recentPayouts.length
     ? stats.recentPayouts.map((p) => {
-        const tag = p.status === "sent" ? "win" : p.status === "failed" ? "loss" : "pend";
-        const label = p.status === "sent" ? "odesláno" : p.status === "failed" ? "selhalo" : "čeká";
-        return `<div class="k-row neutral">Výplata #${esc(String(p.id).slice(0, 8))}<span class="n"><span class="tag ${tag}">${label}</span> ${czk(Number(p.amount) || 0)}</span></div>`;
+        const paid = p.status === "sent" || p.status === "paid";
+        const tag = paid ? "win" : p.status === "failed" ? "loss" : "pend";
+        const label = paid ? "vyplaceno" : p.status === "failed" ? "selhalo" : "čeká na schválení";
+        // čekající žádost hráče → akce „Schválit a vyplatit“ (přes whop-payout s payoutId)
+        const approveBtn = p.status === "pending"
+          ? ` <button class="btn btn-ghost" data-approve-payout="${esc(p.id)}" data-account="${esc(p.account_id)}" data-amount="${esc(p.amount)}">Schválit a vyplatit</button>`
+          : "";
+        return `<div class="k-row neutral">Výplata #${esc(String(p.id).slice(0, 8))}${p.method ? ` · ${esc(p.method)}` : ""}<span class="n"><span class="tag ${tag}">${label}</span> ${czk(Number(p.amount) || 0)}${approveBtn}</span></div>`;
       }).join("")
     : `<p class="bet-msg">Zatím žádné výplaty.</p>`;
 
@@ -481,6 +486,27 @@ document.addEventListener("click", async (e) => {
   btn.disabled = true;
   try {
     const result = await adminFetch("whop-payout", { accountId: btn.dataset.payout, amount: value });
+    window.alert(`Výplata odeslána (transfer ${result.transferId || "—"}).`);
+    await loadRealStats();
+  } catch (err) {
+    window.alert(err.message || "Výplata se nepodařila.");
+    btn.disabled = false;
+  }
+});
+
+// ---------- výplaty: schválení čekající žádosti z „Poslední výplaty“ ----------
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest("[data-approve-payout]");
+  if (!btn) return;
+  const amount = Number(btn.dataset.amount);
+  if (!window.confirm(`Opravdu schválit a vyplatit ${czk(amount)} (žádost #${String(btn.dataset.approvePayout).slice(0, 8)})?`)) return;
+  btn.disabled = true;
+  try {
+    const result = await adminFetch("whop-payout", {
+      accountId: btn.dataset.account,
+      amount,
+      payoutId: btn.dataset.approvePayout,
+    });
     window.alert(`Výplata odeslána (transfer ${result.transferId || "—"}).`);
     await loadRealStats();
   } catch (err) {

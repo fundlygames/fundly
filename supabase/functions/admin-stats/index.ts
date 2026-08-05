@@ -56,7 +56,7 @@ serve(async (req) => {
         .limit(50),
       supabase
         .from("payouts")
-        .select("id, account_id, amount, status, whop_transfer_id, created_at")
+        .select("id, account_id, amount, status, method, whop_transfer_id, created_at")
         .order("created_at", { ascending: false })
         .limit(20),
       supabase
