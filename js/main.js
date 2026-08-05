@@ -246,12 +246,22 @@ document.addEventListener("click", (e) => {
   const quickstart = e.target.closest("[data-quickstart]");
   if (quickstart) {
     e.preventDefault();
+    // S backendem vede nákup přes checkout průvodce, jinak původní demo.
+    if (typeof fundlyBackendEnabled === "function" && fundlyBackendEnabled()) {
+      window.location.href = "checkout.html?package=" + encodeURIComponent(quickstart.dataset.quickstart);
+      return;
+    }
     Portfolio.init(quickstart.dataset.quickstart);
     window.location.href = "dashboard.html";
     return;
   }
   const trigger = e.target.closest("[data-auth]");
   if (trigger) {
+    // Registrace = nákup: s backendem přesměrujeme do checkout průvodce.
+    if (trigger.dataset.auth === "register" && typeof fundlyBackendEnabled === "function" && fundlyBackendEnabled()) {
+      window.location.href = "checkout.html?package=" + encodeURIComponent(activeKey);
+      return;
+    }
     openAuth(trigger.dataset.auth);
     return;
   }

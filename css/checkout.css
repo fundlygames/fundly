@@ -1,0 +1,370 @@
+/* ============================================================
+   Fundly — checkout (3-krokový průvodce)
+   Staví na tokenech z css/style.css
+   ============================================================ */
+
+.co-main { padding: 48px 0 96px; }
+
+/* ---------- Hlavička ---------- */
+.co-hero { text-align: center; margin-bottom: 32px; }
+.co-hero .acc { color: var(--accent); }
+.co-hero p { margin-top: 10px; color: var(--text-secondary); }
+
+/* ---------- Indikátor kroků ---------- */
+.co-steps {
+  list-style: none;
+  display: flex;
+  gap: 4px;
+  max-width: 720px;
+  margin: 0 auto 28px;
+  background: var(--surface-1);
+  border-radius: var(--radius-lg);
+  box-shadow: inset 0 0 0 1px var(--line);
+  padding: 6px;
+}
+.co-step {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 8px;
+  border-radius: calc(var(--radius-lg) - 6px);
+  color: var(--text-muted);
+  font-size: .9375rem;
+  font-weight: 600;
+  transition: background-color .2s var(--ease), color .2s var(--ease);
+}
+.co-step .dot {
+  display: flex;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: #ffffff0d;
+  box-shadow: inset 0 0 0 1px var(--line);
+  font-size: .8125rem;
+  font-weight: 700;
+}
+.co-step.active {
+  background: var(--accent-tint);
+  color: var(--text-primary);
+  box-shadow: inset 0 0 0 1px var(--accent-border-soft);
+}
+.co-step.active .dot { background: var(--accent); color: var(--primary-ink); box-shadow: none; }
+.co-step.done { color: var(--text-secondary); }
+.co-step.done .dot { background: var(--accent-tint); color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent-border-soft); }
+@media (max-width: 639.5px) {
+  .co-step .lbl { display: none; }
+  .co-step.active .lbl { display: inline; }
+}
+
+/* ---------- Layout ---------- */
+.co-layout {
+  display: grid;
+  gap: 16px;
+  align-items: start;
+}
+@media (min-width: 1024px) {
+  .co-layout { grid-template-columns: 7fr 5fr; }
+}
+
+.co-panel {
+  background: var(--surface-1);
+  border-radius: var(--radius-lg);
+  box-shadow: inset 0 0 0 1px var(--line);
+  padding: 24px;
+}
+.co-panel[hidden] { display: none; }
+.co-h {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 20px;
+}
+.co-h svg { color: var(--accent); }
+
+/* ---------- Karty balíčků ---------- */
+.pkg-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+@media (min-width: 640px) { .pkg-grid { grid-template-columns: repeat(3, 1fr); } }
+.pkg-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+  text-align: left;
+  background: var(--bg);
+  border: 1px solid #ffffff14;
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  color: var(--text-primary);
+  transition: border-color .15s var(--ease), background-color .15s var(--ease), box-shadow .15s var(--ease);
+}
+.pkg-card:hover { border-color: #ffffff2e; }
+.pkg-card:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.pkg-card.active {
+  border-color: var(--accent);
+  background: var(--accent-tint);
+  box-shadow: 0 0 0 1px var(--accent), 0 4px 16px -4px rgb(var(--accent-rgb) / .35);
+}
+.pkg-card .radio {
+  display: flex;
+  width: 18px;
+  height: 18px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 2px solid #ffffff33;
+  transition: border-color .15s var(--ease);
+}
+.pkg-card .radio::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--primary-ink);
+  opacity: 0;
+  transition: opacity .15s var(--ease);
+}
+.pkg-card.active .radio { border-color: var(--accent); background: var(--accent); }
+.pkg-card.active .radio::after { opacity: 1; }
+.pkg-card .nm {
+  font-size: .6875rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.pkg-card.active .nm { color: var(--accent); }
+.pkg-card .cap { font-size: 1.0625rem; font-weight: 800; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.pkg-card .top-badge {
+  position: absolute;
+  top: -9px;
+  right: 10px;
+  font-size: .625rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--primary-ink);
+  background: var(--accent);
+  border-radius: 9999px;
+  padding: 3px 8px;
+}
+
+/* ---------- Cíle / limity ---------- */
+.co-cols {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+@media (min-width: 640px) { .co-cols { grid-template-columns: 1fr 1fr; } }
+.co-box {
+  background: var(--bg);
+  border-radius: var(--radius);
+  box-shadow: inset 0 0 0 1px var(--line);
+  padding: 16px;
+}
+.co-box-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: .8125rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+.co-box-h svg { color: var(--accent); }
+.co-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: .875rem;
+}
+.co-row:last-child { border-bottom: none; }
+.co-row .k { color: var(--text-muted); }
+.co-row .v { font-weight: 700; font-variant-numeric: tabular-nums; }
+.co-row .v.green { color: var(--accent); }
+.co-row .v.red { color: var(--danger); }
+.co-note { margin-top: 8px; font-size: .75rem; color: var(--text-muted); }
+
+/* ---------- Chipy ---------- */
+.co-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+.co-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: .8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: #ffffff08;
+  border: 1px solid var(--line);
+  border-radius: 9999px;
+  padding: 7px 14px;
+}
+.co-chip svg { color: var(--accent); }
+
+/* ---------- Tlačítka ---------- */
+.co-cta { width: 100%; }
+.co-actions { display: flex; gap: 10px; margin-top: 20px; }
+.co-actions .co-grow { flex: 1; }
+.co-switch { margin-top: 18px; text-align: center; font-size: .875rem; color: var(--text-muted); }
+.lnk { color: var(--accent); font-weight: 600; }
+.lnk:hover { text-decoration: underline; }
+
+/* ---------- Formulář ---------- */
+.field-err {
+  display: block;
+  font-size: .8125rem;
+  color: var(--danger);
+}
+.field-err[hidden] { display: none; }
+.input.invalid { border-color: var(--danger); }
+.consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: .875rem;
+  color: var(--text-secondary);
+  padding: 8px 0;
+  cursor: pointer;
+}
+.consent input[type="checkbox"] {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+/* ---------- Krok 3: platba ---------- */
+.pay-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 48px 0;
+  color: var(--text-secondary);
+  font-size: .9375rem;
+}
+.pay-loading[hidden] { display: none; }
+.spinner {
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  border: 3px solid var(--accent-tint);
+  border-top-color: var(--accent);
+  animation: co-spin .8s linear infinite;
+}
+@keyframes co-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2s; } }
+
+.whop-mount:empty { display: none; }
+.whop-mount iframe { width: 100%; border: none; }
+
+.pay-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 32px 0;
+  text-align: center;
+}
+.pay-fallback[hidden] { display: none; }
+.pay-err { color: var(--danger); font-size: .9375rem; }
+
+/* ---------- Shrnutí (pravý sloupec) ---------- */
+.co-summary {
+  position: sticky;
+  top: 88px;
+  background:
+    radial-gradient(120% 60% at 50% -10%, rgb(var(--accent-rgb) / .12), transparent 60%),
+    linear-gradient(180deg, var(--surface-2) 0%, var(--surface-1) 100%);
+  border-radius: var(--radius-lg);
+  box-shadow: inset 0 0 0 1px var(--accent-border-soft), inset 0 1px 0 #ffffff1a;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+@media (max-width: 1023.5px) { .co-summary { position: static; } }
+.sum-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: .875rem;
+}
+.sum-row .k { color: var(--text-muted); }
+.sum-row .v { font-weight: 700; font-variant-numeric: tabular-nums; }
+.sum-row .v.green { color: var(--accent); }
+.sum-row .v.big { font-size: 1.125rem; }
+.sum-head .k { font-size: .8125rem; }
+.sum-head .v { font-size: 1.0625rem; }
+.sum-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  padding: 14px 0 10px;
+}
+.sum-total .k { font-weight: 700; font-size: 1rem; }
+.sum-total .v {
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.sum-feats {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--line);
+  margin-top: 6px;
+}
+.sum-feats li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: .875rem;
+  color: var(--text-secondary);
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+.sum-feats li svg { flex-shrink: 0; color: var(--accent); }
+.sum-note {
+  margin-top: 14px;
+  font-size: .75rem;
+  color: var(--text-muted);
+  background: #ffffff06;
+  border-radius: 10px;
+  padding: 10px 12px;
+  text-align: center;
+}
+.sum-badges {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 14px;
+  font-size: .75rem;
+  color: var(--text-muted);
+}
+.sum-badges span { display: inline-flex; align-items: center; gap: 6px; }
+.sum-badges svg { color: var(--accent); }

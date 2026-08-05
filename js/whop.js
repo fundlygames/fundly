@@ -33,8 +33,9 @@ const FundlyBackend = (() => {
 })();
 
 const FundlyCheckout = {
-  // Vytvoří Whop checkout přes edge funkci a přesměruje na hosted platební stránku.
-  async buy(packageKey, email) {
+  // Vytvoří Whop checkout session přes edge funkci a vrátí celou odpověď
+  // ({ checkoutUrl, sessionId, planId }) bez přesměrování — pro embedded checkout.
+  async createSession(packageKey, email) {
     const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/whop-checkout`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -44,6 +45,12 @@ const FundlyCheckout = {
     if (!res.ok || !data.checkoutUrl) {
       throw new Error(data.error || "Platební bránu se nepodařilo otevřít.");
     }
+    return data;
+  },
+
+  // Vytvoří Whop checkout přes edge funkci a přesměruje na hosted platební stránku.
+  async buy(packageKey, email) {
+    const data = await this.createSession(packageKey, email);
     window.location.href = data.checkoutUrl;
   },
 };
@@ -55,6 +62,13 @@ const FundlyAuth = {
     if (!client) return { error: { message: "Backend není nastaven." } };
     const redirectTo = new URL("dashboard.html", window.location.href).href;
     return client.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectTo } });
+  },
+
+  // Registrace e-mailem a heslem (checkout krok 2 — účet se zakládá před platbou).
+  async signUpWithPassword(email, password) {
+    const client = await FundlyBackend.getClient();
+    if (!client) return { error: { message: "Backend není nastaven." } };
+    return client.auth.signUp({ email, password });
   },
 
   async getUser() {

@@ -57,13 +57,18 @@ serve(async (req) => {
       body,
     });
 
-    // Hosted checkout URL je v poli purchase_url odpovědi.
+    // Hosted checkout URL je v poli purchase_url odpovědi; pro embedded
+    // checkout (krok 3 na naší stránce) vracíme i session id a plan id.
     const checkoutUrl = checkout.purchase_url ?? null;
     if (!checkoutUrl) {
       throw new Error("Whop nevrátil purchase_url.");
     }
 
-    return jsonResponse({ checkoutUrl });
+    return jsonResponse({
+      checkoutUrl,
+      sessionId: checkout.id ?? null,
+      planId: planId ?? checkout.plan?.id ?? null,
+    });
   } catch (err) {
     console.error("whop-checkout error:", err);
     return jsonResponse(
