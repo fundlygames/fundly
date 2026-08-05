@@ -70,6 +70,15 @@ serve(async (req) => {
     const sum = (rows: any[] | null, field: string) =>
       (rows ?? []).reduce((a, r) => a + (Number(r[field]) || 0), 0);
 
+    // Převod do Kč pro agregace — EUR platby kurzem z env (default 25).
+    const EUR_CZK = Number(Deno.env.get("EUR_CZK_RATE") ?? 25) || 25;
+    // deno-lint-ignore no-explicit-any
+    const sumCzk = (rows: any[] | null) =>
+      (rows ?? []).reduce(
+        (a, r) => a + (Number(r.amount) || 0) * (r.currency === "eur" ? EUR_CZK : 1),
+        0,
+      );
+
     const accountsByState: Record<string, number> = {};
     for (const row of accounts.data ?? []) {
       const state = row.state ?? "unknown";
@@ -77,9 +86,9 @@ serve(async (req) => {
     }
 
     return jsonResponse({
-      monthRevenue: sum(monthPayments.data, "amount"),
+      monthRevenue: Math.round(sumCzk(monthPayments.data)),
       monthCount: (monthPayments.data ?? []).length,
-      totalRevenue: sum(allPayments.data, "amount"),
+      totalRevenue: Math.round(sumCzk(allPayments.data)),
       recentPayments: recentPayments.data ?? [],
       accountsByState,
       recentAccounts: recentAccounts.data ?? [],

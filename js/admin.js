@@ -388,7 +388,10 @@ function renderRealFinance(stats) {
     ? stats.recentPayments.map((p) => {
         const tag = p.status === "succeeded" ? "win" : p.status === "failed" ? "loss" : "pend";
         const label = p.status === "succeeded" ? "zaplaceno" : p.status === "failed" ? "selhalo" : esc(p.status);
-        return `<div class="k-row neutral">${esc(p.email || "—")} · ${esc(p.package_key || "?")}<span class="n"><span class="tag ${tag}">${label}</span> ${czk(Number(p.amount) || 0)}</span></div>`;
+        const amt = p.currency === "eur"
+          ? `${(Number(p.amount) || 0).toLocaleString("cs-CZ")} EUR`
+          : czk(Number(p.amount) || 0);
+        return `<div class="k-row neutral">${esc(p.email || "—")} · ${esc(p.package_key || "?")}<span class="n"><span class="tag ${tag}">${label}</span> ${amt}</span></div>`;
       }).join("")
     : `<p class="bet-msg">Zatím žádné platby.</p>`;
 
