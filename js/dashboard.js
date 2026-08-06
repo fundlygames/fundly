@@ -206,9 +206,68 @@ async function refreshAfterSettlement() {
   if (typeof renderPrehled === "function") renderPrehled();
   if (typeof renderVykon === "function") renderVykon();
   if (typeof renderBankBar === "function") renderBankBar();
+  if (typeof scheduleAccountSync === "function") scheduleAccountSync();
 }
 refreshAfterSettlement();
 setInterval(refreshAfterSettlement, 5 * 60 * 1000);
+
+// ---------- server sync stavu účtu (jen přihlášený uživatel, fire-and-forget) ----------
+// Snapshot je stavěn ze stejných helperů jako UI (drawdownInfo, kvalifikační
+// tikety, summary), takže admin vidí přesně to, co hráč. Debounce: trailing
+// 2 s, max 1 volání / 5 s. Chyby se polykají — sync nikdy neblokuje UI.
+let syncTimer = null;
+let lastSyncAt = 0;
+
+function buildAccountSnapshot(state) {
+  const dd = Portfolio.drawdownInfo(state);
+  const s = Portfolio.summary(state);
+  const breached = state.balance <= dd.floor;
+  const flags = [...new Set(state.tickets.flatMap((t) => t.flags || []))];
+  return {
+    phase: state.phase === "funded" ? 3 : state.phase,
+    state: breached ? "breached" : state.phase === "funded" ? "funded" : "active",
+    balance: state.balance,
+    profit: state.balance - state.cap,
+    qualifyingTickets: Portfolio.countQualifyingTickets(state, state.phaseStartedAt),
+    breachReason: breached ? "Max. loss exceeded (static -10 %)" : null,
+    flags,
+    ticketsTotal: s.total,
+    ticketsWon: s.won,
+  };
+}
+
+function scheduleAccountSync() {
+  if (typeof fundlyBackendEnabled !== "function" || !fundlyBackendEnabled()) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(syncAccountNow, 2000);
+}
+
+async function syncAccountNow() {
+  const wait = 5000 - (Date.now() - lastSyncAt);
+  if (wait > 0) {
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(syncAccountNow, wait);
+    return;
+  }
+  lastSyncAt = Date.now();
+  try {
+    const client = await FundlyBackend.getClient();
+    if (!client) return;
+    const { data } = await client.auth.getSession();
+    const token = data && data.session && data.session.access_token;
+    if (!token) return; // demo režim / nepřihlášený
+    const state = Portfolio.get();
+    if (!state) return;
+    await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/sync-account`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify(buildAccountSnapshot(state)),
+    });
+  } catch (e) { /* sync je best-effort */ }
+}
+
+// při načtení dashboardu (případně přihlášeného) rovnou naplánujeme sync
+scheduleAccountSync();
 
 // ---------- Supabase: loading the real challenge account ----------
 // For a signed-in user we take the package over from the paid order
@@ -250,13 +309,17 @@ const ODDS_MIN = 1.0;
 const ODDS_MAX = 8.0;
 const EVENTS_PER_SPORT = 10; // /odds/multi takes max 10 events per 1 request
 
-// sports as on the original dashboard
+// sports as on the original dashboard + added coverage (Betano)
 const SPORTS = [
   ["basketball", "Basketball", "basketbal"],
   ["football", "Football", "fotbal"],
   ["ice-hockey", "Hockey", "hokej"],
   ["table-tennis", "Table tennis", "stolni-tenis"],
   ["tennis", "Tennis", "tenis"],
+  ["darts", "Darts", "sipky"],
+  ["mixed-martial-arts", "MMA", "mma"],
+  ["boxing", "Boxing", ""], // no icon → letter chip
+  ["volleyball", "Volleyball", "volejbal"],
 ];
 
 let activeSport = "basketball";
@@ -269,6 +332,7 @@ const matchList = document.getElementById("matchList");
 const slipBody = document.getElementById("slipBody");
 
 // events + ML odds, 2 requests per sport, 5 min cache (LIVE 1 min)
+// upcoming window: explicit `to` = now + 20 days (RFC3339 UTC)
 async function loadSportEvents(sport, live) {
   const key = live ? sport + ":live" : sport;
   const cached = cacheGet(key, live ? 60 * 1000 : CACHE_TTL);
@@ -276,7 +340,12 @@ async function loadSportEvents(sport, live) {
 
   const events = live
     ? await apiGet("/events/live", { sport })
-    : await apiGet("/events", { sport, status: "pending", limit: String(EVENTS_PER_SPORT) });
+    : await apiGet("/events", {
+        sport,
+        status: "pending",
+        limit: String(EVENTS_PER_SPORT),
+        to: new Date(Date.now() + 20 * 864e5).toISOString(),
+      });
   if (!events.length) { cacheSet(key, []); return []; }
 
   const ids = events.map((e) => e.id).slice(0, 10).join(",");
@@ -637,10 +706,17 @@ function renderSlip() {
   stakeInput.addEventListener("input", updateWin);
   updateWin();
 
-  document.getElementById("placeBet").addEventListener("click", () => {
+  document.getElementById("placeBet").addEventListener("click", async () => {
     const note = document.getElementById("betNote");
     const btn = document.getElementById("placeBet");
-    const result = Portfolio.placeBet(slip, Number(stakeInput.value));
+    // value-bet flag (zakázaná strategie): pick je v odds-api value-bet
+    // výpisu pro Betano. Endpoint je volitelný — chyba = žádný flag.
+    let flags = [];
+    try {
+      const valueBets = await fetchValueBets();
+      if (slip.some((s) => isValueBetSelection(valueBets, s))) flags = ["value"];
+    } catch (e) { /* value-bets endpoint unavailable → skip silently */ }
+    const result = Portfolio.placeBet(slip, Number(stakeInput.value), flags);
     if (!result.ok) {
       note.textContent = result.error;
       note.hidden = false;
@@ -649,6 +725,7 @@ function renderSlip() {
     note.textContent = "Ticket accepted! Track it in the Overview.";
     note.hidden = false;
     btn.disabled = true;
+    scheduleAccountSync();
     setTimeout(() => {
       slip = [];
       renderMatches();
@@ -997,6 +1074,14 @@ function renderEquityChart(state) {
     </div>`;
 }
 
+// warning tagy zakázaných strategií na tiketu (flags: ["arbitrage","value"])
+function flagTags(t) {
+  if (!t.flags || !t.flags.length) return "";
+  return t.flags.map((f) =>
+    `<span class="tag flag">${f === "arbitrage" ? "⚠ arbitrage" : "⚠ value bet"}</span>`
+  ).join(" ");
+}
+
 function renderRecentTickets(state) {
   const recent = state.tickets.slice(0, 5);
   if (!recent.length) {
@@ -1008,7 +1093,7 @@ function renderRecentTickets(state) {
       : `${t.selections[0].homeTeam} – ${t.selections[0].awayTeam}`;
     const tag = t.status === "won" ? "win" : t.status === "lost" ? "loss" : t.status === "push" ? "push" : "pend";
     const tagText = t.status === "won" ? "Won" : t.status === "lost" ? "Lost" : t.status === "push" ? "Refunded" : "Pending";
-    return `<div class="k-row neutral">${label} · ${usd(t.stake)}<span class="n"><span class="tag ${tag}">${tagText}</span></span></div>`;
+    return `<div class="k-row neutral">${label} · ${usd(t.stake)}<span class="n">${flagTags(t)}<span class="tag ${tag}">${tagText}</span></span></div>`;
   }).join("");
 }
 
@@ -1302,6 +1387,6 @@ function renderVykon() {
     const tip = t.selections.length > 1 ? "AKU" : (t.selections[0].pickLabel || "");
     const tag = t.status === "won" ? "win" : t.status === "lost" ? "loss" : t.status === "push" ? "push" : "pend";
     const tagText = t.status === "won" ? "Won" : t.status === "lost" ? "Lost" : t.status === "push" ? "Refunded" : "Pending";
-    return `<tr><td>${label}</td><td>${tip}</td><td class="odds">${t.combinedOdds.toFixed(2)}</td><td>${usd(t.stake)}</td><td><span class="tag ${tag}">${tagText}</span></td></tr>`;
+    return `<tr><td>${label}</td><td>${tip}</td><td class="odds">${t.combinedOdds.toFixed(2)}</td><td>${usd(t.stake)}</td><td>${flagTags(t)}<span class="tag ${tag}">${tagText}</span></td></tr>`;
   }).join("") : `<tr><td colspan="5">No tickets yet.</td></tr>`;
 }

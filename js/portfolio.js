@@ -5,7 +5,7 @@
 const API_BASE = "https://api.odds-api.io/v3";
 // POZOR: klíč je v klientském JS viditelný, pro produkci patří za vlastní proxy.
 const API_KEY = "6fb7b78e922814fe15b9486cfa98c42596ab7a4035c5b278989af88d3a386080";
-const BOOKMAKER = "Tipsport.cz";
+const BOOKMAKER = "Betano";
 const CACHE_TTL = 5 * 60 * 1000; // 5 min, free tier má 100 requestů/hod
 
 function cacheGet(key, ttl) {
@@ -33,6 +33,38 @@ async function apiGet(path, params) {
     throw err;
   }
   return res.json();
+}
+
+// ---------- value-bet detection (forbidden strategy flag) ----------
+// odds-api /value-bets pro Betano — cache 5 min ve sdílené cache vrstvě.
+// Endpoint je volitelný: při jakékoli chybě vrátíme prázdné pole a
+// flagování se tiše přeskočí.
+async function fetchValueBets() {
+  const key = "value-bets:" + BOOKMAKER;
+  const cached = cacheGet(key, CACHE_TTL);
+  if (cached) return cached;
+  try {
+    const data = await apiGet("/value-bets", { bookmaker: BOOKMAKER });
+    cacheSet(key, data);
+    return data;
+  } catch (e) {
+    return [];
+  }
+}
+
+// Matches a slip selection against the value-bet list (same event, ML, same
+// side). Payload shape is read defensively — the docs don't pin field names.
+function isValueBetSelection(valueBets, sel) {
+  if (!sel || sel.marketName !== "ML") return false;
+  const list = Array.isArray(valueBets) ? valueBets : (valueBets && valueBets.data) || [];
+  return list.some((vb) => {
+    const evId = vb.id ?? vb.event_id ?? vb.eventId;
+    if (String(evId) !== String(sel.eventId)) return false;
+    const market = vb.market ?? vb.market_name ?? vb.marketName ?? "ML";
+    if (market && String(market).toLowerCase() !== "ml") return false;
+    const side = vb.side ?? vb.field ?? vb.outcome ?? vb.pick ?? null;
+    return side ? String(side).toLowerCase() === String(sel.field).toLowerCase() : true;
+  });
 }
 
 const Portfolio = (() => {
@@ -144,7 +176,22 @@ const Portfolio = (() => {
     return buckets;
   }
 
-  function placeBet(selections, stake) {
+  // Arbitrage / sure-bet detection (jen flag, sázku neblokuje):
+  // více výběrů na stejný zápas v jednom tiketu, nebo protikladná strana
+  // téhož trhu už leží v jiném čekajícím tiketu.
+  function detectArbitrage(selections, state) {
+    const byEvent = {};
+    selections.forEach((s) => {
+      (byEvent[s.eventId] = byEvent[s.eventId] || []).push(s);
+    });
+    if (Object.values(byEvent).some((list) => list.length > 1)) return true;
+    return state.tickets.some((t) =>
+      t.status === "pending" && t.selections.some((ps) =>
+        selections.some((s) =>
+          s.eventId === ps.eventId && s.marketName === ps.marketName && s.field !== ps.field)));
+  }
+
+  function placeBet(selections, stake, extraFlags) {
     const state = get();
     if (!state) return { ok: false, error: "Please sign in first." };
     if (!selections || !selections.length) return { ok: false, error: "Your ticket is empty." };
@@ -152,6 +199,12 @@ const Portfolio = (() => {
     if (!amount || amount <= 0) return { ok: false, error: "Enter a valid stake amount." };
     if (amount > state.maxStake) return { ok: false, error: `Max. stake is $${state.maxStake.toLocaleString("en-US")}.` };
     if (amount > state.balance) return { ok: false, error: "Insufficient balance." };
+
+    // flagy zakázaných strategií (value z dashboard.js, arbitrage zde)
+    const flags = [...new Set([
+      ...(extraFlags || []),
+      ...(detectArbitrage(selections, state) ? ["arbitrage"] : []),
+    ])];
 
     const combinedOdds = selections.reduce((acc, s) => acc * s.oddValue, 1);
     const now = new Date().toISOString();
@@ -177,6 +230,7 @@ const Portfolio = (() => {
         pickLabel: s.pickLabel,
       })),
     };
+    if (flags.length) ticket.flags = flags;
     state.balance -= amount;
     state.tickets.unshift(ticket);
     state.equityHistory.push({ t: now, balance: state.balance });

@@ -15,7 +15,7 @@ function packageByKey(key) {
 // Challenge parameters derived from the chosen package:
 // phase 1 target = +10 %, phase 2 = +5 %, max. total loss -10 % STATIC
 // (fixed floor = capital − drawdown, no trailing across HWM), max. stake
-// per ticket = 4 % of capital, profit split 80 %, qualifying tickets =
+// per ticket = 1.5 % of capital, profit split 80 %, qualifying tickets =
 // 5 winning tickets with net profit ≥ 0.5 % of capital per phase / payout,
 // payout buffer = +5 % of capital.
 function packageMeta(pkg) {
@@ -23,7 +23,7 @@ function packageMeta(pkg) {
     target1: Math.round(pkg.cap * 0.1),
     target2: Math.round(pkg.cap * 0.05),
     drawdown: Math.round(pkg.cap * 0.1),
-    maxStake: Math.round(pkg.cap * 0.04),
+    maxStake: Math.round(pkg.cap * 0.015),
     profitSplit: 80,
     qualifyingTickets: 5,
     qualifyingTicketProfitPct: 0.5,

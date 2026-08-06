@@ -51,7 +51,7 @@ serve(async (req) => {
       supabase.from("challenge_accounts").select("state"),
       supabase
         .from("challenge_accounts")
-        .select("id, email, package_key, phase, capital, state, kyc_status, created_at")
+        .select("id, email, package_key, phase, capital, state, kyc_status, phase_balance, profit, qualifying_tickets, breach_reason, flags, tickets_total, tickets_won, synced_at, created_at")
         .order("created_at", { ascending: false })
         .limit(50),
       supabase
@@ -115,6 +115,7 @@ serve(async (req) => {
       totalRevenue: Math.round(sumCzk(allPayments.data)),
       recentPayments: recentPayments.data ?? [],
       accountsByState,
+      breachedCount: accountsByState.breached ?? 0,
       recentAccounts: (recentAccounts.data ?? []).map((a) => ({
         ...a,
         totalSpentCzk: Math.round(spentByEmail[a.email] ?? 0),

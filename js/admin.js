@@ -432,6 +432,7 @@ function renderRealFinance(stats) {
 const REAL_STATUS = {
   active: { tag: "push", label: "Aktivní", filter: "aktivni" },
   funded: { tag: "win", label: "Financovaný", filter: "funded" },
+  breached: { tag: "loss", label: "Breached", filter: "breached" },
 };
 const realStatus = (state) =>
   REAL_STATUS[state] || { tag: "loss", label: esc(state || "neaktivní"), filter: "breached" };
@@ -489,37 +490,80 @@ function closePlayerDetail() {
 
 function openPlayerDetail(acc) {
   if (!playerModal || !REAL) return;
-  const status = realStatus(acc.state);
   const fmtDate = (d) => new Date(d).toLocaleString("cs-CZ");
   const fmtAmount = (p) => p.currency === "eur"
     ? `${(Number(p.amount) || 0).toLocaleString("cs-CZ")} EUR`
     : czk(Number(p.amount) || 0);
 
-  // pole totalSpentCzk doplní edge funkce admin-stats (suma succeeded plateb v CZK)
+  // všechny účty uživatele (hráč jich může mít několik) + jeho platby a payouty
+  const accounts = (REAL.recentAccounts || []).filter((a) => a.email === acc.email);
+  const accountIds = accounts.map((a) => String(a.id));
+  const payments = (REAL.recentPayments || []).filter((p) => p.email === acc.email);
+  const payouts = (REAL.recentPayouts || []).filter((p) => accountIds.includes(String(p.account_id)));
+
+  // pole totalSpentCzk doplní edge funkce admin-stats (suma succeeded plateb v CZK, per e-mail)
   const spent = acc.totalSpentCzk != null ? czk(Number(acc.totalSpentCzk) || 0) : "—";
 
-  const payments = (REAL.recentPayments || []).filter((p) => p.email === acc.email);
-  const payouts = (REAL.recentPayouts || []).filter((p) => String(p.account_id) === String(acc.id));
-
   const infoRow = (k, v) => `<div class="pm-row"><span class="k">${k}</span><span class="v">${v}</span></div>`;
+  const kycRow = (a) => {
+    const kyc = a.kyc_status ?? "unknown";
+    const tag = kyc === "verified" ? "win" : kyc === "failed" ? "loss" : "pend";
+    const label = kyc === "verified" ? "Ověřeno" : kyc === "failed" ? "Zamítnuto" : "Neověřeno";
+    return infoRow("KYC (Whop)", `<span class="tag ${tag}">${label}</span>`);
+  };
+  const flagTag = (f) =>
+    `<span class="tag flag">${f === "arbitrage" ? "⚠ arbitrage" : f === "value" ? "⚠ value bet" : "⚠ " + esc(f)}</span>`;
 
-  // KYC stav účtu (zapisuje whop-webhook z Whop Verification)
-  const kyc = acc.kyc_status ?? "unknown";
-  const kycTag = kyc === "verified" ? "win" : kyc === "failed" ? "loss" : "pend";
-  const kycLabel = kyc === "verified" ? "Ověřeno" : kyc === "failed" ? "Zamítnuto" : "Neověřeno";
+  // jeden blok = jeden challenge účet vč. synchronizovaných pravidel
+  const accBlock = (a) => {
+    const status = realStatus(a.state);
+    const synced = Boolean(a.synced_at);
+    const flags = Array.isArray(a.flags) ? a.flags : [];
+    const total = Number(a.tickets_total) || 0;
+    const won = Number(a.tickets_won) || 0;
+    const winrate = total ? Math.round((won / total) * 100) : 0;
+    const profit = Number(a.profit) || 0;
+    return `
+    <div class="pm-acc">
+      <div class="pm-acc-head">
+        <span class="t">${esc(a.package_key || "?")} · ${czk(Number(a.capital) || 0)}</span>
+        <span class="tag ${status.tag}">${status.label}</span>
+      </div>
+      <div class="pm-grid">
+        ${infoRow("Fáze", `Fáze ${esc(a.phase ?? "—")}`)}
+        ${kycRow(a)}
+        ${infoRow("Vytvořeno", a.created_at ? fmtDate(a.created_at) : "—")}
+      </div>
+      ${a.state === "breached" && a.breach_reason
+        ? `<div class="k-row loss" style="margin-top:10px">Porušení pravidel<span class="n">${esc(a.breach_reason)}</span></div>`
+        : ""}
+      ${synced ? `
+        <div class="pm-grid" style="margin-top:10px">
+          ${infoRow("Zůstatek", czk(Number(a.phase_balance) || 0))}
+          ${infoRow("Profit", `<span style="color:${profit >= 0 ? "var(--accent)" : "#ff9d9d"}">${profit >= 0 ? "+" : ""}${czk(profit)}</span>`)}
+          ${infoRow("Kvalif. tikety", `${Number(a.qualifying_tickets) || 0} / 5`)}
+          ${infoRow("Tikety (výherní)", `${total} (${won}) · ${winrate} %`)}
+        </div>
+        ${flags.length ? `
+          <h4 class="pm-h">Zakázané strategie</h4>
+          <div class="pm-flags">${flags.map(flagTag).join(" ")}</div>` : ""}
+        <p class="pm-date" style="margin-top:8px">Poslední synchronizace: ${fmtDate(a.synced_at)}</p>`
+      : `<p class="pm-date" style="margin-top:10px">Zatím nesynchronizováno — statistiky pravidel se zobrazí po první synchronizaci z dashboardu hráče.</p>`}
+      ${a.state === "funded"
+        ? `<button class="btn btn-primary" style="width:100%;margin-top:12px" data-payout="${esc(a.id)}" data-email="${esc(a.email)}">Vyplatit</button>`
+        : ""}
+    </div>`;
+  };
 
   pmBody.innerHTML = `
     <h3 class="pm-title" id="pmTitle">${esc(acc.email || "Hráč")}</h3>
     <div class="pm-grid">
-      ${infoRow("Balíček", esc(acc.package_key || "—"))}
-      ${infoRow("Fáze", `Fáze ${esc(acc.phase ?? "—")}`)}
-      ${infoRow("Kapitál", czk(Number(acc.capital) || 0))}
-      ${infoRow("Stav", `<span class="tag ${status.tag}">${status.label}</span>`)}
-      ${infoRow("KYC (Whop)", `<span class="tag ${kycTag}">${kycLabel}</span>`)}
-      ${infoRow("Vytvořeno", acc.created_at ? fmtDate(acc.created_at) : "—")}
+      ${infoRow("Účty", String(accounts.length))}
       ${infoRow("Utratil celkem", spent)}
     </div>
     <p class="pm-date" style="margin-top:8px">Ověření identity probíhá přes Whop KYC — hráče nasměrujte na verification session z Whop dashboardu, stav se sem synchronizuje webhookem.</p>
+
+    ${accounts.map(accBlock).join("")}
 
     <h4 class="pm-h">Platby</h4>
     <div class="k-rows">
@@ -538,11 +582,7 @@ function openPlayerDetail(acc) {
         const label = paid ? "vyplaceno" : p.status === "failed" ? "selhalo" : p.status === "rejected" ? "zamítnuto" : "čeká na schválení";
         return `<div class="k-row neutral">${czk(Number(p.amount) || 0)}${p.method ? ` · ${esc(p.method)}` : ""}<span class="n"><span class="tag ${tag}">${label}</span> <span class="pm-date">${fmtDate(p.created_at)}</span></span></div>`;
       }).join("") : `<p class="bet-msg" style="padding:16px">Žádné žádosti o výplatu.</p>`}
-    </div>
-
-    ${acc.state === "funded"
-      ? `<button class="btn btn-primary" style="width:100%;margin-top:16px" data-payout="${esc(acc.id)}" data-email="${esc(acc.email)}">Vyplatit</button>`
-      : ""}`;
+    </div>`;
   playerModal.hidden = false;
 }
 

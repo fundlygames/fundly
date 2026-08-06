@@ -571,6 +571,8 @@ body::after {
 .tag.loss { color: #ff9d9d; background: rgb(255 77 77 / .12); }
 .tag.pend { color: #ffce7a; background: rgb(255 153 0 / .12); }
 .tag.push { color: var(--text-secondary); background: rgb(255 255 255 / .06); }
+/* warning flag zakázané strategie (arbitrage / value bet) */
+.tag.flag { color: #ffce7a; background: rgb(255 153 0 / .12); box-shadow: inset 0 0 0 1px rgb(255 153 0 / .3); margin-right: 4px; }
 
 /* ---------- Sázení ---------- */
 .bank-bar {
