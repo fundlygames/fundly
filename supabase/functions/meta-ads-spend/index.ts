@@ -1,4 +1,6 @@
-// meta-ads-spend — stáhne měsíční spend z Meta Marketing API a uloží do ad_spend.
+// meta-ads-spend — stáhne měsíční Meta spend z Whop Ads reportu a uloží do ad_spend.
+// Whop má nativní Meta integraci (dashboard → Ads → připojení Meta ad účtu),
+// takže Meta token nepotřebujeme — čteme přes Whop API (GET /ad_reports).
 //
 // Plánování (denní běh): Supabase dashboard → Database → Cron (pg_cron + pg_net):
 //
@@ -10,50 +12,45 @@
 //     );
 //   $$);
 //
-// Env: META_ACCESS_TOKEN, META_AD_ACCOUNT_ID (act_...), META_CURRENCY_RATE (volitelný,
-// násobitel do CZK — pokud je Meta účet v CZK, nechejte výchozí 1).
+// Env: WHOP_API_KEY, WHOP_COMPANY_ID (sdílené s ostatními funkcemi).
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders, handleCors, jsonResponse } from "../_shared/cors.ts";
+import { handleCors, jsonResponse } from "../_shared/cors.ts";
+import { whopFetch } from "../_shared/whop.ts";
 
 serve(async (req) => {
   const cors = handleCors(req);
   if (cors) return cors;
 
   try {
-    const token = Deno.env.get("META_ACCESS_TOKEN");
-    const accountId = Deno.env.get("META_AD_ACCOUNT_ID");
-
-    // Bez Meta přístupů funkci tiše přeskočíme (spend lze zadat ručně přes SQL).
-    if (!token || !accountId) {
+    const companyId = Deno.env.get("WHOP_COMPANY_ID");
+    if (!companyId || !Deno.env.get("WHOP_API_KEY")) {
       return jsonResponse({ skipped: true });
     }
 
-    const url =
-      `https://graph.facebook.com/v21.0/${accountId}/insights` +
-      `?fields=spend&date_preset=this_month&access_token=${encodeURIComponent(token)}`;
-    const res = await fetch(url);
-    const data = await res.json();
-    if (!res.ok) {
-      throw new Error(data?.error?.message ?? `Meta API HTTP ${res.status}`);
-    }
+    // report za aktuální měsíc, spend rovnou v CZK
+    const now = new Date();
+    const from = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
+    const report = await whopFetch(
+      `/ad_reports?company_id=${companyId}` +
+        `&from=${encodeURIComponent(from)}&to=${encodeURIComponent(now.toISOString())}` +
+        `&currency=czk`,
+    );
 
-    const spendNative = Number(data?.data?.[0]?.spend ?? 0);
-    const rate = Number(Deno.env.get("META_CURRENCY_RATE") ?? "1") || 1;
-    const amountCzk = Math.round(spendNative * rate * 100) / 100;
+    const amountCzk = Math.round(Number(report?.summary?.spend ?? 0) * 100) / 100;
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    const today = new Date().toISOString().slice(0, 10);
+    const today = now.toISOString().slice(0, 10);
     const { error } = await supabase.from("ad_spend").upsert(
       {
         date: today,
         channel: "meta",
         amount_czk: amountCzk,
-        source: "meta_api",
+        source: "whop_ad_reports",
       },
       { onConflict: "date,channel" },
     );
