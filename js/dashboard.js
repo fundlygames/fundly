@@ -1,8 +1,8 @@
-/* Fundly dashboard — přepínání sekcí, sázení, žebříček, profil */
+/* Fundly dashboard — section switching, betting, leaderboard, profile */
 
-const czk = (n) => n.toLocaleString("cs-CZ") + " Kč";
+const usd = (n) => "$" + Math.round(n).toLocaleString("en-US");
 
-// ---------- přepínání sekcí ----------
+// ---------- section switching ----------
 const views = ["prehled", "vykon", "sazeni", "zebricek", "vyplaty", "profil"];
 
 function showView(name) {
@@ -27,7 +27,7 @@ document.addEventListener("click", (e) => {
   if (link) showView(link.dataset.viewLink);
 });
 
-// ---------- přehled: pod-taby ----------
+// ---------- overview: sub-tabs ----------
 document.querySelectorAll("#ovTabs button").forEach((btn) => {
   btn.addEventListener("click", () => {
     document.querySelectorAll("#ovTabs button").forEach((b) => {
@@ -41,7 +41,7 @@ document.querySelectorAll("#ovTabs button").forEach((btn) => {
   });
 });
 
-// ---------- oslavy: toast + konfety při vyhodnocení tiketu ----------
+// ---------- celebrations: toast + confetti on ticket settlement ----------
 function showToast(kind, title, detail) {
   const layer = document.getElementById("toastLayer");
   if (!layer) return;
@@ -76,39 +76,39 @@ function fireConfetti() {
 
 function celebrateTicket(ticket) {
   const label = ticket.selections.length > 1
-    ? `${ticket.selections.length}× akumulátor`
+    ? `${ticket.selections.length}× accumulator`
     : `${ticket.selections[0].homeTeam} – ${ticket.selections[0].awayTeam}`;
   if (ticket.status === "won") {
-    showToast("win", "Tiket vyšel! 🎉", `${label} · +${czk(ticket.payout - ticket.stake)}`);
+    showToast("win", "Ticket won! 🎉", `${label} · +${usd(ticket.payout - ticket.stake)}`);
     fireConfetti();
   } else if (ticket.status === "lost") {
-    showToast("loss", "Tiket nevyšel", `${label} · −${czk(ticket.stake)}`);
+    showToast("loss", "Ticket lost", `${label} · −${usd(ticket.stake)}`);
   } else if (ticket.status === "push") {
-    showToast("push", "Vklad vrácen", label);
+    showToast("push", "Stake refunded", label);
   }
 }
 
-// ---------- návrat z Whop checkoutu (?paid=1) ----------
+// ---------- return from Whop checkout (?paid=1) ----------
 if (new URLSearchParams(window.location.search).get("paid") === "1") {
-  showToast("win", "Platba proběhla! 🎉", "Váš účet připravujeme, za chvíli je vše připravené.");
-  // uklidíme parametr z adresy, aby toast nevyskočil při obnovení stránky
+  showToast("win", "Payment received! 🎉", "We're setting up your account — everything will be ready in a moment.");
+  // clean the parameter from the address so the toast does not pop up on refresh
   window.history.replaceState({}, "", "dashboard.html");
 }
 
-// ---------- odznaky: reálné podmínky spočtené z dat portfolia ----------
+// ---------- badges: real conditions computed from portfolio data ----------
 const BADGES = [
-  ["První vítězství", "b-prvni-vitezstvi", "b-prvni-vitezstvi"],
-  ["5 v řadě", "b-5-v-rade", "b-5-v-rade"],
-  ["10 v řadě", "b-10-v-rade", "b-10-v-rade"],
-  ["Akumulátor expert", "b-akumulator", "b-akumulator"],
-  ["Fáze 1 dokončená", "b-faze-1", "b-faze-1"],
-  ["Fáze 2 dokončená", "b-faze-2", "b-faze-2"],
-  ["Funded hráč", "b-funded", "b-funded"],
-  ["100 sázek", "b-100-sazek", "b-100-sazek"],
-  ["Lovecký instinkt", "b-lovecky", null],
-  ["Železná ruka", "b-zelezna-ruka", null],
-  ["První výběr", "b-prvni-vyber", null],
-  ["Ambasador", "b-ambasador", null],
+  ["First win", "b-prvni-vitezstvi", "b-prvni-vitezstvi"],
+  ["5 in a row", "b-5-v-rade", "b-5-v-rade"],
+  ["10 in a row", "b-10-v-rade", "b-10-v-rade"],
+  ["Accumulator expert", "b-akumulator", "b-akumulator"],
+  ["Phase 1 complete", "b-faze-1", "b-faze-1"],
+  ["Phase 2 complete", "b-faze-2", "b-faze-2"],
+  ["Funded player", "b-funded", "b-funded"],
+  ["100 bets", "b-100-sazek", "b-100-sazek"],
+  ["Hunter instinct", "b-lovecky", null],
+  ["Iron hand", "b-zelezna-ruka", null],
+  ["First payout", "b-prvni-vyber", null],
+  ["Ambassador", "b-ambasador", null],
 ];
 
 function computeStreaks(state) {
@@ -156,7 +156,7 @@ function renderBadges(state) {
   }).join("");
 }
 
-// ---------- přehled: momentum/série pod hlavičkou ----------
+// ---------- overview: momentum/streak under the header ----------
 function renderMomentum(state) {
   const el = document.getElementById("ovMomentum");
   if (!el) return;
@@ -167,15 +167,15 @@ function renderMomentum(state) {
   }
   el.hidden = false;
   if (streaks.type === "won") {
-    el.textContent = `🔥 ${streaks.current}× výhra v řadě`;
+    el.textContent = `🔥 ${streaks.current}× wins in a row`;
     el.classList.remove("chip-momentum-cold");
   } else {
-    el.textContent = `${streaks.current}× prohra v řadě`;
+    el.textContent = `${streaks.current}× losses in a row`;
     el.classList.add("chip-momentum-cold");
   }
 }
 
-// ---------- portfolio: nastartuje simulaci a průběžně vyhodnocuje tikety ----------
+// ---------- portfolio: boots the simulation and settles tickets periodically ----------
 Portfolio.ensure("advanced");
 renderBadges(Portfolio.get());
 
@@ -196,7 +196,7 @@ async function refreshAfterSettlement() {
     const afterUnlocks = computeBadgeUnlocks(afterState);
     BADGES.forEach(([name, , key]) => {
       if (key && afterUnlocks[key] && !beforeUnlocks[key]) {
-        showToast("badge", "Nový odznak! 🏅", name);
+        showToast("badge", "New badge! 🏅", name);
       }
     });
     renderBadges(afterState);
@@ -210,10 +210,10 @@ async function refreshAfterSettlement() {
 refreshAfterSettlement();
 setInterval(refreshAfterSettlement, 5 * 60 * 1000);
 
-// ---------- Supabase: načtení reálného challenge účtu ----------
-// Přihlášenému uživateli převezmeme balíček z placené objednávky
-// (vlastnictví řádku hlídá RLS v databázi). Bez backendu nebo přihlášení
-// se nic nemění a dashboard běží dál čistě na localStorage.
+// ---------- Supabase: loading the real challenge account ----------
+// For a signed-in user we take the package over from the paid order
+// (row ownership is guarded by RLS in the database). Without a backend or
+// sign-in nothing changes and the dashboard keeps running on localStorage.
 async function syncChallengeAccount() {
   if (typeof FundlyBackend === "undefined" || !fundlyBackendEnabled()) return;
   try {
@@ -230,45 +230,45 @@ async function syncChallengeAccount() {
     const account = accounts[0];
     const state = Portfolio.get();
     if (state && state.packageKey === account.package_key) return;
-    // zaplacený balíček je jiný než lokální → nastartujeme simulaci s ním
+    // the paid package differs from the local one → boot the simulation with it
     Portfolio.init(account.package_key);
     if (typeof renderPrehled === "function") renderPrehled();
     if (typeof renderVykon === "function") renderVykon();
     if (typeof renderBankBar === "function") renderBankBar();
-    showToast("win", "Účet je aktivní", `Balíček ${packageByKey(account.package_key).name} byl přiřazen.`);
+    showToast("win", "Account is active", `The ${packageByKey(account.package_key).name} package has been assigned.`);
   } catch (e) {
-    // tichý fallback na lokální data
+    // silent fallback to local data
   }
 }
-// js/config.js a js/whop.js se načítají s defer → spouštíme až na DOMContentLoaded,
-// kdy už je FundlyBackend/FundlyAuth určitě k dispozici
+// js/config.js and js/whop.js load with defer → we run on DOMContentLoaded,
+// when FundlyBackend/FundlyAuth are definitely available
 window.addEventListener("DOMContentLoaded", syncChallengeAccount);
 
-// ---------- sázení (živá data z odds-api.io) ----------
-// API_BASE/API_KEY/BOOKMAKER/CACHE_TTL/cacheGet/cacheSet/cacheDrop/apiGet: viz js/portfolio.js
+// ---------- betting (live data from odds-api.io) ----------
+// API_BASE/API_KEY/BOOKMAKER/CACHE_TTL/cacheGet/cacheSet/cacheDrop/apiGet: see js/portfolio.js
 const ODDS_MIN = 1.0;
 const ODDS_MAX = 8.0;
-const EVENTS_PER_SPORT = 10; // /odds/multi bere max 10 eventů na 1 request
+const EVENTS_PER_SPORT = 10; // /odds/multi takes max 10 events per 1 request
 
-// sporty jako na původním dashboardu
+// sports as on the original dashboard
 const SPORTS = [
-  ["basketball", "Basketbal", "basketbal"],
-  ["football", "Fotbal", "fotbal"],
-  ["ice-hockey", "Hokej", "hokej"],
-  ["table-tennis", "Stolní tenis", "stolni-tenis"],
-  ["tennis", "Tenis", "tenis"],
+  ["basketball", "Basketball", "basketbal"],
+  ["football", "Football", "fotbal"],
+  ["ice-hockey", "Hockey", "hokej"],
+  ["table-tennis", "Table tennis", "stolni-tenis"],
+  ["tennis", "Tennis", "tenis"],
 ];
 
 let activeSport = "basketball";
 let slip = []; // {id, match, pick, odds}
-let sportEvents = []; // načtené zápasy aktivního sportu
+let sportEvents = []; // loaded matches of the active sport
 const filters = { q: "", date: "", league: "", odds: "", live: false, high: false };
 
 const sportTabs = document.getElementById("sportTabs");
 const matchList = document.getElementById("matchList");
 const slipBody = document.getElementById("slipBody");
 
-// eventy + ML kurzy, 2 requesty na sport, cache 5 min (LIVE 1 min)
+// events + ML odds, 2 requests per sport, 5 min cache (LIVE 1 min)
 async function loadSportEvents(sport, live) {
   const key = live ? sport + ":live" : sport;
   const cached = cacheGet(key, live ? 60 * 1000 : CACHE_TTL);
@@ -298,7 +298,7 @@ async function loadSportEvents(sport, live) {
         odds: [parseFloat(row.home), row.draw ? parseFloat(row.draw) : null, parseFloat(row.away)],
         markets: markets
           .filter((m) => Array.isArray(m.odds) && m.odds.length)
-          .slice(0, 14), // všechny trhy pro detail zápasu
+          .slice(0, 14), // all markets for the match detail
       };
     })
     .filter(Boolean)
@@ -308,23 +308,23 @@ async function loadSportEvents(sport, live) {
   return merged;
 }
 
-// překlady trhů a výběrů
+// market and pick translations
 const MARKET_LABELS = {
-  "ML": "Vítěz zápasu",
-  "Draw No Bet": "Remíza bez sázky",
-  "Double Chance": "Dvojitá šance",
-  "Spread": "Asijský handicap",
-  "European Handicap": "Evropský handicap",
-  "Totals": "Celkem bodů (více / méně)",
-  "Goals Over/Under": "Góly (více / méně)",
-  "Both Teams To Score": "Oba týmy skórují",
-  "Spread HT": "Handicap · 1. poločas",
-  "Totals HT": "Celkem · 1. poločas",
-  "ML HT": "Vítěz · 1. poločas",
-  "Corners": "Rohy",
-  "Correct Score": "Přesný výsledek",
+  "ML": "Match winner",
+  "Draw No Bet": "Draw no bet",
+  "Double Chance": "Double chance",
+  "Spread": "Asian handicap",
+  "European Handicap": "European handicap",
+  "Totals": "Total points (over / under)",
+  "Goals Over/Under": "Goals (over / under)",
+  "Both Teams To Score": "Both teams to score",
+  "Spread HT": "Handicap · 1st half",
+  "Totals HT": "Total · 1st half",
+  "ML HT": "Winner · 1st half",
+  "Corners": "Corners",
+  "Correct Score": "Correct score",
 };
-const PICK_LABELS = { home: "1", draw: "X", away: "2", over: "Více", under: "Méně", yes: "Ano", no: "Ne" };
+const PICK_LABELS = { home: "1", draw: "X", away: "2", over: "Over", under: "Under", yes: "Yes", no: "No" };
 const PICK_FIELDS = ["home", "draw", "away", "over", "under", "yes", "no"];
 
 function marketLabel(name) { return MARKET_LABELS[name] || name; }
@@ -334,12 +334,12 @@ function oddPlayable(v) {
   return !Number.isNaN(n) && n >= ODDS_MIN && n <= ODDS_MAX;
 }
 
-// naplní select lig podle načtených zápasů
+// fills the league select from the loaded matches
 function refreshLeagueOptions() {
   const sel = document.getElementById("fLeague");
   const current = filters.league;
   const leagues = [...new Set(sportEvents.map((m) => m.league).filter(Boolean))].sort();
-  sel.innerHTML = `<option value="">Všechny ligy</option>` +
+  sel.innerHTML = `<option value="">All leagues</option>` +
     leagues.map((l) => `<option value="${l.replace(/"/g, "&quot;")}">${l}</option>`).join("");
   sel.value = leagues.includes(current) ? current : "";
   filters.league = sel.value;
@@ -350,10 +350,10 @@ function fmtTime(iso) {
   const now = new Date();
   const today = now.toDateString() === d.toDateString();
   const tomorrow = new Date(now.getTime() + 864e5).toDateString() === d.toDateString();
-  const hm = d.toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" });
-  if (today) return `Dnes ${hm}`;
-  if (tomorrow) return `Zítra ${hm}`;
-  return `${d.toLocaleDateString("cs-CZ", { day: "numeric", month: "numeric" })} ${hm}`;
+  const hm = d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+  if (today) return `Today ${hm}`;
+  if (tomorrow) return `Tomorrow ${hm}`;
+  return `${d.toLocaleDateString("en-US", { day: "numeric", month: "numeric" })} ${hm}`;
 }
 
 function renderSportTabs() {
@@ -402,12 +402,12 @@ function visibleEvents() {
   return list;
 }
 
-let detailMatch = null; // otevřený zápas (master -> detail)
-let openGroups = null; // rozbalené trhy v detailu (drží se přes re-render)
+let detailMatch = null; // open match (master -> detail)
+let openGroups = null; // expanded markets in the detail (kept across re-renders)
 
-// řádek s kurzy jednoho trhu (home/draw/away, over/under, yes/no…)
+// row of odds buttons for one market (home/draw/away, over/under, yes/no…)
 function marketRowButtons(m, marketName, row, ri) {
-  const caption = row.label || (row.hdp !== undefined ? `Hranice ${row.hdp}` : "");
+  const caption = row.label || (row.hdp !== undefined ? `Line ${row.hdp}` : "");
   const btns = PICK_FIELDS
     .filter((f) => row[f] !== undefined && row[f] !== null)
     .map((f) => {
@@ -416,9 +416,9 @@ function marketRowButtons(m, marketName, row, ri) {
       const id = `${m.id}|${marketName}|${ri}|${f}`;
       const sel = slip.some((s) => s.id === id);
       const out = !oddPlayable(val);
-      const small = row.label ? "Kurz" : (PICK_LABELS[f] || f);
+      const small = row.label ? "Odds" : (PICK_LABELS[f] || f);
       return `<button class="odd-btn ${sel ? "selected" : ""}" data-pick="${id}"
-        ${out ? `disabled title="Kurz mimo povolený rozsah ${ODDS_MIN.toFixed(2)} až ${ODDS_MAX.toFixed(2)}"` : ""}>
+        ${out ? `disabled title="Odds outside the allowed range ${ODDS_MIN.toFixed(2)} to ${ODDS_MAX.toFixed(2)}"` : ""}>
         <small>${small}</small><b>${val.toFixed(2)}</b>
       </button>`;
     }).join("");
@@ -429,7 +429,7 @@ function marketRowButtons(m, marketName, row, ri) {
   </div>`;
 }
 
-// zapne/vypne prvky seznamu, když je otevřený detail
+// toggles list chrome when a detail is open
 function setBetChrome(hidden) {
   ["betFiltersPanel", "sportTabs", "matchCountRow"].forEach((id) => {
     const el = document.getElementById(id);
@@ -456,15 +456,15 @@ function renderMatchDetail(m) {
     <div class="detail-bar">
       <button class="filter-chip" id="backToList">
         <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Zpět na zápasy
+        Back to matches
       </button>
     </div>
     <div class="detail-head">
       <div class="m-league">${m.league}</div>
       <div class="detail-teams">${m.home} <span>vs</span> ${m.away}</div>
-      <div class="m-time">${m.live ? '<span class="live">● LIVE</span> · ' : ""}${fmtTime(m.date)} · ${m.markets.length} trhů</div>
+      <div class="m-time">${m.live ? '<span class="live">● LIVE</span> · ' : ""}${fmtTime(m.date)} · ${m.markets.length} markets</div>
     </div>
-    <div class="mk-accs">${groups || `<p class="bet-msg">Další trhy nejsou k dispozici.</p>`}</div>`;
+    <div class="mk-accs">${groups || `<p class="bet-msg">No additional markets available.</p>`}</div>`;
 
   document.getElementById("backToList").addEventListener("click", () => {
     detailMatch = null;
@@ -490,18 +490,18 @@ function renderMatches() {
   const list = visibleEvents();
   document.getElementById("matchCount").textContent = String(list.length);
   if (!list.length) {
-    matchList.innerHTML = `<p class="bet-msg">Žádné zápasy neodpovídají filtrům.<br />Zkuste jiný sport nebo zrušte filtry.</p>`;
+    matchList.innerHTML = `<p class="bet-msg">No matches match the filters.<br />Try another sport or clear the filters.</p>`;
     return;
   }
   matchList.innerHTML = list.map((m) => {
     const extra = m.markets.length - 1;
     return `
     <div class="match" data-match="${m.id}">
-      <div class="match-head" role="button" tabindex="0" aria-label="Otevřít detail zápasu ${m.home} – ${m.away}">
+      <div class="match-head" role="button" tabindex="0" aria-label="Open match detail ${m.home} – ${m.away}">
         <div class="m-info">
           <div class="m-league">${m.league}</div>
           <div class="m-teams">${m.home} – ${m.away}</div>
-          <div class="m-time">${m.live ? '<span class="live">● LIVE</span> · ' : ""}${fmtTime(m.date)}${extra > 0 ? ` · +${extra} trhů` : ""}</div>
+          <div class="m-time">${m.live ? '<span class="live">● LIVE</span> · ' : ""}${fmtTime(m.date)}${extra > 0 ? ` · +${extra} markets` : ""}</div>
         </div>
         <div class="m-odds">
           ${m.odds.map((o, i) => {
@@ -512,7 +512,7 @@ function renderMatches() {
             const out = !oddPlayable(o);
             const lbl = m.odds[1] === null ? (i === 0 ? "1" : "2") : ["1", "X", "2"][i];
             return `<button class="odd-btn ${sel ? "selected" : ""}" data-pick="${id}"
-              ${out ? `disabled title="Kurz mimo povolený rozsah ${ODDS_MIN.toFixed(2)} až ${ODDS_MAX.toFixed(2)}"` : ""}>
+              ${out ? `disabled title="Odds outside the allowed range ${ODDS_MIN.toFixed(2)} to ${ODDS_MAX.toFixed(2)}"` : ""}>
               <small>${lbl}</small><b>${o.toFixed(2)}</b>
             </button>`;
           }).join("")}
@@ -525,7 +525,7 @@ function renderMatches() {
   }).join("");
 }
 
-// vyhodnocení kliknutého picku podle id `eventId|market|rowIdx|field`
+// resolves a clicked pick by id `eventId|market|rowIdx|field`
 function resolvePick(id) {
   const [eid, marketName, ri, field] = id.split("|");
   const m = sportEvents.find((x) => x.id === Number(eid));
@@ -562,10 +562,10 @@ function resolvePick(id) {
 
 function renderError(err) {
   const msg = err && err.status === 429
-    ? "Vyčerpaný limit API požadavků. Zkuste to za chvíli."
-    : "Zápasy se nepodařilo načíst.";
+    ? "API request limit reached. Try again in a moment."
+    : "Matches could not be loaded.";
   matchList.innerHTML = `<p class="bet-msg">${msg}<br />
-    <button class="btn btn-ghost" id="betRetry">Zkusit znovu</button></p>`;
+    <button class="btn btn-ghost" id="betRetry">Try again</button></p>`;
   document.getElementById("betRetry").addEventListener("click", () => selectSport(activeSport, true));
 }
 
@@ -581,7 +581,7 @@ async function selectSport(slug, force) {
   const live = filters.live;
   try {
     const data = await loadSportEvents(slug, live);
-    if (slug !== activeSport || live !== filters.live) return; // mezitím přepnuto jinam
+    if (slug !== activeSport || live !== filters.live) return; // switched elsewhere meanwhile
     sportEvents = data;
     refreshLeagueOptions();
     renderMatches();
@@ -594,14 +594,14 @@ function renderBankBar() {
   const bal = document.getElementById("bankBalance");
   if (!bal) return;
   const state = Portfolio.ensure("advanced");
-  bal.textContent = czk(state.balance);
-  document.getElementById("bankMaxStake").textContent = czk(state.maxStake);
-  document.getElementById("bankOddsRange").textContent = `${ODDS_MIN.toFixed(2)} až ${ODDS_MAX.toFixed(2)}`;
+  bal.textContent = usd(state.balance);
+  document.getElementById("bankMaxStake").textContent = usd(state.maxStake);
+  document.getElementById("bankOddsRange").textContent = `${ODDS_MIN.toFixed(2)} to ${ODDS_MAX.toFixed(2)}`;
 }
 
 function renderSlip() {
   if (!slip.length) {
-    slipBody.innerHTML = `<p class="slip-empty"><img src="assets/fan-1.jpg" alt="" />Váš tiket je prázdný.<br />Vyberte si kurzy z nabídky.</p>`;
+    slipBody.innerHTML = `<p class="slip-empty"><img src="assets/fan-1.jpg" alt="" />Your ticket is empty.<br />Pick odds from the offer.</p>`;
     return;
   }
   const portfolio = Portfolio.ensure("advanced");
@@ -612,27 +612,27 @@ function renderSlip() {
       <div class="slip-item">
         <span class="si-info">
           <span class="si-match">${s.match}</span><br />
-          <span class="si-pick">Tip: ${s.pick}</span>
+          <span class="si-pick">Pick: ${s.pick}</span>
         </span>
         <span class="si-odds">${s.odds.toFixed(2)}</span>
-        <button class="si-x" data-remove="${s.id}" aria-label="Odebrat">
+        <button class="si-x" data-remove="${s.id}" aria-label="Remove">
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
         </button>
       </div>`).join("")}
-    <div class="slip-total"><span>Celkový kurz</span><b>${totalOdds.toFixed(2)}</b></div>
+    <div class="slip-total"><span>Total odds</span><b>${totalOdds.toFixed(2)}</b></div>
     <div class="field">
-      <label for="stakeInput">Vklad (max. ${czk(maxStake)})</label>
-      <input class="input" id="stakeInput" type="number" min="100" max="${maxStake}" value="${Math.min(2000, maxStake)}" />
+      <label for="stakeInput">Stake (max. ${usd(maxStake)})</label>
+      <input class="input" id="stakeInput" type="number" min="5" max="${maxStake}" value="${Math.min(80, maxStake)}" />
     </div>
-    <div class="slip-total"><span>Možná výhra</span><b class="green" id="potWin"></b></div>
-    <button class="btn btn-primary" style="width:100%" id="placeBet">Vsadit</button>
+    <div class="slip-total"><span>Potential win</span><b class="green" id="potWin"></b></div>
+    <button class="btn btn-primary" style="width:100%" id="placeBet">Place bet</button>
     <p class="auth-note mt" id="betNote" hidden></p>`;
 
   const stakeInput = document.getElementById("stakeInput");
   const potWin = document.getElementById("potWin");
   const updateWin = () => {
     let v = Math.min(Number(stakeInput.value) || 0, maxStake);
-    potWin.textContent = czk(Math.round(v * totalOdds));
+    potWin.textContent = usd(Math.round(v * totalOdds));
   };
   stakeInput.addEventListener("input", updateWin);
   updateWin();
@@ -646,7 +646,7 @@ function renderSlip() {
       note.hidden = false;
       return;
     }
-    note.textContent = "Tiket přijat! Sledujte ho v Přehledu.";
+    note.textContent = "Ticket accepted! Track it in the Overview.";
     note.hidden = false;
     btn.disabled = true;
     setTimeout(() => {
@@ -681,7 +681,7 @@ if (sportTabs) {
       } else {
         const item = resolvePick(id);
         if (!item) return;
-        // jeden výběr na zápas a trh+řádek: nahradí případný konfliktní pick
+        // one pick per match and market+row: replaces a conflicting pick if present
         const [eid, mk, ri] = id.split("|");
         slip = slip.filter((s) => !s.id.startsWith(`${eid}|${mk}|${ri}|`));
         slip.push(item);
@@ -716,7 +716,7 @@ if (sportTabs) {
     renderSlip();
   });
 
-  // filtry
+  // filters
   const betSearch = document.getElementById("betSearch");
   betSearch.addEventListener("input", () => {
     filters.q = betSearch.value.trim();
@@ -768,16 +768,16 @@ if (sportTabs) {
   document.getElementById("betRefresh").addEventListener("click", () => selectSport(activeSport, true));
 }
 
-// ---------- žebříček ----------
+// ---------- leaderboard ----------
 const LB = [
-  { name: "Karolína S.", city: "Olomouc", profit: 48200, roi: 31, win: 74 },
-  { name: "Petr H.", city: "Ostrava", profit: 41600, roi: 27, win: 69 },
-  { name: "David P.", city: "Zlín", profit: 33900, roi: 24, win: 71 },
-  { name: "Martin K.", city: "Praha", profit: 24800, roi: 19, win: 66 },
-  { name: "Lukáš D.", city: "Liberec", profit: 17250, roi: 15, win: 63 },
-  { name: "Jana N.", city: "Brno", profit: 12300, roi: 12, win: 61 },
-  { name: "Tipér42", city: "Vy", profit: 6400, roi: 19, win: 67, me: true },
-  { name: "Ondřej M.", city: "Hradec Králové", profit: 6100, roi: 9, win: 58 },
+  { name: "Karolína S.", city: "Olomouc", profit: 1930, roi: 31, win: 74 },
+  { name: "Petr H.", city: "Ostrava", profit: 1660, roi: 27, win: 69 },
+  { name: "David P.", city: "Zlín", profit: 1360, roi: 24, win: 71 },
+  { name: "Martin K.", city: "Prague", profit: 990, roi: 19, win: 66 },
+  { name: "Lukáš D.", city: "Liberec", profit: 690, roi: 15, win: 63 },
+  { name: "Jana N.", city: "Brno", profit: 490, roi: 12, win: 61 },
+  { name: "Tipér42", city: "You", profit: 260, roi: 19, win: 67, me: true },
+  { name: "Ondřej M.", city: "Hradec Králové", profit: 240, roi: 9, win: 58 },
 ];
 
 const PERIOD_SCALE = { tyden: 0.25, mesic: 1, celkem: 2.6 };
@@ -789,12 +789,12 @@ function renderLb() {
     .map((r) => ({ ...r, profit: Math.round(r.profit * PERIOD_SCALE[lbPeriod]) }))
     .sort((a, b) => (lbMetric === "profit" ? b.profit - a.profit : lbMetric === "roi" ? b.roi - a.roi : b.win - a.win));
   const val = (r) =>
-    lbMetric === "profit" ? "+" + czk(r.profit) : lbMetric === "roi" ? r.roi + " % ROI" : r.win + " %";
+    lbMetric === "profit" ? "+" + usd(r.profit) : lbMetric === "roi" ? r.roi + " % ROI" : r.win + " %";
   document.getElementById("lbList").innerHTML = rows.map((r, i) => `
     <div class="lb-row ${r.me ? "me" : ""}">
       <span class="lb-rank">${i + 1}</span>
       <span class="pay2-av">${r.name.split(" ").map((w) => w[0]).join("").replace(".", "")}</span>
-      <span class="lb-name">${r.name}${r.me ? " · vy" : ""}<small>${r.me ? "Elite · Fáze 1" : r.city}</small></span>
+      <span class="lb-name">${r.name}${r.me ? " · you" : ""}<small>${r.me ? "Elite · Phase 1" : r.city}</small></span>
       <span class="lb-val">${val(r)}</span>
     </div>`).join("");
 }
@@ -813,19 +813,19 @@ function renderLb() {
 });
 if (document.getElementById("lbList")) renderLb();
 
-// ---------- výplaty ----------
-// Stavové štítky historie výběrů (hodnoty zapisují edge funkce request-payout / whop-payout).
+// ---------- payouts ----------
+// Status labels of the withdrawal history (values are written by the request-payout / whop-payout edge functions).
 const WD_STATUS = {
-  pending: { tag: "pend", label: "Čeká na schválení" },
-  approved: { tag: "pend", label: "Schválená" },
-  paid: { tag: "win", label: "Vyplacená" },
-  sent: { tag: "win", label: "Vyplacená" },
-  failed: { tag: "loss", label: "Selhala" },
-  rejected: { tag: "loss", label: "Zamítnutá" },
+  pending: { tag: "pend", label: "Awaiting approval" },
+  approved: { tag: "pend", label: "Approved" },
+  paid: { tag: "win", label: "Paid out" },
+  sent: { tag: "win", label: "Paid out" },
+  failed: { tag: "loss", label: "Failed" },
+  rejected: { tag: "loss", label: "Rejected" },
 };
 
-// Historie výběrů z databáze — jen s backendem a přihlášeným uživatelem
-// (vlastnictví řádků hlídá RLS). Jinak zůstává demo obsah v HTML.
+// Withdrawal history from the database — only with the backend and a signed-in
+// user (row ownership is guarded by RLS). Otherwise the demo content in HTML stays.
 async function loadPayoutHistory() {
   const box = document.getElementById("wdHistory");
   if (!box || typeof FundlyBackend === "undefined" || !fundlyBackendEnabled()) return;
@@ -840,16 +840,16 @@ async function loadPayoutHistory() {
       .limit(20);
     if (error) return;
     if (!payouts || !payouts.length) {
-      box.innerHTML = `<p class="slip-empty">Zatím žádné výběry.</p>`;
+      box.innerHTML = `<p class="slip-empty">No withdrawals yet.</p>`;
       return;
     }
     box.innerHTML = payouts.map((p) => {
       const s = WD_STATUS[p.status] || { tag: "pend", label: String(p.status) };
-      const date = new Date(p.created_at).toLocaleDateString("cs-CZ");
-      return `<div class="k-row neutral">${date} · ${p.method || "—"}<span class="n"><span class="tag ${s.tag}">${s.label}</span> ${czk(Number(p.amount) || 0)}</span></div>`;
+      const date = new Date(p.created_at).toLocaleDateString("en-US");
+      return `<div class="k-row neutral">${date} · ${p.method || "—"}<span class="n"><span class="tag ${s.tag}">${s.label}</span> ${usd(Number(p.amount) || 0)}</span></div>`;
     }).join("");
   } catch (e) {
-    // tichý fallback na demo obsah
+    // silent fallback to demo content
   }
 }
 
@@ -858,30 +858,30 @@ if (wdForm) {
   wdForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const note = document.getElementById("wdNote");
-    // S backendem a přihlášeným uživatelem posíláme skutečnou žádost přes
-    // edge funkci request-payout; jinak zůstává demo chování beze změny.
+    // With the backend and a signed-in user we send a real request via the
+    // request-payout edge function; otherwise the demo behavior stays unchanged.
     if (typeof FundlyBackend !== "undefined" && fundlyBackendEnabled()) {
       let user = null;
       try {
         user = await FundlyAuth.getUser();
       } catch (e) {
-        // backend nedostupný → fallback na demo chování níže
+        // backend unavailable → fallback to the demo behavior below
       }
       if (user) {
         const amount = Number(document.getElementById("wdAmount").value);
         const method = document.getElementById("wdMethod").value;
-        if (!Number.isFinite(amount) || amount < 250) {
-          note.textContent = "Minimální výběr je 250 Kč.";
+        if (!Number.isFinite(amount) || amount < 10) {
+          note.textContent = "The minimum withdrawal is $10.";
           note.hidden = false;
           return;
         }
-        if (amount > 100000) {
-          note.textContent = "Maximální výběr na jednu žádost je 100 000 Kč.";
+        if (amount > 4000) {
+          note.textContent = "The maximum withdrawal per request is $4,000.";
           note.hidden = false;
           return;
         }
         if (!method) {
-          note.textContent = "Vyberte způsob výplaty.";
+          note.textContent = "Choose a payout method.";
           note.hidden = false;
           return;
         }
@@ -899,27 +899,27 @@ if (wdForm) {
           const data = await res.json().catch(() => ({}));
           const ok = res.ok && data.ok;
           note.textContent = ok
-            ? "Žádost o výběr byla odeslána ke schválení."
-            : data.error || "Žádost se nepodařilo odeslat.";
+            ? "Your withdrawal request was submitted for approval."
+            : data.error || "The request could not be submitted.";
           note.hidden = false;
           if (ok) {
             wdForm.reset();
             loadPayoutHistory();
           }
         } catch (err) {
-          note.textContent = "Žádost se nepodařilo odeslat.";
+          note.textContent = "The request could not be submitted.";
           note.hidden = false;
         }
         return;
       }
     }
-    note.textContent = "Výběry se odemknou s financovaným účtem po dokončení obou fází.";
+    note.textContent = "Withdrawals unlock with a funded account after completing both phases.";
     note.hidden = false;
   });
 }
 
-// ---------- profil ----------
-// odznaky se renderují přes renderBadges() výše (volané z refreshAfterSettlement)
+// ---------- profile ----------
+// badges are rendered via renderBadges() above (called from refreshAfterSettlement)
 
 const lbShare = document.getElementById("lbShare");
 if (lbShare) {
@@ -931,23 +931,23 @@ if (lbShare) {
 const nickSave = document.getElementById("nickSave");
 if (nickSave) {
   nickSave.addEventListener("click", () => {
-    nickSave.textContent = "Uloženo";
-    setTimeout(() => (nickSave.textContent = "Uložit"), 1500);
+    nickSave.textContent = "Saved";
+    setTimeout(() => (nickSave.textContent = "Save"), 1500);
   });
 }
 
-// ---------- přehled: render z reálného stavu portfolia ----------
-// Equity graf: křivka zůstatku + čárkované hladiny (cíl fáze, pevný drawdown
-// floor) s popisky a fialovou plochou pod křivkou. Data = state.equityHistory,
-// mění se pouze prezentace.
+// ---------- overview: render from the real portfolio state ----------
+// Equity chart: balance curve + dashed levels (phase target, fixed drawdown
+// floor) with labels and a purple area under the curve. Data = state.equityHistory,
+// only the presentation changes.
 function renderEquityChart(state) {
   const points = state.equityHistory;
   if (points.length < 2) {
-    return `<p class="bet-msg">Graf se naplní, jakmile proběhne první vsazený a vyhodnocený tiket.</p>`;
+    return `<p class="bet-msg">The chart fills in once the first placed and settled ticket comes through.</p>`;
   }
   const w = 600, h = 190, padL = 6, padR = 6, padT = 14, padB = 8;
   const targetAbs = state.phase === "funded" ? null : state.phaseBaseline + Portfolio.phaseTarget(state);
-  const floor = state.cap - state.drawdown; // statický floor, žádný HWM
+  const floor = state.cap - state.drawdown; // static floor, no HWM
   const values = points.map((p) => p.balance);
   const lo = Math.min(...values, floor);
   const hi = Math.max(...values, targetAbs || 0);
@@ -959,12 +959,12 @@ function renderEquityChart(state) {
   const stroke = up ? "var(--accent)" : "#ff6b6b";
   const lastX = X(points.length - 1), lastY = Y(values[values.length - 1]);
 
-  // hladiny: cíl fáze (zelená) a pevný drawdown floor (červená)
+  // levels: phase target (green) and fixed drawdown floor (red)
   const levels = [
-    targetAbs !== null ? { v: targetAbs, cls: "eq-lv-target", label: `Cíl ${czk(targetAbs)}` } : null,
-    { v: floor, cls: "eq-lv-floor", label: `Floor ${czk(floor)}` },
+    targetAbs !== null ? { v: targetAbs, cls: "eq-lv-target", label: `Target ${usd(targetAbs)}` } : null,
+    { v: floor, cls: "eq-lv-floor", label: `Floor ${usd(floor)}` },
   ].filter(Boolean);
-  // popisky se nesměj překrýt — seřadíme podle y a vynutíme min. odstup
+  // labels must not overlap — sort by y and enforce a minimum gap
   levels.sort((a, b) => Y(a.v) - Y(b.v));
   let prevY = -Infinity;
   levels.forEach((lv) => {
@@ -973,10 +973,10 @@ function renderEquityChart(state) {
   });
 
   const area = `${padL},${(h - padB).toFixed(1)} ` + coords.join(" ") + ` ${lastX.toFixed(1)},${(h - padB).toFixed(1)}`;
-  const fmtDay = (t) => new Date(t).toLocaleDateString("cs-CZ", { day: "numeric", month: "numeric" });
+  const fmtDay = (t) => new Date(t).toLocaleDateString("en-US", { day: "numeric", month: "numeric" });
 
   return `
-    <svg viewBox="0 0 ${w} ${h}" class="equity-svg" role="img" aria-label="Graf vývoje zůstatku">
+    <svg viewBox="0 0 ${w} ${h}" class="equity-svg" role="img" aria-label="Balance history chart">
       <defs>
         <linearGradient id="eqArea" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stop-color="rgb(153 69 255 / .38)" />
@@ -991,8 +991,8 @@ function renderEquityChart(state) {
       <circle cx="${lastX.toFixed(1)}" cy="${lastY.toFixed(1)}" r="3" fill="${stroke}" />
     </svg>
     <div class="eq-legend">
-      ${targetAbs !== null ? '<span><i class="sw eq-lv-target"></i>Cíl fáze</span>' : ""}
-      <span><i class="sw eq-lv-floor"></i>Max. ztráta (pevný floor)</span>
+      ${targetAbs !== null ? '<span><i class="sw eq-lv-target"></i>Phase target</span>' : ""}
+      <span><i class="sw eq-lv-floor"></i>Max. loss (fixed floor)</span>
       <span class="eq-dates">${fmtDay(points[0].t)} – ${fmtDay(points[points.length - 1].t)}</span>
     </div>`;
 }
@@ -1000,15 +1000,15 @@ function renderEquityChart(state) {
 function renderRecentTickets(state) {
   const recent = state.tickets.slice(0, 5);
   if (!recent.length) {
-    return `<p class="bet-msg">Zatím žádné tikety. Vsaďte první v sekci Sázení.</p>`;
+    return `<p class="bet-msg">No tickets yet. Place your first one in the Betting section.</p>`;
   }
   return recent.map((t) => {
     const label = t.selections.length > 1
-      ? `${t.selections.length}× akumulátor`
+      ? `${t.selections.length}× accumulator`
       : `${t.selections[0].homeTeam} – ${t.selections[0].awayTeam}`;
     const tag = t.status === "won" ? "win" : t.status === "lost" ? "loss" : t.status === "push" ? "push" : "pend";
-    const tagText = t.status === "won" ? "Výhra" : t.status === "lost" ? "Prohra" : t.status === "push" ? "Vráceno" : "Čeká";
-    return `<div class="k-row neutral">${label} · ${czk(t.stake)}<span class="n"><span class="tag ${tag}">${tagText}</span></span></div>`;
+    const tagText = t.status === "won" ? "Won" : t.status === "lost" ? "Lost" : t.status === "push" ? "Refunded" : "Pending";
+    return `<div class="k-row neutral">${label} · ${usd(t.stake)}<span class="n"><span class="tag ${tag}">${tagText}</span></span></div>`;
   }).join("");
 }
 
@@ -1016,8 +1016,8 @@ function renderPrehled() {
   const view = document.getElementById("view-prehled");
   if (!view) return;
   const state = Portfolio.ensure("advanced");
-  const phaseLabel = state.phase === "funded" ? "Financovaný účet" : `Fáze ${state.phase}`;
-  document.getElementById("ovSubtitle").textContent = `${phaseLabel} · Fundly výzva`;
+  const phaseLabel = state.phase === "funded" ? "Funded account" : `Phase ${state.phase}`;
+  document.getElementById("ovSubtitle").textContent = `${phaseLabel} · Fundly Challenge`;
   document.getElementById("ovPhaseChip").textContent = phaseLabel;
   renderMomentum(state);
 
@@ -1028,47 +1028,47 @@ function renderPrehled() {
   const daysLeft = Portfolio.daysRemaining(state);
   const s = Portfolio.summary(state);
 
-  // hero blok: mikro-label, velký zůstatek, delta řádek, čipy, equity graf
+  // hero block: micro-label, big balance, delta row, chips, equity chart
   const deltaPct = state.phaseBaseline > 0 ? (profit / state.phaseBaseline) * 100 : 0;
   const sign = profit >= 0 ? "+" : "−";
-  const deltaFmt = `${sign}${Math.abs(profit).toLocaleString("cs-CZ")} Kč · ${sign}${Math.abs(deltaPct).toLocaleString("cs-CZ", { maximumFractionDigits: 2 })} %`;
+  const deltaFmt = `${sign}$${Math.abs(Math.round(profit)).toLocaleString("en-US")} · ${sign}${Math.abs(deltaPct).toLocaleString("en-US", { maximumFractionDigits: 2 })} %`;
   document.getElementById("balanceCard").innerHTML = `
     <div class="balance-top">
       <div>
-        <div class="bc-plan">Zůstatek účtu</div>
-        <div class="bc-amount">${czk(state.balance)}</div>
-        <div class="bc-delta ${profit >= 0 ? "pos" : "neg"}">${deltaFmt} v této fázi</div>
+        <div class="bc-plan">Account balance</div>
+        <div class="bc-amount">${usd(state.balance)}</div>
+        <div class="bc-delta ${profit >= 0 ? "pos" : "neg"}">${deltaFmt} in this phase</div>
       </div>
       <div class="bc-chips">
         <span class="chip-phase">${phaseLabel}</span>
-        <span class="chip-ghost">${state.packageName} · ${state.profitSplit} % podíl</span>
+        <span class="chip-ghost">${state.packageName} · ${state.profitSplit} % share</span>
       </div>
     </div>
     <div class="bc-chart">${renderEquityChart(state)}</div>`;
 
   document.getElementById("ovStatGrid").innerHTML = `
     <div class="dstat">
-      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M1.5 11.5l4-4 3 3 5-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Zisk</div>
-      <div class="val ${s.netProfit >= 0 ? "green" : ""}">${s.netProfit >= 0 ? "+" : ""}${czk(s.netProfit)}</div>
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M1.5 11.5l4-4 3 3 5-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Profit</div>
+      <div class="val ${s.netProfit >= 0 ? "green" : ""}">${s.netProfit >= 0 ? "+" : ""}${usd(s.netProfit)}</div>
     </div>
     <div class="dstat">
-      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.8"/><circle cx="7" cy="7" r="2" fill="currentColor"/></svg></span>Do cíle</div>
-      <div class="val">${state.phase === "funded" ? "—" : czk(toGoal)}</div>
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.8"/><circle cx="7" cy="7" r="2" fill="currentColor"/></svg></span>To target</div>
+      <div class="val">${state.phase === "funded" ? "—" : usd(toGoal)}</div>
     </div>
     <div class="dstat">
-      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M4.5 2h6v4a3 3 0 01-6 0V2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M7.5 9v2.5M5 13h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>Výhry</div>
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M4.5 2h6v4a3 3 0 01-6 0V2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M7.5 9v2.5M5 13h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>Wins</div>
       <div class="val">${s.won} <small>/ ${s.won + s.lost}</small></div>
     </div>
     <div class="dstat">
-      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 5a1.5 1.5 0 001.5-1.5h8A1.5 1.5 0 0013 5v1.6a1.9 1.9 0 000 3.8V12a1.5 1.5 0 00-1.5 1.5h-8A1.5 1.5 0 002 12V5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" transform="translate(0,-1.2)"/></svg></span>Tikety</div>
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 5a1.5 1.5 0 001.5-1.5h8A1.5 1.5 0 0013 5v1.6a1.9 1.9 0 000 3.8V12a1.5 1.5 0 00-1.5 1.5h-8A1.5 1.5 0 002 12V5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" transform="translate(0,-1.2)"/></svg></span>Tickets</div>
       <div class="val">${s.total}</div>
     </div>
     <div class="dstat">
-      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><circle cx="7.5" cy="7.5" r="5.5" stroke="currentColor" stroke-width="1.6"/><path d="M7.5 4.5v3.3l2.2 1.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Úspěšnost</div>
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><circle cx="7.5" cy="7.5" r="5.5" stroke="currentColor" stroke-width="1.6"/><path d="M7.5 4.5v3.3l2.2 1.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Win rate</div>
       <div class="val ${s.winRate >= 50 ? "green" : ""}">${s.winRate} %</div>
     </div>
     <div class="dstat">
-      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 12.5l4-8 3 5 4-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Prům. kurz</div>
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 12.5l4-8 3 5 4-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Avg. odds</div>
       <div class="val">${s.avgOdds.toFixed(2)}</div>
     </div>`;
 
@@ -1076,10 +1076,10 @@ function renderPrehled() {
 
   const dd = Portfolio.drawdownInfo(state);
 
-  // pravý sloupec: pravidla a limity s tenkými progress bary
+  // right column: rules and limits with thin progress bars
   const meta = packageMeta(packageByKey(state.packageKey));
   const pctTime = Math.max(0, Math.min(100, Math.round((daysLeft / 30) * 100)));
-  // kvalifikační tikety: výherní s čistým ziskem ≥ 0,5 % kapitálu, v aktuální fázi
+  // qualifying tickets: winning ones with net profit ≥ 0.5 % of capital, in the current phase
   const qual = Portfolio.countQualifyingTickets(state, state.phaseStartedAt);
   const pctTickets = Math.max(0, Math.min(100, Math.round((qual / meta.qualifyingTickets) * 100)));
   const ddTone = dd.pct < 30 ? "danger" : dd.pct < 60 ? "warn" : "";
@@ -1090,65 +1090,65 @@ function renderPrehled() {
       ${sub ? `<div class="rr-sub">${sub}</div>` : ""}
     </div>`;
   document.getElementById("rulesRail").innerHTML = `
-    <h3>Pravidla v kostce</h3>
+    <h3>Rules at a glance</h3>
     ${state.phase === "funded"
-      ? rrRow("Cíl fáze", "Splněno", null, "", "Financovaný účet — bez cíle, neomezený čas")
-      : rrRow("Cíl fáze", `${czk(Math.max(0, profit))} / ${czk(target)}`, pct, pct >= 100 ? "" : "", pct >= 100 ? "Splněno" : `Zbývá ${czk(toGoal)}`)}
-    ${rrRow("Max. ztráta (statická)", `${czk(Math.round(dd.remaining))} / ${czk(state.drawdown)}`, Math.round(dd.pct), ddTone,
-      `Pevný floor ${czk(dd.floor)} — neposouvá se`)}
-    ${state.phase === "funded" ? "" : rrRow("Časový limit", `${daysLeft} / 30 dní`, pctTime, pctTime < 25 ? "danger" : "", "")}
-    ${rrRow("Kvalifikační tikety", `${Math.min(qual, meta.qualifyingTickets)} / ${meta.qualifyingTickets}`, pctTickets, "", "Výherní tikety s čistým ziskem ≥ +0,5 % kapitálu")}
-    ${rrRow("Max. sázka", czk(state.maxStake), null, "", "Na jeden tiket")}
-    ${rrRow("Kurzy", `${ODDS_MIN.toFixed(2)} – ${ODDS_MAX.toFixed(2)}`, null, "", "")}
-    ${rrRow("Profit split", `${state.profitSplit} %`, null, "", "Váš podíl ze zisku")}
+      ? rrRow("Phase target", "Completed", null, "", "Funded account — no target, unlimited time")
+      : rrRow("Phase target", `${usd(Math.max(0, profit))} / ${usd(target)}`, pct, pct >= 100 ? "" : "", pct >= 100 ? "Completed" : `${usd(toGoal)} to go`)}
+    ${rrRow("Max. loss (static)", `${usd(Math.round(dd.remaining))} / ${usd(state.drawdown)}`, Math.round(dd.pct), ddTone,
+      `Fixed floor ${usd(dd.floor)} — it never moves`)}
+    ${state.phase === "funded" ? "" : rrRow("Time limit", `${daysLeft} / 30 days`, pctTime, pctTime < 25 ? "danger" : "", "")}
+    ${rrRow("Qualifying tickets", `${Math.min(qual, meta.qualifyingTickets)} / ${meta.qualifyingTickets}`, pctTickets, "", "Winning tickets with net profit ≥ +0.5 % of capital")}
+    ${rrRow("Max. stake", usd(state.maxStake), null, "", "Per single ticket")}
+    ${rrRow("Odds", `${ODDS_MIN.toFixed(2)} – ${ODDS_MAX.toFixed(2)}`, null, "", "")}
+    ${rrRow("Profit split", `${state.profitSplit} %`, null, "", "Your share of the profit")}
     <div class="rr-phase">
-      <span class="rr-phase-label">Fáze</span>
+      <span class="rr-phase-label">Phase</span>
       <span class="rr-phase-name">${phaseLabel}</span>
-      <span class="rr-phase-sub">Zahájeno ${new Date(state.phaseStartedAt).toLocaleDateString("cs-CZ")}${state.phase === "funded" ? "" : ` · ${daysLeft} dní zbývá`}</span>
+      <span class="rr-phase-sub">Started ${new Date(state.phaseStartedAt).toLocaleDateString("en-US")}${state.phase === "funded" ? "" : ` · ${daysLeft} days left`}</span>
     </div>`;
 
   document.getElementById("ovLimity").innerHTML = `
     <div class="limit-row">
-      <span class="k">Max. celková ztráta <small>(statická, floor: ${czk(dd.floor)})</small></span>
-      <span class="v">${czk(Math.round(dd.remaining))} zbývá</span>
+      <span class="k">Max. total loss <small>(static, floor: ${usd(dd.floor)})</small></span>
+      <span class="v">${usd(Math.round(dd.remaining))} left</span>
     </div>
     <div class="dd-bar">
-      <span class="cap lo">Floor: ${dd.floor.toLocaleString("cs-CZ")}</span>
+      <span class="cap lo">Floor: ${Math.round(dd.floor).toLocaleString("en-US")}</span>
       <span class="cursor" style="left:${dd.pct}%"></span>
-      <span class="cap hi">${state.balance.toLocaleString("cs-CZ")}</span>
+      <span class="cap hi">${Math.round(state.balance).toLocaleString("en-US")}</span>
     </div>
     <div class="limit-row" style="margin-top:14px">
-      <span class="k">Kvalifikační tikety <small>(výherní, zisk ≥ +0,5 % kapitálu)</small></span>
+      <span class="k">Qualifying tickets <small>(winning, profit ≥ +0.5 % of capital)</small></span>
       <span class="v">${Math.min(qual, meta.qualifyingTickets)} / ${meta.qualifyingTickets}</span>
     </div>
     <div class="limit-row">
-      <span class="k">Výběr zisku <small>(funded účet)</small></span>
-      <span class="v">buffer +5 % · max 100 000 Kč</span>
+      <span class="k">Profit withdrawal <small>(funded account)</small></span>
+      <span class="v">buffer +5 % · max $4,000</span>
     </div>`;
 
   document.getElementById("ovPravidla").innerHTML = `
     <div class="rules-grid">
       <div class="rule-tile"><div class="k">Profit split</div><div class="v green">${state.profitSplit} %</div></div>
-      <div class="rule-tile"><div class="k">Max. sázka</div><div class="v">${czk(state.maxStake)}</div></div>
-      <div class="rule-tile"><div class="k">Kurzy</div><div class="v">${ODDS_MIN.toFixed(2)} až ${ODDS_MAX.toFixed(2)}</div></div>
-      <div class="rule-tile"><div class="k">Max. ztráta</div><div class="v">${czk(state.drawdown)}</div></div>
-      <div class="rule-tile"><div class="k">Časový limit</div><div class="v">30 dní / fáze</div></div>
-      <div class="rule-tile"><div class="k">Kvalif. tikety</div><div class="v">5 × ≥ +0,5 %</div></div>
-      <div class="rule-tile"><div class="k">Výběr zisku</div><div class="v">buffer +5 %</div></div>
-      <div class="rule-tile"><div class="k">Max. výplata</div><div class="v">100 000 Kč</div></div>
+      <div class="rule-tile"><div class="k">Max. stake</div><div class="v">${usd(state.maxStake)}</div></div>
+      <div class="rule-tile"><div class="k">Odds</div><div class="v">${ODDS_MIN.toFixed(2)} to ${ODDS_MAX.toFixed(2)}</div></div>
+      <div class="rule-tile"><div class="k">Max. loss</div><div class="v">${usd(state.drawdown)}</div></div>
+      <div class="rule-tile"><div class="k">Time limit</div><div class="v">30 days / phase</div></div>
+      <div class="rule-tile"><div class="k">Qualifying tickets</div><div class="v">5 × ≥ +0.5 %</div></div>
+      <div class="rule-tile"><div class="k">Profit withdrawal</div><div class="v">buffer +5 %</div></div>
+      <div class="rule-tile"><div class="k">Max. payout</div><div class="v">$4,000</div></div>
     </div>`;
 
   const steps = [
-    { title: "Fáze 1 · Fundly výzva", desc: `Cíl +${czk(state.target1)}`, img: "assets/journey-phase1.jpg" },
-    { title: "Fáze 2 · Verifikace", desc: `Cíl +${czk(state.target2)}`, img: "assets/journey-phase2.jpg" },
-    { title: "Financovaný účet", desc: `${state.profitSplit} % podíl na zisku, neomezený čas, pravidelné výplaty.`, img: "assets/journey-funded.jpg" },
+    { title: "Phase 1 · Fundly Challenge", desc: `Target +${usd(state.target1)}`, img: "assets/journey-phase1.jpg" },
+    { title: "Phase 2 · Verification", desc: `Target +${usd(state.target2)}`, img: "assets/journey-phase2.jpg" },
+    { title: "Funded account", desc: `${state.profitSplit} % profit share, unlimited time, regular payouts.`, img: "assets/journey-funded.jpg" },
   ];
   const currentIndex = state.phase === "funded" ? 2 : state.phase - 1;
   document.getElementById("ovCesta").innerHTML = `<div class="journey">${steps.map((step, i) => {
     const cls = i < currentIndex ? "done" : i === currentIndex ? "now" : "";
     const dot = i < 2 ? String(i + 1) : "✓";
     const desc = i === currentIndex && state.phase !== "funded"
-      ? `${step.desc}, právě probíhá. Máte ${pct} % splněno.`
+      ? `${step.desc}, currently in progress. You have ${pct} % completed.`
       : step.desc;
     return `<div class="j-step ${cls}">
       <div class="j-dot-col"><span class="j-dot">${dot}</span>${i < steps.length - 1 ? '<span class="j-line"></span>' : ""}</div>
@@ -1163,14 +1163,14 @@ function renderPrehled() {
 }
 renderPrehled();
 
-// ---------- výplaty: podmínky payoutu (funded účet) ----------
-// (1) ziskový buffer min. +5 % kapitálu, (2) min. 5 kvalifikačních tiketů
-// (výherních s čistým ziskem ≥ +0,5 % kapitálu), (3) max 100 000 Kč na payout.
+// ---------- payouts: payout conditions (funded account) ----------
+// (1) profit buffer min. +5 % of capital, (2) min. 5 qualifying tickets
+// (winning ones with net profit ≥ +0.5 % of capital), (3) max $4,000 per payout.
 function renderPayoutConds(state) {
   const el = document.getElementById("wdConds");
   if (!el) return;
   if (state.phase !== "funded") {
-    el.innerHTML = `<p class="t-meta" style="margin-top:10px">Výběry se odemknou s financovaným účtem. Před každým výběrem potřebujete ziskový buffer +5 % kapitálu a 5 výherných tiketů s čistým ziskem aspoň +0,5 % kapitálu. Max. 100 000 Kč na výplatu.</p>`;
+    el.innerHTML = `<p class="t-meta" style="margin-top:10px">Withdrawals unlock with a funded account. Before every withdrawal you need a profit buffer of +5 % of capital and 5 winning tickets with a net profit of at least +0.5 % of capital. Max. $4,000 per payout.</p>`;
     return;
   }
   const meta = packageMeta(packageByKey(state.packageKey));
@@ -1179,13 +1179,13 @@ function renderPayoutConds(state) {
   const qual = Portfolio.countQualifyingTickets(state, state.phaseStartedAt);
   el.innerHTML = `
     <div class="k-rows" style="margin-top:12px">
-      <div class="k-row neutral">Ziskový buffer (+${meta.payoutBufferPct} % kapitálu)<span class="n ${profit >= bufferNeed ? "green" : ""}">${czk(Math.max(0, profit))} / ${czk(bufferNeed)}</span></div>
-      <div class="k-row neutral">Kvalifikační tikety<span class="n ${qual >= meta.qualifyingTickets ? "green" : ""}">${Math.min(qual, meta.qualifyingTickets)} / ${meta.qualifyingTickets}</span></div>
-      <div class="k-row neutral">Max. výplata<span class="n">100 000 Kč</span></div>
+      <div class="k-row neutral">Profit buffer (+${meta.payoutBufferPct} % of capital)<span class="n ${profit >= bufferNeed ? "green" : ""}">${usd(Math.max(0, profit))} / ${usd(bufferNeed)}</span></div>
+      <div class="k-row neutral">Qualifying tickets<span class="n ${qual >= meta.qualifyingTickets ? "green" : ""}">${Math.min(qual, meta.qualifyingTickets)} / ${meta.qualifyingTickets}</span></div>
+      <div class="k-row neutral">Max. payout<span class="n">$4,000</span></div>
     </div>`;
 }
 
-// ---------- profil: panel účtu + limity z reálného stavu portfolia ----------
+// ---------- profile: account panel + limits from the real portfolio state ----------
 function renderProfile(state) {
   if (!document.getElementById("pfName")) return;
   const s = Portfolio.summary(state);
@@ -1193,14 +1193,14 @@ function renderProfile(state) {
   const target = Portfolio.phaseTarget(state);
   const profit = state.balance - state.phaseBaseline;
   const pct = target > 0 ? Math.max(0, Math.min(100, Math.round((profit / target) * 100))) : 100;
-  const phaseLabel = state.phase === "funded" ? "Financovaný účet" : `Fáze ${state.phase}`;
+  const phaseLabel = state.phase === "funded" ? "Funded account" : `Phase ${state.phase}`;
   const set = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
 
   set("pfName", state.packageName);
-  set("pfCap", czk(state.cap));
+  set("pfCap", usd(state.cap));
   set("pfPhase", phaseLabel);
-  set("pfBalance", czk(state.balance));
-  set("pfProfit", `${s.netProfit >= 0 ? "+" : ""}${czk(s.netProfit)}`);
+  set("pfBalance", usd(state.balance));
+  set("pfProfit", `${s.netProfit >= 0 ? "+" : ""}${usd(s.netProfit)}`);
   document.getElementById("pfProfit").classList.toggle("green", s.netProfit >= 0);
   document.getElementById("pfBalance").classList.add("green");
   set("pfTickets", String(s.total));
@@ -1208,83 +1208,83 @@ function renderProfile(state) {
   document.getElementById("pfWinRate").classList.toggle("green", s.winRate >= 50);
 
   if (state.phase === "funded") {
-    set("pfGoalLabel", "Financovaný účet");
-    set("pfGoalPct", "Bez cíle");
+    set("pfGoalLabel", "Funded account");
+    set("pfGoalPct", "No target");
     document.getElementById("pfGoalBar").style.width = "100%";
-    set("pfGoalMeta", "Neomezený čas, pravidelné výplaty.");
+    set("pfGoalMeta", "Unlimited time, regular payouts.");
   } else {
-    set("pfGoalLabel", `Postup k cíli (${czk(state.phaseBaseline + target)})`);
+    set("pfGoalLabel", `Progress to target (${usd(state.phaseBaseline + target)})`);
     set("pfGoalPct", `${pct} %`);
     document.getElementById("pfGoalBar").style.width = pct + "%";
-    set("pfGoalMeta", `Do cíle ${czk(Math.max(0, target - profit))} · ${Portfolio.daysRemaining(state)} dní zbývá`);
+    set("pfGoalMeta", `${usd(Math.max(0, target - profit))} to target · ${Portfolio.daysRemaining(state)} days left`);
   }
 
-  set("pfDdDetail", `(pevný floor ${czk(dd.floor)})`);
-  set("pfDdRemain", `${czk(Math.round(dd.remaining))} zbývá`);
+  set("pfDdDetail", `(fixed floor ${usd(dd.floor)})`);
+  set("pfDdRemain", `${usd(Math.round(dd.remaining))} left`);
   document.getElementById("pfDdBar").style.width = Math.round(dd.pct) + "%";
 
   const daysLeft = Portfolio.daysRemaining(state);
-  set("pfDaysLeft", state.phase === "funded" ? "Neomezeno" : `${daysLeft} dní`);
+  set("pfDaysLeft", state.phase === "funded" ? "Unlimited" : `${daysLeft} days`);
   const deadline = new Date(new Date(state.phaseStartedAt).getTime() + 30 * 86400000);
   set("pfDeadline", state.phase === "funded"
-    ? "Financovaný účet nemá časový limit"
-    : `Zbývá do konce fáze · Deadline: ${deadline.toLocaleDateString("cs-CZ")}`);
+    ? "A funded account has no time limit"
+    : `Left until the end of the phase · Deadline: ${deadline.toLocaleDateString("en-US")}`);
 
   const rules = document.getElementById("pfRules");
   if (rules) rules.innerHTML = `
     <div class="rule-tile"><div class="k">Profit split</div><div class="v green">${state.profitSplit} %</div></div>
-    <div class="rule-tile"><div class="k">Max. sázka</div><div class="v">${czk(state.maxStake)}</div></div>
-    <div class="rule-tile"><div class="k">Kurzy</div><div class="v">${ODDS_MIN.toFixed(2)} až ${ODDS_MAX.toFixed(2)}</div></div>
-    <div class="rule-tile"><div class="k">Max. ztráta</div><div class="v">${czk(state.drawdown)}</div></div>
-    <div class="rule-tile"><div class="k">Časový limit</div><div class="v">30 dní / fáze</div></div>
-    <div class="rule-tile"><div class="k">Kvalif. tikety</div><div class="v">5 × ≥ +0,5 %</div></div>
-    <div class="rule-tile"><div class="k">Výběr zisku</div><div class="v">buffer +5 %</div></div>
-    <div class="rule-tile"><div class="k">Max. výplata</div><div class="v">100 000 Kč</div></div>`;
+    <div class="rule-tile"><div class="k">Max. stake</div><div class="v">${usd(state.maxStake)}</div></div>
+    <div class="rule-tile"><div class="k">Odds</div><div class="v">${ODDS_MIN.toFixed(2)} to ${ODDS_MAX.toFixed(2)}</div></div>
+    <div class="rule-tile"><div class="k">Max. loss</div><div class="v">${usd(state.drawdown)}</div></div>
+    <div class="rule-tile"><div class="k">Time limit</div><div class="v">30 days / phase</div></div>
+    <div class="rule-tile"><div class="k">Qualifying tickets</div><div class="v">5 × ≥ +0.5 %</div></div>
+    <div class="rule-tile"><div class="k">Profit withdrawal</div><div class="v">buffer +5 %</div></div>
+    <div class="rule-tile"><div class="k">Max. payout</div><div class="v">$4,000</div></div>`;
 }
 
-// ---------- výkon: render z reálného stavu portfolia ----------
+// ---------- performance: render from the real portfolio state ----------
 function renderVykon() {
   const view = document.getElementById("view-vykon");
   if (!view) return;
   const state = Portfolio.ensure("advanced");
-  document.getElementById("vykonSubtitle").textContent = `Statistiky balíčku ${state.packageName}`;
+  document.getElementById("vykonSubtitle").textContent = `${state.packageName} package statistics`;
   const s = Portfolio.summary(state);
 
   document.getElementById("vykonStatGrid").innerHTML = `
     <div class="dstat">
-      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M1.5 11.5l4-4 3 3 5-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Aktuální zisk</div>
-      <div class="val ${s.netProfit >= 0 ? "green" : ""}">${s.netProfit >= 0 ? "+" : ""}${czk(s.netProfit)}</div>
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M1.5 11.5l4-4 3 3 5-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Current profit</div>
+      <div class="val ${s.netProfit >= 0 ? "green" : ""}">${s.netProfit >= 0 ? "+" : ""}${usd(s.netProfit)}</div>
     </div>
     <div class="dstat">
-      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M4.5 2h6v4a3 3 0 01-6 0V2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M7.5 9v2.5M5 13h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>Úspěšnost</div>
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M4.5 2h6v4a3 3 0 01-6 0V2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M7.5 9v2.5M5 13h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>Win rate</div>
       <div class="val ${s.winRate >= 50 ? "green" : ""}">${s.winRate} %</div>
     </div>
     <div class="dstat">
-      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 12.5l4-8 3 5 4-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Průměrný kurz</div>
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 12.5l4-8 3 5 4-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Average odds</div>
       <div class="val">${s.avgOdds.toFixed(2)}</div>
     </div>
     <div class="dstat">
-      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><circle cx="7.5" cy="7.5" r="5.5" stroke="currentColor" stroke-width="1.6"/><path d="M7.5 4.5v3.3l2.2 1.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Čekající</div>
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><circle cx="7.5" cy="7.5" r="5.5" stroke="currentColor" stroke-width="1.6"/><path d="M7.5 4.5v3.3l2.2 1.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Pending</div>
       <div class="val">${s.pending}</div>
     </div>
     <div class="dstat">
-      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.5v12M10.5 4.5c0-1.2-1.3-2-3-2s-3 .8-3 2 1.3 2 3 2 3 .8 3 2-1.3 2-3 2-3-.8-3-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>Vsazeno</div>
-      <div class="val">${czk(s.staked)}</div>
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.5v12M10.5 4.5c0-1.2-1.3-2-3-2s-3 .8-3 2 1.3 2 3 2 3 .8 3 2-1.3 2-3 2-3-.8-3-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>Staked</div>
+      <div class="val">${usd(s.staked)}</div>
     </div>
     <div class="dstat">
-      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 7-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Vráceno</div>
-      <div class="val ${s.returned >= s.staked && s.staked > 0 ? "green" : ""}">${czk(s.returned)}</div>
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 7-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Returned</div>
+      <div class="val ${s.returned >= s.staked && s.staked > 0 ? "green" : ""}">${usd(s.returned)}</div>
     </div>`;
 
   document.getElementById("vykonBreakdown").innerHTML = `
-    <div class="k-row win">Výherní<span class="n">${s.won}</span></div>
-    <div class="k-row loss">Prohrané<span class="n">${s.lost}</span></div>
-    <div class="k-row pend">Čekající<span class="n">${s.pending}</span></div>`;
+    <div class="k-row win">Won<span class="n">${s.won}</span></div>
+    <div class="k-row loss">Lost<span class="n">${s.lost}</span></div>
+    <div class="k-row pend">Pending<span class="n">${s.pending}</span></div>`;
 
   document.getElementById("vykonFinancials").innerHTML = `
-    <div class="k-row neutral">Vsazeno<span class="n">${czk(s.staked)}</span></div>
-    <div class="k-row neutral">Vráceno<span class="n">${czk(s.returned)}</span></div>
-    <div class="k-row neutral">Čistý zisk<span class="n ${s.netProfit >= 0 ? "green" : ""}">${s.netProfit >= 0 ? "+" : ""}${czk(s.netProfit)}</span></div>`;
+    <div class="k-row neutral">Staked<span class="n">${usd(s.staked)}</span></div>
+    <div class="k-row neutral">Returned<span class="n">${usd(s.returned)}</span></div>
+    <div class="k-row neutral">Net profit<span class="n ${s.netProfit >= 0 ? "green" : ""}">${s.netProfit >= 0 ? "+" : ""}${usd(s.netProfit)}</span></div>`;
 
   const days = Portfolio.dailyNet(state, 7);
   const maxAbs = Math.max(1, ...days.map((d) => Math.abs(d.net)));
@@ -1297,11 +1297,11 @@ function renderVykon() {
   const recent = state.tickets.slice(0, 8);
   document.getElementById("vykonTicketTable").innerHTML = recent.length ? recent.map((t) => {
     const label = t.selections.length > 1
-      ? `${t.selections.length}× akumulátor`
+      ? `${t.selections.length}× accumulator`
       : `${t.selections[0].homeTeam} – ${t.selections[0].awayTeam}`;
     const tip = t.selections.length > 1 ? "AKU" : (t.selections[0].pickLabel || "");
     const tag = t.status === "won" ? "win" : t.status === "lost" ? "loss" : t.status === "push" ? "push" : "pend";
-    const tagText = t.status === "won" ? "Výhra" : t.status === "lost" ? "Prohra" : t.status === "push" ? "Vráceno" : "Čeká";
-    return `<tr><td>${label}</td><td>${tip}</td><td class="odds">${t.combinedOdds.toFixed(2)}</td><td>${czk(t.stake)}</td><td><span class="tag ${tag}">${tagText}</span></td></tr>`;
-  }).join("") : `<tr><td colspan="5">Zatím žádné tikety.</td></tr>`;
+    const tagText = t.status === "won" ? "Won" : t.status === "lost" ? "Lost" : t.status === "push" ? "Refunded" : "Pending";
+    return `<tr><td>${label}</td><td>${tip}</td><td class="odds">${t.combinedOdds.toFixed(2)}</td><td>${usd(t.stake)}</td><td><span class="tag ${tag}">${tagText}</span></td></tr>`;
+  }).join("") : `<tr><td colspan="5">No tickets yet.</td></tr>`;
 }

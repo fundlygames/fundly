@@ -1,6 +1,6 @@
-/* Fundly × Supabase/Whop — tenká klientská vrstva (načítá se po js/config.js).
-   supabase-js se z CDN stáhne až ve chvíli, kdy je backend skutečně nastaven,
-   takže demo režim bez backendu zůstává beze změny. */
+/* Fundly × Supabase/Whop — thin client layer (loaded after js/config.js).
+   supabase-js is fetched from CDN only when the backend is actually set up,
+   so the demo mode without a backend stays unchanged. */
 
 const FundlyBackend = (() => {
   let clientPromise = null;
@@ -10,12 +10,12 @@ const FundlyBackend = (() => {
       const el = document.createElement("script");
       el.src = src;
       el.onload = resolve;
-      el.onerror = () => reject(new Error("Nepodařilo se načíst supabase-js."));
+      el.onerror = () => reject(new Error("Failed to load supabase-js."));
       document.head.appendChild(el);
     });
   }
 
-  // Líně vytvoří sdíleného supabase klienta (nebo null bez backendu).
+  // Lazily creates a shared supabase client (or null without a backend).
   function getClient() {
     if (!fundlyBackendEnabled()) return Promise.resolve(null);
     if (!clientPromise) {
@@ -33,8 +33,8 @@ const FundlyBackend = (() => {
 })();
 
 const FundlyCheckout = {
-  // Vytvoří Whop checkout session přes edge funkci a vrátí celou odpověď
-  // ({ checkoutUrl, sessionId, planId }) bez přesměrování — pro embedded checkout.
+  // Creates a Whop checkout session via the edge function and returns the whole
+  // response ({ checkoutUrl, sessionId, planId }) without redirecting — for embedded checkout.
   async createSession(packageKey, email) {
     const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/whop-checkout`, {
       method: "POST",
@@ -43,12 +43,12 @@ const FundlyCheckout = {
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.checkoutUrl) {
-      throw new Error(data.error || "Platební bránu se nepodařilo otevřít.");
+      throw new Error(data.error || "Could not open the payment gateway.");
     }
     return data;
   },
 
-  // Vytvoří Whop checkout přes edge funkci a přesměruje na hosted platební stránku.
+  // Creates a Whop checkout via the edge function and redirects to the hosted payment page.
   async buy(packageKey, email) {
     const data = await this.createSession(packageKey, email);
     window.location.href = data.checkoutUrl;
@@ -56,25 +56,25 @@ const FundlyCheckout = {
 };
 
 const FundlyAuth = {
-  // Přihlášení magic linkem na e-mail (zpět na dashboard.html).
+  // Magic link sign-in via e-mail (back to dashboard.html).
   async signInWithEmail(email) {
     const client = await FundlyBackend.getClient();
-    if (!client) return { error: { message: "Backend není nastaven." } };
+    if (!client) return { error: { message: "Backend is not configured." } };
     const redirectTo = new URL("dashboard.html", window.location.href).href;
     return client.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectTo } });
   },
 
-  // Přihlášení heslem (když je vyplněné v modalu; jinak se používá magic link).
+  // Password sign-in (when filled in the modal; otherwise a magic link is used).
   async signInWithPassword(email, password) {
     const client = await FundlyBackend.getClient();
-    if (!client) return { error: { message: "Backend není nastaven." } };
+    if (!client) return { error: { message: "Backend is not configured." } };
     return client.auth.signInWithPassword({ email, password });
   },
 
-  // Registrace e-mailem a heslem (checkout krok 2 — účet se zakládá před platbou).
+  // Sign-up with e-mail and password (checkout step 2 — account is created before payment).
   async signUpWithPassword(email, password) {
     const client = await FundlyBackend.getClient();
-    if (!client) return { error: { message: "Backend není nastaven." } };
+    if (!client) return { error: { message: "Backend is not configured." } };
     return client.auth.signUp({ email, password });
   },
 

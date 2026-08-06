@@ -10,7 +10,7 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 min, free tier má 100 requestů/hod
 
 function cacheGet(key, ttl) {
   try {
-    const raw = localStorage.getItem("bf1:" + key);
+    const raw = localStorage.getItem("bf2:" + key);
     if (!raw) return null;
     const { t, d } = JSON.parse(raw);
     if (Date.now() - t > (ttl || CACHE_TTL)) return null;
@@ -18,10 +18,10 @@ function cacheGet(key, ttl) {
   } catch (e) { return null; }
 }
 function cacheSet(key, d) {
-  try { localStorage.setItem("bf1:" + key, JSON.stringify({ t: Date.now(), d })); } catch (e) {}
+  try { localStorage.setItem("bf2:" + key, JSON.stringify({ t: Date.now(), d })); } catch (e) {}
 }
 function cacheDrop(key) {
-  try { localStorage.removeItem("bf1:" + key); } catch (e) {}
+  try { localStorage.removeItem("bf2:" + key); } catch (e) {}
 }
 
 async function apiGet(path, params) {
@@ -36,7 +36,7 @@ async function apiGet(path, params) {
 }
 
 const Portfolio = (() => {
-  const STORAGE_KEY = "bf1:portfolio";
+  const STORAGE_KEY = "bf2:portfolio";
 
   function get() {
     try {
@@ -131,7 +131,7 @@ const Portfolio = (() => {
     const now = new Date();
     for (let i = days - 1; i >= 0; i--) {
       const d = new Date(now.getTime() - i * 86400000);
-      buckets.push({ key: d.toDateString(), label: d.toLocaleDateString("cs-CZ", { weekday: "short" }), net: 0 });
+      buckets.push({ key: d.toDateString(), label: d.toLocaleDateString("en-US", { weekday: "short" }), net: 0 });
     }
     const byKey = Object.fromEntries(buckets.map((b) => [b.key, b]));
     state.tickets
@@ -146,12 +146,12 @@ const Portfolio = (() => {
 
   function placeBet(selections, stake) {
     const state = get();
-    if (!state) return { ok: false, error: "Nejprve se přihlaste." };
-    if (!selections || !selections.length) return { ok: false, error: "Tiket je prázdný." };
+    if (!state) return { ok: false, error: "Please sign in first." };
+    if (!selections || !selections.length) return { ok: false, error: "Your ticket is empty." };
     const amount = Number(stake);
-    if (!amount || amount <= 0) return { ok: false, error: "Zadejte platnou výši vkladu." };
-    if (amount > state.maxStake) return { ok: false, error: `Max. vklad je ${state.maxStake.toLocaleString("cs-CZ")} Kč.` };
-    if (amount > state.balance) return { ok: false, error: "Nedostatečný zůstatek." };
+    if (!amount || amount <= 0) return { ok: false, error: "Enter a valid stake amount." };
+    if (amount > state.maxStake) return { ok: false, error: `Max. stake is $${state.maxStake.toLocaleString("en-US")}.` };
+    if (amount > state.balance) return { ok: false, error: "Insufficient balance." };
 
     const combinedOdds = selections.reduce((acc, s) => acc * s.oddValue, 1);
     const now = new Date().toISOString();

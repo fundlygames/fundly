@@ -186,7 +186,7 @@ serve(async (req) => {
     try {
       const transfer = await createWhopTransfer({
         amount: payoutAmount,
-        currency: "czk",
+        currency: "usd",
         destinationUserId: whopUserId,
         idempotenceKey: payout.id,
         note: "Fundly výplata",

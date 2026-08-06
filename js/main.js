@@ -1,9 +1,9 @@
-/* Fundly × Upcomers — interakce */
+/* Fundly × Upcomers — interactions */
 
-// data balíčků: viz js/packages.js (sdílené s dashboard.html)
+// package data: see js/packages.js (shared with dashboard.html)
 
-const czk = (n) => n.toLocaleString("cs-CZ") + " Kč";
-const czkSigned = (n) => (n > 0 ? "+" : "-") + Math.abs(n).toLocaleString("cs-CZ") + " Kč";
+const usd = (n) => "$" + Math.round(n).toLocaleString("en-US");
+const usdSigned = (n) => (n > 0 ? "+" : n < 0 ? "-" : "") + "$" + Math.abs(Math.round(n)).toLocaleString("en-US");
 
 // ---------- picker ----------
 const seg = document.getElementById("pkgSeg");
@@ -15,7 +15,7 @@ function renderSeg() {
   seg.innerHTML = PACKAGES.map(
     (p) => `<button role="radio" aria-checked="${p.key === activeKey}"
       class="${p.key === activeKey ? "active" : ""}" data-key="${p.key}">
-      ${(p.cap / 1000).toLocaleString("cs-CZ")}K</button>`
+      ${p.cap >= 1000 ? `$${p.cap / 1000}K` : `$${p.cap}`}</button>`
   ).join("");
 }
 
@@ -31,39 +31,39 @@ function renderPlan(animate) {
     <article class="phase ${animate ? "pkg-anim" : ""}">
       <div class="ph-art" style="background-image:url(assets/card2-vyzva.jpg)" aria-hidden="true"></div>
       <div class="ph-body">
-        <span class="ph-tag">Fáze 1</span>
-        <div class="ph-name">Fundly výzva</div>
+        <span class="ph-tag">Phase 1</span>
+        <div class="ph-name">Fundly Challenge</div>
         <div class="ph-rows">
-          <div class="ph-row"><span class="k">Cíl zisku</span><span class="v green">${czkSigned(target1)}</span></div>
-          <div class="ph-row"><span class="k">Max. ztráta (statická)</span><span class="v red">${czkSigned(-dd)}</span></div>
-          <div class="ph-row"><span class="k">Časový limit</span><span class="v">30 dní</span></div>
-          <div class="ph-row"><span class="k">Kvalif. tikety</span><span class="v">5 × ≥ +0,5 %</span></div>
+          <div class="ph-row"><span class="k">Profit target</span><span class="v green">${usdSigned(target1)}</span></div>
+          <div class="ph-row"><span class="k">Max. loss (static)</span><span class="v red">${usdSigned(-dd)}</span></div>
+          <div class="ph-row"><span class="k">Time limit</span><span class="v">30 days</span></div>
+          <div class="ph-row"><span class="k">Qualifying tickets</span><span class="v">5 × ≥ +0.5 %</span></div>
         </div>
       </div>
     </article>
     <article class="phase ${animate ? "pkg-anim" : ""}" style="animation-delay:.05s">
       <div class="ph-art" style="background-image:url(assets/card2-verifikace.jpg)" aria-hidden="true"></div>
       <div class="ph-body">
-        <span class="ph-tag">Fáze 2</span>
-        <div class="ph-name">Verifikace</div>
+        <span class="ph-tag">Phase 2</span>
+        <div class="ph-name">Verification</div>
         <div class="ph-rows">
-          <div class="ph-row"><span class="k">Cíl zisku</span><span class="v green">${czkSigned(target2)}</span></div>
-          <div class="ph-row"><span class="k">Max. ztráta (statická)</span><span class="v red">${czkSigned(-dd)}</span></div>
-          <div class="ph-row"><span class="k">Časový limit</span><span class="v">30 dní</span></div>
-          <div class="ph-row"><span class="k">Kvalif. tikety</span><span class="v">5 × ≥ +0,5 %</span></div>
+          <div class="ph-row"><span class="k">Profit target</span><span class="v green">${usdSigned(target2)}</span></div>
+          <div class="ph-row"><span class="k">Max. loss (static)</span><span class="v red">${usdSigned(-dd)}</span></div>
+          <div class="ph-row"><span class="k">Time limit</span><span class="v">30 days</span></div>
+          <div class="ph-row"><span class="k">Qualifying tickets</span><span class="v">5 × ≥ +0.5 %</span></div>
         </div>
       </div>
     </article>
     <article class="phase funded ${animate ? "pkg-anim" : ""}" style="animation-delay:.1s">
       <div class="ph-art" style="background-image:url(assets/card2-tiper.jpg)" aria-hidden="true"></div>
       <div class="ph-body">
-        <span class="ph-tag">Financovaný účet</span>
-        <div class="ph-name">Fundly tipér</div>
+        <span class="ph-tag">Funded account</span>
+        <div class="ph-name">Fundly bettor</div>
         <div class="ph-rows">
-          <div class="ph-row"><span class="k">Váš podíl</span><span class="v green">80 %</span></div>
-          <div class="ph-row"><span class="k">Max. ztráta (statická)</span><span class="v red">${czkSigned(-dd)}</span></div>
-          <div class="ph-row"><span class="k">Časový limit</span><span class="v">Neomezeno</span></div>
-          <div class="ph-row"><span class="k">Kurzy</span><span class="v">1.00 až 8.00</span></div>
+          <div class="ph-row"><span class="k">Your share</span><span class="v green">80 %</span></div>
+          <div class="ph-row"><span class="k">Max. loss (static)</span><span class="v red">${usdSigned(-dd)}</span></div>
+          <div class="ph-row"><span class="k">Time limit</span><span class="v">Unlimited</span></div>
+          <div class="ph-row"><span class="k">Odds</span><span class="v">1.00 to 8.00</span></div>
         </div>
       </div>
     </article>`;
@@ -71,22 +71,22 @@ function renderPlan(animate) {
   const check = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   priceCard.innerHTML = `
     <div class="${animate ? "pkg-anim" : ""}">
-      <span class="pc-badge">Balíček ${p.name}</span>
-      <div class="cap">${czk(p.cap)}<small>kapitál k dispozici</small></div>
+      <span class="pc-badge">${p.name} package</span>
+      <div class="cap">${usd(p.cap)}<small>capital at your disposal</small></div>
     </div>
     <ul class="price-feats ${animate ? "pkg-anim" : ""}" style="animation-delay:.05s">
-      <li>${check}2 fáze evaluace</li>
-      <li>${check}80 % podíl na zisku</li>
-      <li>${check}Max. vklad na tiket ${czk(stake)}</li>
-      <li>${check}Neomezený čas na financovaném účtu</li>
-      <li>${check}Žádný denní limit ztráty</li>
+      <li>${check}2 evaluation phases</li>
+      <li>${check}80 % profit share</li>
+      <li>${check}Max. stake per ticket ${usd(stake)}</li>
+      <li>${check}Unlimited time on the funded account</li>
+      <li>${check}No daily loss limit</li>
     </ul>
     <div class="price-row ${animate ? "pkg-anim" : ""}" style="animation-delay:.08s">
-      <span class="amount">${p.price.toLocaleString("cs-CZ")}</span><span class="cur">Kč</span>
-      <span class="per">jednorázově</span>
+      <span class="cur">$</span><span class="amount">${p.price.toLocaleString("en-US")}</span>
+      <span class="per">one-time</span>
     </div>
-    <button type="button" class="btn btn-primary" style="width:100%" data-auth="register">Koupit výzvu</button>
-    <p class="price-note">Bez předplatného a skrytých poplatků</p>`;
+    <button type="button" class="btn btn-primary" style="width:100%" data-auth="register">Buy the Challenge</button>
+    <p class="price-note">No subscription, no hidden fees</p>`;
 }
 
 if (seg) {
@@ -101,20 +101,20 @@ if (seg) {
   });
 }
 
-// ---------- sportovní chipy (marquee) ----------
+// ---------- sports chips (marquee) ----------
 const SPORTS = [
-  ["Fotbal", "FTB", "#2ecc71", "fotbal"],
-  ["Hokej", "HOK", "#4a9dff", "hokej"],
-  ["Tenis", "TEN", "#d97757", "tenis"],
-  ["Basketbal", "BSK", "#ff9900", "basketbal"],
+  ["Football", "FTB", "#2ecc71", "fotbal"],
+  ["Hockey", "HOK", "#4a9dff", "hokej"],
+  ["Tennis", "TEN", "#d97757", "tenis"],
+  ["Basketball", "BSK", "#ff9900", "basketbal"],
   ["MMA", "MMA", "#ff4d4d", "mma"],
-  ["Formule 1", "F1", "#e82127", "f1"],
+  ["Formula 1", "F1", "#e82127", "f1"],
   ["Baseball", "MLB", "#0668e1", "baseball"],
-  ["Esporty", "ESP", "#9945ff", "esporty"],
+  ["Esports", "ESP", "#9945ff", "esporty"],
   ["Golf", "GLF", "#14f195", "golf"],
-  ["Šipky", "DRT", "#a89fce", "sipky"],
-  ["Stolní tenis", "STT", "#0092cf", "stolni-tenis"],
-  ["Volejbal", "VOL", "#ffcc00", "volejbal"],
+  ["Darts", "DRT", "#a89fce", "sipky"],
+  ["Table tennis", "TT", "#0092cf", "stolni-tenis"],
+  ["Volleyball", "VOL", "#ffcc00", "volejbal"],
 ];
 
 document.querySelectorAll(".marquee-track[data-row]").forEach((track, i) => {
@@ -127,7 +127,7 @@ document.querySelectorAll(".marquee-track[data-row]").forEach((track, i) => {
       <span class="nm"><b>${name}</b><span>${abbr}</span></span>
     </span>`;
   const half = items.map(chip).join("");
-  track.innerHTML = half + half; /* zdvojené pro plynulou smyčku */
+  track.innerHTML = half + half; /* duplicated for a smooth loop */
 });
 
 // ---------- FAQ ----------
@@ -168,19 +168,19 @@ let lastFocus = null;
 
 const AUTH_TEXTS = {
   login: {
-    title: "Přihlášení",
-    sub: "Přihlaste se do svého účtu",
-    submit: "Přihlásit se",
-    switchText: "Nemáte účet?",
-    switchBtn: "Zaregistrujte se",
+    title: "Log in",
+    sub: "Log in to your account",
+    submit: "Log in",
+    switchText: "No account yet?",
+    switchBtn: "Sign up",
     passAutocomplete: "current-password",
   },
   register: {
-    title: "Registrace",
-    sub: "Vytvořte si účet a začněte výzvu",
-    submit: "Vytvořit účet",
-    switchText: "Už máte účet?",
-    switchBtn: "Přihlaste se",
+    title: "Sign up",
+    sub: "Create an account and start the Challenge",
+    submit: "Create account",
+    switchText: "Already have an account?",
+    switchBtn: "Log in",
     passAutocomplete: "new-password",
   },
 };
@@ -217,7 +217,7 @@ document.addEventListener("click", (e) => {
   const quickstart = e.target.closest("[data-quickstart]");
   if (quickstart) {
     e.preventDefault();
-    // S backendem vede nákup přes checkout průvodce, jinak původní demo.
+    // With the backend the purchase goes through the checkout wizard, otherwise the original demo.
     if (typeof fundlyBackendEnabled === "function" && fundlyBackendEnabled()) {
       window.location.href = "checkout.html?package=" + encodeURIComponent(quickstart.dataset.quickstart);
       return;
@@ -228,7 +228,7 @@ document.addEventListener("click", (e) => {
   }
   const trigger = e.target.closest("[data-auth]");
   if (trigger) {
-    // Registrace = nákup: s backendem přesměrujeme do checkout průvodce.
+    // Sign-up = purchase: with the backend we redirect into the checkout wizard.
     if (trigger.dataset.auth === "register" && typeof fundlyBackendEnabled === "function" && fundlyBackendEnabled()) {
       window.location.href = "checkout.html?package=" + encodeURIComponent(activeKey);
       return;
@@ -248,11 +248,11 @@ authForm.addEventListener("submit", (e) => {
   e.preventDefault();
   if (!authForm.reportValidity()) return;
   authSubmit.disabled = true;
-  authSubmit.textContent = authMode === "login" ? "Přihlašování…" : "Vytváření účtu…";
+  authSubmit.textContent = authMode === "login" ? "Logging in…" : "Creating account…";
 
-  // S nakonfigurovaným backendem (js/config.js): registrace = reálná platba
-  // přes Whop checkout, přihlášení = magic link na e-mail. Bez backendu
-  // pokračuje původní lokální simulace níže.
+  // With a configured backend (js/config.js): sign-up = real payment
+  // via Whop checkout, login = magic link to the e-mail. Without a backend
+  // the original local simulation below continues.
   if (typeof fundlyBackendEnabled === "function" && fundlyBackendEnabled()) {
     const email = document.getElementById("authEmail").value.trim();
     const fail = (msg) => {
@@ -265,16 +265,16 @@ authForm.addEventListener("submit", (e) => {
       FundlyCheckout.buy(activeKey, email).catch((err) => fail(err.message));
     } else {
       const password = document.getElementById("authPass").value;
-      // heslo vyplněné → přímé přihlášení; prázdné → magic link na e-mail
+      // password filled → direct sign-in; empty → magic link to the e-mail
       if (password) {
         FundlyAuth.signInWithPassword(email, password).then(({ error }) => {
-          if (error) { fail("Nesprávný e-mail nebo heslo."); return; }
+          if (error) { fail("Incorrect e-mail or password."); return; }
           window.location.href = "dashboard.html";
-        }).catch(() => fail("Přihlášení se nepodařilo."));
+        }).catch(() => fail("Login failed."));
       } else {
         FundlyAuth.signInWithEmail(email).then(({ error }) => {
           if (error) { fail(error.message); return; }
-          authNote.textContent = "Odkaz pro přihlášení jsme poslali na váš e-mail.";
+          authNote.textContent = "We sent a login link to your e-mail.";
           authNote.hidden = false;
           authSubmit.disabled = false;
           authSubmit.textContent = AUTH_TEXTS[authMode].submit;
@@ -294,7 +294,7 @@ authForm.addEventListener("submit", (e) => {
   }, 700);
 });
 
-// ---------- nav border při scrollu ----------
+// ---------- nav border on scroll ----------
 const nav = document.getElementById("nav");
 const heroSentinel = new IntersectionObserver(
   ([e]) => nav.classList.toggle("scrolled", !e.isIntersecting),

@@ -1,13 +1,13 @@
 // request-payout — žádost hráče o výběr z financovaného účtu (dashboard.html).
 // POST { amount, method } + Authorization: Bearer <user access token>
-// → { ok, payout } nebo { error } s českou hláškou.
+// → { ok, payout } nebo { error } s anglickou hláškou (user-facing).
 // JWT ověřujeme sami přes auth server (v config.toml je verify_jwt = false).
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { handleCors, jsonResponse } from "../_shared/cors.ts";
 
-const MIN_PAYOUT = 250; // minimální výběr v Kč
-const MAX_PAYOUT = 100000; // maximální výběr na jednu žádost v Kč
+const MIN_PAYOUT = 10; // minimální výběr v USD
+const MAX_PAYOUT = 4000; // maximální výběr na jednu žádost v USD
 // Podíl hráče ze zisku (85 %) — zatím jen informativní, cap se uplatní až s profit sloupcem.
 
 serve(async (req) => {
@@ -20,7 +20,7 @@ serve(async (req) => {
 
   const token = req.headers.get("Authorization")?.replace(/^Bearer\s+/i, "") ??
     "";
-  if (!token) return jsonResponse({ error: "Pro výběr se přihlaste." }, 401);
+  if (!token) return jsonResponse({ error: "Please sign in to make a withdrawal." }, 401);
 
   try {
     const supabase = createClient(
@@ -34,19 +34,19 @@ serve(async (req) => {
     );
     const user = userData?.user;
     if (userError || !user) {
-      return jsonResponse({ error: "Pro výběr se přihlaste." }, 401);
+      return jsonResponse({ error: "Please sign in to make a withdrawal." }, 401);
     }
 
     const { amount, method } = await req.json();
     const payoutAmount = Number(amount);
     if (!Number.isFinite(payoutAmount) || payoutAmount < MIN_PAYOUT) {
-      return jsonResponse({ error: `Minimální výběr je ${MIN_PAYOUT} Kč.` }, 400);
+      return jsonResponse({ error: `The minimum withdrawal is $${MIN_PAYOUT}.` }, 400);
     }
     if (payoutAmount > MAX_PAYOUT) {
-      return jsonResponse({ error: `Maximální výběr na jednu žádost je ${MAX_PAYOUT.toLocaleString("cs-CZ")} Kč.` }, 400);
+      return jsonResponse({ error: `The maximum withdrawal per request is $${MAX_PAYOUT.toLocaleString("en-US")}.` }, 400);
     }
     if (!method || typeof method !== "string") {
-      return jsonResponse({ error: "Vyberte způsob výplaty." }, 400);
+      return jsonResponse({ error: "Choose a payout method." }, 400);
     }
 
     // challenge účet přihlášeného hráče (nejnovější)
@@ -58,11 +58,11 @@ serve(async (req) => {
       .limit(1)
       .maybeSingle();
     if (!account) {
-      return jsonResponse({ error: "Nemáte žádný challenge účet." }, 400);
+      return jsonResponse({ error: "You have no challenge account." }, 400);
     }
     if (account.state !== "funded") {
       return jsonResponse(
-        { error: "Výběry jsou dostupné až pro financovaný účet." },
+        { error: "Withdrawals are only available on a funded account." },
         400,
       );
     }
@@ -88,7 +88,7 @@ serve(async (req) => {
   } catch (err) {
     console.error("request-payout error:", err);
     return jsonResponse(
-      { error: err instanceof Error ? err.message : "Žádost se nepodařilo odeslat." },
+      { error: err instanceof Error ? err.message : "The request could not be submitted." },
       500,
     );
   }

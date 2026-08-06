@@ -39,7 +39,7 @@ serve(async (req) => {
     ] = await Promise.all([
       supabase
         .from("payments")
-        .select("amount")
+        .select("amount, currency")
         .eq("status", "succeeded")
         .gte("created_at", monthStartIso),
       supabase.from("payments").select("email, amount, currency").eq("status", "succeeded"),
@@ -70,14 +70,16 @@ serve(async (req) => {
     const sum = (rows: any[] | null, field: string) =>
       (rows ?? []).reduce((a, r) => a + (Number(r[field]) || 0), 0);
 
-    // Převod do Kč pro agregace — EUR platby kurzem z env (default 25).
+    // Převod do Kč pro agregace — EUR a USD platby kurzem z env (default 25).
     const EUR_CZK = Number(Deno.env.get("EUR_CZK_RATE") ?? 25) || 25;
+    const USD_CZK = Number(Deno.env.get("USD_CZK_RATE") ?? 25) || 25;
+    // deno-lint-ignore no-explicit-any
+    const toCzk = (r: any) =>
+      (Number(r.amount) || 0) *
+      (r.currency === "eur" ? EUR_CZK : r.currency === "usd" ? USD_CZK : 1);
     // deno-lint-ignore no-explicit-any
     const sumCzk = (rows: any[] | null) =>
-      (rows ?? []).reduce(
-        (a, r) => a + (Number(r.amount) || 0) * (r.currency === "eur" ? EUR_CZK : 1),
-        0,
-      );
+      (rows ?? []).reduce((a, r) => a + toCzk(r), 0);
 
     const accountsByState: Record<string, number> = {};
     for (const row of accounts.data ?? []) {
@@ -92,7 +94,7 @@ serve(async (req) => {
     for (const a of recentAccounts.data ?? []) accountById[a.id] = a;
     const spentByEmail: Record<string, number> = {};
     for (const p of allPayments.data ?? []) {
-      const amt = (Number(p.amount) || 0) * (p.currency === "eur" ? EUR_CZK : 1);
+      const amt = toCzk(p);
       if (p.email) spentByEmail[p.email] = (spentByEmail[p.email] ?? 0) + amt;
     }
     // deno-lint-ignore no-explicit-any

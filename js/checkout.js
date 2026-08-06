@@ -1,15 +1,15 @@
-/* Fundly — checkout průvodce (1 výběr balíčku → 2 registrace → 3 platba).
-   Načítá se po config.js, packages.js, portfolio.js a whop.js. */
+/* Fundly — checkout wizard (1 package selection → 2 sign up → 3 payment).
+   Loaded after config.js, packages.js, portfolio.js and whop.js. */
 
 (function () {
   "use strict";
 
-  const czk = (n) => n.toLocaleString("cs-CZ") + " Kč";
-  const czkSigned = (n) => (n > 0 ? "+" : "-") + Math.abs(n).toLocaleString("cs-CZ") + " Kč";
+  const usd = (n) => "$" + Math.round(n).toLocaleString("en-US");
+  const usdSigned = (n) => (n > 0 ? "+" : n < 0 ? "-" : "") + "$" + Math.abs(Math.round(n)).toLocaleString("en-US");
 
   const $ = (id) => document.getElementById(id);
 
-  // ---------- stav ----------
+  // ---------- state ----------
   const state = {
     step: 1,
     pkg: "advanced",
@@ -18,14 +18,14 @@
     paymentRunning: false,
   };
 
-  // Předvolba balíčku z URL (?package=elite), fallback na Advanced.
+  // Package preset from URL (?package=elite), fallback to Advanced.
   const urlPkg = new URLSearchParams(window.location.search).get("package");
   if (urlPkg && PACKAGES.some((p) => p.key === urlPkg)) state.pkg = urlPkg;
 
   const pkg = () => packageByKey(state.pkg);
   const meta = () => packageMeta(pkg());
 
-  // ---------- krok 1: karty balíčků ----------
+  // ---------- step 1: package cards ----------
   const pkgGrid = $("pkgGrid");
 
   function renderPkgGrid() {
@@ -36,10 +36,10 @@
         class="pkg-card ${p.key === state.pkg ? "active" : ""}" data-key="${p.key}">
         ${p.top ? '<span class="top-badge">TOP</span>' : ""}
         <span class="nm">${p.name}</span>
-        <span class="cap">${czk(p.cap)}</span>
+        <span class="cap">${usd(p.cap)}</span>
         <span class="specs">
-          <span class="spec"><span class="k">Cíl fáze 1</span><span class="v green">${czkSigned(m.target1)}</span></span>
-          <span class="spec"><span class="k">Max. sázka</span><span class="v">${czk(m.maxStake)}</span></span>
+          <span class="spec"><span class="k">Phase 1 target</span><span class="v green">${usdSigned(m.target1)}</span></span>
+          <span class="spec"><span class="k">Max. stake</span><span class="v">${usd(m.maxStake)}</span></span>
         </span>
       </button>`;
     }).join("");
@@ -54,41 +54,41 @@
     renderSummary();
   });
 
-  // ---------- cíle fází a limity ----------
+  // ---------- phase targets and limits ----------
   function renderGoals() {
     const m = meta();
-    $("goalTarget1").textContent = czkSigned(m.target1);
-    $("goalTarget2").textContent = czkSigned(m.target2);
-    $("goalDrawdown").textContent = czkSigned(-m.drawdown);
+    $("goalTarget1").textContent = usdSigned(m.target1);
+    $("goalTarget2").textContent = usdSigned(m.target2);
+    $("goalDrawdown").textContent = usdSigned(-m.drawdown);
   }
 
-  // ---------- shrnutí (pravý sloupec) ----------
+  // ---------- summary (right column) ----------
   function renderSummary() {
     const p = pkg();
     const m = meta();
     const check = `<svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
     $("summaryPanel").innerHTML = `
-      <h3 class="sum-h">Shrnutí</h3>
-      <div class="sum-row sum-head"><span class="k">Balíček</span><span class="k">Kapitál</span></div>
-      <div class="sum-row"><span class="v big">${p.name}</span><span class="v green big">${czk(p.cap)}</span></div>
-      <div class="sum-row"><span class="k">Podíl na zisku</span><span class="v green">${m.profitSplit} %</span></div>
-      <div class="sum-row"><span class="k">Max. sázka</span><span class="v">${czk(m.maxStake)}</span></div>
-      <div class="sum-row"><span class="k">${p.name} balíček</span><span class="v">${czk(p.price)}</span></div>
-      <div class="sum-total"><span class="k">Celkem</span><span class="v">${czk(p.price)}</span></div>
+      <h3 class="sum-h">Summary</h3>
+      <div class="sum-row sum-head"><span class="k">Package</span><span class="k">Capital</span></div>
+      <div class="sum-row"><span class="v big">${p.name}</span><span class="v green big">${usd(p.cap)}</span></div>
+      <div class="sum-row"><span class="k">Profit share</span><span class="v green">${m.profitSplit} %</span></div>
+      <div class="sum-row"><span class="k">Max. stake</span><span class="v">${usd(m.maxStake)}</span></div>
+      <div class="sum-row"><span class="k">${p.name} package</span><span class="v">${usd(p.price)}</span></div>
+      <div class="sum-total"><span class="k">Total</span><span class="v">${usd(p.price)}</span></div>
       <ul class="sum-feats">
-        <li>${check}2 fáze evaluace</li>
-        <li>${check}Neomezený čas jako tipér</li>
-        <li>${check}Výběr zisku po dosažení Funded fáze</li>
-        <li>${check}Všechny sporty</li>
+        <li>${check}2 evaluation phases</li>
+        <li>${check}Unlimited time as a bettor</li>
+        <li>${check}Profit withdrawals once you reach the Funded phase</li>
+        <li>${check}All sports</li>
       </ul>
-      <p class="sum-note">Jednorázová platba • Bez měsíčních poplatků</p>
+      <p class="sum-note">One-time payment • No monthly fees</p>
       <div class="sum-badges">
-        <span><svg width="14" height="14" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.5l5 2v4c0 3-2.2 5.2-5 6-2.8-.8-5-3-5-6v-4l5-2z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M5.2 7.3l1.7 1.7 3-3.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Bezpečná platba</span>
-        <span><svg width="14" height="14" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M8.5 1.5L3 8.5h4l-1.5 5L11 6.5H7l1.5-5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>Okamžitý přístup</span>
+        <span><svg width="14" height="14" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.5l5 2v4c0 3-2.2 5.2-5 6-2.8-.8-5-3-5-6v-4l5-2z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M5.2 7.3l1.7 1.7 3-3.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Secure payment</span>
+        <span><svg width="14" height="14" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M8.5 1.5L3 8.5h4l-1.5 5L11 6.5H7l1.5-5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>Instant access</span>
       </div>`;
   }
 
-  // ---------- navigace mezi kroky ----------
+  // ---------- step navigation ----------
   const checkDot = `<svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
   function goToStep(n) {
@@ -109,7 +109,7 @@
   $("btnBack2").addEventListener("click", () => goToStep(2));
   $("btnBack3").addEventListener("click", (e) => { e.preventDefault(); goToStep(2); });
 
-  // ---------- krok 2: validace registrace ----------
+  // ---------- step 2: sign-up validation ----------
   const regForm = $("regForm");
   const regEmail = $("regEmail");
   const regPass = $("regPass");
@@ -127,22 +127,22 @@
     let ok = true;
     const email = regEmail.value.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setErr(regEmail, $("errEmail"), "Zadejte platnou e-mailovou adresu.");
+      setErr(regEmail, $("errEmail"), "Enter a valid e-mail address.");
       ok = false;
     } else setErr(regEmail, $("errEmail"), null);
 
     if (regPass.value.length < 8) {
-      setErr(regPass, $("errPass"), "Heslo musí mít alespoň 8 znaků.");
+      setErr(regPass, $("errPass"), "Password must be at least 8 characters long.");
       ok = false;
     } else setErr(regPass, $("errPass"), null);
 
     if (regPass2.value !== regPass.value || !regPass2.value) {
-      setErr(regPass2, $("errPass2"), "Hesla se neshodují.");
+      setErr(regPass2, $("errPass2"), "Passwords do not match.");
       ok = false;
     } else setErr(regPass2, $("errPass2"), null);
 
     if (!consentTerms.checked || !consentRules.checked) {
-      setErr(null, $("errConsent"), "Pro pokračování potvrďte oba souhlasy.");
+      setErr(null, $("errConsent"), "Please confirm both consents to continue.");
       ok = false;
     } else setErr(null, $("errConsent"), null);
 
@@ -156,35 +156,35 @@
     state.email = regEmail.value.trim();
     const btn = $("btnRegister");
     btn.disabled = true;
-    btn.textContent = "Vytváření účtu…";
+    btn.textContent = "Creating account…";
 
-    // Bez backendu (placeholdery v config.js) zůstává původní demo režim.
+    // Without the backend (placeholders in config.js) the original demo mode stays.
     if (!(typeof fundlyBackendEnabled === "function" && fundlyBackendEnabled())) {
       Portfolio.init(state.pkg);
       window.location.href = "dashboard.html";
       return;
     }
 
-    // Registrace je best-effort: platební relace potřebuje jen e-mail,
-    // takže chyba signUpu (rate limit, už existující účet) platbu neblokuje.
+    // Sign-up is best-effort: the payment session only needs the e-mail,
+    // so a signUp error (rate limit, existing account) does not block payment.
     try {
       const { error } = await FundlyAuth.signUpWithPassword(state.email, regPass.value);
       if (error) console.warn("signUp:", error.message);
     } catch (err) {
-      console.warn("signUp selhal:", err);
+      console.warn("signUp failed:", err);
     }
     btn.disabled = false;
-    btn.innerHTML = `Dokončit registraci
+    btn.innerHTML = `Complete sign up
       <svg class="arr" width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2.5 7.5h10m0 0l-4-4m4 4l-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
     goToStep(3);
   });
 
-  // ---------- krok 3: embedded Whop checkout ----------
+  // ---------- step 3: embedded Whop checkout ----------
   const payLoading = $("payLoading");
   const whopMount = $("whopMount");
   const payFallback = $("payFallback");
 
-  // Návratová URL po platbě (web běží i pod cestou /fundly/ na GitHub Pages).
+  // Return URL after payment (the site also runs under the /fundly/ path on GitHub Pages).
   function returnUrl() {
     return location.origin + location.pathname.replace(/[^/]*$/, "") + "dashboard.html?paid=1";
   }
@@ -192,7 +192,7 @@
   function showFallback(msg, checkoutUrl) {
     payLoading.hidden = true;
     whopMount.innerHTML = "";
-    $("payErrMsg").textContent = msg || "Platební bránu se nepodařilo načíst.";
+    $("payErrMsg").textContent = msg || "The payment gateway could not be loaded.";
     const link = $("payFallbackLink");
     if (checkoutUrl) {
       link.href = checkoutUrl;
@@ -204,7 +204,7 @@
   }
 
   function mountWhopEmbed(sessionId, planId) {
-    // Mount element dle dokumentace Whop (embedded checkout, HTML/JS varianta)
+    // Mount element per the Whop docs (embedded checkout, HTML/JS variant)
     const el = document.createElement("div");
     el.setAttribute("data-whop-checkout-plan-id", planId);
     el.setAttribute("data-whop-checkout-session", sessionId);
@@ -214,17 +214,17 @@
     whopMount.innerHTML = "";
     whopMount.appendChild(el);
 
-    // Loader se vloží pokaždé znovu, aby nový mount element načetl.
+    // The loader is re-inserted every time so it picks up the new mount element.
     const old = document.querySelector('script[src*="js.whop.com/static/checkout/loader.js"]');
     if (old) old.remove();
     const s = document.createElement("script");
     s.async = true;
     s.defer = true;
     s.src = "https://js.whop.com/static/checkout/loader.js";
-    s.onerror = () => showFallback("Platební bránu se nepodařilo načíst.", state.checkoutUrl);
+    s.onerror = () => showFallback("The payment gateway could not be loaded.", state.checkoutUrl);
     document.head.appendChild(s);
 
-    // Čekáme na iframe embedu; když se do 20 s neobjeví, ukážeme fallback.
+    // Wait for the embed iframe; if it does not appear within 20 s, show the fallback.
     let waited = 0;
     const timer = setInterval(() => {
       waited += 500;
@@ -234,7 +234,7 @@
         payLoading.hidden = true;
       } else if (waited >= 20000) {
         clearInterval(timer);
-        showFallback("Platební brána se nepodařila načíst. Zkuste to prosím znovu, nebo plaťte přímo na Whopu.", state.checkoutUrl);
+        showFallback("The payment gateway could not be loaded. Please try again, or pay directly on Whop.", state.checkoutUrl);
       }
     }, 500);
   }
@@ -250,7 +250,7 @@
       const data = await FundlyCheckout.createSession(state.pkg, state.email);
       state.checkoutUrl = data.checkoutUrl;
       if (!data.sessionId || !data.planId) {
-        throw new Error("Platební brána vrátila neplatnou odpověď.");
+        throw new Error("The payment gateway returned an invalid response.");
       }
       mountWhopEmbed(data.sessionId, data.planId);
     } catch (err) {
@@ -261,7 +261,7 @@
   }
 
   // ---------- init ----------
-  // Placeholder odkazy v souhlasech (href="#") nescrollují nahoru
+  // Placeholder links in the consents (href="#") must not scroll to top
   document.querySelectorAll('.consent a[href="#"]').forEach((a) =>
     a.addEventListener("click", (e) => e.preventDefault())
   );

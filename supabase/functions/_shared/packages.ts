@@ -1,20 +1,20 @@
 // Serverová mapa balíčků — zrcadlí js/packages.js z frontendu.
-// Whop API očekává cenu jako desetinné číslo v dané měně (czk).
+// Whop API očekává cenu jako desetinné číslo v dané měně (usd).
 
 export interface PackageDef {
   key: string;
   name: string;
-  cap: number; // kapitál challenge účtu v Kč
-  price: number; // jednorázová cena v Kč
+  cap: number; // kapitál challenge účtu v USD
+  price: number; // jednorázová cena v USD
   currency: string;
 }
 
 export const PACKAGES: Record<string, PackageDef> = {
-  starter: { key: "starter", name: "Starter", cap: 10000, price: 490, currency: "czk" },
-  standard: { key: "standard", name: "Standard", cap: 25000, price: 890, currency: "czk" },
-  advanced: { key: "advanced", name: "Advanced", cap: 50000, price: 1590, currency: "czk" },
-  pro: { key: "pro", name: "Pro", cap: 100000, price: 2990, currency: "czk" },
-  elite: { key: "elite", name: "Elite", cap: 200000, price: 4990, currency: "czk" },
+  starter: { key: "starter", name: "Starter", cap: 400, price: 20, currency: "usd" },
+  standard: { key: "standard", name: "Standard", cap: 1000, price: 35, currency: "usd" },
+  advanced: { key: "advanced", name: "Advanced", cap: 2000, price: 65, currency: "usd" },
+  pro: { key: "pro", name: "Pro", cap: 4000, price: 125, currency: "usd" },
+  elite: { key: "elite", name: "Elite", cap: 8000, price: 200, currency: "usd" },
   // Testovací balíček pro živý end-to-end test (1 EUR) — není vidět na webu.
   test: { key: "test", name: "TEST", cap: 1000, price: 1, currency: "eur" },
 };

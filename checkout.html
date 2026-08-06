@@ -1,15 +1,15 @@
 <!doctype html>
-<html lang="cs">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Checkout | Fundly</title>
-  <meta name="description" content="Vyberte si balíček, vytvořte účet a zaplaťte výzvu Fundly." />
+  <meta name="description" content="Pick a package, create an account and pay for the Fundly Challenge." />
   <meta name="theme-color" content="#020204" />
   <link rel="icon" type="image/png" href="assets/logo.png" />
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/checkout.css" />
-  <!-- backend (Supabase/Whop) + sdílená data balíčků — defer, stránka funguje i v demo režimu -->
+  <!-- backend (Supabase/Whop) + shared package data — defer, page works in demo mode too -->
   <script defer src="js/config.js"></script>
   <script defer src="js/packages.js"></script>
   <script defer src="js/portfolio.js"></script>
@@ -18,15 +18,15 @@
 </head>
 <body>
 
-  <!-- ============ NAV (stejná jako dashboard) ============ -->
+  <!-- ============ NAV (same as dashboard) ============ -->
   <header class="nav scrolled">
     <div class="container nav-inner">
-      <a href="index.html" class="logo" aria-label="Fundly, domů">
+      <a href="index.html" class="logo" aria-label="Fundly, home">
         <img src="assets/logo.png" alt="" width="24" height="24" />
         fundly
       </a>
       <div class="nav-cta">
-        <a class="btn btn-ghost" href="index.html">Zpět na úvod</a>
+        <a class="btn btn-ghost" href="index.html">Back to home</a>
       </div>
     </div>
   </header>
@@ -34,64 +34,64 @@
   <main class="co-main">
     <div class="container">
 
-      <!-- ============ HLAVIČKA ============ -->
+      <!-- ============ HEADER ============ -->
       <div class="co-hero">
-        <h1 class="t-h2">Začněte svou <span class="acc">cestu</span></h1>
-        <p>Vyberte si balíček a vytvořte účet</p>
+        <h1 class="t-h2">Start your <span class="acc">journey</span></h1>
+        <p>Pick a package and create an account</p>
       </div>
 
-      <!-- ============ INDIKÁTOR KROKŮ ============ -->
+      <!-- ============ STEP INDICATOR ============ -->
       <ol class="co-steps" id="coSteps">
         <li class="co-step active" data-step-dot="1">
           <span class="dot">1</span>
-          <span class="lbl">Výběr balíčku</span>
+          <span class="lbl">Package selection</span>
         </li>
         <li class="co-step" data-step-dot="2">
           <span class="dot">2</span>
-          <span class="lbl">Registrace</span>
+          <span class="lbl">Sign up</span>
         </li>
         <li class="co-step" data-step-dot="3">
           <span class="dot">3</span>
-          <span class="lbl">Platba</span>
+          <span class="lbl">Payment</span>
         </li>
       </ol>
 
       <div class="co-layout">
-        <!-- ============ LEVÝ SLOUPEC: obsah kroků ============ -->
+        <!-- ============ LEFT COLUMN: step content ============ -->
         <div class="co-content">
 
-          <!-- Krok 1: výběr balíčku -->
+          <!-- Step 1: package selection -->
           <section class="co-panel" id="step1">
-            <h2 class="co-label">Výběr kapitálu</h2>
-            <div class="pkg-grid" id="pkgGrid" role="radiogroup" aria-label="Výběr balíčku"><!-- JS --></div>
+            <h2 class="co-label">Capital selection</h2>
+            <div class="pkg-grid" id="pkgGrid" role="radiogroup" aria-label="Package selection"><!-- JS --></div>
 
             <div class="co-cols">
               <div class="co-box">
                 <h3 class="co-box-h">
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.4"/><circle cx="7" cy="7" r="1.8" fill="currentColor"/></svg>
-                  Cíle fází
+                  Phase targets
                 </h3>
-                <div class="co-row"><span class="k">Fáze 1</span><span class="v green" id="goalTarget1">–</span></div>
-                <div class="co-row"><span class="k">Fáze 2</span><span class="v green" id="goalTarget2">–</span></div>
+                <div class="co-row"><span class="k">Phase 1</span><span class="v green" id="goalTarget1">–</span></div>
+                <div class="co-row"><span class="k">Phase 2</span><span class="v green" id="goalTarget2">–</span></div>
               </div>
               <div class="co-box">
                 <h3 class="co-box-h">
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 1.5l5.5 10h-11L7 1.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M7 5.5v2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="7" cy="9.8" r=".8" fill="currentColor"/></svg>
-                  Limity
+                  Limits
                 </h3>
-                <div class="co-row"><span class="k">Max. ztráta (statická)</span><span class="v red" id="goalDrawdown">–</span></div>
-                <p class="co-note">Žádný denní limit. Účet se spálí pouze při poklesu o 10 % kapitálu — pevný floor, žádný trailing.</p>
+                <div class="co-row"><span class="k">Max. loss (static)</span><span class="v red" id="goalDrawdown">–</span></div>
+                <p class="co-note">No daily limit. The account is only breached on a 10 % capital drawdown — a fixed floor, no trailing.</p>
               </div>
             </div>
 
             <div class="co-chips">
               <span class="co-chip">
                 <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M1.5 10.5l3.5-3.5 2.5 2.5 5-5.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Kurzy 1.00–8.00
+                Odds 1.00–8.00
               </span>
               <span class="co-chip">
                 <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.4"/><path d="M7 4v3l2 1.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-                30 dní/fáze
+                30 days/phase
               </span>
               <span class="co-chip">
                 <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 1.5v11M10 4c0-1.1-1.3-2-3-2s-3 .9-3 2 1.3 2 3 2 3 .9 3 2-1.3 2-3 2-3-.9-3-2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
@@ -100,87 +100,87 @@
             </div>
 
             <button type="button" class="btn btn-primary btn-lg co-cta" id="btnToStep2">
-              Pokračovat
+              Continue
               <svg class="arr" width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2.5 7.5h10m0 0l-4-4m4 4l-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
           </section>
 
-          <!-- Krok 2: registrace -->
+          <!-- Step 2: sign up -->
           <section class="co-panel" id="step2" hidden>
             <h2 class="co-h">
               <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="5.25" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M2.5 14c.8-2.7 3-4.25 5.5-4.25s4.7 1.55 5.5 4.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-              Vytvořte účet
+              Create your account
             </h2>
             <form id="regForm" novalidate>
               <div class="field">
                 <label for="regEmail">Email</label>
-                <input class="input" id="regEmail" type="email" placeholder="vas@email.cz" autocomplete="email" />
+                <input class="input" id="regEmail" type="email" placeholder="you@example.com" autocomplete="email" />
                 <span class="field-err" id="errEmail" hidden></span>
               </div>
               <div class="field">
-                <label for="regPass">Heslo</label>
+                <label for="regPass">Password</label>
                 <input class="input" id="regPass" type="password" placeholder="••••••••" autocomplete="new-password" />
                 <span class="field-err" id="errPass" hidden></span>
               </div>
               <div class="field">
-                <label for="regPass2">Potvrzení hesla</label>
+                <label for="regPass2">Confirm password</label>
                 <input class="input" id="regPass2" type="password" placeholder="••••••••" autocomplete="new-password" />
                 <span class="field-err" id="errPass2" hidden></span>
               </div>
 
               <label class="consent">
                 <input type="checkbox" id="consentTerms" />
-                <span>Souhlasím s <a href="#" class="lnk">obchodními podmínkami</a> a <a href="#" class="lnk">zásadami ochrany osobních údajů</a>.</span>
+                <span>I agree to the <a href="#" class="lnk">terms and conditions</a> and the <a href="#" class="lnk">privacy policy</a>.</span>
               </label>
               <label class="consent">
                 <input type="checkbox" id="consentRules" />
-                <span>Potvrzuji, že jsem si přečetl/a <a href="#" class="lnk">pravidla výzvy</a> a rozumím jim.</span>
+                <span>I confirm that I have read and understood the <a href="#" class="lnk">Challenge rules</a>.</span>
               </label>
               <span class="field-err" id="errConsent" hidden></span>
 
               <div class="co-actions">
                 <button type="button" class="btn btn-ghost" id="btnBack1">
                   <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M12.5 7.5h-10m0 0l4-4m-4 4l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                  Zpět
+                  Back
                 </button>
                 <button type="submit" class="btn btn-primary btn-lg co-grow" id="btnRegister">
-                  Dokončit registraci
+                  Complete sign up
                   <svg class="arr" width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2.5 7.5h10m0 0l-4-4m4 4l-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </button>
               </div>
             </form>
-            <p class="co-switch">Už máte účet? <a href="index.html" class="lnk">Přihlásit se</a></p>
+            <p class="co-switch">Already have an account? <a href="index.html" class="lnk">Log in</a></p>
           </section>
 
-          <!-- Krok 3: platba (embedded Whop checkout) -->
+          <!-- Step 3: payment (embedded Whop checkout) -->
           <section class="co-panel" id="step3" hidden>
             <h2 class="co-h">
               <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="1.5" y="3.5" width="13" height="9" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1.5 6.5h13" stroke="currentColor" stroke-width="1.5"/></svg>
-              Platba
+              Payment
             </h2>
 
             <div class="pay-loading" id="payLoading">
               <span class="spinner" aria-hidden="true"></span>
-              <p>Připravujeme platební bránu…</p>
+              <p>Preparing the payment gateway…</p>
             </div>
 
-            <div id="whopMount" class="whop-mount"><!-- sem se vloží embedded checkout --></div>
+            <div id="whopMount" class="whop-mount"><!-- the embedded checkout mounts here --></div>
 
             <div class="pay-fallback" id="payFallback" hidden>
-              <p class="pay-err" id="payErrMsg">Platební bránu se nepodařilo načíst.</p>
-              <a class="btn btn-primary btn-lg" id="payFallbackLink" href="#" target="_blank" rel="noopener">Otevřít platbu na Whopu</a>
+              <p class="pay-err" id="payErrMsg">The payment gateway could not be loaded.</p>
+              <a class="btn btn-primary btn-lg" id="payFallbackLink" href="#" target="_blank" rel="noopener">Open payment on Whop</a>
               <button type="button" class="btn btn-ghost" id="btnBack2">
                 <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M12.5 7.5h-10m0 0l4-4m-4 4l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Zpět
+                Back
               </button>
             </div>
 
-            <p class="co-switch"><a href="#" class="lnk" id="btnBack3">← Zpět na registraci</a></p>
+            <p class="co-switch"><a href="#" class="lnk" id="btnBack3">← Back to sign up</a></p>
           </section>
 
         </div>
 
-        <!-- ============ PRAVÝ SLOUPEC: shrnutí ============ -->
+        <!-- ============ RIGHT COLUMN: summary ============ -->
         <aside class="co-summary" id="summaryPanel"><!-- JS --></aside>
       </div>
 

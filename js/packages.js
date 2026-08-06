@@ -1,23 +1,23 @@
-/* Fundly — sdílená konfigurace balíčků (index.html i dashboard.html). */
+/* Fundly — shared package config (index.html and dashboard.html). */
 
 const PACKAGES = [
-  { key: "starter",  name: "Starter",  cap: 10000,  price: 490 },
-  { key: "standard", name: "Standard", cap: 25000,  price: 890 },
-  { key: "advanced", name: "Advanced", cap: 50000,  price: 1590, top: true },
-  { key: "pro",      name: "Pro",      cap: 100000, price: 2990 },
-  { key: "elite",    name: "Elite",    cap: 200000, price: 4990 },
+  { key: "starter",  name: "Starter",  cap: 400,  price: 20 },
+  { key: "standard", name: "Standard", cap: 1000, price: 35 },
+  { key: "advanced", name: "Advanced", cap: 2000, price: 65, top: true },
+  { key: "pro",      name: "Pro",      cap: 4000, price: 125 },
+  { key: "elite",    name: "Elite",    cap: 8000, price: 200 },
 ];
 
 function packageByKey(key) {
   return PACKAGES.find((p) => p.key === key) || PACKAGES[2];
 }
 
-// Odvozené parametry výzvy ze zvoleného balíčku — nová pravidla:
-// cíl fáze 1 = +10 %, fáze 2 = +5 %, max. celková ztráta -10 % STATICKÁ
-// (pevný floor = kapitál − drawdown, žádný trailing přes HWM), max. vklad
-// na tiket = 4 % kapitálu, profit split 80 %, kvalifikační tikety =
-// 5 výherných tiketů s čistým ziskem ≥ 0,5 % kapitálu na fázi / payout,
-// payout buffer = +5 % kapitálu.
+// Challenge parameters derived from the chosen package:
+// phase 1 target = +10 %, phase 2 = +5 %, max. total loss -10 % STATIC
+// (fixed floor = capital − drawdown, no trailing across HWM), max. stake
+// per ticket = 4 % of capital, profit split 80 %, qualifying tickets =
+// 5 winning tickets with net profit ≥ 0.5 % of capital per phase / payout,
+// payout buffer = +5 % of capital.
 function packageMeta(pkg) {
   return {
     target1: Math.round(pkg.cap * 0.1),
