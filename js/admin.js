@@ -330,12 +330,14 @@ async function adminFetch(fnName, body) {
 function renderAdminGate(note) {
   const container = document.querySelector(".dash-main .container");
   if (!container || document.getElementById("adminGate")) return;
+  // zamčený stav — skrýt veškerý obsah i navigaci, jen přihlášení
+  document.body.classList.add("admin-locked");
   const gate = document.createElement("div");
   gate.className = "panel";
   gate.id = "adminGate";
   gate.innerHTML = `
     <h3>Přihlášení administrátora</h3>
-    <p class="bet-msg" style="margin-bottom:12px">Přihlaste se admin účtem. Bez něj se zobrazují ukázková data.</p>
+    <p class="bet-msg" style="margin-bottom:12px">Přístup pouze pro administrátory.</p>
     <form id="adminSignIn" style="max-width:420px">
       <div class="field">
         <label for="adminEmail">E-mail</label>
@@ -376,6 +378,7 @@ async function loadRealStats() {
   REAL = stats;
   const gate = document.getElementById("adminGate");
   if (gate) gate.hidden = true;
+  document.body.classList.remove("admin-locked");
   renderRealFinance(stats);
   renderRealPlayers(stats);
   renderPlayersTable(); // přepnutá verze níže vykreslí reálné účty
