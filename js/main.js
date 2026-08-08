@@ -83,10 +83,10 @@ function renderPlan(animate) {
     </ul>
     <div class="price-row ${animate ? "pkg-anim" : ""}" style="animation-delay:.08s">
       <span class="cur">$</span><span class="amount">${p.price.toLocaleString("en-US")}</span>
-      <span class="per">one-time</span>
+      <span class="per">/month</span>
     </div>
     <button type="button" class="btn btn-primary" style="width:100%" data-auth="register">Buy the Challenge</button>
-    <p class="price-note">No subscription, no hidden fees</p>`;
+    <p class="price-note">Monthly plan · 30-day account · cancel anytime</p>`;
 }
 
 if (seg) {

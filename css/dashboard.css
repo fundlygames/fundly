@@ -283,6 +283,16 @@ body::after {
 .ov-layout { display: grid; gap: 12px; align-items: start; }
 @media (min-width: 1024px) { .ov-layout { grid-template-columns: minmax(0, 1fr) 340px; } }
 
+/* limited dashboard (bez aktivního účtu): schováme navigaci a odsazení sidebaru */
+.limited .dside, .limited .dnav-mobile { display: none; }
+@media (min-width: 1024px) { .limited .dash-main { padding-left: 0; } }
+
+/* nápadný panel — aktivace funded účtu / CTA na novou výzvu */
+.act-panel {
+  margin-bottom: 12px;
+  box-shadow: inset 0 0 0 1px var(--accent-border-soft), inset 0 1px 0 #ffffff0a, 0 12px 32px -18px rgb(0 0 0 / .6);
+}
+
 /* hero blok: zůstatek + equity graf, fialový nádech pozadí */
 .balance-card {
   position: relative;

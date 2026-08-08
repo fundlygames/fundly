@@ -52,7 +52,7 @@ serve(async (req) => {
     // challenge účet přihlášeného hráče (nejnovější)
     const { data: account } = await supabase
       .from("challenge_accounts")
-      .select("id, state, capital")
+      .select("id, state, capital, flags")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -65,6 +65,13 @@ serve(async (req) => {
         { error: "Withdrawals are only available on a funded account." },
         400,
       );
+    }
+
+    // Funded účet vyžaduje zaplacený aktivační poplatek ($80) — webhook ho
+    // zapisuje jako flag "activation_paid" na účtu.
+    const flags = Array.isArray(account.flags) ? account.flags : [];
+    if (!flags.includes("activation_paid")) {
+      return jsonResponse({ error: "Pay the activation fee first." }, 400);
     }
 
     // Schéma challenge_accounts zatím profit nesleduje — stav portfolia žije

@@ -73,15 +73,16 @@
       <div class="sum-row"><span class="v big">${p.name}</span><span class="v green big">${usd(p.cap)}</span></div>
       <div class="sum-row"><span class="k">Profit share</span><span class="v green">${m.profitSplit} %</span></div>
       <div class="sum-row"><span class="k">Max. stake</span><span class="v">${usd(m.maxStake)}</span></div>
-      <div class="sum-row"><span class="k">${p.name} package</span><span class="v">${usd(p.price)}</span></div>
-      <div class="sum-total"><span class="k">Total</span><span class="v">${usd(p.price)}</span></div>
+      <div class="sum-row"><span class="k">${p.name} package</span><span class="v">${usd(p.price)}/mo</span></div>
+      <div class="sum-total"><span class="k">Monthly plan</span><span class="v">${usd(p.price)}<small style="font-size:.9rem;color:var(--text-muted);font-weight:600">/mo</small></span></div>
       <ul class="sum-feats">
         <li>${check}2 evaluation phases</li>
-        <li>${check}Unlimited time as a bettor</li>
+        <li>${check}30-day account with every month</li>
+        <li>${check}Unlimited time as a bettor once funded</li>
         <li>${check}Profit withdrawals once you reach the Funded phase</li>
         <li>${check}All sports</li>
       </ul>
-      <p class="sum-note">One-time payment • No monthly fees</p>
+      <p class="sum-note">Monthly plan • Cancel anytime</p>
       <div class="sum-badges">
         <span><svg width="14" height="14" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.5l5 2v4c0 3-2.2 5.2-5 6-2.8-.8-5-3-5-6v-4l5-2z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M5.2 7.3l1.7 1.7 3-3.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Secure payment</span>
         <span><svg width="14" height="14" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M8.5 1.5L3 8.5h4l-1.5 5L11 6.5H7l1.5-5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>Instant access</span>

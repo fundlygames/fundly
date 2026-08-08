@@ -30,7 +30,8 @@ serve(async (req) => {
     if (!Deno.env.get("WHOP_COMPANY_ID")) throw new Error("WHOP_COMPANY_ID is not set");
 
     // Přednostně existující plan z Whop dashboardu (env WHOP_PLAN_<KEY>),
-    // jinak inline plan s cenou ze serverové mapy balíčků.
+    // jinak inline plan s cenou ze serverové mapy balíčků. Balíčky jsou
+    // měsíční (renewal, 30 dní), activation je jednorázový poplatek.
     const planId = whopPlanId(pkg.key);
     const body: Record<string, unknown> = {
       // po zaplacení Whop přesměruje zpět na dashboard
@@ -39,15 +40,28 @@ serve(async (req) => {
     };
     if (planId) {
       body.plan_id = planId;
-    } else {
+    } else if (pkg.key === "activation") {
       body.plan = {
         currency: pkg.currency,
         initial_price: pkg.price,
         plan_type: "one_time",
-        title: `Fundly ${pkg.name}`,
+        title: "Fundly Activation Fee",
+        product: {
+          external_identifier: "fundly-activation",
+          title: "Fundly Activation Fee",
+        },
+      };
+    } else {
+      body.plan = {
+        currency: pkg.currency,
+        initial_price: pkg.price,
+        renewal_price: pkg.price,
+        billing_period: 30,
+        plan_type: "renewal",
+        title: `Fundly ${pkg.name} (monthly)`,
         product: {
           external_identifier: "fundly-challenge",
-          title: "Fundly výzva",
+          title: "Fundly Challenge",
         },
       };
     }

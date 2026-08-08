@@ -365,7 +365,31 @@ async function loadRealStats() {
   renderRealFinance(stats);
   renderRealPlayers(stats);
   renderPlayersTable(); // přepnutá verze níže vykreslí reálné účty
+  renderEmails(stats.emailsList || []);
   renderAffiliate();
+}
+
+// ---------- E-maily zákazníků (Finance view) ----------
+function renderEmails(list) {
+  const el = document.getElementById("emailsList");
+  if (!el) return;
+  el.innerHTML = list.length
+    ? list.map((e) => `
+      <div class="k-row neutral">${esc(e.email)}
+        <span class="n">${e.accounts} účtů · ${e.payments} plateb${e.lastAt ? ` · ${new Date(e.lastAt).toLocaleDateString("cs-CZ")}` : ""}</span>
+      </div>`).join("")
+    : `<p class="bet-msg">Zatím žádné e-maily.</p>`;
+  const btn = document.getElementById("emailsCopyBtn");
+  if (btn) {
+    btn.hidden = !list.length;
+    btn.onclick = async () => {
+      try {
+        await navigator.clipboard.writeText(list.map((e) => e.email).join("\n"));
+        btn.textContent = "Zkopírováno";
+        setTimeout(() => { btn.textContent = "Zkopírovat všechny e-maily"; }, 1500);
+      } catch (e) { /* clipboard nemusí být dostupný */ }
+    };
+  }
 }
 
 // ---------- Finance: reálná data ----------

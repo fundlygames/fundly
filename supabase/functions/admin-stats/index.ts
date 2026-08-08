@@ -45,13 +45,13 @@ serve(async (req) => {
         .select("amount, currency")
         .eq("status", "succeeded")
         .gte("created_at", monthStartIso),
-      supabase.from("payments").select("email, amount, currency").eq("status", "succeeded"),
+      supabase.from("payments").select("email, amount, currency, created_at").eq("status", "succeeded"),
       supabase
         .from("payments")
         .select("whop_payment_id, email, package_key, amount, currency, status, created_at")
         .order("created_at", { ascending: false })
         .limit(20),
-      supabase.from("challenge_accounts").select("state"),
+      supabase.from("challenge_accounts").select("state, email"),
       supabase
         .from("challenge_accounts")
         .select("id, email, package_key, phase, capital, state, kyc_status, phase_balance, profit, qualifying_tickets, breach_reason, flags, tickets_total, tickets_won, synced_at, created_at")
@@ -130,6 +130,24 @@ serve(async (req) => {
       };
     });
 
+    // E-maily zákazníků pro admin (distinct z účtů + zaplacených plateb,
+    // s počty a datem poslední aktivity).
+    // deno-lint-ignore no-explicit-any
+    const emailMap: Record<string, any> = {};
+    for (const a of accounts.data ?? []) {
+      if (!a.email) continue;
+      const e = emailMap[a.email] ??= { email: a.email, accounts: 0, payments: 0, lastAt: null };
+      e.accounts++;
+    }
+    for (const p of allPayments.data ?? []) {
+      if (!p.email) continue;
+      const e = emailMap[p.email] ??= { email: p.email, accounts: 0, payments: 0, lastAt: null };
+      e.payments++;
+      if (!e.lastAt || String(p.created_at) > e.lastAt) e.lastAt = p.created_at;
+    }
+    const emailsList = Object.values(emailMap)
+      .sort((a, b) => String(b.lastAt ?? "").localeCompare(String(a.lastAt ?? "")));
+
     // počty použití affiliate kódů z úspěšných plateb (case-insensitive)
     const usedByCode: Record<string, number> = {};
     for (const p of promoPayments.data ?? []) {
@@ -149,6 +167,7 @@ serve(async (req) => {
         totalSpentCzk: Math.round(spentByEmail[a.email] ?? 0),
       })),
       recentPayouts: enrichedPayouts,
+      emailsList,
       metaAdsSpendCzk: sum(metaSpend.data, "amount_czk"),
       // deno-lint-ignore no-explicit-any
       affiliateCodes: (affiliateCodes.data ?? []).map((c: any) => ({

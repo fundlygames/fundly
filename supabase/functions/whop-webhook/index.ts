@@ -197,6 +197,30 @@ serve(async (req) => {
           break;
         }
 
+        // Aktivační poplatek funded účtu: nezakládáme nový challenge účet,
+        // jen na nejnovější funded účet hráče připneme flag "activation_paid".
+        if (pkg.key === "activation") {
+          const { data: fundedAcc } = await supabase
+            .from("challenge_accounts")
+            .select("id, flags")
+            .eq("email", String(email))
+            .eq("state", "funded")
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          if (fundedAcc) {
+            const flags = Array.isArray(fundedAcc.flags) ? fundedAcc.flags : [];
+            if (!flags.includes("activation_paid")) flags.push("activation_paid");
+            await supabase
+              .from("challenge_accounts")
+              .update({ flags })
+              .eq("id", fundedAcc.id);
+          } else {
+            console.error("activation payment bez funded účtu:", email);
+          }
+          break;
+        }
+
         const user = await findOrCreateUser(supabase, String(email));
         await supabase.from("challenge_accounts").insert({
           user_id: user?.id ?? null,
@@ -206,6 +230,17 @@ serve(async (req) => {
           capital: pkg.cap,
           state: "active",
         });
+
+        // „Účet je připraven" e-mail: magic link přes Supabase admin API.
+        // Free email rate limit je těsný → try/catch + log, platbu to neblokuje.
+        try {
+          await supabase.auth.admin.generateLink({
+            type: "magiclink",
+            email: String(email),
+          });
+        } catch (e) {
+          console.error("magiclink e-mail po koupi selhal:", e);
+        }
         break;
       }
 

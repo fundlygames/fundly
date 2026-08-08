@@ -270,6 +270,45 @@ async function syncAccountNow() {
 // při načtení dashboardu (případně přihlášeného) rovnou naplánujeme sync
 scheduleAccountSync();
 
+// ---------- limited dashboard: přihlášený uživatel bez aktivního účtu ----------
+// Skryje hlavní navigaci a sekce, ukáže jen CTA na novou výzvu + minulé účty.
+function showLimitedDashboard(accounts) {
+  document.body.classList.add("limited");
+  document.querySelectorAll(".dash-view").forEach((v) => { v.hidden = true; });
+  const view = document.getElementById("view-noaccount");
+  if (view) view.hidden = false;
+  const list = document.getElementById("naAccounts");
+  if (list) {
+    const label = (s) => s === "funded" ? "Funded" : s === "active" ? "Active" : s === "breached" ? "Breached" : s;
+    const tag = (s) => s === "funded" ? "win" : s === "active" ? "push" : "loss";
+    list.innerHTML = accounts.map((a) => `
+      <div class="k-row neutral">${a.package_key || "?"} · $${Number(a.capital || 0).toLocaleString("en-US")}
+        <span class="n"><span class="tag ${tag(a.state)}">${label(a.state)}</span>
+        <span style="color:var(--text-muted);font-size:.75rem">${new Date(a.created_at).toLocaleDateString("en-US")}</span></span>
+      </div>`).join("");
+  }
+}
+
+// ---------- activation fee: panel pro funded účet bez zaplacené aktivace ----------
+function showActivationPanel(email) {
+  const panel = document.getElementById("activationPanel");
+  if (!panel) return;
+  panel.hidden = false;
+  document.getElementById("activationPay").addEventListener("click", async (e) => {
+    const btn = e.currentTarget;
+    btn.disabled = true;
+    try {
+      const data = await FundlyCheckout.createSession("activation", email);
+      window.location.href = data.checkoutUrl;
+    } catch (err) {
+      const note = document.getElementById("activationNote");
+      note.textContent = err.message || "The payment gateway could not be opened.";
+      note.hidden = false;
+      btn.disabled = false;
+    }
+  });
+}
+
 // ---------- Supabase: loading the real challenge account ----------
 // For a signed-in user we take the package over from the paid order
 // (row ownership is guarded by RLS in the database). Without a backend or
@@ -281,22 +320,32 @@ async function syncChallengeAccount() {
     if (!client) return;
     const user = await FundlyAuth.getUser();
     // Gate: dashboard je jen pro platící — bez přihlášení na landing,
-    // bez koupeného balíčku na checkout.
+    // bez jakéhokoli účtu na checkout, bez aktivního účtu limited dashboard.
     if (!user) {
       window.location.replace("./");
       return;
     }
     const { data: accounts, error } = await client
       .from("challenge_accounts")
-      .select("package_key, capital, phase, state")
-      .order("created_at", { ascending: false })
-      .limit(1);
+      .select("package_key, capital, phase, state, flags, created_at")
+      .order("created_at", { ascending: false });
     if (error) return;
     if (!accounts || !accounts.length) {
       window.location.replace("checkout");
       return;
     }
-    const account = accounts[0];
+    const account = accounts.find((a) => a.state === "active" || a.state === "funded");
+    if (!account) {
+      showLimitedDashboard(accounts);
+      return;
+    }
+
+    // funded účet bez zaplaceného aktivačního poplatku → nápadný panel
+    const accFlags = Array.isArray(account.flags) ? account.flags : [];
+    if (account.state === "funded" && !accFlags.includes("activation_paid")) {
+      showActivationPanel(user.email);
+    }
+
     const state = Portfolio.get();
     if (state && state.packageKey === account.package_key) return;
     // the paid package differs from the local one → boot the simulation with it
