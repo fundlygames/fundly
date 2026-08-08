@@ -455,3 +455,24 @@ body::before {
 }
 .sum-badges span { display: inline-flex; align-items: center; gap: 6px; }
 .sum-badges svg { color: var(--accent); }
+
+/* ---------- Legal/rules modal ---------- */
+.co-modal {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgb(0 0 0 / .72);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.co-modal[hidden] { display: none; }
+.co-modal-card {
+  width: 100%; max-width: 640px; max-height: 82vh; overflow: auto;
+  background: var(--surface-1);
+  border-radius: var(--co-r);
+  box-shadow: inset 0 0 0 1px var(--line), 0 24px 60px -20px rgb(0 0 0 / .8);
+  padding: 22px 24px;
+}
+.co-modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.co-modal-head h3 { margin: 0; font-size: 1.0625rem; font-weight: 800; letter-spacing: -0.02em; }
+.co-modal-body h4 { font-size: .8125rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--accent); margin: 18px 0 6px; }
+.co-modal-body p, .co-modal-body li { font-size: .875rem; color: var(--text-secondary); line-height: 1.65; }
+.co-modal-body ul { margin: 6px 0; padding-left: 18px; }

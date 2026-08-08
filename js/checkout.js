@@ -261,11 +261,74 @@
     }
   }
 
-  // ---------- init ----------
-  // Placeholder links in the consents (href="#") must not scroll to top
-  document.querySelectorAll('.consent a[href="#"]').forEach((a) =>
-    a.addEventListener("click", (e) => e.preventDefault())
+  // ---------- legal / rules modal ----------
+  const DOCS = {
+    rules: {
+      title: "Challenge rules",
+      body: `
+        <h4>Phase 1 — Challenge</h4>
+        <ul>
+          <li>Time limit: 30 days</li>
+          <li>Profit target: +10 % of capital</li>
+          <li>Max. overall loss: −10 % (static — floor never moves)</li>
+          <li>Max. daily loss: no limit</li>
+          <li>Min. 5 winning tickets, each with a net profit of at least +0.5 % of capital</li>
+        </ul>
+        <h4>Phase 2 — Verification</h4>
+        <ul>
+          <li>Time limit: 30 days · Profit target: +5 %</li>
+          <li>Same drawdown and qualifying-ticket rules as Phase 1</li>
+        </ul>
+        <h4>Funded account</h4>
+        <ul>
+          <li>Profit split: you keep 80 % of profits</li>
+          <li>No time limit · Max. overall loss −10 % (static)</li>
+        </ul>
+        <h4>Payouts</h4>
+        <ul>
+          <li>Profit buffer of at least +5 % before your first payout</li>
+          <li>Min. 5 qualifying winning tickets (≥ +0.5 % each)</li>
+          <li>Max. $4,000 per payout · you receive 80 % (80/20 split)</li>
+          <li>Identity verification (KYC) via Whop required before payout</li>
+        </ul>
+        <h4>Forbidden strategies</h4>
+        <ul>
+          <li>Arbitrage / sure betting across outcomes</li>
+          <li>Value-bet exploitation of stale odds feeds</li>
+          <li>Max. stake per ticket: 1.5 % of capital</li>
+        </ul>`,
+    },
+    terms: {
+      title: "Terms and conditions",
+      body: `
+        <p>Fundly provides access to a simulated betting environment used to evaluate skill. Participants never stake their own funds; the monthly plan fee is the only payment. Displayed results are individual and do not guarantee future returns.</p>
+        <p>Accounts are personal and non-transferable. Abuse of the platform (forbidden strategies, multi-accounting, exploitation of technical errors) leads to account termination without payout.</p>
+        <p>Betting can be addictive. The service is intended for persons over 18 years of age.</p>`,
+    },
+    privacy: {
+      title: "Privacy policy",
+      body: `
+        <p>We process your email address and account data solely to operate the service (account management, payouts, fraud prevention). Payment data is processed by Whop; we never see your card details.</p>
+        <p>We do not sell personal data. You can request export or deletion of your data at any time by contacting support.</p>`,
+    },
+  };
+  const docModal = $("docModal");
+  document.querySelectorAll("[data-doc]").forEach((a) =>
+    a.addEventListener("click", (e) => {
+      e.preventDefault();
+      const doc = DOCS[a.dataset.doc];
+      if (!doc) return;
+      $("docTitle").textContent = doc.title;
+      $("docBody").innerHTML = doc.body;
+      docModal.hidden = false;
+    })
   );
+  const closeDoc = () => (docModal.hidden = true);
+  $("docClose").addEventListener("click", closeDoc);
+  docModal.addEventListener("click", (e) => e.target === docModal && closeDoc());
+  document.addEventListener("keydown", (e) => e.key === "Escape" && closeDoc());
+
+  // ---------- init ----------
   renderPkgGrid();
   renderGoals();
   renderSummary();
