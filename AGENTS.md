@@ -25,20 +25,27 @@ Archived React/Supabase (Lovable) version: repo `matejc-beep/betflow-react-archi
 
 ## Packages
 
+USD, monthly renewal plans (30-day account per month):
+
 | Key | Name | Cap | Price |
 |---|---|---|---|
-| starter | Starter | 10 000 | 490 |
-| standard | Standard | 25 000 | 890 |
-| advanced | Advanced | 50 000 | 1 590 (top) |
-| pro | Pro | 100 000 | 2 990 |
-| elite | Elite | 200 000 | 4 990 |
+| starter | Starter | $400 | $20/mo |
+| standard | Standard | $1,000 | $35/mo |
+| advanced | Advanced | $2,000 | $65/mo (top) |
+| pro | Pro | $4,000 | $125/mo |
+| elite | Elite | $8,000 | $200/mo |
 
-Derived challenge params:
-- Phase 1 target = 20 % of cap
-- Phase 2 target = 10 % of cap
-- Trailing drawdown = 8 % of cap
-- Max stake per ticket = 4 % of cap
-- Profit split = 85 %
+Plus `activation` ($80 one-time fee for funded accounts, env `WHOP_PLAN_ACTIVATION`).
+
+Derived challenge params (see `packageMeta()` in js/packages.js):
+- Phase 1 target = +10 % of cap, Phase 2 = +5 %, 30 days per phase
+- Max. total loss = −10 % of cap, STATIC (fixed floor, no trailing)
+- Max stake per ticket = 1.5 % of cap
+- Profit split = 80 %
+- Qualifying tickets = 5 winning tickets with net profit ≥ 0.5 % of cap per phase / payout
+- Payout conditions: +5 % profit buffer, 5 qualifying tickets, max $4,000 per payout
+- Bookmaker feed: Betano (odds-api.io); forbidden strategies (arbitrage / value) flag tickets
+- Admin access: Supabase Auth + `admin_users` table (migration 006), functions accept admin JWT or x-admin-key
 
 ## Completed work (as of final review)
 

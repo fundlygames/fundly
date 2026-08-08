@@ -75,6 +75,29 @@ serve(async (req) => {
           .slice(0, 10)
       : [];
 
+    // sázkový profil: top sporty/ligy + průměry (kompaktní jsonb)
+    // deno-lint-ignore no-explicit-any
+    const saneTop = (list: any) =>
+      Array.isArray(list)
+        ? list
+            .filter((x: unknown) =>
+              x && typeof x.name === "string" && Number.isInteger(Number(x.count)))
+            .slice(0, 5)
+            .map((x: { name: string; count: number }) => ({
+              name: String(x.name).slice(0, 80),
+              count: Math.min(Number(x.count), 1e6),
+            }))
+        : [];
+    const bp = body.bettingProfile;
+    const bettingProfile = bp && typeof bp === "object"
+      ? {
+          topSports: saneTop(bp.topSports),
+          topLeagues: saneTop(bp.topLeagues),
+          avgStake: saneNumber(bp.avgStake ?? 0, 1e8) ?? 0,
+          avgOdds: saneNumber(bp.avgOdds ?? 0, 1e4) ?? 0,
+        }
+      : null;
+
     // challenge účet přihlášeného hráče (nejnovější)
     const { data: account } = await supabase
       .from("challenge_accounts")
@@ -103,6 +126,7 @@ serve(async (req) => {
         tickets_total: ticketsTotal,
         tickets_won: ticketsWon,
         synced_at: new Date().toISOString(),
+        ...(bettingProfile ? { betting_profile: bettingProfile } : {}),
       })
       .eq("id", account.id);
     if (updateError) throw updateError;

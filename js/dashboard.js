@@ -224,6 +224,15 @@ function buildAccountSnapshot(state) {
   const s = Portfolio.summary(state);
   const breached = state.balance <= dd.floor;
   const flags = [...new Set(state.tickets.flatMap((t) => t.flags || []))];
+  // kompaktní sázkový profil pro admin analytiku (top sporty/ligy, průměry)
+  const bySport = {};
+  const byLeague = {};
+  state.tickets.forEach((t) => t.selections.forEach((sel) => {
+    if (sel.sport) bySport[sel.sport] = (bySport[sel.sport] || 0) + 1;
+    if (sel.league) byLeague[sel.league] = (byLeague[sel.league] || 0) + 1;
+  }));
+  const top = (m) => Object.entries(m).sort((a, b) => b[1] - a[1]).slice(0, 3)
+    .map(([name, count]) => ({ name, count }));
   return {
     phase: state.phase === "funded" ? 3 : state.phase,
     state: breached ? "breached" : state.phase === "funded" ? "funded" : "active",
@@ -234,6 +243,12 @@ function buildAccountSnapshot(state) {
     flags,
     ticketsTotal: s.total,
     ticketsWon: s.won,
+    bettingProfile: {
+      topSports: top(bySport),
+      topLeagues: top(byLeague),
+      avgStake: s.total ? Math.round(s.staked / s.total) : 0,
+      avgOdds: Math.round(s.avgOdds * 100) / 100,
+    },
   };
 }
 

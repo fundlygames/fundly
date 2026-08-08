@@ -3,7 +3,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders, handleCors, jsonResponse } from "../_shared/cors.ts";
-import { isValidAdminKey } from "../_shared/admin.ts";
+import { isAdminRequest } from "../_shared/admin.ts";
 
 serve(async (req) => {
   const cors = handleCors(req);
@@ -12,8 +12,8 @@ serve(async (req) => {
   if (req.method !== "POST") {
     return jsonResponse({ error: "Method not allowed" }, 405);
   }
-  if (!(await isValidAdminKey(req))) {
-    return jsonResponse({ error: "Neplatný admin klíč." }, 401);
+  if (!(await isAdminRequest(req))) {
+    return jsonResponse({ error: "Nemáte oprávnění." }, 401);
   }
 
   try {
@@ -51,7 +51,7 @@ serve(async (req) => {
         .select("whop_payment_id, email, package_key, amount, currency, status, created_at")
         .order("created_at", { ascending: false })
         .limit(20),
-      supabase.from("challenge_accounts").select("state, email"),
+      supabase.from("challenge_accounts").select("state, email, created_at"),
       supabase
         .from("challenge_accounts")
         .select("id, email, package_key, phase, capital, state, kyc_status, phase_balance, profit, qualifying_tickets, breach_reason, flags, tickets_total, tickets_won, synced_at, created_at")
@@ -148,6 +148,58 @@ serve(async (req) => {
     const emailsList = Object.values(emailMap)
       .sort((a, b) => String(b.lastAt ?? "").localeCompare(String(a.lastAt ?? "")));
 
+    // Registrace po dnech (posledních 8 dní) — reálná data z challenge_accounts.
+    const dayBuckets: { label: string; value: number }[] = [];
+    for (let i = 7; i >= 0; i--) {
+      const d = new Date(Date.now() - i * 86400000);
+      dayBuckets.push({
+        label: d.toLocaleDateString("cs-CZ", { day: "numeric", month: "numeric" }),
+        value: 0,
+      });
+    }
+    const bucketKey = (t: string) =>
+      new Date(t).toLocaleDateString("cs-CZ", { day: "numeric", month: "numeric" });
+    const byLabel: Record<string, number> = {};
+    for (const a of accounts.data ?? []) {
+      if (!a.created_at) continue;
+      const k = bucketKey(a.created_at);
+      if (k in byLabel || dayBuckets.some((b) => b.label === k)) {
+        byLabel[k] = (byLabel[k] ?? 0) + 1;
+      }
+    }
+    dayBuckets.forEach((b) => { b.value = byLabel[b.label] ?? 0; });
+
+    // Poslední aktivita backendu (pro diagnostiku)
+    const lastPaymentAt = recentPayments.data?.[0]?.created_at ?? null;
+    const lastSyncAt = (recentAccounts.data ?? []).reduce(
+      // deno-lint-ignore no-explicit-any
+      (max: string | null, a: any) =>
+        a.synced_at && (!max || a.synced_at > max) ? a.synced_at : max,
+      null,
+    );
+
+    // Agregovaná sázková analytika přes účty (top sporty a ligy)
+    const sportCount: Record<string, number> = {};
+    const leagueCount: Record<string, number> = {};
+    for (const a of recentAccounts.data ?? []) {
+      // deno-lint-ignore no-explicit-any
+      const bp: any = a.betting_profile;
+      if (!bp) continue;
+      for (const s of bp.topSports ?? []) {
+        sportCount[s.name] = (sportCount[s.name] ?? 0) + (Number(s.count) || 0);
+      }
+      for (const l of bp.topLeagues ?? []) {
+        leagueCount[l.name] = (leagueCount[l.name] ?? 0) + (Number(l.count) || 0);
+      }
+    }
+    const topEntries = (m: Record<string, number>) =>
+      Object.entries(m).sort((a, b) => b[1] - a[1]).slice(0, 5)
+        .map(([name, count]) => ({ name, count }));
+    const bettingAnalytics = {
+      sports: topEntries(sportCount),
+      leagues: topEntries(leagueCount),
+    };
+
     // počty použití affiliate kódů z úspěšných plateb (case-insensitive)
     const usedByCode: Record<string, number> = {};
     for (const p of promoPayments.data ?? []) {
@@ -168,6 +220,10 @@ serve(async (req) => {
       })),
       recentPayouts: enrichedPayouts,
       emailsList,
+      signupsByDay: dayBuckets,
+      lastPaymentAt,
+      lastSyncAt,
+      bettingAnalytics,
       metaAdsSpendCzk: sum(metaSpend.data, "amount_czk"),
       // deno-lint-ignore no-explicit-any
       affiliateCodes: (affiliateCodes.data ?? []).map((c: any) => ({

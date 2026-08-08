@@ -1,4 +1,6 @@
-// Ověření sdíleného admin tajemství (x-admin-key) s timing-safe porovnáním.
+// Ověření admin přístupu: buď sdílené tajemství (x-admin-key), nebo
+// uživatelský JWT člena tabulky admin_users.
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 async function sha256(value: string): Promise<Uint8Array> {
   const digest = await crypto.subtle.digest(
@@ -21,4 +23,34 @@ export async function isValidAdminKey(req: Request): Promise<boolean> {
     diff |= (a[i] ?? 0) ^ (b[i] ?? 0);
   }
   return diff === 0;
+}
+
+// Je uživatel (podle JWT) v tabulce admin_users?
+async function isAdminUser(token: string): Promise<boolean> {
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  );
+  const { data: userData, error } = await supabase.auth.getUser(token);
+  const user = userData?.user;
+  if (error || !user) return false;
+  const { data: row } = await supabase
+    .from("admin_users")
+    .select("user_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  return !!row;
+}
+
+// Hlavní helper pro admin edge funkce: projde admin klíč NEBO JWT admina.
+export async function isAdminRequest(req: Request): Promise<boolean> {
+  if (await isValidAdminKey(req)) return true;
+  const token = req.headers.get("Authorization")?.replace(/^Bearer\s+/i, "") ?? "";
+  if (!token) return false;
+  try {
+    return await isAdminUser(token);
+  } catch (e) {
+    console.error("isAdminRequest error:", e);
+    return false;
+  }
 }

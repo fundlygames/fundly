@@ -7,7 +7,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { handleCors, jsonResponse } from "../_shared/cors.ts";
-import { isValidAdminKey } from "../_shared/admin.ts";
+import { isAdminRequest } from "../_shared/admin.ts";
 import { whopFetch } from "../_shared/whop.ts";
 import { PACKAGES, whopPlanId } from "../_shared/packages.ts";
 
@@ -190,8 +190,8 @@ serve(async (req) => {
   if (req.method !== "POST") {
     return jsonResponse({ error: "Method not allowed" }, 405);
   }
-  if (!(await isValidAdminKey(req))) {
-    return jsonResponse({ error: "Neplatný admin klíč." }, 401);
+  if (!(await isAdminRequest(req))) {
+    return jsonResponse({ error: "Nemáte oprávnění." }, 401);
   }
 
   try {

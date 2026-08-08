@@ -289,19 +289,14 @@ renderFinance();
 renderPlayers();
 renderDiagnostika();
 
-// ---------- reálná data ze Supabase (odemknutí admin klíčem) ----------
-// Dokud není backend nastaven v js/config.js a/nebo admin odemknutý klíčem,
-// zůstávají všechny pohledy na mock datech výše beze změny.
+// ---------- reálná data ze Supabase (přihlášení admin účtem) ----------
+// Admin funkce ověřují JWT člena tabulky admin_users (nebo x-admin-key pro
+// server-to-server). Bez backendu / přihlášení běží pohledy na mock datech.
 
-const ADMIN_KEY_STORAGE = "fundly:adminKey";
 let REAL = null; // načtená data z edge funkce admin-stats
 
 function adminBackendReady() {
   return typeof fundlyBackendEnabled === "function" && fundlyBackendEnabled();
-}
-
-function getAdminKey() {
-  try { return sessionStorage.getItem(ADMIN_KEY_STORAGE) || ""; } catch (e) { return ""; }
 }
 
 function esc(s) {
@@ -309,10 +304,21 @@ function esc(s) {
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
+async function getSessionToken() {
+  const client = await FundlyBackend.getClient();
+  if (!client) return null;
+  const { data } = await client.auth.getSession();
+  return data?.session?.access_token ?? null;
+}
+
 async function adminFetch(fnName, body) {
+  const token = await getSessionToken();
   const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/${fnName}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", "x-admin-key": getAdminKey() },
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     body: JSON.stringify(body || {}),
   });
   const data = await res.json().catch(() => ({}));
@@ -320,7 +326,7 @@ async function adminFetch(fnName, body) {
   return data;
 }
 
-// malý odemykací panel nad pohledy
+// přihlašovací formulář admina (e-mail + heslo, Supabase auth)
 function renderAdminGate(note) {
   const container = document.querySelector(".dash-main .container");
   if (!container || document.getElementById("adminGate")) return;
@@ -328,33 +334,41 @@ function renderAdminGate(note) {
   gate.className = "panel";
   gate.id = "adminGate";
   gate.innerHTML = `
-    <h3>Reálná data (Supabase)</h3>
-    <p class="bet-msg" style="margin-bottom:12px">Zadejte admin klíč pro načtení skutečných tržeb, hráčů a výplat. Bez klíče se zobrazují ukázková data.</p>
-    <div style="display:flex;gap:8px;max-width:420px">
-      <input class="input" id="adminKeyInput" type="password" placeholder="Admin klíč" autocomplete="off" />
-      <button class="btn btn-primary" id="adminUnlock">Odemknout</button>
-    </div>
+    <h3>Přihlášení administrátora</h3>
+    <p class="bet-msg" style="margin-bottom:12px">Přihlaste se admin účtem. Bez něj se zobrazují ukázková data.</p>
+    <form id="adminSignIn" style="max-width:420px">
+      <div class="field">
+        <label for="adminEmail">E-mail</label>
+        <input class="input" id="adminEmail" type="email" autocomplete="email" required />
+      </div>
+      <div class="field">
+        <label for="adminPass">Heslo</label>
+        <input class="input" id="adminPass" type="password" autocomplete="current-password" required />
+      </div>
+      <button class="btn btn-primary" type="submit">Přihlásit se</button>
+    </form>
     <p class="auth-note mt" id="adminGateNote" ${note ? "" : "hidden"}>${esc(note)}</p>`;
   container.prepend(gate);
-  document.getElementById("adminUnlock").addEventListener("click", unlockAdmin);
-  document.getElementById("adminKeyInput").addEventListener("keydown", (e) => {
-    if (e.key === "Enter") unlockAdmin();
+  document.getElementById("adminSignIn").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const noteEl = document.getElementById("adminGateNote");
+    const { error } = await FundlyAuth.signInWithPassword(
+      document.getElementById("adminEmail").value.trim(),
+      document.getElementById("adminPass").value,
+    );
+    if (error) {
+      noteEl.textContent = error.message || "Přihlášení se nepodařilo.";
+      noteEl.hidden = false;
+      return;
+    }
+    try {
+      await loadRealStats();
+    } catch (err) {
+      // přihlášený, ale není v admin_users → funkce vrátí „Nemáte oprávnění."
+      noteEl.textContent = err.message || "Nemáte oprávnění.";
+      noteEl.hidden = false;
+    }
   });
-}
-
-async function unlockAdmin() {
-  const input = document.getElementById("adminKeyInput");
-  const noteEl = document.getElementById("adminGateNote");
-  const key = input.value.trim();
-  if (!key) return;
-  try { sessionStorage.setItem(ADMIN_KEY_STORAGE, key); } catch (e) {}
-  try {
-    await loadRealStats();
-  } catch (err) {
-    try { sessionStorage.removeItem(ADMIN_KEY_STORAGE); } catch (e) {}
-    noteEl.textContent = err.message || "Data se nepodařilo načíst.";
-    noteEl.hidden = false;
-  }
 }
 
 async function loadRealStats() {
@@ -366,6 +380,8 @@ async function loadRealStats() {
   renderRealPlayers(stats);
   renderPlayersTable(); // přepnutá verze níže vykreslí reálné účty
   renderEmails(stats.emailsList || []);
+  renderRealDiagnostika(stats);
+  renderBettingAnalytics(stats.bettingAnalytics);
   renderAffiliate();
 }
 
@@ -475,6 +491,59 @@ function renderRealPlayers(stats) {
     dstat("Aktivní", (counts.active || 0).toLocaleString("cs-CZ"), false) +
     dstat("Financovaní", (counts.funded || 0).toLocaleString("cs-CZ"), true) +
     dstat("Ostatní stavy", (total - (counts.active || 0) - (counts.funded || 0)).toLocaleString("cs-CZ"), false);
+
+  // reálné registrace po dnech (posledních 8 dní) místo mock grafu
+  if (Array.isArray(stats.signupsByDay) && stats.signupsByDay.length) {
+    const max = Math.max(1, ...stats.signupsByDay.map((d) => d.value));
+    document.getElementById("playersGrowthChart").innerHTML = stats.signupsByDay.map((d) => {
+      const heightPct = Math.max(4, Math.round((d.value / max) * 100));
+      return `<div class="bc-col"><span class="bar pos" style="height:${heightPct}%"></span><span class="d">${esc(d.label)}</span></div>`;
+    }).join("");
+  }
+}
+
+// ---------- Diagnostika: reálný stav místo mocků ----------
+function renderRealDiagnostika(stats) {
+  const fmtAgo = (iso) => iso ? new Date(iso).toLocaleString("cs-CZ") : "nikdy";
+  const counts = stats.accountsByState || {};
+  const total = Object.values(counts).reduce((a, v) => a + v, 0);
+  const dstat = (label, value, green) => `
+    <div class="dstat">
+      <div class="lbl">${label}</div>
+      <div class="val ${green ? "green" : ""}">${value}</div>
+    </div>`;
+  document.getElementById("diagStatGrid").innerHTML =
+    dstat("Účty celkem", total.toLocaleString("cs-CZ"), false) +
+    dstat("Breached účty", (stats.breachedCount ?? counts.breached ?? 0).toLocaleString("cs-CZ"), false) +
+    dstat("Poslední platba", fmtAgo(stats.lastPaymentAt), false) +
+    dstat("Poslední sync", fmtAgo(stats.lastSyncAt), Boolean(stats.lastSyncAt));
+
+  document.getElementById("diagServices").innerHTML = [
+    ["win", "Platební webhook (Supabase)", `Poslední platba: ${fmtAgo(stats.lastPaymentAt)}`],
+    [stats.lastSyncAt ? "win" : "pend", "Synchronizace účtů (sync-account)", `Poslední sync: ${fmtAgo(stats.lastSyncAt)}`],
+    ["win", "Admin API (admin-stats)", "Data právě načtena z produkce"],
+  ].map(([tag, name, meta]) =>
+    `<div class="k-row ${tag}"><span class="svc-name"><span class="svc-dot"></span>${name}</span><span class="n svc-meta">${meta}</span></div>`
+  ).join("");
+
+  // alerting ani serverová fronta zatím neexistují — poctivý prázdný stav
+  document.getElementById("diagAlerts").innerHTML =
+    `<p class="bet-msg">Žádná upozornění — alerting zatím není napojený.</p>`;
+  document.getElementById("diagQueueTable").innerHTML = `
+    <thead><tr><th>Tiket</th><th>Hráč</th><th>Událost</th><th>Čeká od</th><th>Pokusy</th></tr></thead>
+    <tbody><tr><td colspan="5">Vyhodnocování běží na klientovi, serverová fronta zatím neexistuje.</td></tr></tbody>`;
+}
+
+// ---------- Sázková analytika (agregát přes účty) ----------
+function renderBettingAnalytics(ba) {
+  const sportsEl = document.getElementById("betTopSports");
+  const leaguesEl = document.getElementById("betTopLeagues");
+  if (!sportsEl || !leaguesEl) return;
+  const rows = (list) => (list && list.length)
+    ? list.map((x) => `<div class="k-row neutral">${esc(x.name)}<span class="n">${x.count} tiketů</span></div>`).join("")
+    : `<p class="bet-msg">Zatím žádná data — čeká se na synchronizaci účtů.</p>`;
+  sportsEl.innerHTML = `<p class="bf-label" style="margin:0 0 6px">Top sporty</p>` + rows(ba && ba.sports);
+  leaguesEl.innerHTML = `<p class="bf-label" style="margin:0 0 6px">Top ligy</p>` + rows(ba && ba.leagues);
 }
 
 // přepneme render tabulky hráčů na reálná data (mock verze zůstává jako fallback)
@@ -572,6 +641,14 @@ function openPlayerDetail(acc) {
         ${flags.length ? `
           <h4 class="pm-h">Zakázané strategie</h4>
           <div class="pm-flags">${flags.map(flagTag).join(" ")}</div>` : ""}
+        ${a.betting_profile ? `
+          <h4 class="pm-h">Sázkový profil</h4>
+          <div class="pm-grid">
+            ${infoRow("Top sporty", (a.betting_profile.topSports || []).map((x) => `${esc(x.name)} (${x.count})`).join(", ") || "—")}
+            ${infoRow("Top ligy", (a.betting_profile.topLeagues || []).map((x) => `${esc(x.name)} (${x.count})`).join(", ") || "—")}
+            ${infoRow("Prům. sázka", czk(Number(a.betting_profile.avgStake) || 0))}
+            ${infoRow("Prům. kurz", (Number(a.betting_profile.avgOdds) || 0).toFixed(2))}
+          </div>` : ""}
         <p class="pm-date" style="margin-top:8px">Poslední synchronizace: ${fmtDate(a.synced_at)}</p>`
       : `<p class="pm-date" style="margin-top:10px">Zatím nesynchronizováno — statistiky pravidel se zobrazí po první synchronizaci z dashboardu hráče.</p>`}
       ${a.state === "funded"
@@ -790,17 +867,17 @@ document.addEventListener("click", async (e) => {
   }
 });
 
-renderAffiliate(); // prázdný stav do odemknutí admin klíčem
+renderAffiliate(); // prázdný stav do přihlášení admina
 
-// ---------- init: odemknutí reálných dat ----------
+// ---------- init: přihlášený admin rovnou načte reálná data ----------
 if (adminBackendReady()) {
-  if (getAdminKey()) {
-    // klíč ze sessionStorage — zkusíme rovnou načíst, při chybě zpět na bránu
-    loadRealStats().catch((err) => {
-      try { sessionStorage.removeItem(ADMIN_KEY_STORAGE); } catch (e) {}
-      renderAdminGate(err.message);
-    });
-  } else {
-    renderAdminGate();
-  }
+  (async () => {
+    const token = await getSessionToken().catch(() => null);
+    if (token) {
+      // aktivní session — zkusíme rovnou načíst; při „Nemáte oprávnění" zpět na formulář
+      loadRealStats().catch((err) => renderAdminGate(err.message));
+    } else {
+      renderAdminGate();
+    }
+  })();
 }
