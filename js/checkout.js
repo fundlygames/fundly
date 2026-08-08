@@ -161,7 +161,7 @@
     // Without the backend (placeholders in config.js) the original demo mode stays.
     if (!(typeof fundlyBackendEnabled === "function" && fundlyBackendEnabled())) {
       Portfolio.init(state.pkg);
-      window.location.href = "dashboard.html";
+      window.location.href = "dashboard";
       return;
     }
 
@@ -186,7 +186,7 @@
 
   // Return URL after payment (the site also runs under the /fundly/ path on GitHub Pages).
   function returnUrl() {
-    return location.origin + location.pathname.replace(/[^/]*$/, "") + "dashboard.html?paid=1";
+    return location.origin + location.pathname.replace(/[^/]*$/, "") + "dashboard?paid=1";
   }
 
   function showFallback(msg, checkoutUrl) {

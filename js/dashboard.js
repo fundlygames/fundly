@@ -93,7 +93,7 @@ function celebrateTicket(ticket) {
 if (new URLSearchParams(window.location.search).get("paid") === "1") {
   showToast("win", "Payment received! 🎉", "We're setting up your account — everything will be ready in a moment.");
   // clean the parameter from the address so the toast does not pop up on refresh
-  window.history.replaceState({}, "", "dashboard.html");
+  window.history.replaceState({}, "", "dashboard");
 }
 
 // ---------- badges: real conditions computed from portfolio data ----------

@@ -1,6 +1,6 @@
 /* Fundly × Upcomers — interactions */
 
-// package data: see js/packages.js (shared with dashboard.html)
+// package data: see js/packages.js (shared with dashboard)
 
 const usd = (n) => "$" + Math.round(n).toLocaleString("en-US");
 const usdSigned = (n) => (n > 0 ? "+" : n < 0 ? "-" : "") + "$" + Math.abs(Math.round(n)).toLocaleString("en-US");
@@ -219,18 +219,18 @@ document.addEventListener("click", (e) => {
     e.preventDefault();
     // With the backend the purchase goes through the checkout wizard, otherwise the original demo.
     if (typeof fundlyBackendEnabled === "function" && fundlyBackendEnabled()) {
-      window.location.href = "checkout.html?package=" + encodeURIComponent(quickstart.dataset.quickstart);
+      window.location.href = "checkout?package=" + encodeURIComponent(quickstart.dataset.quickstart);
       return;
     }
     Portfolio.init(quickstart.dataset.quickstart);
-    window.location.href = "dashboard.html";
+    window.location.href = "dashboard";
     return;
   }
   const trigger = e.target.closest("[data-auth]");
   if (trigger) {
     // Sign-up = purchase: with the backend we redirect into the checkout wizard.
     if (trigger.dataset.auth === "register" && typeof fundlyBackendEnabled === "function" && fundlyBackendEnabled()) {
-      window.location.href = "checkout.html?package=" + encodeURIComponent(activeKey);
+      window.location.href = "checkout?package=" + encodeURIComponent(activeKey);
       return;
     }
     openAuth(trigger.dataset.auth);
@@ -269,7 +269,7 @@ authForm.addEventListener("submit", (e) => {
       if (password) {
         FundlyAuth.signInWithPassword(email, password).then(({ error }) => {
           if (error) { fail("Incorrect e-mail or password."); return; }
-          window.location.href = "dashboard.html";
+          window.location.href = "dashboard";
         }).catch(() => fail("Login failed."));
       } else {
         FundlyAuth.signInWithEmail(email).then(({ error }) => {
@@ -290,7 +290,7 @@ authForm.addEventListener("submit", (e) => {
     } else {
       Portfolio.ensure(activeKey);
     }
-    window.location.href = "dashboard.html";
+    window.location.href = "dashboard";
   }, 700);
 });
 

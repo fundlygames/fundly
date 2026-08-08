@@ -56,11 +56,11 @@ const FundlyCheckout = {
 };
 
 const FundlyAuth = {
-  // Magic link sign-in via e-mail (back to dashboard.html).
+  // Magic link sign-in via e-mail (back to dashboard).
   async signInWithEmail(email) {
     const client = await FundlyBackend.getClient();
     if (!client) return { error: { message: "Backend is not configured." } };
-    const redirectTo = new URL("dashboard.html", window.location.href).href;
+    const redirectTo = new URL("dashboard", window.location.href).href;
     return client.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectTo } });
   },
 
