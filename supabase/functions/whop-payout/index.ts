@@ -48,7 +48,7 @@ serve(async (req) => {
   }
 
   try {
-    const { accountId, amount, payoutId, action } = await req.json();
+    const { accountId, amount, payoutId, action, confirmRisky } = await req.json();
     let payoutAmount = Number(amount);
     if (!accountId || (!Number.isFinite(payoutAmount) && action !== "reject")) {
       return jsonResponse({ error: "Zadejte platný účet a částku." }, 400);
@@ -82,7 +82,7 @@ serve(async (req) => {
 
     const { data: account } = await supabase
       .from("challenge_accounts")
-      .select("id, email, kyc_status")
+      .select("id, email, kyc_status, risk_score, risk_reasons")
       .eq("id", String(accountId))
       .maybeSingle();
     if (!account) return jsonResponse({ error: "Účet nenalezen." }, 404);
@@ -137,6 +137,17 @@ serve(async (req) => {
         { error: "Hráč nemá dokončené ověření identity (KYC) ve Whopu." },
         400,
       );
+    }
+
+    // Rizikový účet (risk_score > 60): transfer zatím neprovedeme — admin ho
+    // musí potvrdit druhým voláním s confirmRisky: true (varování v admin UI).
+    const riskScore = Number(account.risk_score) || 0;
+    if (riskScore > 60 && !confirmRisky) {
+      return jsonResponse({
+        needsConfirm: true,
+        riskScore,
+        riskReasons: Array.isArray(account.risk_reasons) ? account.risk_reasons : [],
+      });
     }
 
     // záznam payoutu předem — jeho id použijeme jako idempotency klíč transferu.

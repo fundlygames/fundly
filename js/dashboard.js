@@ -219,11 +219,55 @@ setInterval(refreshAfterSettlement, 5 * 60 * 1000);
 let syncTimer = null;
 let lastSyncAt = 0;
 
+// ---------- „AI-style" risk check: transparentní pravidelné skóre 0–100 ----------
+// Deterministické a vysvětlitelné (žádná externí AI) — váhy jednotlivých
+// pravidel níže; důvody se zobrazují v admin detailu hráče.
+function computeRisk(state, s) {
+  let score = 0;
+  const reasons = [];
+  const arb = state.tickets.filter((t) => (t.flags || []).includes("arbitrage")).length;
+  const val = state.tickets.filter((t) => (t.flags || []).includes("value")).length;
+  if (arb) { score += Math.min(60, arb * 40); reasons.push(`${arb}× tiket s arbitráží / sure bettingem`); }
+  if (val) { score += Math.min(40, val * 20); reasons.push(`${val}× value-bet tiket`); }
+  if (s.total >= 5 && s.avgOdds > 4) {
+    score += 10;
+    reasons.push(`průměrný kurz outlier (${s.avgOdds.toFixed(2)})`);
+  }
+  if (s.total >= 5 && state.tickets.every((t) => t.stake >= state.maxStake * 0.98)) {
+    score += 15;
+    reasons.push("všechny tikety na max. sázku");
+  }
+  // pokrytí stejného zápasu napříč tikety (>2 výběry na jednu událost)
+  const evCount = {};
+  state.tickets.forEach((t) => t.selections.forEach((x) => {
+    evCount[x.eventId] = (evCount[x.eventId] || 0) + 1;
+  }));
+  if (Object.values(evCount).some((c) => c > 2)) {
+    score += 15;
+    reasons.push("opakované pokrytí stejného zápasu");
+  }
+  if (s.won + s.lost >= 10 && s.winRate > 85) {
+    score += 15;
+    reasons.push(`anomální winrate (${s.winRate} %)`);
+  }
+  // rapid-fire: 5+ tiketů během 10 minut
+  const times = state.tickets.map((t) => new Date(t.placedAt).getTime()).sort((a, b) => a - b);
+  for (let i = 0; i + 4 < times.length; i++) {
+    if (times[i + 4] - times[i] <= 10 * 60 * 1000) {
+      score += 10;
+      reasons.push("rapid-fire tikety (5+ během 10 minut)");
+      break;
+    }
+  }
+  return { score: Math.min(100, score), reasons };
+}
+
 function buildAccountSnapshot(state) {
   const dd = Portfolio.drawdownInfo(state);
   const s = Portfolio.summary(state);
   const breached = state.balance <= dd.floor;
   const flags = [...new Set(state.tickets.flatMap((t) => t.flags || []))];
+  const risk = computeRisk(state, s);
   // kompaktní sázkový profil pro admin analytiku (top sporty/ligy, průměry)
   const bySport = {};
   const byLeague = {};
@@ -243,6 +287,8 @@ function buildAccountSnapshot(state) {
     flags,
     ticketsTotal: s.total,
     ticketsWon: s.won,
+    riskScore: risk.score,
+    riskReasons: risk.reasons,
     bettingProfile: {
       topSports: top(bySport),
       topLeagues: top(byLeague),

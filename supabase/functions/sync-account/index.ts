@@ -69,6 +69,17 @@ serve(async (req) => {
     const breachReason = body.breachReason == null
       ? null
       : String(body.breachReason).slice(0, 200);
+
+    // rizikové skóre z klienta (pravidelné, 0–100 + krátké důvody)
+    const riskScore = body.riskScore == null ? null : saneInt(body.riskScore, 100);
+    if (body.riskScore != null && riskScore === null) {
+      return jsonResponse({ error: "Invalid riskScore (0–100)." }, 400);
+    }
+    const riskReasons = Array.isArray(body.riskReasons)
+      ? body.riskReasons
+          .filter((r: unknown) => typeof r === "string" && (r as string).length <= 100)
+          .slice(0, 10)
+      : [];
     const flags = Array.isArray(body.flags)
       ? body.flags
           .filter((f: unknown) => typeof f === "string" && (f as string).length <= 40)
@@ -127,6 +138,7 @@ serve(async (req) => {
         tickets_won: ticketsWon,
         synced_at: new Date().toISOString(),
         ...(bettingProfile ? { betting_profile: bettingProfile } : {}),
+        ...(riskScore !== null ? { risk_score: riskScore, risk_reasons: riskReasons } : {}),
       })
       .eq("id", account.id);
     if (updateError) throw updateError;

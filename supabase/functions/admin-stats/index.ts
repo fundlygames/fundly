@@ -54,7 +54,7 @@ serve(async (req) => {
       supabase.from("challenge_accounts").select("state, email, created_at"),
       supabase
         .from("challenge_accounts")
-        .select("id, email, package_key, phase, capital, state, kyc_status, phase_balance, profit, qualifying_tickets, breach_reason, flags, tickets_total, tickets_won, synced_at, created_at")
+        .select("id, email, package_key, phase, capital, state, kyc_status, phase_balance, profit, qualifying_tickets, breach_reason, flags, tickets_total, tickets_won, synced_at, betting_profile, risk_score, risk_reasons, created_at")
         .order("created_at", { ascending: false })
         .limit(50),
       supabase
@@ -214,6 +214,9 @@ serve(async (req) => {
       recentPayments: recentPayments.data ?? [],
       accountsByState,
       breachedCount: accountsByState.breached ?? 0,
+      // rizikové účty (risk_score > 60) pro admin přehled
+      // deno-lint-ignore no-explicit-any
+      riskyCount: (recentAccounts.data ?? []).filter((a: any) => (a.risk_score ?? 0) > 60).length,
       recentAccounts: (recentAccounts.data ?? []).map((a) => ({
         ...a,
         totalSpentCzk: Math.round(spentByEmail[a.email] ?? 0),

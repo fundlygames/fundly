@@ -210,18 +210,33 @@ button { font-family: inherit; cursor: pointer; }
 }
 .hero-bg {
   position: absolute;
-  inset: -2%;
+  inset: -6%;
   z-index: -2;
   background-image: url("../assets/hero.jpg");
   background-size: cover;
   background-position: center 30%;
 }
 @media (prefers-reduced-motion: no-preference) {
-  .hero-bg { animation: hero-drift 28s ease-in-out infinite alternate; }
+  /* pomalý filmový „camera drift" (Ken Burns) — jen transform, GPU vrstva */
+  .hero-bg { will-change: transform; animation: hero-drift 30s ease-in-out infinite alternate; }
+  .hero::after { animation: hero-glow 14s ease-in-out infinite alternate; }
 }
 @keyframes hero-drift {
-  0% { transform: scale(1.02) translate(0); }
-  100% { transform: scale(1.02) translate(-1%, -0.6%); }
+  0% { transform: scale(1) translate(0, 0) rotate(0deg); }
+  100% { transform: scale(1.12) translate(-1.5%, -1%) rotate(-0.6deg); }
+}
+/* jemný světelný puls nad scrimem */
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(55% 45% at 72% 18%, rgb(var(--accent-rgb) / .1), transparent 70%);
+}
+@keyframes hero-glow {
+  from { opacity: .35; transform: translateX(-3%); }
+  to { opacity: .9; transform: translateX(3%); }
 }
 .hero-scrim {
   position: absolute;

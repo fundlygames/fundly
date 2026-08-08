@@ -554,23 +554,26 @@ renderPlayersTable = function () {
     (a) => playersFilter === "vse" || realStatus(a.state).filter === playersFilter
   );
   document.getElementById("playersTable").innerHTML = `
-    <thead><tr><th>E-mail</th><th>Balíček</th><th>Fáze</th><th>Kapitál</th><th>Stav</th><th>Vytvořeno</th><th></th></tr></thead>
+    <thead><tr><th>E-mail</th><th>Balíček</th><th>Fáze</th><th>Kapitál</th><th>Riziko</th><th>Stav</th><th>Vytvořeno</th><th></th></tr></thead>
     <tbody>
       ${rows.length ? rows.map((a) => {
         const status = realStatus(a.state);
+        const risk = a.risk_score == null ? null : Number(a.risk_score);
+        const riskTag = risk == null ? "" : risk > 60 ? "loss" : risk >= 30 ? "pend" : "win";
         return `
         <tr class="row-player" data-acc="${esc(a.id)}" title="Otevřít detail hráče">
           <td>${esc(a.email)}</td>
           <td>${esc(a.package_key)}</td>
           <td>Fáze ${esc(a.phase)}</td>
           <td class="odds">${czk(Number(a.capital) || 0)}</td>
+          <td>${risk == null ? '<span style="color:var(--text-muted)">—</span>' : `<span class="tag ${riskTag}" title="Rizikové skóre">${risk}</span>`}</td>
           <td><span class="tag ${status.tag}">${status.label}</span></td>
           <td style="color:var(--text-muted)">${new Date(a.created_at).toLocaleDateString("cs-CZ")}</td>
           <td>${a.state === "funded"
             ? `<button class="btn btn-ghost" data-payout="${esc(a.id)}" data-email="${esc(a.email)}">Vyplatit</button>`
             : ""}</td>
         </tr>`;
-      }).join("") : `<tr><td colspan="7">Žádné účty pro zvolený filtr.</td></tr>`}
+      }).join("") : `<tr><td colspan="8">Žádné účty pro zvolený filtr.</td></tr>`}
     </tbody>`;
 };
 
@@ -649,6 +652,12 @@ function openPlayerDetail(acc) {
             ${infoRow("Prům. sázka", czk(Number(a.betting_profile.avgStake) || 0))}
             ${infoRow("Prům. kurz", (Number(a.betting_profile.avgOdds) || 0).toFixed(2))}
           </div>` : ""}
+        ${a.risk_score != null ? `
+          <h4 class="pm-h">Riziko</h4>
+          <div class="pm-flags" style="align-items:center">
+            <span class="tag ${Number(a.risk_score) > 60 ? "loss" : Number(a.risk_score) >= 30 ? "pend" : "win"}">skóre ${Number(a.risk_score)} / 100</span>
+            <span class="pm-date">${Array.isArray(a.risk_reasons) && a.risk_reasons.length ? a.risk_reasons.map(esc).join(" · ") : "bez nálezů"}</span>
+          </div>` : ""}
         <p class="pm-date" style="margin-top:8px">Poslední synchronizace: ${fmtDate(a.synced_at)}</p>`
       : `<p class="pm-date" style="margin-top:10px">Zatím nesynchronizováno — statistiky pravidel se zobrazí po první synchronizaci z dashboardu hráče.</p>`}
       ${a.state === "funded"
@@ -707,6 +716,19 @@ if (playerModal) {
   });
 }
 
+// rizikový účet → server vrátí needsConfirm, admin potvrdí a zavoláme znovu
+async function payoutWithConfirm(payload) {
+  const result = await adminFetch("whop-payout", payload);
+  if (result && result.needsConfirm) {
+    const why = (result.riskReasons || []).join(", ");
+    if (!window.confirm(`Pozor: rizikové skóre ${result.riskScore}${why ? ` — ${why}` : ""}. Pokračovat?`)) {
+      return null; // admin zrušil
+    }
+    return await adminFetch("whop-payout", { ...payload, confirmRisky: true });
+  }
+  return result;
+}
+
 // ---------- výplaty: tlačítko „Vyplatit“ u financovaného hráče ----------
 document.addEventListener("click", async (e) => {
   const btn = e.target.closest("[data-payout]");
@@ -721,7 +743,8 @@ document.addEventListener("click", async (e) => {
   if (!window.confirm(`Opravdu vyplatit ${czk(value)} hráči ${btn.dataset.email}?`)) return;
   btn.disabled = true;
   try {
-    const result = await adminFetch("whop-payout", { accountId: btn.dataset.payout, amount: value });
+    const result = await payoutWithConfirm({ accountId: btn.dataset.payout, amount: value });
+    if (!result) { btn.disabled = false; return; }
     window.alert(`Výplata odeslána (transfer ${result.transferId || "—"}).`);
     await loadRealStats();
   } catch (err) {
@@ -738,11 +761,12 @@ document.addEventListener("click", async (e) => {
   if (!window.confirm(`Opravdu schválit a vyplatit ${czk(amount)} (žádost #${String(btn.dataset.approvePayout).slice(0, 8)})?`)) return;
   btn.disabled = true;
   try {
-    const result = await adminFetch("whop-payout", {
+    const result = await payoutWithConfirm({
       accountId: btn.dataset.account,
       amount,
       payoutId: btn.dataset.approvePayout,
     });
+    if (!result) { btn.disabled = false; return; }
     window.alert(`Výplata odeslána (transfer ${result.transferId || "—"}).`);
     await loadRealStats();
   } catch (err) {
