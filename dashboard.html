@@ -60,6 +60,14 @@
         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><rect x="1.5" y="3.5" width="12" height="8.5" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M9.5 7.75h2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
         Payouts
       </button>
+      <button class="dnav-link" data-view="affiliate">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.5l1.8 3.8 4.2.6-3 3 .7 4.1-3.7-2-3.7 2 .7-4.1-3-3 4.2-.6z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+        Affiliate
+      </button>
+      <button class="dnav-link" data-view="akademie">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 3.5A1.5 1.5 0 013.5 2H13v10H3.5A1.5 1.5 0 002 13.5v-10z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M2 13.5A1.5 1.5 0 013.5 12H13M5.5 5.5h5M5.5 8h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        Academy
+      </button>
       <button class="dnav-link" data-view="profil">
         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><circle cx="7.5" cy="4.75" r="2.75" stroke="currentColor" stroke-width="1.4"/><path d="M2.5 13c.7-2.4 2.7-3.75 5-3.75S11.8 10.6 12.5 13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
         Profile
@@ -350,6 +358,109 @@
         </div>
       </section>
 
+      <!-- ============ AFFILIATE ============ -->
+      <section class="dash-view" id="view-affiliate" hidden>
+        <div class="dash-head">
+          <div>
+            <h1>Affiliate program</h1>
+            <p>Your codes, conversions and earnings estimate</p>
+          </div>
+        </div>
+
+        <div class="stat-grid" style="margin-top:0" id="affStatGrid"><!-- JS: renderAffiliate() --></div>
+
+        <div class="panel mt">
+          <h3>Your codes</h3>
+          <div class="k-rows" id="affCodes"><!-- JS: renderAffiliate() --></div>
+        </div>
+
+        <div class="panel mt">
+          <h3>Referred players</h3>
+          <p class="t-small" style="margin-bottom:10px">Everyone who bought a package with your code. We show up to 5 tickets per player.</p>
+          <div style="overflow-x:auto">
+            <table class="ticket-table">
+              <thead><tr><th>Player</th><th>Package</th><th>Code</th><th>Tickets</th><th>Paid</th><th>Date</th></tr></thead>
+              <tbody id="affReferrals"><!-- JS: renderAffiliate() --></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ ACADEMY ============ -->
+      <section class="dash-view" id="view-akademie" hidden>
+        <div class="dash-head">
+          <div>
+            <h1>Academy</h1>
+            <p>Betting fundamentals for the Fundly Challenge</p>
+          </div>
+        </div>
+
+        <div class="hero-panel">
+          <div>
+            <div class="t">Learn the rules of the game before you bet</div>
+            <div class="d">Five short reads — bankroll, odds, value, qualifying tickets and drawdown.</div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="panel">
+            <h3>Bankroll management</h3>
+            <ul class="tip-list">
+              <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Your bankroll is your challenge capital — treat it as a budget, not a number to double overnight.</li>
+              <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Flat staking wins long-term: 1–2 % of capital per ticket. On Fundly the max stake is 1.5 % of capital anyway.</li>
+              <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Never chase losses by raising stakes — that is how accounts hit the drawdown floor.</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>What odds mean</h3>
+            <p class="t-small" style="margin-bottom:12px">Decimal odds tell you two things: your return and the implied probability of the outcome.</p>
+            <div class="k-rows">
+              <div class="k-row neutral">Odds 1.50 → implied probability<span class="n">66.7 %</span></div>
+              <div class="k-row neutral">Odds 2.00 → implied probability<span class="n">50 %</span></div>
+              <div class="k-row neutral">Odds 4.00 → implied probability<span class="n">25 %</span></div>
+              <div class="k-row neutral">Return = stake × odds<span class="n">$10 × 2.00 = $20</span></div>
+            </div>
+            <p class="t-small" style="margin-top:12px">Implied probability = 1 ÷ odds. Bookmakers build a margin into the odds, so the total of all outcomes is always over 100 %.</p>
+          </div>
+          <div class="panel">
+            <h3>Value vs arbitrage</h3>
+            <p class="t-small" style="margin-bottom:12px"><b>Value betting</b> means betting when the odds are higher than the true probability — you have an edge and accept variance. <b>Arbitrage</b> (sure betting) means covering all outcomes across bookmakers for a guaranteed, risk-free profit.</p>
+            <div class="notice">
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.8L1.8 12.7h11.4z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M7.5 6v3M7.5 10.7v.1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+              Arbitrage and sure betting are FORBIDDEN on Fundly. Hedging outcomes for guaranteed profit breaks the challenge rules, gets flagged automatically and leads to a breach.
+            </div>
+          </div>
+          <div class="panel">
+            <h3>Qualifying tickets</h3>
+            <ul class="tip-list">
+              <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>To pass a phase (and before every payout) you need 5 qualifying tickets.</li>
+              <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>A qualifying ticket is a winning ticket with a net profit of at least +0.5 % of your capital.</li>
+              <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>The rule exists to prove consistent, real betting — not one lucky all-in.</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>Drawdown</h3>
+            <p class="t-small" style="margin-bottom:12px">Drawdown is how far your balance may fall before the challenge fails. On Fundly the max. loss is a static −10 % of capital — a fixed floor that never moves up as you profit.</p>
+            <div class="limit-row">
+              <span class="k">Max. loss (static) <small>(fixed floor)</small></span>
+              <span class="v">−10 % of capital</span>
+            </div>
+            <div class="progress"><span style="width:90%"></span></div>
+            <p class="t-small" style="margin-top:12px">Example: with $2,000 capital the floor is fixed at $1,800 — even if your balance peaks at $2,400.</p>
+          </div>
+          <div class="panel">
+            <h3>House rules in short</h3>
+            <ol class="ol-steps">
+              <li>Phase 1 target +10 %, Phase 2 target +5 % of capital, 30 days per phase.</li>
+              <li>Max. stake 1.5 % of capital per ticket.</li>
+              <li>5 qualifying tickets per phase and before every payout.</li>
+              <li>No arbitrage, no sure betting, no abusive strategies — flagged tickets lead to a breach.</li>
+              <li>Funded account: 80 % profit split, payouts within 48 hours of approval.</li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
       <!-- ============ PROFILE ============ -->
       <section class="dash-view" id="view-profil" hidden>
         <div class="dash-head">
@@ -453,6 +564,8 @@
     <button data-view="sazeni">Betting</button>
     <button data-view="zebricek">Leaderboard</button>
     <button data-view="vyplaty">Payouts</button>
+    <button data-view="affiliate">Affiliate</button>
+    <button data-view="akademie">Academy</button>
     <button data-view="profil">Profile</button>
   </nav>
 

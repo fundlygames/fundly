@@ -3,7 +3,7 @@
 const czk = (n) => n.toLocaleString("cs-CZ") + " Kč";
 
 // ---------- přepínání sekcí ----------
-const views = ["finance", "hraci", "diagnostika"];
+const views = ["finance", "hraci", "affiliate", "diagnostika"];
 
 function showView(name) {
   views.forEach((v) => {
@@ -365,6 +365,7 @@ async function loadRealStats() {
   renderRealFinance(stats);
   renderRealPlayers(stats);
   renderPlayersTable(); // přepnutá verze níže vykreslí reálné účty
+  renderAffiliate();
 }
 
 // ---------- Finance: reálná data ----------
@@ -668,6 +669,104 @@ document.addEventListener("click", async (e) => {
     btn.disabled = false;
   }
 });
+
+// ---------- Affiliate: kódy + konverze (jen reálná data, mock nemá) ----------
+const AFF_PLAN_LABELS = {
+  all: "Všechny balíčky",
+  starter: "Starter",
+  standard: "Standard",
+  advanced: "Advanced",
+  pro: "Pro",
+  elite: "Elite",
+};
+
+function affNoteShow(msg) {
+  const note = document.getElementById("affNote");
+  if (!note) return;
+  note.textContent = msg;
+  note.hidden = false;
+}
+
+function renderAffiliate() {
+  const table = document.getElementById("affCodesTable");
+  const conv = document.getElementById("affConversions");
+  if (!table || !conv) return;
+
+  const codes = (REAL && REAL.affiliateCodes) || [];
+  table.innerHTML = `
+    <thead><tr><th>Kód</th><th>Balíček</th><th>Sleva</th><th>Provize</th><th>Limit</th><th>Použito</th><th>Vlastník</th><th>Stav</th><th></th></tr></thead>
+    <tbody>
+      ${codes.length ? codes.map((c) => `
+        <tr>
+          <td class="odds"><b>${esc(c.code)}</b></td>
+          <td>${esc(AFF_PLAN_LABELS[c.plan_key] || c.plan_key)}</td>
+          <td class="odds">${Number(c.discount_pct)} %</td>
+          <td class="odds">${Number(c.commission_pct)} %</td>
+          <td class="odds">${c.usage_limit ?? "∞"}</td>
+          <td class="odds">${Number(c.used) || 0}</td>
+          <td style="color:var(--text-muted)">${esc(c.owner_email)}</td>
+          <td><span class="tag ${c.active ? "win" : "loss"}">${c.active ? "aktivní" : "archivován"}</span></td>
+          <td>${c.active ? `<button class="btn btn-ghost" data-aff-archive="${esc(c.id)}" data-code="${esc(c.code)}">Archivovat</button>` : ""}</td>
+        </tr>`).join("")
+      : `<tr><td colspan="9">${REAL ? "Zatím žádné affiliate kódy." : "Odemkněte admin klíčem pro načtení kódů."}</td></tr>`}
+    </tbody>`;
+
+  const conversions = (REAL && REAL.promoConversions) || [];
+  conv.innerHTML = conversions.length
+    ? conversions.map((p) => {
+        const amt = p.currency === "eur"
+          ? `${(Number(p.amount) || 0).toLocaleString("cs-CZ")} EUR`
+          : `$${(Number(p.amount) || 0).toLocaleString("en-US")}`;
+        const when = new Date(p.created_at).toLocaleString("cs-CZ");
+        return `<div class="k-row neutral">${esc(p.email || "—")} · ${esc(p.package_key || "?")} · kód <b>${esc(p.promo_code)}</b><span class="n">${amt} <span class="pm-date">${when}</span></span></div>`;
+      }).join("")
+    : `<p class="bet-msg">${REAL ? "Zatím žádné konverze přes promo kód." : "Odemkněte admin klíčem pro načtení konverzí."}</p>`;
+}
+
+// vytvoření kódu: edge funkce affiliate-manage založí promo kód ve Whop + záznam u nás
+const affForm = document.getElementById("affForm");
+if (affForm) {
+  affForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById("affSubmit");
+    btn.disabled = true;
+    try {
+      await adminFetch("affiliate-manage", {
+        action: "create",
+        code: document.getElementById("affCode").value,
+        planKey: document.getElementById("affPlan").value,
+        discountPct: document.getElementById("affDiscount").value,
+        commissionPct: document.getElementById("affCommission").value,
+        usageLimit: document.getElementById("affLimit").value,
+        ownerEmail: document.getElementById("affOwner").value,
+      });
+      affNoteShow("Kód vytvořen ve Whop i u nás.");
+      affForm.reset();
+      await loadRealStats();
+    } catch (err) {
+      affNoteShow(err.message || "Kód se nepodařilo vytvořit.");
+    } finally {
+      btn.disabled = false;
+    }
+  });
+}
+
+// archivace kódu (Whop DELETE /promo_codes/{id} + vypnutí active u nás)
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest("[data-aff-archive]");
+  if (!btn) return;
+  if (!window.confirm(`Opravdu archivovat kód ${btn.dataset.code}? Zákazníci ho už nepoužijí.`)) return;
+  btn.disabled = true;
+  try {
+    await adminFetch("affiliate-manage", { action: "archive", id: btn.dataset.affArchive });
+    await loadRealStats();
+  } catch (err) {
+    window.alert(err.message || "Archivace se nepodařila.");
+    btn.disabled = false;
+  }
+});
+
+renderAffiliate(); // prázdný stav do odemknutí admin klíčem
 
 // ---------- init: odemknutí reálných dat ----------
 if (adminBackendReady()) {

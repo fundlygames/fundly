@@ -3,7 +3,7 @@
 const usd = (n) => "$" + Math.round(n).toLocaleString("en-US");
 
 // ---------- section switching ----------
-const views = ["prehled", "vykon", "sazeni", "zebricek", "vyplaty", "profil"];
+const views = ["prehled", "vykon", "sazeni", "zebricek", "vyplaty", "affiliate", "akademie", "profil"];
 
 function showView(name) {
   views.forEach((v) => {
@@ -18,6 +18,7 @@ function showView(name) {
   if (name === "sazeni" && typeof renderBankBar === "function") renderBankBar();
   if (name === "profil" && typeof renderBadges === "function") renderBadges(Portfolio.get());
   if (name === "vyplaty" && typeof loadPayoutHistory === "function") loadPayoutHistory();
+  if (name === "affiliate" && typeof loadAffiliateStats === "function") loadAffiliateStats();
 }
 
 document.addEventListener("click", (e) => {
@@ -993,6 +994,103 @@ if (wdForm) {
     note.textContent = "Withdrawals unlock with a funded account after completing both phases.";
     note.hidden = false;
   });
+}
+
+// ---------- affiliate program (self-service, edge function affiliate-stats) ----------
+// Only with the backend and a signed-in user — the function matches affiliate
+// codes by the caller's e-mail. Otherwise the view shows an info empty state.
+
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+const AFF_PLAN_LABELS = {
+  all: "All packages",
+  starter: "Starter",
+  standard: "Standard",
+  advanced: "Advanced",
+  pro: "Pro",
+  elite: "Elite",
+};
+
+function renderAffiliateMessage(msg) {
+  const stats = document.getElementById("affStatGrid");
+  const codes = document.getElementById("affCodes");
+  const referrals = document.getElementById("affReferrals");
+  if (stats) stats.innerHTML = "";
+  if (codes) codes.innerHTML = `<p class="bet-msg">${esc(msg)}</p>`;
+  if (referrals) referrals.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">—</td></tr>`;
+}
+
+function renderAffiliate(data) {
+  const stats = document.getElementById("affStatGrid");
+  const codes = document.getElementById("affCodes");
+  const referrals = document.getElementById("affReferrals");
+  if (!stats || !codes || !referrals) return;
+
+  const dstat = (label, value, green) => `
+    <div class="dstat">
+      <div class="lbl">${label}</div>
+      <div class="val ${green ? "green" : ""}">${value}</div>
+    </div>`;
+
+  const active = data.codes.filter((c) => c.active);
+  stats.innerHTML =
+    dstat("Active codes", active.length, false) +
+    dstat("Conversions", data.totals.conversions, false) +
+    dstat("Estimated earnings", usd(data.totals.earnings), true);
+
+  codes.innerHTML = data.codes.length
+    ? data.codes.map((c) => {
+        const limit = c.usageLimit == null ? "∞" : c.usageLimit;
+        const state = c.active
+          ? `<span class="tag win">active</span>`
+          : `<span class="tag loss">archived</span>`;
+        return `<div class="k-row neutral"><span><b>${esc(c.code)}</b> · ${esc(AFF_PLAN_LABELS[c.planKey] || c.planKey)} · −${c.discountPct} % for buyers<br><span style="color:var(--text-muted);font-size:.8125rem">Your commission ${c.commissionPct} % · used ${c.used} / ${limit}</span></span><span class="n">${state} ${usd(c.earnings)}</span></div>`;
+      }).join("")
+    : `<p class="bet-msg">No affiliate code is linked to your account yet. Reach out to support to join the program.</p>`;
+
+  referrals.innerHTML = data.referrals.length
+    ? data.referrals.map((r) => {
+        const date = new Date(r.date).toLocaleDateString("en-US");
+        const tickets = r.ticketsCapped ? "5+" : String(r.tickets);
+        const amt = r.currency === "eur"
+          ? `${(Number(r.amount) || 0).toLocaleString("en-US")} €`
+          : usd(Number(r.amount) || 0);
+        return `<tr>
+          <td>${esc(r.email)}</td>
+          <td>${esc(AFF_PLAN_LABELS[r.packageKey] || r.packageKey || "?")}</td>
+          <td class="odds">${esc(r.code)}</td>
+          <td class="odds">${tickets}</td>
+          <td class="odds">${amt}</td>
+          <td style="color:var(--text-muted)">${date}</td>
+        </tr>`;
+      }).join("")
+    : `<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">No referred players yet.</td></tr>`;
+}
+
+async function loadAffiliateStats() {
+  if (typeof FundlyBackend === "undefined" || !fundlyBackendEnabled()) {
+    return renderAffiliateMessage("Affiliate stats need the backend — this page is running in demo mode.");
+  }
+  try {
+    const client = await FundlyBackend.getClient();
+    if (!client) return renderAffiliateMessage("Affiliate stats need the backend.");
+    const { data: sessionData } = await client.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    if (!token) return renderAffiliateMessage("Sign in to see your affiliate stats.");
+    const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/affiliate-stats`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: "{}",
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return renderAffiliateMessage(data.error || "Affiliate stats could not be loaded.");
+    renderAffiliate(data);
+  } catch (e) {
+    renderAffiliateMessage("Affiliate stats could not be loaded.");
+  }
 }
 
 // ---------- profile ----------

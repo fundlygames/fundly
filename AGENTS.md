@@ -19,7 +19,7 @@ Archived React/Supabase (Lovable) version: repo `matejc-beep/betflow-react-archi
 - `js/main.js` — landing interactions
 - `js/dashboard.js` — dashboard logic
 - `admin.html` — admin view (admin-key unlock loads real data via edge functions)
-- `supabase/` — backend: migrations + edge functions (whop-checkout, whop-webhook, admin-stats, meta-ads-spend, whop-payout, request-payout)
+- `supabase/` — backend: migrations + edge functions (whop-checkout, whop-webhook, admin-stats, meta-ads-spend, whop-payout, request-payout, affiliate-manage, affiliate-stats)
 - `docs/WHOP-SETUP.md` — Whop/Supabase deployment guide (Czech)
 - `docs/superpowers/` — plan + design specs
 

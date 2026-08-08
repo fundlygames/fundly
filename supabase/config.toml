@@ -26,3 +26,9 @@ verify_jwt = false
 
 [functions.sync-account]
 verify_jwt = false
+
+[functions.affiliate-manage]
+verify_jwt = false
+
+[functions.affiliate-stats]
+verify_jwt = false

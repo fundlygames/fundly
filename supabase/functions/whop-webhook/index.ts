@@ -126,6 +126,28 @@ async function insertPayment(supabase: any, data: any, status: string) {
 
   const metadata = data.metadata ?? {};
   const email = data.user?.email ?? metadata.email ?? null;
+
+  // Promo kód: platební objekt Whop nese promo_code { code, amount_off, ... }.
+  // Čteme defenzivně i z metadat pro případ jiného tvaru payloadu.
+  const promoCode = data.promo_code?.code ?? metadata.promo_code ?? null;
+
+  // Affiliate = vlastník promo kódu: případně z metadat, jinak dohledáme
+  // v affiliate_codes podle kódu (case-insensitive).
+  let affiliate = metadata.affiliate ?? metadata.affiliate_code ?? null;
+  if (!affiliate && promoCode) {
+    try {
+      const { data: ac } = await supabase
+        .from("affiliate_codes")
+        .select("owner_email")
+        .ilike("code", String(promoCode))
+        .maybeSingle();
+      affiliate = ac?.owner_email ?? null;
+    } catch (e) {
+      // tabulka affiliate_codes nemusí ještě existovat — promo kód uložíme i tak
+      console.error("affiliate lookup selhal:", e);
+    }
+  }
+
   await supabase.from("payments").insert({
     whop_payment_id: data.id,
     email,
@@ -133,6 +155,8 @@ async function insertPayment(supabase: any, data: any, status: string) {
     amount: data.total ?? data.amount_after_fees ?? data.subtotal ?? null,
     currency: data.currency ?? null,
     status,
+    promo_code: promoCode,
+    affiliate,
     whop_metadata: data, // kompletní payload (whop-payout z něj čte user.id)
   });
   return true;

@@ -36,6 +36,9 @@ serve(async (req) => {
       recentAccounts,
       recentPayouts,
       metaSpend,
+      affiliateCodes,
+      promoPayments,
+      promoConversions,
     ] = await Promise.all([
       supabase
         .from("payments")
@@ -64,6 +67,24 @@ serve(async (req) => {
         .select("amount_czk")
         .eq("channel", "meta")
         .gte("date", monthStartDate),
+      // affiliate: kódy + počty použití a poslední konverze přes promo kód
+      supabase
+        .from("affiliate_codes")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(100),
+      supabase
+        .from("payments")
+        .select("promo_code")
+        .eq("status", "succeeded")
+        .not("promo_code", "is", null),
+      supabase
+        .from("payments")
+        .select("whop_payment_id, email, package_key, amount, currency, promo_code, affiliate, created_at")
+        .eq("status", "succeeded")
+        .not("promo_code", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(50),
     ]);
 
     // deno-lint-ignore no-explicit-any
@@ -109,6 +130,13 @@ serve(async (req) => {
       };
     });
 
+    // počty použití affiliate kódů z úspěšných plateb (case-insensitive)
+    const usedByCode: Record<string, number> = {};
+    for (const p of promoPayments.data ?? []) {
+      const key = String(p.promo_code).toUpperCase();
+      usedByCode[key] = (usedByCode[key] ?? 0) + 1;
+    }
+
     return jsonResponse({
       monthRevenue: Math.round(sumCzk(monthPayments.data)),
       monthCount: (monthPayments.data ?? []).length,
@@ -122,6 +150,12 @@ serve(async (req) => {
       })),
       recentPayouts: enrichedPayouts,
       metaAdsSpendCzk: sum(metaSpend.data, "amount_czk"),
+      // deno-lint-ignore no-explicit-any
+      affiliateCodes: (affiliateCodes.data ?? []).map((c: any) => ({
+        ...c,
+        used: usedByCode[String(c.code).toUpperCase()] ?? 0,
+      })),
+      promoConversions: promoConversions.data ?? [],
     });
   } catch (err) {
     console.error("admin-stats error:", err);
