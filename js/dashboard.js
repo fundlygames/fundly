@@ -280,13 +280,22 @@ async function syncChallengeAccount() {
     const client = await FundlyBackend.getClient();
     if (!client) return;
     const user = await FundlyAuth.getUser();
-    if (!user) return;
+    // Gate: dashboard je jen pro platící — bez přihlášení na landing,
+    // bez koupeného balíčku na checkout.
+    if (!user) {
+      window.location.replace("./");
+      return;
+    }
     const { data: accounts, error } = await client
       .from("challenge_accounts")
       .select("package_key, capital, phase, state")
       .order("created_at", { ascending: false })
       .limit(1);
-    if (error || !accounts || !accounts.length) return;
+    if (error) return;
+    if (!accounts || !accounts.length) {
+      window.location.replace("checkout");
+      return;
+    }
     const account = accounts[0];
     const state = Portfolio.get();
     if (state && state.packageKey === account.package_key) return;
