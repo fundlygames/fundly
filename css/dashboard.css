@@ -830,6 +830,50 @@ body::after {
 .slip-total .green { color: var(--accent); }
 .slip .field { margin: 10px 0 12px; }
 
+/* ---------- rozbalovací tikety + early cashout ---------- */
+.k-row.tk { display: block; padding: 0; }
+.k-row.tk summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  list-style: none;
+}
+.k-row.tk summary::-webkit-details-marker { display: none; }
+.k-row.tk summary .n { margin-left: auto; }
+.tk-body { padding: 0 12px 12px; }
+.tk-sels {
+  background: var(--bg);
+  border-radius: var(--d-r);
+  box-shadow: inset 0 0 0 1px var(--line);
+  padding: 4px 12px;
+  margin-bottom: 10px;
+}
+.tk-sel {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: .8125rem;
+}
+.tk-sel:last-child { border-bottom: none; }
+.tk-sel .n { font-weight: 700; font-variant-numeric: tabular-nums; }
+.tk-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  font-size: .8125rem;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+.tk-meta b { color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.tk-meta .green { color: var(--accent); }
+.tk-detail td { background: #ffffff05; }
+tr.tk-exp { cursor: pointer; }
+tr.tk-exp:hover td { background: #ffffff08; }
+
 /* ---------- Žebříček ---------- */
 .lb-row {
   display: flex;

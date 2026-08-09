@@ -212,6 +212,8 @@
                 <option value="">All dates</option>
                 <option value="dnes">Today</option>
                 <option value="zitra">Tomorrow</option>
+                <option value="7d">Next 7 days</option>
+                <option value="20d">Next 20 days</option>
               </select>
             </div>
             <div class="field">
@@ -241,6 +243,7 @@
               Refresh
             </button>
           </div>
+          <div class="bf-quick" id="leagueChips" hidden><!-- JS: ligové chipy --></div>
         </div>
 
         <div class="sport-tabs" role="tablist" aria-label="Sports" id="sportTabs"><!-- JS --></div>
@@ -338,12 +341,11 @@
             <div class="panel">
               <h3>How it works</h3>
               <ol class="ol-steps">
-                <li>Before withdrawing, build a profit buffer of at least +5 % of capital.</li>
-                <li>Before every withdrawal, complete at least 5 winning tickets with a net profit of at least +0.5 % of capital.</li>
-                <li>Pick an amount — up to $4,000 per payout.</li>
-                <li>You receive 80 % of your profit — the 80/20 split.</li>
+                <li>Once funded, build a one-time profit buffer of at least +5 % of capital.</li>
+                <li>Before every payout, complete 5 winning tickets with a net profit of at least +0.5 % of capital — the counter resets after each payout.</li>
+                <li>Pick an amount — you receive 80 % of your profit, up to $4,000 per payout.</li>
                 <li>We approve the request within 24 hours and pay it out.</li>
-                <li>After the withdrawal, the balance must stay above the safety threshold.</li>
+                <li>After the withdrawal, the balance must stay above the trailing floor.</li>
               </ol>
             </div>
             <div class="panel">
@@ -450,18 +452,23 @@
           </div>
           <div class="panel">
             <h3>Drawdown</h3>
-            <p class="t-small" style="margin-bottom:12px">Drawdown is how far your balance may fall before the challenge fails. On Fundly the max. loss is a static −10 % of capital — a fixed floor that never moves up as you profit.</p>
+            <p class="t-small" style="margin-bottom:12px">Drawdown is how far your balance may fall before the challenge fails. In the Challenge phases the max. loss is a static −10 % of capital — a fixed floor. On the funded account it becomes trailing: the floor follows your highest reached balance.</p>
             <div class="limit-row">
-              <span class="k">Max. loss (static) <small>(fixed floor)</small></span>
+              <span class="k">Max. loss <small>(static → trailing on funded)</small></span>
               <span class="v">−10 % of capital</span>
             </div>
             <div class="progress"><span style="width:90%"></span></div>
-            <p class="t-small" style="margin-top:12px">Example: with $2,000 capital the floor is fixed at $1,800 — even if your balance peaks at $2,400.</p>
+            <div class="limit-row" style="margin-top:10px">
+              <span class="k">Max. daily loss <small>(resets at midnight UTC)</small></span>
+              <span class="v">−4 % of capital</span>
+            </div>
+            <p class="t-small" style="margin-top:12px">Example: with $25,000 capital the static floor is $22,500. On a funded account peaking at $27,000 the trailing floor moves to $24,300.</p>
           </div>
           <div class="panel">
             <h3>House rules in short</h3>
             <ol class="ol-steps">
               <li>Phase 1 target +10 %, Phase 2 target +5 % of capital, 30 days per phase.</li>
+              <li>Max. loss −10 % (static in the Challenge, trailing on funded), max. daily loss −4 % of capital.</li>
               <li>Max. stake 1.5 % of capital per ticket.</li>
               <li>5 qualifying tickets per phase and before every payout.</li>
               <li>No arbitrage, no sure betting, no abusive strategies — flagged tickets lead to a breach.</li>
@@ -545,7 +552,7 @@
         <div class="two-col">
           <div class="panel">
             <h3>Risk limits</h3>
-            <p class="t-small" style="margin-bottom:12px">No daily limit. The only failure rule is the static max. loss of −10 % of capital.</p>
+            <p class="t-small" style="margin-bottom:12px">Failure rules: max. loss −10 % of capital (static in the Challenge, trailing once funded) and max. daily loss −4 %.</p>
             <div class="limit-row">
               <span class="k">Max. loss (static) <small id="pfDdDetail">(fixed floor –)</small></span>
               <span class="v" id="pfDdRemain">–</span>
@@ -576,7 +583,7 @@
 
         <div class="panel act-panel">
           <h3>Get an account</h3>
-          <p class="t-small">Start a new Challenge — a simple monthly plan, a 30-day account with every month.</p>
+          <p class="t-small">Start a new Challenge — a one-time fee, 30 days per phase.</p>
           <a class="btn btn-primary" href="checkout" style="margin-top:12px">Buy a new Challenge</a>
         </div>
 

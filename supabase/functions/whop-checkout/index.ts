@@ -31,7 +31,7 @@ serve(async (req) => {
 
     // Přednostně existující plan z Whop dashboardu (env WHOP_PLAN_<KEY>),
     // jinak inline plan s cenou ze serverové mapy balíčků. Balíčky jsou
-    // měsíční (renewal, 30 dní), activation je jednorázový poplatek.
+    // jednorázové (one-time fee), activation taktéž.
     const planId = whopPlanId(pkg.key);
     const body: Record<string, unknown> = {
       // po zaplacení Whop přesměruje zpět na dashboard
@@ -40,28 +40,15 @@ serve(async (req) => {
     };
     if (planId) {
       body.plan_id = planId;
-    } else if (pkg.key === "activation") {
-      body.plan = {
-        currency: pkg.currency,
-        initial_price: pkg.price,
-        plan_type: "one_time",
-        title: "Fundly Activation Fee",
-        product: {
-          external_identifier: "fundly-activation",
-          title: "Fundly Activation Fee",
-        },
-      };
     } else {
       body.plan = {
         currency: pkg.currency,
         initial_price: pkg.price,
-        renewal_price: pkg.price,
-        billing_period: 30,
-        plan_type: "renewal",
-        title: `Fundly ${pkg.name} (monthly)`,
+        plan_type: "one_time",
+        title: pkg.key === "activation" ? "Fundly Activation Fee" : `Fundly ${pkg.name}`,
         product: {
-          external_identifier: "fundly-challenge",
-          title: "Fundly Challenge",
+          external_identifier: pkg.key === "activation" ? "fundly-activation" : "fundly-challenge",
+          title: pkg.key === "activation" ? "Fundly Activation Fee" : "Fundly Challenge",
         },
       };
     }

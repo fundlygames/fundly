@@ -93,6 +93,7 @@ const Portfolio = (() => {
       target1: meta.target1,
       target2: meta.target2,
       drawdown: meta.drawdown,
+      dailyLoss: meta.dailyLoss,
       maxStake: meta.maxStake,
       profitSplit: meta.profitSplit,
       phase: 1,
@@ -100,6 +101,9 @@ const Portfolio = (() => {
       phaseStartedAt: now,
       balance: pkg.cap,
       hwm: pkg.cap,
+      dayStartDate: now.slice(0, 10), // UTC den pro denní limit ztráty
+      dayStartBalance: pkg.cap,
+      lastPayoutAt: null, // kvalifikační tikety se před každým payoutem resetují
       tickets: [],
       equityHistory: [{ t: now, balance: pkg.cap }],
     };
@@ -121,15 +125,49 @@ const Portfolio = (() => {
     return Math.max(0, 30 - elapsedDays);
   }
 
-  // STATICKÝ drawdown: pevný floor = kapitál − drawdown (10 %), nesouvisí
-  // s high-water mark. remaining = kolik zbývá do spálení účtu.
-  // (hwm vracíme dál jen kvůli konceptovým stránkám, hlavní dashboard ho
-  // už nikde nezobrazuje.)
+  // Max. celková ztráta: ve fázích 1–2 STATICKÁ (pevný floor = kapitál − 10 %),
+  // na funded účtu TRAILING (floor = high-water mark − 10 % kapitálu).
+  // remaining = kolik zbývá do spálení účtu.
   function drawdownInfo(state) {
-    const floor = state.cap - state.drawdown;
-    const span = state.cap - floor;
+    const trailing = state.phase === "funded";
+    const floor = trailing ? state.hwm - state.drawdown : state.cap - state.drawdown;
+    const span = (trailing ? state.hwm : state.cap) - floor;
     const pct = span > 0 ? Math.max(0, Math.min(100, ((state.balance - floor) / span) * 100)) : 100;
-    return { hwm: state.hwm, floor, remaining: Math.max(0, state.balance - floor), pct };
+    return { hwm: state.hwm, floor, trailing, remaining: Math.max(0, state.balance - floor), pct };
+  }
+
+  // Max. denní ztráta −4 % kapitálu. Start dne se fixuje na první přístup
+  // v daném UTC dni (reset o půlnoci UTC), loss = pokles od startu dne.
+  function dailyLossInfo(state) {
+    const today = new Date().toISOString().slice(0, 10);
+    if (state.dayStartDate !== today) {
+      state.dayStartDate = today;
+      state.dayStartBalance = state.balance;
+      save(state);
+    }
+    const meta = packageMeta(packageByKey(state.packageKey));
+    const limit = state.dailyLoss ?? meta.dailyLoss;
+    const loss = Math.max(0, (state.dayStartBalance ?? state.cap) - state.balance);
+    return { limit, loss, remaining: Math.max(0, limit - loss) };
+  }
+
+  // Porušení pravidel: celková ztráta pod floor (statický / trailing dle fáze)
+  // nebo denní ztráta nad limitem. Jen detekce — žádné blokování.
+  function breachInfo(state) {
+    const dd = drawdownInfo(state);
+    if (state.balance <= dd.floor) {
+      return {
+        breached: true,
+        reason: dd.trailing
+          ? "Max. loss exceeded (trailing -10 %)"
+          : "Max. loss exceeded (static -10 %)",
+      };
+    }
+    const dl = dailyLossInfo(state);
+    if (dl.loss > dl.limit) {
+      return { breached: true, reason: "Max. daily loss exceeded (-4 %)" };
+    }
+    return { breached: false, reason: null };
   }
 
   // Kvalifikační tiket = výherný tiket s čistým ziskem (payout − stake)
@@ -167,7 +205,7 @@ const Portfolio = (() => {
     }
     const byKey = Object.fromEntries(buckets.map((b) => [b.key, b]));
     state.tickets
-      .filter((t) => t.status === "won" || t.status === "lost" || t.status === "push")
+      .filter((t) => t.status === "won" || t.status === "lost" || t.status === "push" || t.status === "cashedout")
       .forEach((t) => {
         const key = new Date(t.settledAt).toDateString();
         if (!byKey[key]) return;
@@ -236,6 +274,24 @@ const Portfolio = (() => {
     state.equityHistory.push({ t: now, balance: state.balance });
     save(state);
     return { ok: true, ticket };
+  }
+
+  // Early cashout čekajícího tiketu: pragmaticky 90 % vkladu (bez dat
+  // o pohybu kurzů) — tiket se vyřadí z kvalifikačních (status "cashedout").
+  function cashOut(ticketId) {
+    const state = get();
+    if (!state) return { ok: false, error: "Please sign in first." };
+    const t = state.tickets.find((x) => x.id === ticketId);
+    if (!t || t.status !== "pending") return { ok: false, error: "Ticket is no longer pending." };
+    const amount = Math.round(t.stake * 0.9);
+    t.status = "cashedout";
+    t.settledAt = new Date().toISOString();
+    t.payout = amount;
+    state.balance += amount;
+    if (state.balance > state.hwm) state.hwm = state.balance;
+    state.equityHistory.push({ t: t.settledAt, balance: state.balance });
+    save(state);
+    return { ok: true, cashout: amount };
   }
 
   // Vyhodnotí jeden výběr tiketu podle finálního skóre zápasu (home/away).
@@ -367,6 +423,7 @@ const Portfolio = (() => {
 
   return {
     init, get, save, ensure, phaseTarget, daysRemaining, drawdownInfo,
+    dailyLossInfo, breachInfo, cashOut,
     summary, dailyNet, placeBet, checkSettlements, countQualifyingTickets,
   };
 })();

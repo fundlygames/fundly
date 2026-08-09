@@ -25,6 +25,7 @@ function renderPlan(animate) {
   const target1 = m.target1;
   const target2 = m.target2;
   const dd = m.drawdown;
+  const daily = m.dailyLoss;
   const stake = m.maxStake;
 
   phaseCards.innerHTML = `
@@ -36,6 +37,7 @@ function renderPlan(animate) {
         <div class="ph-rows">
           <div class="ph-row"><span class="k">Profit target</span><span class="v green">${usdSigned(target1)}</span></div>
           <div class="ph-row"><span class="k">Max. loss (static)</span><span class="v red">${usdSigned(-dd)}</span></div>
+          <div class="ph-row"><span class="k">Max. daily loss</span><span class="v red">${usdSigned(-daily)}</span></div>
           <div class="ph-row"><span class="k">Time limit</span><span class="v">30 days</span></div>
           <div class="ph-row"><span class="k">Qualifying tickets</span><span class="v">5 × ≥ +0.5 %</span></div>
         </div>
@@ -49,6 +51,7 @@ function renderPlan(animate) {
         <div class="ph-rows">
           <div class="ph-row"><span class="k">Profit target</span><span class="v green">${usdSigned(target2)}</span></div>
           <div class="ph-row"><span class="k">Max. loss (static)</span><span class="v red">${usdSigned(-dd)}</span></div>
+          <div class="ph-row"><span class="k">Max. daily loss</span><span class="v red">${usdSigned(-daily)}</span></div>
           <div class="ph-row"><span class="k">Time limit</span><span class="v">30 days</span></div>
           <div class="ph-row"><span class="k">Qualifying tickets</span><span class="v">5 × ≥ +0.5 %</span></div>
         </div>
@@ -61,7 +64,8 @@ function renderPlan(animate) {
         <div class="ph-name">Fundly bettor</div>
         <div class="ph-rows">
           <div class="ph-row"><span class="k">Your share</span><span class="v green">80 %</span></div>
-          <div class="ph-row"><span class="k">Max. loss (static)</span><span class="v red">${usdSigned(-dd)}</span></div>
+          <div class="ph-row"><span class="k">Max. loss (trailing)</span><span class="v red">${usdSigned(-dd)}</span></div>
+          <div class="ph-row"><span class="k">Max. daily loss</span><span class="v red">${usdSigned(-daily)}</span></div>
           <div class="ph-row"><span class="k">Time limit</span><span class="v">Unlimited</span></div>
           <div class="ph-row"><span class="k">Odds</span><span class="v">1.00 to 8.00</span></div>
         </div>
@@ -79,14 +83,14 @@ function renderPlan(animate) {
       <li>${check}80 % profit share</li>
       <li>${check}Max. stake per ticket ${usd(stake)}</li>
       <li>${check}Unlimited time on the funded account</li>
-      <li>${check}No daily loss limit</li>
+      <li>${check}Daily loss limit −4 % of capital</li>
     </ul>
     <div class="price-row ${animate ? "pkg-anim" : ""}" style="animation-delay:.08s">
       <span class="cur">$</span><span class="amount">${p.price.toLocaleString("en-US")}</span>
-      <span class="per">/month</span>
+      <span class="per">one-time</span>
     </div>
     <button type="button" class="btn btn-primary" style="width:100%" data-auth="register">Buy the Challenge</button>
-    <p class="price-note">Monthly plan · 30-day account · cancel anytime</p>`;
+    <p class="price-note">One-time fee · 30 days per phase · no subscription</p>`;
 }
 
 if (seg) {

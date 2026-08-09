@@ -42,6 +42,34 @@ document.querySelectorAll("#ovTabs button").forEach((btn) => {
   });
 });
 
+// ---------- tikety: rozbalení detailu + early cashout ----------
+document.addEventListener("click", (e) => {
+  // cashout tlačítko (v detailu tiketu)
+  const co = e.target.closest("[data-cashout]");
+  if (co) {
+    const state = Portfolio.get();
+    const t = state && state.tickets.find((x) => x.id === co.dataset.cashout);
+    if (!t) return;
+    const amount = Math.round(t.stake * 0.9);
+    if (!window.confirm(`Cash out now for $${amount.toLocaleString("en-US")} (early settlement −10 %)?`)) return;
+    const r = Portfolio.cashOut(co.dataset.cashout);
+    if (r.ok) {
+      showToast("push", "Ticket cashed out", `+${usd(r.cashout)}`);
+      if (typeof renderPrehled === "function") renderPrehled();
+      if (typeof renderVykon === "function") renderVykon();
+      if (typeof renderBankBar === "function") renderBankBar();
+      if (typeof scheduleAccountSync === "function") scheduleAccountSync();
+    }
+    return;
+  }
+  // rozbalení řádku v tabulce Výkonu
+  const row = e.target.closest(".tk-exp");
+  if (row) {
+    const det = row.nextElementSibling;
+    if (det && det.classList.contains("tk-detail")) det.hidden = !det.hidden;
+  }
+});
+
 // ---------- celebrations: toast + confetti on ticket settlement ----------
 function showToast(kind, title, detail) {
   const layer = document.getElementById("toastLayer");
@@ -263,9 +291,9 @@ function computeRisk(state, s) {
 }
 
 function buildAccountSnapshot(state) {
-  const dd = Portfolio.drawdownInfo(state);
   const s = Portfolio.summary(state);
-  const breached = state.balance <= dd.floor;
+  const breach = Portfolio.breachInfo(state);
+  const breached = breach.breached;
   const flags = [...new Set(state.tickets.flatMap((t) => t.flags || []))];
   const risk = computeRisk(state, s);
   // kompaktní sázkový profil pro admin analytiku (top sporty/ligy, průměry)
@@ -283,7 +311,7 @@ function buildAccountSnapshot(state) {
     balance: state.balance,
     profit: state.balance - state.cap,
     qualifyingTickets: Portfolio.countQualifyingTickets(state, state.phaseStartedAt),
-    breachReason: breached ? "Max. loss exceeded (static -10 %)" : null,
+    breachReason: breached ? breach.reason : null,
     flags,
     ticketsTotal: s.total,
     ticketsWon: s.won,
@@ -375,7 +403,7 @@ function showActivationPanel(email) {
 // (row ownership is guarded by RLS in the database). Without a backend or
 // sign-in nothing changes and the dashboard keeps running on localStorage.
 async function syncChallengeAccount() {
-  if (typeof FundlyBackend === "undefined" || !fundlyBackendEnabled()) return;
+  if (typeof fundlyBackendEnabled !== "function" || !fundlyBackendEnabled()) return;
   try {
     const client = await FundlyBackend.getClient();
     if (!client) return;
@@ -427,7 +455,7 @@ window.addEventListener("DOMContentLoaded", syncChallengeAccount);
 // API_BASE/API_KEY/BOOKMAKER/CACHE_TTL/cacheGet/cacheSet/cacheDrop/apiGet: see js/portfolio.js
 const ODDS_MIN = 1.0;
 const ODDS_MAX = 8.0;
-const EVENTS_PER_SPORT = 10; // /odds/multi takes max 10 events per 1 request
+const EVENTS_PER_SPORT = 25; // /odds/multi takes max 10 events per 1 request → batches below
 
 // sports as on the original dashboard + added coverage (Betano)
 const SPORTS = [
@@ -451,7 +479,7 @@ const sportTabs = document.getElementById("sportTabs");
 const matchList = document.getElementById("matchList");
 const slipBody = document.getElementById("slipBody");
 
-// events + ML odds, 2 requests per sport, 5 min cache (LIVE 1 min)
+// events + ML odds, 5 min cache (LIVE 1 min); odds fetch in batches of 10
 // upcoming window: explicit `to` = now + 20 days (RFC3339 UTC)
 async function loadSportEvents(sport, live) {
   const key = live ? sport + ":live" : sport;
@@ -468,11 +496,18 @@ async function loadSportEvents(sport, live) {
       });
   if (!events.length) { cacheSet(key, []); return []; }
 
-  const ids = events.map((e) => e.id).slice(0, 10).join(",");
-  const withOdds = await apiGet("/odds/multi", { eventIds: ids, bookmakers: BOOKMAKER });
+  // základní eventy nesou live stav (clock/scores) — odds odpověď je nemá
+  const baseById = Object.fromEntries(events.map((e) => [e.id, e]));
+  const ids = events.map((e) => e.id).slice(0, EVENTS_PER_SPORT);
+  const chunks = [];
+  for (let i = 0; i < ids.length; i += 10) {
+    chunks.push(await apiGet("/odds/multi", { eventIds: ids.slice(i, i + 10).join(","), bookmakers: BOOKMAKER }));
+  }
+  const withOdds = chunks.flat();
 
   const merged = withOdds
     .map((e) => {
+      const base = baseById[e.id] || {};
       const markets = (e.bookmakers && e.bookmakers[BOOKMAKER]) || [];
       const ml = markets.find((m) => m.name === "ML");
       const row = ml && ml.odds && ml.odds[0];
@@ -483,7 +518,9 @@ async function loadSportEvents(sport, live) {
         away: e.away,
         league: e.league ? e.league.name : "",
         date: e.date,
-        live: !!live,
+        live: !!live || base.status === "live" || !!(base.clock && base.clock.running),
+        clock: base.clock || null,   // { minute, period, running, statusDetail }
+        scores: base.scores || null, // { home, away } (případně periods.ft apod.)
         odds: [parseFloat(row.home), row.draw ? parseFloat(row.draw) : null, parseFloat(row.away)],
         markets: markets
           .filter((m) => Array.isArray(m.odds) && m.odds.length)
@@ -495,6 +532,19 @@ async function loadSportEvents(sport, live) {
 
   cacheSet(key, merged);
   return merged;
+}
+
+// live badge text: skóre + minuta/perióda (např. „2:1 · 67' · 2nd half")
+function liveScore(m) {
+  return m.scores && typeof m.scores.home === "number" && typeof m.scores.away === "number"
+    ? ` ${m.scores.home}:${m.scores.away}`
+    : "";
+}
+function liveClock(m) {
+  if (!m.clock) return "";
+  const min = m.clock.minute != null ? `${m.clock.minute}'` : "";
+  const per = m.clock.period || m.clock.statusDetail || "";
+  return [min, per].filter(Boolean).join(" · ");
 }
 
 // market and pick translations
@@ -523,15 +573,26 @@ function oddPlayable(v) {
   return !Number.isNaN(n) && n >= ODDS_MIN && n <= ODDS_MAX;
 }
 
-// fills the league select from the loaded matches
+// fills the league select + quick chips from the loaded matches (top leagues
+// first, by match count)
 function refreshLeagueOptions() {
   const sel = document.getElementById("fLeague");
   const current = filters.league;
-  const leagues = [...new Set(sportEvents.map((m) => m.league).filter(Boolean))].sort();
+  const counts = {};
+  sportEvents.forEach((m) => { if (m.league) counts[m.league] = (counts[m.league] || 0) + 1; });
+  const leagues = Object.keys(counts).sort((a, b) => counts[b] - counts[a] || a.localeCompare(b));
   sel.innerHTML = `<option value="">All leagues</option>` +
     leagues.map((l) => `<option value="${l.replace(/"/g, "&quot;")}">${l}</option>`).join("");
   sel.value = leagues.includes(current) ? current : "";
   filters.league = sel.value;
+
+  const chips = document.getElementById("leagueChips");
+  if (chips) {
+    chips.innerHTML = leagues.slice(0, 8).map((l) =>
+      `<button class="filter-chip" data-league="${l.replace(/"/g, "&quot;")}" aria-pressed="${l === filters.league}">${l} · ${counts[l]}</button>`
+    ).join("");
+    chips.hidden = leagues.length === 0;
+  }
 }
 
 function fmtTime(iso) {
@@ -572,7 +633,11 @@ function visibleEvents() {
     const q = filters.q.toLowerCase();
     list = list.filter((m) => `${m.home} ${m.away} ${m.league}`.toLowerCase().includes(q));
   }
-  if (filters.date) {
+  if (filters.date === "7d" || filters.date === "20d") {
+    // časové pásmo: příštích 7 / 20 dní
+    const until = Date.now() + (filters.date === "7d" ? 7 : 20) * 864e5;
+    list = list.filter((m) => new Date(m.date).getTime() <= until);
+  } else if (filters.date) {
     const target = filters.date === "dnes"
       ? new Date().toDateString()
       : new Date(Date.now() + 864e5).toDateString();
@@ -651,7 +716,7 @@ function renderMatchDetail(m) {
     <div class="detail-head">
       <div class="m-league">${m.league}</div>
       <div class="detail-teams">${m.home} <span>vs</span> ${m.away}</div>
-      <div class="m-time">${m.live ? '<span class="live">● LIVE</span> · ' : ""}${fmtTime(m.date)} · ${m.markets.length} markets</div>
+      <div class="m-time">${m.live ? `<span class="live">● LIVE${liveScore(m)}</span>${liveClock(m) ? ` · ${liveClock(m)}` : ""} · ` : ""}${m.live ? "" : `${fmtTime(m.date)} · `}${m.markets.length} markets</div>
     </div>
     <div class="mk-accs">${groups || `<p class="bet-msg">No additional markets available.</p>`}</div>`;
 
@@ -690,7 +755,7 @@ function renderMatches() {
         <div class="m-info">
           <div class="m-league">${m.league}</div>
           <div class="m-teams">${m.home} – ${m.away}</div>
-          <div class="m-time">${m.live ? '<span class="live">● LIVE</span> · ' : ""}${fmtTime(m.date)}${extra > 0 ? ` · +${extra} markets` : ""}</div>
+          <div class="m-time">${m.live ? `<span class="live">● LIVE${liveScore(m)}</span>${liveClock(m) ? ` · ${liveClock(m)}` : ""}` : fmtTime(m.date)}${extra > 0 ? ` · +${extra} markets` : ""}</div>
         </div>
         <div class="m-odds">
           ${m.odds.map((o, i) => {
@@ -938,7 +1003,25 @@ if (sportTabs) {
   fLeague.addEventListener("change", () => {
     filters.league = fLeague.value;
     renderMatches();
+    refreshLeagueChips();
   });
+
+  // ligové chipy — toggle filtru ligy (sdílený s selectem)
+  function refreshLeagueChips() {
+    document.querySelectorAll("#leagueChips [data-league]").forEach((c) =>
+      c.setAttribute("aria-pressed", String(c.dataset.league === filters.league)));
+  }
+  const leagueChips = document.getElementById("leagueChips");
+  if (leagueChips) {
+    leagueChips.addEventListener("click", (e) => {
+      const chip = e.target.closest("[data-league]");
+      if (!chip) return;
+      filters.league = filters.league === chip.dataset.league ? "" : chip.dataset.league;
+      fLeague.value = filters.league;
+      renderMatches();
+      refreshLeagueChips();
+    });
+  }
 
   const fOdds = document.getElementById("fOdds");
   const qHigh = document.getElementById("qHigh");
@@ -1025,7 +1108,7 @@ const WD_STATUS = {
 // user (row ownership is guarded by RLS). Otherwise the demo content in HTML stays.
 async function loadPayoutHistory() {
   const box = document.getElementById("wdHistory");
-  if (!box || typeof FundlyBackend === "undefined" || !fundlyBackendEnabled()) return;
+  if (!box || typeof fundlyBackendEnabled !== "function" || !fundlyBackendEnabled()) return;
   try {
     const user = await FundlyAuth.getUser();
     if (!user) return;
@@ -1057,7 +1140,7 @@ if (wdForm) {
     const note = document.getElementById("wdNote");
     // With the backend and a signed-in user we send a real request via the
     // request-payout edge function; otherwise the demo behavior stays unchanged.
-    if (typeof FundlyBackend !== "undefined" && fundlyBackendEnabled()) {
+    if (typeof fundlyBackendEnabled === "function" && fundlyBackendEnabled()) {
       let user = null;
       try {
         user = await FundlyAuth.getUser();
@@ -1190,7 +1273,7 @@ function renderAffiliate(data) {
 }
 
 async function loadAffiliateStats() {
-  if (typeof FundlyBackend === "undefined" || !fundlyBackendEnabled()) {
+  if (typeof fundlyBackendEnabled !== "function" || !fundlyBackendEnabled()) {
     return renderAffiliateMessage("Affiliate stats need the backend — this page is running in demo mode.");
   }
   try {
@@ -1241,7 +1324,8 @@ function renderEquityChart(state) {
   }
   const w = 600, h = 190, padL = 6, padR = 6, padT = 14, padB = 8;
   const targetAbs = state.phase === "funded" ? null : state.phaseBaseline + Portfolio.phaseTarget(state);
-  const floor = state.cap - state.drawdown; // static floor, no HWM
+  const dd = Portfolio.drawdownInfo(state); // static ve fázích, trailing na funded
+  const floor = dd.floor;
   const values = points.map((p) => p.balance);
   const lo = Math.min(...values, floor);
   const hi = Math.max(...values, targetAbs || 0);
@@ -1286,7 +1370,7 @@ function renderEquityChart(state) {
     </svg>
     <div class="eq-legend">
       ${targetAbs !== null ? '<span><i class="sw eq-lv-target"></i>Phase target</span>' : ""}
-      <span><i class="sw eq-lv-floor"></i>Max. loss (fixed floor)</span>
+      <span><i class="sw eq-lv-floor"></i>Max. loss (${dd.trailing ? "trailing" : "fixed"} floor)</span>
       <span class="eq-dates">${fmtDay(points[0].t)} – ${fmtDay(points[points.length - 1].t)}</span>
     </div>`;
 }
@@ -1299,6 +1383,33 @@ function flagTags(t) {
   ).join(" ");
 }
 
+// status → [tag class, label] (cashedout = early cashout, vlastní tag)
+function ticketTag(t) {
+  if (t.status === "won") return ["win", "Won"];
+  if (t.status === "lost") return ["loss", "Lost"];
+  if (t.status === "push") return ["push", "Refunded"];
+  if (t.status === "cashedout") return ["push", "Cashed out"];
+  return ["pend", "Pending"];
+}
+
+// rozbalovací detail čekajícího tiketu: výběry, kurzy, vklad, možná výhra,
+// early cashout (90 % vkladu — bez dat o pohybu kurzů, poctivě popsané)
+function ticketDetailHtml(t) {
+  const potWin = Math.round(t.stake * t.combinedOdds);
+  const cashout = Math.round(t.stake * 0.9);
+  return `
+    <div class="tk-sels">
+      ${t.selections.map((s) => `
+        <div class="tk-sel"><span>${s.homeTeam} – ${s.awayTeam} · ${s.pickLabel || s.field}</span><span class="n">${s.oddValue.toFixed(2)}</span></div>`).join("")}
+    </div>
+    <div class="tk-meta">
+      <span>Stake <b>${usd(t.stake)}</b></span>
+      <span>Odds <b>${t.combinedOdds.toFixed(2)}</b></span>
+      <span>Potential win <b class="green">${usd(potWin)}</b></span>
+    </div>
+    <button class="btn btn-ghost" data-cashout="${t.id}">Cash out now for ${usd(cashout)} (early settlement −10 %)</button>`;
+}
+
 function renderRecentTickets(state) {
   const recent = state.tickets.slice(0, 5);
   if (!recent.length) {
@@ -1308,8 +1419,14 @@ function renderRecentTickets(state) {
     const label = t.selections.length > 1
       ? `${t.selections.length}× accumulator`
       : `${t.selections[0].homeTeam} – ${t.selections[0].awayTeam}`;
-    const tag = t.status === "won" ? "win" : t.status === "lost" ? "loss" : t.status === "push" ? "push" : "pend";
-    const tagText = t.status === "won" ? "Won" : t.status === "lost" ? "Lost" : t.status === "push" ? "Refunded" : "Pending";
+    const [tag, tagText] = ticketTag(t);
+    // čekající tiket je rozbalovací (detail + cashout)
+    if (t.status === "pending") {
+      return `<details class="k-row neutral tk">
+        <summary>${label} · ${usd(t.stake)}<span class="n">${flagTags(t)}<span class="tag ${tag}">${tagText}</span></span></summary>
+        <div class="tk-body">${ticketDetailHtml(t)}</div>
+      </details>`;
+    }
     return `<div class="k-row neutral">${label} · ${usd(t.stake)}<span class="n">${flagTags(t)}<span class="tag ${tag}">${tagText}</span></span></div>`;
   }).join("");
 }
@@ -1377,6 +1494,7 @@ function renderPrehled() {
   document.getElementById("recentTickets").innerHTML = renderRecentTickets(state);
 
   const dd = Portfolio.drawdownInfo(state);
+  const dl = Portfolio.dailyLossInfo(state);
 
   // right column: rules and limits with thin progress bars
   const meta = packageMeta(packageByKey(state.packageKey));
@@ -1384,7 +1502,9 @@ function renderPrehled() {
   // qualifying tickets: winning ones with net profit ≥ 0.5 % of capital, in the current phase
   const qual = Portfolio.countQualifyingTickets(state, state.phaseStartedAt);
   const pctTickets = Math.max(0, Math.min(100, Math.round((qual / meta.qualifyingTickets) * 100)));
+  const pctDaily = dl.limit > 0 ? Math.max(0, Math.min(100, Math.round((dl.remaining / dl.limit) * 100))) : 100;
   const ddTone = dd.pct < 30 ? "danger" : dd.pct < 60 ? "warn" : "";
+  const dlTone = pctDaily < 30 ? "danger" : pctDaily < 60 ? "warn" : "";
   const rrRow = (label, value, barPct, tone, sub) => `
     <div class="rr">
       <div class="rr-head"><span class="rr-k">${label}</span><span class="rr-v ${tone === "danger" ? "red" : ""}">${value}</span></div>
@@ -1396,8 +1516,9 @@ function renderPrehled() {
     ${state.phase === "funded"
       ? rrRow("Phase target", "Completed", null, "", "Funded account — no target, unlimited time")
       : rrRow("Phase target", `${usd(Math.max(0, profit))} / ${usd(target)}`, pct, pct >= 100 ? "" : "", pct >= 100 ? "Completed" : `${usd(toGoal)} to go`)}
-    ${rrRow("Max. loss (static)", `${usd(Math.round(dd.remaining))} / ${usd(state.drawdown)}`, Math.round(dd.pct), ddTone,
-      `Fixed floor ${usd(dd.floor)} — it never moves`)}
+    ${rrRow(dd.trailing ? "Max. loss (trailing)" : "Max. loss (static)", `${usd(Math.round(dd.remaining))} / ${usd(state.drawdown)}`, Math.round(dd.pct), ddTone,
+      dd.trailing ? `Floor follows your highest balance (${usd(dd.floor)})` : `Fixed floor ${usd(dd.floor)} — it never moves`)}
+    ${rrRow("Max. daily loss", `${usd(Math.round(dl.remaining))} / ${usd(dl.limit)} today`, pctDaily, dlTone, "Resets at midnight UTC")}
     ${state.phase === "funded" ? "" : rrRow("Time limit", `${daysLeft} / 30 days`, pctTime, pctTime < 25 ? "danger" : "", "")}
     ${rrRow("Qualifying tickets", `${Math.min(qual, meta.qualifyingTickets)} / ${meta.qualifyingTickets}`, pctTickets, "", "Winning tickets with net profit ≥ +0.5 % of capital")}
     ${rrRow("Max. stake", usd(state.maxStake), null, "", "Per single ticket")}
@@ -1411,7 +1532,7 @@ function renderPrehled() {
 
   document.getElementById("ovLimity").innerHTML = `
     <div class="limit-row">
-      <span class="k">Max. total loss <small>(static, floor: ${usd(dd.floor)})</small></span>
+      <span class="k">Max. total loss <small>(${dd.trailing ? "trailing" : "static"}, floor: ${usd(dd.floor)})</small></span>
       <span class="v">${usd(Math.round(dd.remaining))} left</span>
     </div>
     <div class="dd-bar">
@@ -1420,12 +1541,16 @@ function renderPrehled() {
       <span class="cap hi">${Math.round(state.balance).toLocaleString("en-US")}</span>
     </div>
     <div class="limit-row" style="margin-top:14px">
+      <span class="k">Max. daily loss <small>(resets at midnight UTC)</small></span>
+      <span class="v">${usd(Math.round(dl.remaining))} / ${usd(dl.limit)} left</span>
+    </div>
+    <div class="limit-row">
       <span class="k">Qualifying tickets <small>(winning, profit ≥ +0.5 % of capital)</small></span>
       <span class="v">${Math.min(qual, meta.qualifyingTickets)} / ${meta.qualifyingTickets}</span>
     </div>
     <div class="limit-row">
       <span class="k">Profit withdrawal <small>(funded account)</small></span>
-      <span class="v">buffer +5 % · max $4,000</span>
+      <span class="v">80 % of profit · max $4,000</span>
     </div>`;
 
   document.getElementById("ovPravidla").innerHTML = `
@@ -1434,9 +1559,10 @@ function renderPrehled() {
       <div class="rule-tile"><div class="k">Max. stake</div><div class="v">${usd(state.maxStake)}</div></div>
       <div class="rule-tile"><div class="k">Odds</div><div class="v">${ODDS_MIN.toFixed(2)} to ${ODDS_MAX.toFixed(2)}</div></div>
       <div class="rule-tile"><div class="k">Max. loss</div><div class="v">${usd(state.drawdown)}</div></div>
+      <div class="rule-tile"><div class="k">Max. daily loss</div><div class="v">${usd(dl.limit)}</div></div>
       <div class="rule-tile"><div class="k">Time limit</div><div class="v">30 days / phase</div></div>
       <div class="rule-tile"><div class="k">Qualifying tickets</div><div class="v">5 × ≥ +0.5 %</div></div>
-      <div class="rule-tile"><div class="k">Profit withdrawal</div><div class="v">buffer +5 %</div></div>
+      <div class="rule-tile"><div class="k">Profit withdrawal</div><div class="v">80 % of profit</div></div>
       <div class="rule-tile"><div class="k">Max. payout</div><div class="v">$4,000</div></div>
     </div>`;
 
@@ -1466,24 +1592,29 @@ function renderPrehled() {
 renderPrehled();
 
 // ---------- payouts: payout conditions (funded account) ----------
-// (1) profit buffer min. +5 % of capital, (2) min. 5 qualifying tickets
-// (winning ones with net profit ≥ +0.5 % of capital), (3) max $4,000 per payout.
+// Per the rules doc: (1) profit buffer +5 % of capital — ONE-TIME at the start
+// of the funded phase (once the high-water mark passes it, it stays met);
+// (2) 5 qualifying tickets (winning, net profit ≥ +0.5 % of capital) BEFORE
+// EVERY payout — the counter resets after each payout request;
+// (3) payout = 80 % of profit since the last payout, max $4,000 flat.
 function renderPayoutConds(state) {
   const el = document.getElementById("wdConds");
   if (!el) return;
   if (state.phase !== "funded") {
-    el.innerHTML = `<p class="t-meta" style="margin-top:10px">Withdrawals unlock with a funded account. Before every withdrawal you need a profit buffer of +5 % of capital and 5 winning tickets with a net profit of at least +0.5 % of capital. Max. $4,000 per payout.</p>`;
+    el.innerHTML = `<p class="t-meta" style="margin-top:10px">Withdrawals unlock with a funded account. Once funded, build a one-time profit buffer of +5 % of capital; before every payout you then need 5 winning tickets with a net profit of at least +0.5 % of capital (the counter resets after each payout). Payout is 80 % of your profit, max. $4,000.</p>`;
     return;
   }
   const meta = packageMeta(packageByKey(state.packageKey));
-  const profit = state.balance - state.phaseBaseline;
   const bufferNeed = Math.round(state.cap * (meta.payoutBufferPct / 100));
-  const qual = Portfolio.countQualifyingTickets(state, state.phaseStartedAt);
+  // buffer je jednorázový: stačí, když ho někdy překročil high-water mark
+  const bufferMet = state.hwm >= state.cap + bufferNeed;
+  const profit = Math.max(0, state.balance - state.cap);
+  const qual = Portfolio.countQualifyingTickets(state, state.lastPayoutAt || state.phaseStartedAt);
   el.innerHTML = `
     <div class="k-rows" style="margin-top:12px">
-      <div class="k-row neutral">Profit buffer (+${meta.payoutBufferPct} % of capital)<span class="n ${profit >= bufferNeed ? "green" : ""}">${usd(Math.max(0, profit))} / ${usd(bufferNeed)}</span></div>
-      <div class="k-row neutral">Qualifying tickets<span class="n ${qual >= meta.qualifyingTickets ? "green" : ""}">${Math.min(qual, meta.qualifyingTickets)} / ${meta.qualifyingTickets}</span></div>
-      <div class="k-row neutral">Max. payout<span class="n">$4,000</span></div>
+      <div class="k-row neutral">Profit buffer (one-time, +${meta.payoutBufferPct} % of capital)<span class="n ${bufferMet ? "green" : ""}">${bufferMet ? "Done" : `${usd(profit)} / ${usd(bufferNeed)}`}</span></div>
+      <div class="k-row neutral">Qualifying tickets (reset each payout)<span class="n ${qual >= meta.qualifyingTickets ? "green" : ""}">${Math.min(qual, meta.qualifyingTickets)} / ${meta.qualifyingTickets}</span></div>
+      <div class="k-row neutral">Payout<span class="n">80 % of profit · max $4,000</span></div>
     </div>`;
 }
 
@@ -1521,10 +1652,11 @@ function renderProfile(state) {
     set("pfGoalMeta", `${usd(Math.max(0, target - profit))} to target · ${Portfolio.daysRemaining(state)} days left`);
   }
 
-  set("pfDdDetail", `(fixed floor ${usd(dd.floor)})`);
+  set("pfDdDetail", dd.trailing ? `(trailing floor ${usd(dd.floor)})` : `(fixed floor ${usd(dd.floor)})`);
   set("pfDdRemain", `${usd(Math.round(dd.remaining))} left`);
   document.getElementById("pfDdBar").style.width = Math.round(dd.pct) + "%";
 
+  const dl = Portfolio.dailyLossInfo(state);
   const daysLeft = Portfolio.daysRemaining(state);
   set("pfDaysLeft", state.phase === "funded" ? "Unlimited" : `${daysLeft} days`);
   const deadline = new Date(new Date(state.phaseStartedAt).getTime() + 30 * 86400000);
@@ -1538,9 +1670,10 @@ function renderProfile(state) {
     <div class="rule-tile"><div class="k">Max. stake</div><div class="v">${usd(state.maxStake)}</div></div>
     <div class="rule-tile"><div class="k">Odds</div><div class="v">${ODDS_MIN.toFixed(2)} to ${ODDS_MAX.toFixed(2)}</div></div>
     <div class="rule-tile"><div class="k">Max. loss</div><div class="v">${usd(state.drawdown)}</div></div>
+    <div class="rule-tile"><div class="k">Max. daily loss</div><div class="v">${usd(dl.limit)}</div></div>
     <div class="rule-tile"><div class="k">Time limit</div><div class="v">30 days / phase</div></div>
     <div class="rule-tile"><div class="k">Qualifying tickets</div><div class="v">5 × ≥ +0.5 %</div></div>
-    <div class="rule-tile"><div class="k">Profit withdrawal</div><div class="v">buffer +5 %</div></div>
+    <div class="rule-tile"><div class="k">Profit withdrawal</div><div class="v">80 % of profit</div></div>
     <div class="rule-tile"><div class="k">Max. payout</div><div class="v">$4,000</div></div>`;
 }
 
@@ -1602,8 +1735,12 @@ function renderVykon() {
       ? `${t.selections.length}× accumulator`
       : `${t.selections[0].homeTeam} – ${t.selections[0].awayTeam}`;
     const tip = t.selections.length > 1 ? "AKU" : (t.selections[0].pickLabel || "");
-    const tag = t.status === "won" ? "win" : t.status === "lost" ? "loss" : t.status === "push" ? "push" : "pend";
-    const tagText = t.status === "won" ? "Won" : t.status === "lost" ? "Lost" : t.status === "push" ? "Refunded" : "Pending";
+    const [tag, tagText] = ticketTag(t);
+    // čekající tiket: kliknutelný řádek + skrytý detail s cashoutem
+    if (t.status === "pending") {
+      return `<tr class="tk-exp" data-tkexp="${t.id}" title="Show ticket detail"><td>${label}</td><td>${tip}</td><td class="odds">${t.combinedOdds.toFixed(2)}</td><td>${usd(t.stake)}</td><td>${flagTags(t)}<span class="tag ${tag}">${tagText}</span></td></tr>` +
+        `<tr class="tk-detail" hidden><td colspan="5">${ticketDetailHtml(t)}</td></tr>`;
+    }
     return `<tr><td>${label}</td><td>${tip}</td><td class="odds">${t.combinedOdds.toFixed(2)}</td><td>${usd(t.stake)}</td><td>${flagTags(t)}<span class="tag ${tag}">${tagText}</span></td></tr>`;
   }).join("") : `<tr><td colspan="5">No tickets yet.</td></tr>`;
 }
