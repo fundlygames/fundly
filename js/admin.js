@@ -1,5 +1,12 @@
 /* Fundly admin — finance, hráči, diagnostika (interní, mock data) */
 
+// Zamkni obrazovku HNED, synchronně, ještě než proběhnou mock rendery níže
+// a než doběhne async ověření session — jinak by na zlomek sekundy bylo
+// vidět odemčené UI (i s mock daty), než se stihne přihlašovací gate zobrazit.
+if (typeof fundlyBackendEnabled === "function" && fundlyBackendEnabled()) {
+  document.body.classList.add("admin-locked");
+}
+
 const czk = (n) => n.toLocaleString("cs-CZ") + " Kč";
 
 // ---------- přepínání sekcí ----------

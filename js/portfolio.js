@@ -229,6 +229,13 @@ const Portfolio = (() => {
           s.eventId === ps.eventId && s.marketName === ps.marketName && s.field !== ps.field)));
   }
 
+  // Už existuje čekající tiket se sázkou na tenhle zápas? (jakýkoli trh/strana)
+  // Blokuje víc aktivních sázek na stejný event, dokud se ten předchozí nevyhodnotí.
+  function hasPendingBetOnEvent(state, eventId) {
+    return state.tickets.some((t) =>
+      t.status === "pending" && t.selections.some((s) => s.eventId === eventId));
+  }
+
   function placeBet(selections, stake, extraFlags) {
     const state = get();
     if (!state) return { ok: false, error: "Please sign in first." };
@@ -237,6 +244,16 @@ const Portfolio = (() => {
     if (!amount || amount <= 0) return { ok: false, error: "Enter a valid stake amount." };
     if (amount > state.maxStake) return { ok: false, error: `Max. stake is $${state.maxStake.toLocaleString("en-US")}.` };
     if (amount > state.balance) return { ok: false, error: "Insufficient balance." };
+    const seenEventIds = new Set();
+    for (const s of selections) {
+      if (seenEventIds.has(s.eventId)) {
+        return { ok: false, error: "You can only include a match once per ticket." };
+      }
+      seenEventIds.add(s.eventId);
+    }
+    if (selections.some((s) => hasPendingBetOnEvent(state, s.eventId))) {
+      return { ok: false, error: "You already have a pending bet on this match. Wait for it to settle before betting on it again." };
+    }
 
     // flagy zakázaných strategií (value z dashboard.js, arbitrage zde)
     const flags = [...new Set([

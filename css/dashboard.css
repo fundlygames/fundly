@@ -622,7 +622,7 @@ body::after {
   width: 7px;
   height: 7px;
   border-radius: 9999px;
-  background: currentColor;
+  background: var(--danger);
 }
 @media (prefers-reduced-motion: no-preference) {
   [aria-pressed="true"] .live-dot { animation: live-pulse 1.6s ease-in-out infinite; }
