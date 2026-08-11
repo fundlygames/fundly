@@ -1777,7 +1777,7 @@ function ticketDetailHtml(t) {
   return `
     <div class="tk-sels">
       ${t.selections.map((s) => `
-        <div class="tk-sel"><span>${s.homeTeam} – ${s.awayTeam} · ${s.pickLabel || s.field}</span><span class="n">${s.oddValue.toFixed(2)}</span></div>`).join("")}
+        <div class="tk-sel"><span>${s.homeTeam} – ${s.awayTeam} · ${s.pickLabel || s.field}<br><small style="color:var(--text-muted)">${fmtTime(s.startTime)}</small></span><span class="n">${s.oddValue.toFixed(2)}</span></div>`).join("")}
     </div>
     <div class="tk-meta">
       <span>Stake <b>${usd(t.stake)}</b></span>
