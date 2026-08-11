@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.profile-update]
 verify_jwt = false
+
+[functions.admin-report]
+verify_jwt = false

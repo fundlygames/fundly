@@ -13,7 +13,7 @@ const czk = (n) => n.toLocaleString("cs-CZ") + " Kč";
 const usd = (n) => "$" + Math.round(Number(n) || 0).toLocaleString("en-US");
 
 // ---------- přepínání sekcí ----------
-const views = ["finance", "hraci", "affiliate", "support", "problemy", "diagnostika"];
+const views = ["finance", "hraci", "affiliate", "support", "reporty", "problemy", "diagnostika"];
 
 function showView(name) {
   views.forEach((v) => {
@@ -399,6 +399,7 @@ async function loadRealStats() {
   renderProblems(stats);
   renderAffiliate();
   loadSupportTickets();
+  loadReportHistory();
 }
 
 // ---------- E-maily zákazníků (Finance view) ----------
@@ -665,6 +666,59 @@ function renderProblems(stats) {
     }).join("");
   }
 }
+
+// ---------- Reporty: vlastní rozsah + historie měsíčních reportů ----------
+async function loadReportHistory() {
+  const table = document.getElementById("reportHistoryTable");
+  if (!table) return;
+  try {
+    const data = await adminFetch("admin-report", { action: "history" });
+    const rows = data.reports || [];
+    table.innerHTML = `
+      <thead><tr><th>Měsíc</th><th>Tržby</th><th>Platby</th><th>Výplaty</th><th>Nové účty</th></tr></thead>
+      <tbody>
+        ${rows.length ? rows.map((r) => `
+          <tr>
+            <td>${new Date(r.month_start).toLocaleDateString("cs-CZ", { month: "long", year: "numeric" })}</td>
+            <td class="odds"><b>${usd(r.revenue_usd)}</b></td>
+            <td class="odds">${r.payments_count}</td>
+            <td class="odds">${usd(r.payouts_usd)}</td>
+            <td class="odds">${r.new_accounts}</td>
+          </tr>`).join("") : `<tr><td colspan="5">Zatím žádný měsíční report — první se vygeneruje 1. den příštího měsíce.</td></tr>`}
+      </tbody>`;
+  } catch (e) {
+    table.innerHTML = `<tbody><tr><td>Historii se nepodařilo načíst.</td></tr></tbody>`;
+  }
+}
+
+document.getElementById("reportRangeForm")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const from = document.getElementById("reportFrom").value;
+  const to = document.getElementById("reportTo").value;
+  const statsEl = document.getElementById("reportRangeStats");
+  const byPkgEl = document.getElementById("reportRangeByPackage");
+  if (!from || !to) return;
+  statsEl.innerHTML = `<p class="bet-msg">Počítám…</p>`;
+  try {
+    const r = await adminFetch("admin-report", { action: "range", from, to });
+    const dstat = (label, value, green) => `
+      <div class="dstat">
+        <div class="lbl">${label}</div>
+        <div class="val ${green ? "green" : ""}">${value}</div>
+      </div>`;
+    statsEl.innerHTML =
+      dstat("Tržby", usd(r.revenueUsd), true) +
+      dstat("Platby", r.paymentsCount) +
+      dstat("Výplaty", usd(r.payoutsUsd)) +
+      dstat("Nové účty", r.newAccounts);
+    byPkgEl.innerHTML = r.byPackage.length
+      ? r.byPackage.map((p) => `<div class="k-row neutral">${esc(p.packageKey)}<span class="n">${p.count}× · ${usd(p.revenueUsd)}</span></div>`).join("")
+      : `<p class="bet-msg">Žádné platby v tomto rozsahu.</p>`;
+  } catch (err) {
+    statsEl.innerHTML = `<p class="bet-msg">${esc(err.message || "Report se nepodařilo spočítat.")}</p>`;
+    byPkgEl.innerHTML = "";
+  }
+});
 
 // ---------- Support: tikety z kontaktního formuláře ----------
 let supportTab = "all";

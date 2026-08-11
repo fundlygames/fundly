@@ -33,6 +33,10 @@
           <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.5l1.8 3.8 4.2.6-3 3 .7 4.1-3.7-2-3.7 2 .7-4.1-3-3 4.2-.6z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
           Affiliate
         </button>
+        <button class="dnav-link" data-view="reporty">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><rect x="2" y="2" width="11" height="11" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M4.5 9.5v-2M7.5 9.5v-4M10.5 9.5v-3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          Reporty
+        </button>
         <button class="dnav-link" data-view="support">
           <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 4.5l5.5 4 5.5-4M2 4.5v6h11v-6M2 4.5l5.5-2 5.5 2" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
           Support<span class="nav-badge" id="supportBadge" hidden></span>
@@ -239,6 +243,41 @@
         <div class="k-rows" id="supportList"><!-- JS --></div>
       </section>
 
+      <!-- ============ REPORTY ============ -->
+      <section class="dash-view" id="view-reporty" hidden>
+        <div class="dash-head">
+          <div>
+            <h1>Reporty</h1>
+            <p>Tržby za libovolné období + historie automatických měsíčních reportů</p>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Vlastní rozsah</h3>
+          <form id="reportRangeForm" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-top:10px">
+            <div class="field" style="margin-bottom:0">
+              <label for="reportFrom">Od</label>
+              <input class="input" id="reportFrom" type="date" required />
+            </div>
+            <div class="field" style="margin-bottom:0">
+              <label for="reportTo">Do</label>
+              <input class="input" id="reportTo" type="date" required />
+            </div>
+            <button class="btn btn-primary" type="submit" style="height:auto">Spočítat</button>
+          </form>
+          <div class="stat-grid mt" id="reportRangeStats"><!-- JS --></div>
+          <div class="k-rows mt" id="reportRangeByPackage"><!-- JS --></div>
+        </div>
+
+        <div class="panel mt">
+          <h3>Historie měsíčních reportů</h3>
+          <p class="t-meta" style="margin-bottom:10px">Generuje se automaticky 1. den v měsíci (cron).</p>
+          <div class="table-scroll">
+            <table class="ticket-table" id="reportHistoryTable"><!-- JS --></table>
+          </div>
+        </div>
+      </section>
+
       <!-- ============ PROBLÉMY ============ -->
       <section class="dash-view" id="view-problemy" hidden>
         <div class="dash-head">
@@ -301,6 +340,7 @@
     <button data-view="hraci">Hráči</button>
     <button data-view="affiliate">Affiliate</button>
     <button data-view="support">Support</button>
+    <button data-view="reporty">Reporty</button>
     <button data-view="problemy">Problémy</button>
     <button data-view="diagnostika">Diagnostika</button>
   </nav>
