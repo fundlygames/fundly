@@ -73,6 +73,7 @@ document.addEventListener("click", (e) => {
 // ---------- celebrations: toast + confetti on ticket settlement ----------
 function showToast(kind, title, detail) {
   const layer = document.getElementById("toastLayer");
+  Notifications.push(kind, title, detail);
   if (!layer) return;
   const el = document.createElement("div");
   el.className = `toast toast-${kind}`;
@@ -84,6 +85,80 @@ function showToast(kind, title, detail) {
     setTimeout(() => el.remove(), 300);
   }, 4200);
 }
+
+// ---------- notifications: bell dropdown, persisted log of everything shown as a toast ----------
+// (ticket won/lost, new badge, account active, inactivity warnings, ...) —
+// showToast() above pushes into it, so every toast the app already fires
+// automatically becomes a notification too.
+const Notifications = (() => {
+  const KEY = "bf2:notifications";
+  const MAX = 50;
+  function get() {
+    try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { return []; }
+  }
+  function save(list) {
+    try { localStorage.setItem(KEY, JSON.stringify(list.slice(0, MAX))); } catch (e) {}
+  }
+  function push(kind, title, detail) {
+    const list = get();
+    list.unshift({
+      id: `n${Date.now()}${Math.random().toString(36).slice(2, 6)}`,
+      kind, title, detail: detail || "", t: new Date().toISOString(), read: false,
+    });
+    save(list);
+    renderNotifications();
+  }
+  function markAllRead() {
+    save(get().map((n) => ({ ...n, read: true })));
+  }
+  function clearAll() {
+    save([]);
+    renderNotifications();
+  }
+  return { get, push, markAllRead, clearAll };
+})();
+
+const NOTIF_ICON = { win: "✓", loss: "✕", push: "↺", pend: "•", badge: "🏅" };
+
+function renderNotifications() {
+  const list = Notifications.get();
+  const unread = list.filter((n) => !n.read).length;
+  document.querySelectorAll(".notif-dot").forEach((d) => { d.hidden = !unread; });
+  const listEl = document.getElementById("notifList");
+  if (!listEl) return;
+  listEl.innerHTML = list.length
+    ? list.map((n) => `
+      <div class="notif-item ${n.read ? "" : "unread"}">
+        <span class="notif-ic ${n.kind === "loss" ? "loss" : n.kind === "win" || n.kind === "badge" ? "win" : "pend"}">${NOTIF_ICON[n.kind] || "•"}</span>
+        <div class="notif-body">
+          <div class="notif-title">${n.title}</div>
+          ${n.detail ? `<div class="notif-detail">${n.detail}</div>` : ""}
+          <div class="notif-time">${new Date(n.t).toLocaleString("en-US")}</div>
+        </div>
+      </div>`).join("")
+    : `<div class="notif-empty">No notifications yet.</div>`;
+}
+renderNotifications();
+
+document.querySelectorAll("[data-notif-toggle]").forEach((btn) => {
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const panel = document.getElementById("notifPanel");
+    if (!panel) return;
+    const opening = panel.hidden;
+    panel.hidden = !opening;
+    if (opening) {
+      Notifications.markAllRead();
+      renderNotifications();
+    }
+  });
+});
+document.addEventListener("click", (e) => {
+  const panel = document.getElementById("notifPanel");
+  if (!panel || panel.hidden) return;
+  if (!panel.contains(e.target) && !e.target.closest("[data-notif-toggle]")) panel.hidden = true;
+});
+document.getElementById("notifClearAll")?.addEventListener("click", () => Notifications.clearAll());
 
 function fireConfetti() {
   const colors = ["#14f195", "#7af7c4", "#ffce7a", "#5ee8ff", "#ffffff"];
@@ -134,9 +209,11 @@ const BADGES = [
   ["Phase 2 complete", "b-faze-2", "b-faze-2"],
   ["Funded player", "b-funded", "b-funded"],
   ["100 bets", "b-100-sazek", "b-100-sazek"],
-  ["Hunter instinct", "b-lovecky", null],
-  ["Iron hand", "b-zelezna-ruka", null],
-  ["First payout", "b-prvni-vyber", null],
+  ["Hunter instinct", "b-lovecky", "b-lovecky"],
+  ["Iron hand", "b-zelezna-ruka", "b-zelezna-ruka"],
+  ["First payout", "b-prvni-vyber", "b-prvni-vyber"],
+  // Ambassador vyžaduje systém doporučení hráčů, který zatím neexistuje
+  // (affiliate systém dnes slouží jen content creatorům/promo kódům) — zůstává uzamčený.
   ["Ambassador", "b-ambasador", null],
 ];
 
@@ -158,6 +235,14 @@ function computeBadgeUnlocks(state) {
   const streaks = computeStreaks(state);
   const wonCount = state.tickets.filter((t) => t.status === "won").length;
   const hasAccumulator = state.tickets.some((t) => t.selections.length > 1);
+  // Hunter instinct: won a ticket at long odds (combined >= 5.0) — hunting outsiders.
+  const hasLongOddsWin = state.tickets.some((t) => t.status === "won" && t.combinedOdds >= 5);
+  // Iron hand: balance dipped within 10 % of the max-loss floor at some point,
+  // then recovered to over half of the drawdown range — survived a close call.
+  const dd = Portfolio.drawdownInfo(state);
+  const span = dd.trailing ? state.hwm - dd.floor : state.cap - dd.floor;
+  const hadCloseCall = span > 0 && (state.equityHistory || []).some((p) => (p.balance - dd.floor) / span <= 0.1);
+  const recovered = span > 0 && dd.pct > 50;
   return {
     "b-prvni-vitezstvi": wonCount >= 1,
     "b-5-v-rade": streaks.bestWin >= 5,
@@ -167,6 +252,9 @@ function computeBadgeUnlocks(state) {
     "b-faze-2": state.phase === "funded",
     "b-funded": state.phase === "funded",
     "b-100-sazek": state.tickets.length >= 100,
+    "b-lovecky": hasLongOddsWin,
+    "b-zelezna-ruka": hadCloseCall && recovered,
+    "b-prvni-vyber": !!state.hasPayout,
   };
 }
 
@@ -417,7 +505,7 @@ async function syncChallengeAccount() {
     }
     const { data: accounts, error } = await client
       .from("challenge_accounts")
-      .select("package_key, capital, phase, state, flags, created_at, inactivity_warned_7, inactivity_warned_13")
+      .select("package_key, capital, phase, state, flags, created_at, inactivity_warned_7, inactivity_warned_13, nickname, leaderboard_opt_in")
       .order("created_at", { ascending: false });
     if (error) return;
     if (!accounts || !accounts.length) {
@@ -429,6 +517,12 @@ async function syncChallengeAccount() {
       showLimitedDashboard(accounts);
       return;
     }
+
+    // leaderboard nastavení: naplnit z reálného účtu (přepíšou HTML placeholder)
+    const nickInputEl = document.getElementById("nickInput");
+    if (nickInputEl && account.nickname) nickInputEl.value = account.nickname;
+    const lbShareEl = document.getElementById("lbShare");
+    if (lbShareEl) lbShareEl.setAttribute("aria-checked", String(account.leaderboard_opt_in !== false));
 
     // funded účet bez zaplaceného aktivačního poplatku → nápadný panel
     const accFlags = Array.isArray(account.flags) ? account.flags : [];
@@ -1057,50 +1151,64 @@ if (sportTabs) {
   document.getElementById("betRefresh").addEventListener("click", () => selectSport(activeSport, true));
 }
 
-// ---------- leaderboard ----------
-const LB = [
-  { name: "Karolína S.", city: "Olomouc", profit: 1930, roi: 31, win: 74 },
-  { name: "Petr H.", city: "Ostrava", profit: 1660, roi: 27, win: 69 },
-  { name: "David P.", city: "Zlín", profit: 1360, roi: 24, win: 71 },
-  { name: "Martin K.", city: "Prague", profit: 990, roi: 19, win: 66 },
-  { name: "Lukáš D.", city: "Liberec", profit: 690, roi: 15, win: 63 },
-  { name: "Jana N.", city: "Brno", profit: 490, roi: 12, win: 61 },
-  { name: "Tipér42", city: "You", profit: 260, roi: 19, win: 67, me: true },
-  { name: "Ondřej M.", city: "Hradec Králové", profit: 240, roi: 9, win: 58 },
-];
-
-const PERIOD_SCALE = { tyden: 0.25, mesic: 1, celkem: 2.6 };
-let lbPeriod = "mesic";
+// ---------- leaderboard: real ranking from leaderboard-get ----------
 let lbMetric = "profit";
+let lbRows = [];
+
+async function loadLeaderboard() {
+  const el = document.getElementById("lbList");
+  if (!el) return;
+  if (typeof fundlyBackendEnabled !== "function" || !fundlyBackendEnabled()) {
+    el.innerHTML = `<p class="bet-msg">Leaderboard needs the backend — sign in first.</p>`;
+    return;
+  }
+  try {
+    const client = await FundlyBackend.getClient();
+    const session = client ? (await client.auth.getSession()).data.session : null;
+    const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/leaderboard-get`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(session ? { Authorization: `Bearer ${session.access_token}` } : {}),
+      },
+      body: JSON.stringify({}),
+    });
+    const data = await res.json().catch(() => ({}));
+    lbRows = Array.isArray(data.rows) ? data.rows : [];
+    renderLb();
+  } catch (e) {
+    el.innerHTML = `<p class="bet-msg">Leaderboard could not be loaded.</p>`;
+  }
+}
 
 function renderLb() {
-  const rows = [...LB]
-    .map((r) => ({ ...r, profit: Math.round(r.profit * PERIOD_SCALE[lbPeriod]) }))
-    .sort((a, b) => (lbMetric === "profit" ? b.profit - a.profit : lbMetric === "roi" ? b.roi - a.roi : b.win - a.win));
+  const el = document.getElementById("lbList");
+  if (!el) return;
+  if (!lbRows.length) {
+    el.innerHTML = `<p class="bet-msg">No shared results yet — be the first on the board.</p>`;
+    return;
+  }
+  const rows = [...lbRows].sort((a, b) =>
+    lbMetric === "profit" ? b.profit - a.profit : lbMetric === "roi" ? b.roi - a.roi : b.winRate - a.winRate);
   const val = (r) =>
-    lbMetric === "profit" ? "+" + usd(r.profit) : lbMetric === "roi" ? r.roi + " % ROI" : r.win + " %";
-  document.getElementById("lbList").innerHTML = rows.map((r, i) => `
-    <div class="lb-row ${r.me ? "me" : ""}">
+    lbMetric === "profit" ? (r.profit >= 0 ? "+" : "") + usd(r.profit) : lbMetric === "roi" ? r.roi + " % ROI" : r.winRate + " %";
+  el.innerHTML = rows.map((r, i) => `
+    <div class="lb-row ${r.isMe ? "me" : ""}">
       <span class="lb-rank">${i + 1}</span>
-      <span class="pay2-av">${r.name.split(" ").map((w) => w[0]).join("").replace(".", "")}</span>
-      <span class="lb-name">${r.name}${r.me ? " · you" : ""}<small>${r.me ? "Elite · Phase 1" : r.city}</small></span>
+      <span class="pay2-av">${r.name.split(" ").map((w) => w[0]).join("").replace(".", "").slice(0, 2).toUpperCase()}</span>
+      <span class="lb-name">${r.name}${r.isMe ? " · you" : ""}<small>${packageByKey(r.packageKey || "").name}</small></span>
       <span class="lb-val">${val(r)}</span>
     </div>`).join("");
 }
 
-["lbPeriod", "lbMetric"].forEach((groupId) => {
-  const group = document.getElementById(groupId);
-  if (!group) return;
-  group.addEventListener("click", (e) => {
-    const btn = e.target.closest("button");
-    if (!btn) return;
-    group.querySelectorAll("button").forEach((b) => b.classList.toggle("active", b === btn));
-    if (btn.dataset.period) lbPeriod = btn.dataset.period;
-    if (btn.dataset.metric) lbMetric = btn.dataset.metric;
-    renderLb();
-  });
+document.getElementById("lbMetric")?.addEventListener("click", (e) => {
+  const btn = e.target.closest("button");
+  if (!btn) return;
+  document.querySelectorAll("#lbMetric button").forEach((b) => b.classList.toggle("active", b === btn));
+  lbMetric = btn.dataset.metric;
+  renderLb();
 });
-if (document.getElementById("lbList")) renderLb();
+if (document.getElementById("lbList")) loadLeaderboard();
 
 // ---------- payouts ----------
 // Status labels of the withdrawal history (values are written by the request-payout / whop-payout edge functions).
@@ -1128,6 +1236,19 @@ async function loadPayoutHistory() {
       .order("created_at", { ascending: false })
       .limit(20);
     if (error) return;
+
+    // "First payout" badge: alespoň jedna vyplacená žádost — marker se ukládá
+    // do lokálního stavu, protože badge se počítá čistě z Portfolio state.
+    const hasPaid = (payouts || []).some((p) => p.status === "paid" || p.status === "sent");
+    if (hasPaid) {
+      const state = Portfolio.get();
+      if (state && !state.hasPayout) {
+        state.hasPayout = true;
+        Portfolio.save(state);
+        renderBadges(state);
+      }
+    }
+
     if (!payouts || !payouts.length) {
       box.innerHTML = `<p class="slip-empty">No withdrawals yet.</p>`;
       return;
@@ -1350,18 +1471,44 @@ if (supportForm) {
   });
 }
 
+// nastavení leaderboardu (přezdívka + sdílení) — uloží se přes profile-update
+async function saveProfileSetting(patch) {
+  const client = await FundlyBackend.getClient();
+  const session = client ? (await client.auth.getSession()).data.session : null;
+  if (!session) throw new Error("Please sign in first.");
+  const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/profile-update`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+    body: JSON.stringify(patch),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || "Could not save.");
+}
+
 const lbShare = document.getElementById("lbShare");
 if (lbShare) {
-  lbShare.addEventListener("click", () => {
-    lbShare.setAttribute("aria-checked", String(lbShare.getAttribute("aria-checked") !== "true"));
+  lbShare.addEventListener("click", async () => {
+    const next = lbShare.getAttribute("aria-checked") !== "true";
+    lbShare.setAttribute("aria-checked", String(next));
+    try {
+      await saveProfileSetting({ leaderboardOptIn: next });
+    } catch (e) {
+      lbShare.setAttribute("aria-checked", String(!next)); // revert on failure
+    }
   });
 }
 
 const nickSave = document.getElementById("nickSave");
 if (nickSave) {
-  nickSave.addEventListener("click", () => {
-    nickSave.textContent = "Saved";
-    setTimeout(() => (nickSave.textContent = "Save"), 1500);
+  nickSave.addEventListener("click", async () => {
+    nickSave.disabled = true;
+    try {
+      await saveProfileSetting({ nickname: document.getElementById("nickInput").value });
+      nickSave.textContent = "Saved";
+    } catch (e) {
+      nickSave.textContent = "Failed";
+    }
+    setTimeout(() => { nickSave.textContent = "Save"; nickSave.disabled = false; }, 1500);
   });
 }
 

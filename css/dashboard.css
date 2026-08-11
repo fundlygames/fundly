@@ -104,6 +104,69 @@ body::after {
 .icon-btn:hover { color: var(--text-primary); background: #ffffff0f; }
 .icon-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
+.notif-bell { position: relative; }
+.notif-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--danger);
+  box-shadow: 0 0 0 2px var(--bg, #020204);
+}
+.notif-panel {
+  position: fixed;
+  top: 60px;
+  right: 20px;
+  width: min(360px, calc(100vw - 32px));
+  max-height: min(480px, calc(100vh - 90px));
+  display: flex;
+  flex-direction: column;
+  background: var(--surface, #0d0d12);
+  border: 1px solid var(--line);
+  border-radius: var(--d-r-md, 14px);
+  box-shadow: 0 20px 50px #00000066;
+  z-index: 200;
+  overflow: hidden;
+}
+.notif-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  font-weight: 600;
+  font-size: .875rem;
+}
+.notif-list { overflow-y: auto; }
+.notif-item {
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+}
+.notif-item:last-child { border-bottom: none; }
+.notif-item.unread { background: #ffffff08; }
+.notif-ic {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .8125rem;
+}
+.notif-ic.win { background: #14f19526; color: var(--accent); }
+.notif-ic.loss { background: #ff4d4d26; color: var(--danger); }
+.notif-ic.pend { background: #ffffff14; color: var(--text-secondary); }
+.notif-body { flex: 1; min-width: 0; }
+.notif-title { font-size: .8125rem; font-weight: 600; color: var(--text-primary); }
+.notif-detail { font-size: .75rem; color: var(--text-muted); margin-top: 2px; }
+.notif-time { font-size: .6875rem; color: var(--text-muted); margin-top: 4px; }
+.notif-empty { padding: 24px 14px; text-align: center; color: var(--text-muted); font-size: .8125rem; }
+
 /* mobilní spodní lišta */
 .dnav-mobile {
   position: fixed;
