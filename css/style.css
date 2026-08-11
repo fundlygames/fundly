@@ -936,6 +936,31 @@ footer {
 }
 .input::placeholder { color: var(--text-muted); }
 .input:focus { border-color: var(--primary); outline: none; }
+
+/* password inputs: wrap in .pw-field, toggle handled globally in js/whop.js */
+.pw-field { position: relative; }
+.pw-field .input { padding-right: 42px; width: 100%; }
+.pw-toggle {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  transition: color .15s var(--ease), background-color .15s var(--ease);
+}
+.pw-toggle:hover { color: var(--text-primary); background: #ffffff0f; }
+.pw-toggle:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.pw-toggle .eye-off { display: none; }
+.pw-toggle[aria-pressed="true"] .eye { display: none; }
+.pw-toggle[aria-pressed="true"] .eye-off { display: block; }
 .auth-note {
   font-size: .8125rem;
   color: var(--accent);

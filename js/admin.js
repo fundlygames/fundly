@@ -356,7 +356,13 @@ function renderAdminGate(note) {
       </div>
       <div class="field">
         <label for="adminPass">Heslo</label>
-        <input class="input" id="adminPass" type="password" autocomplete="current-password" required />
+        <div class="pw-field">
+          <input class="input" id="adminPass" type="password" autocomplete="current-password" required />
+          <button type="button" class="pw-toggle" data-pw-toggle aria-label="Zobrazit heslo" aria-pressed="false">
+            <svg class="eye" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.3"/></svg>
+            <svg class="eye-off" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.3"/><path d="M2 2l12 12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          </button>
+        </div>
       </div>
       <button class="btn btn-primary" type="submit">Přihlásit se</button>
     </form>

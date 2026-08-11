@@ -91,3 +91,16 @@ const FundlyAuth = {
     await client.auth.signOut();
   },
 };
+
+// ---------- password field show/hide toggle (global, works on any page) ----------
+// Wrap a password <input> in <div class="pw-field">...<button data-pw-toggle>.
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-pw-toggle]");
+  if (!btn) return;
+  const input = btn.closest(".pw-field")?.querySelector("input");
+  if (!input) return;
+  const showing = input.type === "text";
+  input.type = showing ? "password" : "text";
+  btn.setAttribute("aria-pressed", String(!showing));
+  btn.setAttribute("aria-label", showing ? "Show password" : "Hide password");
+});
