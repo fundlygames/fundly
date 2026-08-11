@@ -591,7 +591,7 @@ const SPORTS = [
   ["tennis", "Tennis", "tenis"],
   ["darts", "Darts", "sipky"],
   ["mixed-martial-arts", "MMA", "mma"],
-  ["boxing", "Boxing", ""], // no icon → letter chip
+  ["boxing", "Boxing", "boxing"],
   ["volleyball", "Volleyball", "volejbal"],
 ];
 
