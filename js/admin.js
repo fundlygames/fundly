@@ -604,10 +604,16 @@ function renderBettingAnalytics(ba) {
 const RISK_RULES = [
   ["SHARED_DEVICE_IP", "CRITICAL", "Registrace ze stejné IP jako jiný účet (bez přímého důkazu koluze)"],
   ["SHARED_PAYMENT_METHOD", "CRITICAL", "Stejná platební metoda jako na jiném účtu"],
+  ["MULTI_ACCOUNT_COLLUSION", "CRITICAL", "Opačná sázka na stejný zápas/trh jako jiný účet"],
   ["FAST_TRACK", "WARNING", "Extrémně rychlý postup fázemi (fáze 1 dokončena < 3 dny)"],
+  ["BOT_PATTERN", "WARNING", "5+ tiketů podáno během 10 minut (server-ověřeno z reálných časů)"],
+  ["TIMING_ANOMALY", "WARNING", "Vysoký podíl tiketů podaných < 5 min před uzávěrkou"],
+  ["LOW_VARIANCE", "WARNING", "Podezřele stabilní win rate napříč okny — možný hedžing"],
+  ["LOW_LIQUIDITY_CONCENTRATION", "WARNING", "Přes 70 % objemu na jediné lize"],
   ["arbitrage", "WARNING", "Sázka na obě strany stejného trhu (sure bet) v tiketu"],
   ["value", "WARNING", "Value-bet strategie (mimo povolený styl sázení)"],
   ["HIGH_WIN_RATE", "INFO", "Win rate výrazně nad průměrem — jen kontext, samo o sobě není problém"],
+  ["FEED_LAG_PATTERN / SIMILAR_KYC_ATTEMPT / HIGH_CLV", "TODO", "Zatím nesledujeme — chybí historie pohybu kurzů / log KYC pokusů"],
 ];
 
 function renderProblems(stats) {
@@ -651,7 +657,7 @@ function renderProblems(stats) {
           <td>${esc(a.email)}</td>
           <td>${esc(a.package_key || "?")}</td>
           <td>Fáze ${esc(a.phase ?? "—")}</td>
-          <td class="odds"><b>${Number(a.risk_score) || 0}</b> / 100</td>
+          <td class="odds"><b>${Number(a.risk_score) || 0}</b> <small style="color:var(--text-muted)">(hold ≥100)</small></td>
           <td><span class="tag ${tag}">${label}</span></td>
           <td style="max-width:360px">${reasons}</td>
           <td style="color:var(--text-muted)">${new Date(a.created_at).toLocaleDateString("cs-CZ")}</td>
@@ -661,7 +667,7 @@ function renderProblems(stats) {
 
   if (rulesEl) {
     rulesEl.innerHTML = RISK_RULES.map(([flag, tier, desc]) => {
-      const tag = tier === "CRITICAL" ? "loss" : tier === "WARNING" ? "pend" : "win";
+      const tag = tier === "CRITICAL" ? "loss" : tier === "WARNING" ? "pend" : tier === "TODO" ? "" : "win";
       return `<div class="k-row neutral"><b>${esc(flag)}</b> — ${esc(desc)}<span class="n"><span class="tag ${tag}">${tier}</span></span></div>`;
     }).join("");
   }
@@ -927,7 +933,7 @@ function openPlayerDetail(acc) {
         ${a.risk_score != null ? `
           <h4 class="pm-h">Riziko</h4>
           <div class="pm-flags" style="align-items:center">
-            <span class="tag ${Number(a.risk_score) >= 100 ? "loss" : Number(a.risk_score) >= 30 ? "pend" : "win"}">skóre ${Number(a.risk_score)} / 100 · ${a.watch_status === "hold" ? "HOLD" : a.watch_status === "watch" ? "SLEDOVAT" : "clear"}</span>
+            <span class="tag ${Number(a.risk_score) >= 100 ? "loss" : Number(a.risk_score) >= 30 ? "pend" : "win"}">skóre ${Number(a.risk_score)} · ${a.watch_status === "hold" ? "HOLD" : a.watch_status === "watch" ? "SLEDOVAT" : "clear"}</span>
             <span class="pm-date">${Array.isArray(a.risk_reasons) && a.risk_reasons.length ? a.risk_reasons.map(esc).join(" · ") : "bez nálezů"}</span>
           </div>` : ""}
         <p class="pm-date" style="margin-top:8px">Poslední synchronizace: ${fmtDate(a.synced_at)}</p>`

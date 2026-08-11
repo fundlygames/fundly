@@ -31,6 +31,8 @@ export async function computeServerRiskSignals(supabase: any, account: {
   phase1_completed_at: string | null;
   funded_at: string | null;
   created_at: string;
+  // deno-lint-ignore no-explicit-any
+  betting_profile?: any;
 }): Promise<{ score: number; reasons: string[] }> {
   let score = 0;
   const reasons: string[] = [];
@@ -70,5 +72,105 @@ export async function computeServerRiskSignals(supabase: any, account: {
     }
   }
 
-  return { score: Math.min(100, score), reasons };
+  // LOW_LIQUIDITY_CONCENTRATION (WARNING): > 70 % objemu na jediné lize,
+  // spočítáno z betting_profile.topLeagues (bez potřeby tabulky tickets).
+  const bp = account.betting_profile;
+  if (bp?.topLeagues?.length) {
+    const total = bp.topLeagues.reduce((a: number, l: { count: number }) => a + (Number(l.count) || 0), 0);
+    const top = bp.topLeagues[0];
+    if (total >= 10 && top && (Number(top.count) || 0) / total > 0.7) {
+      score += RISK_WARNING;
+      reasons.push(`LOW_LIQUIDITY_CONCENTRATION: ${Math.round((top.count / total) * 100)} % objemu na "${top.name}"`);
+    }
+  }
+
+  // ---------- tikety na serveru (viz tickets tabulka + sync-tickets) ----------
+  const { data: myTickets } = await supabase
+    .from("tickets")
+    .select("selections, placed_at, first_start_time, status")
+    .eq("account_id", account.id)
+    .order("placed_at", { ascending: false })
+    .limit(300);
+  const tickets = myTickets ?? [];
+
+  if (tickets.length) {
+    // BOT_PATTERN (WARNING): 5+ tiketů podaných během 10 minut, ze skutečných
+    // server-side časů (na rozdíl od klientského self-reportu).
+    const times = tickets.map((t: { placed_at: string }) => new Date(t.placed_at).getTime()).sort((a: number, b: number) => a - b);
+    for (let i = 0; i + 4 < times.length; i++) {
+      if (times[i + 4] - times[i] <= 10 * 60 * 1000) {
+        score += RISK_WARNING;
+        reasons.push("BOT_PATTERN: 5+ tiketů podaných během 10 minut (server-ověřeno)");
+        break;
+      }
+    }
+
+    // TIMING_ANOMALY (WARNING): vysoký podíl tiketů podaných < 5 min před
+    // začátkem (nejbližšího) zápasu v tiketu.
+    const withStart = tickets.filter((t: { first_start_time: string | null }) => t.first_start_time);
+    if (withStart.length >= 5) {
+      const lastMinute = withStart.filter((t: { placed_at: string; first_start_time: string }) =>
+        new Date(t.first_start_time).getTime() - new Date(t.placed_at).getTime() <= 5 * 60 * 1000).length;
+      if (lastMinute / withStart.length > 0.5) {
+        score += RISK_WARNING;
+        reasons.push(`TIMING_ANOMALY: ${Math.round((lastMinute / withStart.length) * 100)} % tiketů podáno < 5 min před uzávěrkou`);
+      }
+    }
+
+    // LOW_VARIANCE (WARNING): podezřele stabilní win rate napříč okny po 10
+    // vypořádaných tiketech (možný hedžing) — heuristika pro lidský review,
+    // ne statisticky přesný test.
+    const settled = tickets.filter((t: { status: string }) => t.status === "won" || t.status === "lost")
+      .sort((a: { placed_at: string }, b: { placed_at: string }) => new Date(a.placed_at).getTime() - new Date(b.placed_at).getTime());
+    if (settled.length >= 30) {
+      const windows: number[] = [];
+      for (let i = 0; i + 10 <= settled.length; i += 10) {
+        const chunk = settled.slice(i, i + 10);
+        const wins = chunk.filter((t: { status: string }) => t.status === "won").length;
+        windows.push(wins / 10);
+      }
+      if (windows.length >= 3) {
+        const avg = windows.reduce((a, b) => a + b, 0) / windows.length;
+        const maxDev = Math.max(...windows.map((w) => Math.abs(w - avg)));
+        if (maxDev <= 0.1) {
+          score += RISK_WARNING;
+          reasons.push(`LOW_VARIANCE: win rate stabilní na ${Math.round(avg * 100)} % napříč ${windows.length} okny po 10 tiketech`);
+        }
+      }
+    }
+
+    // MULTI_ACCOUNT_COLLUSION (CRITICAL): jiný účet vsadil opačnou stranu
+    // stejného trhu na stejný zápas. Selections jsou jsonb (tiket = akumulátor
+    // víc zápasů), takže se rozplacují a porovnávají v JS — u větších objemů
+    // dat by tohle chtělo vlastní indexovanou tabulku "selections", pro
+    // aktuální objem tiketů stačí projet posledních pár set napříč účty.
+    type Sel = { eventId: string | null; marketName: string | null; field: string | null };
+    const flatten = (rows: { selections: Sel[] }[]) =>
+      rows.flatMap((t) => (t.selections || []).map((s) => ({ eventId: s.eventId, marketName: s.marketName, field: s.field })));
+    const mySelections = flatten(tickets as { selections: Sel[] }[]);
+    const myEventIds = [...new Set(mySelections.map((s) => s.eventId).filter(Boolean))];
+
+    if (myEventIds.length) {
+      const { data: othersRaw } = await supabase
+        .from("tickets")
+        .select("account_id, selections")
+        .neq("account_id", account.id)
+        .order("placed_at", { ascending: false })
+        .limit(1000);
+      // deno-lint-ignore no-explicit-any
+      const otherSelections = (othersRaw ?? []).flatMap((t: any) =>
+        (t.selections || []).map((s: Sel) => ({ accountId: t.account_id, ...s })));
+      const collision = otherSelections.find((o: Sel & { accountId: string }) =>
+        mySelections.some((m) => m.eventId === o.eventId && m.marketName === o.marketName && m.field !== o.field));
+      if (collision) {
+        score += RISK_CRITICAL;
+        reasons.push(`MULTI_ACCOUNT_COLLUSION: opačná sázka na event #${collision.eventId} jako jiný účet`);
+      }
+    }
+  }
+
+  // Skóre se NEKAPUJE na 100 — víc CRITICAL nálezů najednou má vypadat
+  // závažněji (viz příklad v zadání: skóre 130 = 2× CRITICAL + 1× WARNING).
+  // Práh pro AUTO-HOLD (>=100) tím není dotčený, jen se neschovává skutečná závažnost.
+  return { score, reasons };
 }

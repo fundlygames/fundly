@@ -50,3 +50,6 @@ verify_jwt = false
 
 [functions.admin-report]
 verify_jwt = false
+
+[functions.sync-tickets]
+verify_jwt = false

@@ -376,7 +376,7 @@ function computeRisk(state, s) {
       break;
     }
   }
-  return { score: Math.min(100, score), reasons };
+  return { score, reasons };
 }
 
 function buildAccountSnapshot(state) {
@@ -442,6 +442,28 @@ async function syncAccountNow() {
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify(buildAccountSnapshot(state)),
     });
+
+    // jednotlivé tikety pro server-side risk detekci (kolize napříč účty,
+    // rate/timing analýza) — posíláme celý seznam, sync-tickets to bezpečně
+    // upsertuje (unique account_id+client_ticket_id), objem na hráče je malý.
+    if (state.tickets && state.tickets.length) {
+      await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/sync-tickets`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          tickets: state.tickets.slice(0, 200).map((t) => ({
+            id: t.id,
+            selections: t.selections,
+            stake: t.stake,
+            combinedOdds: t.combinedOdds,
+            status: t.status,
+            placedAt: t.placedAt,
+            settledAt: t.settledAt,
+            payout: t.payout,
+          })),
+        }),
+      });
+    }
   } catch (e) { /* sync je best-effort */ }
 }
 

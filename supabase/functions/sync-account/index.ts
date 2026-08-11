@@ -72,9 +72,9 @@ serve(async (req) => {
       : String(body.breachReason).slice(0, 200);
 
     // rizikové skóre z klienta (pravidelné, 0–100 + krátké důvody)
-    const riskScore = body.riskScore == null ? null : saneInt(body.riskScore, 100);
+    const riskScore = body.riskScore == null ? null : saneInt(body.riskScore, 1000);
     if (body.riskScore != null && riskScore === null) {
-      return jsonResponse({ error: "Invalid riskScore (0–100)." }, 400);
+      return jsonResponse({ error: "Invalid riskScore." }, 400);
     }
     const riskReasons = Array.isArray(body.riskReasons)
       ? body.riskReasons
@@ -113,7 +113,7 @@ serve(async (req) => {
     // challenge účet přihlášeného hráče (nejnovější)
     const { data: account } = await supabase
       .from("challenge_accounts")
-      .select("id, state, phase, tickets_total, created_at, phase1_completed_at, phase2_completed_at, funded_at, signup_ip, payment_fingerprint")
+      .select("id, state, phase, tickets_total, created_at, phase1_completed_at, phase2_completed_at, funded_at, signup_ip, payment_fingerprint, betting_profile")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -152,8 +152,9 @@ serve(async (req) => {
       phase1_completed_at: phaseStamps.phase1_completed_at ?? account.phase1_completed_at,
       funded_at: phaseStamps.funded_at ?? account.funded_at,
       created_at: account.created_at,
+      betting_profile: bettingProfile ?? account.betting_profile,
     });
-    const finalScore = Math.min(100, (riskScore ?? 0) + serverRisk.score);
+    const finalScore = (riskScore ?? 0) + serverRisk.score;
     const finalReasons = [...riskReasons, ...serverRisk.reasons].slice(0, 15);
 
     const { error: updateError } = await supabase
