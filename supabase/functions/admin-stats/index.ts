@@ -39,6 +39,7 @@ serve(async (req) => {
       affiliateCodes,
       promoPayments,
       promoConversions,
+      problemAccounts,
     ] = await Promise.all([
       supabase
         .from("payments")
@@ -54,7 +55,7 @@ serve(async (req) => {
       supabase.from("challenge_accounts").select("state, email, created_at"),
       supabase
         .from("challenge_accounts")
-        .select("id, email, package_key, phase, capital, state, kyc_status, phase_balance, profit, qualifying_tickets, breach_reason, flags, tickets_total, tickets_won, synced_at, betting_profile, risk_score, risk_reasons, created_at")
+        .select("id, email, package_key, phase, capital, state, kyc_status, phase_balance, profit, qualifying_tickets, breach_reason, flags, tickets_total, tickets_won, synced_at, betting_profile, risk_score, risk_reasons, watch_status, created_at")
         .order("created_at", { ascending: false })
         .limit(50),
       supabase
@@ -75,7 +76,7 @@ serve(async (req) => {
         .limit(100),
       supabase
         .from("payments")
-        .select("promo_code")
+        .select("promo_code, amount, currency")
         .eq("status", "succeeded")
         .not("promo_code", "is", null),
       supabase
@@ -85,22 +86,31 @@ serve(async (req) => {
         .not("promo_code", "is", null)
         .order("created_at", { ascending: false })
         .limit(50),
+      // Problémy: VŠECHNY účty s watch/hold, ne jen posledních 50 registrací —
+      // starší rizikový účet by jinak z přehledu vypadl.
+      supabase
+        .from("challenge_accounts")
+        .select("id, email, package_key, phase, state, risk_score, risk_reasons, watch_status, created_at")
+        .neq("watch_status", "clear")
+        .order("risk_score", { ascending: false })
+        .limit(200),
     ]);
 
     // deno-lint-ignore no-explicit-any
     const sum = (rows: any[] | null, field: string) =>
       (rows ?? []).reduce((a, r) => a + (Number(r[field]) || 0), 0);
 
-    // Převod do Kč pro agregace — EUR a USD platby kurzem z env (default 25).
-    const EUR_CZK = Number(Deno.env.get("EUR_CZK_RATE") ?? 25) || 25;
-    const USD_CZK = Number(Deno.env.get("USD_CZK_RATE") ?? 25) || 25;
+    // Účty se kupují v USD — admin ukazuje všechno v USD. Staré platby v EUR/CZK
+    // (z doby před přechodem na USD) se přepočtou kurzem z env, ať nezkreslí součty.
+    const EUR_USD = Number(Deno.env.get("EUR_USD_RATE") ?? 1.08) || 1.08;
+    const CZK_USD = Number(Deno.env.get("CZK_USD_RATE") ?? 0.044) || 0.044;
     // deno-lint-ignore no-explicit-any
-    const toCzk = (r: any) =>
+    const toUsd = (r: any) =>
       (Number(r.amount) || 0) *
-      (r.currency === "eur" ? EUR_CZK : r.currency === "usd" ? USD_CZK : 1);
+      (r.currency === "eur" ? EUR_USD : r.currency === "czk" ? CZK_USD : 1);
     // deno-lint-ignore no-explicit-any
-    const sumCzk = (rows: any[] | null) =>
-      (rows ?? []).reduce((a, r) => a + toCzk(r), 0);
+    const sumUsd = (rows: any[] | null) =>
+      (rows ?? []).reduce((a, r) => a + toUsd(r), 0);
 
     const accountsByState: Record<string, number> = {};
     for (const row of accounts.data ?? []) {
@@ -109,13 +119,13 @@ serve(async (req) => {
     }
 
     // Obohacení výplat o údaje žadatele: e-mail, balíček, kapitál + celková
-    // útrata (součet jeho zaplacených plateb přepočtený na Kč).
+    // útrata (součet jeho zaplacených plateb přepočtený na USD).
     // deno-lint-ignore no-explicit-any
     const accountById: Record<string, any> = {};
     for (const a of recentAccounts.data ?? []) accountById[a.id] = a;
     const spentByEmail: Record<string, number> = {};
     for (const p of allPayments.data ?? []) {
-      const amt = toCzk(p);
+      const amt = toUsd(p);
       if (p.email) spentByEmail[p.email] = (spentByEmail[p.email] ?? 0) + amt;
     }
     // deno-lint-ignore no-explicit-any
@@ -126,7 +136,7 @@ serve(async (req) => {
         email: acc?.email ?? null,
         package_key: acc?.package_key ?? null,
         capital: acc?.capital ?? null,
-        totalSpentCzk: Math.round(spentByEmail[acc?.email] ?? 0),
+        totalSpentUsd: Math.round(spentByEmail[acc?.email] ?? 0),
       };
     });
 
@@ -169,6 +179,20 @@ serve(async (req) => {
     }
     dayBuckets.forEach((b) => { b.value = byLabel[b.label] ?? 0; });
 
+    // Tržby po týdnech (posledních 8 týdnů, v USD) — nahrazuje mock graf v adminu.
+    const revenueWeeks: { label: string; value: number }[] = [];
+    for (let i = 7; i >= 0; i--) {
+      revenueWeeks.push({ label: i === 0 ? "This week" : `-${i}w`, value: 0 });
+    }
+    for (const p of allPayments.data ?? []) {
+      if (!p.created_at) continue;
+      const ageDays = (Date.now() - new Date(p.created_at).getTime()) / 86400000;
+      const weekIndex = 7 - Math.min(7, Math.floor(ageDays / 7));
+      if (weekIndex < 0 || weekIndex > 7) continue;
+      revenueWeeks[weekIndex].value += toUsd(p);
+    }
+    revenueWeeks.forEach((w) => { w.value = Math.round(w.value); });
+
     // Poslední aktivita backendu (pro diagnostiku)
     const lastPaymentAt = recentPayments.data?.[0]?.created_at ?? null;
     const lastSyncAt = (recentAccounts.data ?? []).reduce(
@@ -200,34 +224,56 @@ serve(async (req) => {
       leagues: topEntries(leagueCount),
     };
 
-    // počty použití affiliate kódů z úspěšných plateb (case-insensitive)
+    // počty použití + tržby přes affiliate kódy z úspěšných plateb (case-insensitive)
     const usedByCode: Record<string, number> = {};
+    let affiliateRevenueUsd = 0;
+    // deno-lint-ignore no-explicit-any
     for (const p of promoPayments.data ?? []) {
       const key = String(p.promo_code).toUpperCase();
       usedByCode[key] = (usedByCode[key] ?? 0) + 1;
+      affiliateRevenueUsd += toUsd(p);
     }
 
+    // Meta ads spend je uložený v CZK (starší sloupec ad_spend.amount_czk) — pro
+    // konzistentní USD zobrazení v adminu ho převádíme stejným kurzem jako platby.
+    const metaAdsSpendUsd = sum(metaSpend.data, "amount_czk") * CZK_USD;
+
+    // Marketingové kanály — jen to, co skutečně měříme. Google/Organic/Influenceři
+    // zatím nemají UTM tracking na checkoutu, proto se NEVYMÝŠLEJÍ čísla, jen se
+    // označí jako "not tracked" (žádné tiché nahrazení mockem).
+    const marketingChannels = [
+      { channel: "Meta Ads", spendUsd: Math.round(metaAdsSpendUsd), signups: null, tracked: true },
+      { channel: "Affiliate / promo codes", spendUsd: 0, revenueUsd: Math.round(affiliateRevenueUsd), signups: (promoPayments.data ?? []).length, tracked: true },
+      { channel: "Google Ads", tracked: false },
+      { channel: "Organic / SEO", tracked: false },
+      { channel: "Influencers", tracked: false },
+    ];
+
     return jsonResponse({
-      monthRevenue: Math.round(sumCzk(monthPayments.data)),
+      monthRevenue: Math.round(sumUsd(monthPayments.data)),
       monthCount: (monthPayments.data ?? []).length,
-      totalRevenue: Math.round(sumCzk(allPayments.data)),
+      totalRevenue: Math.round(sumUsd(allPayments.data)),
+      revenueByWeek: revenueWeeks,
       recentPayments: recentPayments.data ?? [],
       accountsByState,
       breachedCount: accountsByState.breached ?? 0,
-      // rizikové účty (risk_score > 60) pro admin přehled
+      // rizikové účty (skóre >= 30, tj. watch nebo hold) pro admin přehled
       // deno-lint-ignore no-explicit-any
-      riskyCount: (recentAccounts.data ?? []).filter((a: any) => (a.risk_score ?? 0) > 60).length,
+      riskyCount: (recentAccounts.data ?? []).filter((a: any) => (a.risk_score ?? 0) >= 30).length,
       recentAccounts: (recentAccounts.data ?? []).map((a) => ({
         ...a,
-        totalSpentCzk: Math.round(spentByEmail[a.email] ?? 0),
+        totalSpentUsd: Math.round(spentByEmail[a.email] ?? 0),
       })),
+      // Problémy: všechny watch/hold účty (ne jen z posledních 50 registrací)
+      problemAccounts: problemAccounts.data ?? [],
       recentPayouts: enrichedPayouts,
       emailsList,
       signupsByDay: dayBuckets,
       lastPaymentAt,
       lastSyncAt,
       bettingAnalytics,
-      metaAdsSpendCzk: sum(metaSpend.data, "amount_czk"),
+      marketingChannels,
+      metaAdsSpendUsd: Math.round(metaAdsSpendUsd),
       // deno-lint-ignore no-explicit-any
       affiliateCodes: (affiliateCodes.data ?? []).map((c: any) => ({
         ...c,

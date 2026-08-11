@@ -8,9 +8,12 @@ if (typeof fundlyBackendEnabled === "function" && fundlyBackendEnabled()) {
 }
 
 const czk = (n) => n.toLocaleString("cs-CZ") + " Kč";
+// Účty se kupují v USD — všechna REÁLNÁ data v adminu (renderReal*) se
+// zobrazují v USD. czk() zůstává jen pro mock demo-stav před přihlášením.
+const usd = (n) => "$" + Math.round(Number(n) || 0).toLocaleString("en-US");
 
 // ---------- přepínání sekcí ----------
-const views = ["finance", "hraci", "affiliate", "diagnostika"];
+const views = ["finance", "hraci", "affiliate", "problemy", "diagnostika"];
 
 function showView(name) {
   views.forEach((v) => {
@@ -63,7 +66,8 @@ const FIN_CHANNELS = [
   ["Influenceři", 13520, 89, 152, 3.9],
 ];
 
-function renderLineChart(points, colorUp, colorDown) {
+function renderLineChart(points, colorUp, colorDown, fmt) {
+  fmt = fmt || czk;
   const w = 600, h = 140, pad = 8;
   const values = points.map((p) => p.value);
   const min = Math.min(...values), max = Math.max(...values);
@@ -79,7 +83,7 @@ function renderLineChart(points, colorUp, colorDown) {
     <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" class="equity-svg" role="img" aria-label="Graf vývoje">
       <polyline points="${coords.join(" ")}" fill="none" stroke="${stroke}" style="color:${stroke}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
     </svg>
-    <div class="equity-range"><span>${czk(min)}</span><span>${czk(max)}</span></div>`;
+    <div class="equity-range"><span>${fmt(min)}</span><span>${fmt(max)}</span></div>`;
 }
 
 function renderFinance() {
@@ -392,6 +396,7 @@ async function loadRealStats() {
   renderEmails(stats.emailsList || []);
   renderRealDiagnostika(stats);
   renderBettingAnalytics(stats.bettingAnalytics);
+  renderProblems(stats);
   renderAffiliate();
 }
 
@@ -416,9 +421,25 @@ function renderEmails(list) {
       } catch (e) { /* clipboard nemusí být dostupný */ }
     };
   }
+  const exportBtn = document.getElementById("emailsExportBtn");
+  if (exportBtn) {
+    exportBtn.hidden = !list.length;
+    exportBtn.onclick = () => {
+      const csvCell = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+      const header = ["email", "accounts", "payments", "last_activity"];
+      const rows = list.map((e) => [e.email, e.accounts, e.payments, e.lastAt ? new Date(e.lastAt).toISOString() : ""]);
+      const csv = [header, ...rows].map((r) => r.map(csvCell).join(",")).join("\r\n");
+      const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `fundly-emails-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    };
+  }
 }
 
-// ---------- Finance: reálná data ----------
+// ---------- Finance: reálná data (USD) ----------
 function renderRealFinance(stats) {
   const dstat = (label, value, green) => `
     <div class="dstat">
@@ -427,10 +448,16 @@ function renderRealFinance(stats) {
     </div>`;
 
   document.getElementById("finStatGrid").innerHTML =
-    dstat("Tržby tento měsíc", czk(stats.monthRevenue), true) +
-    dstat("Tržby celkem", czk(stats.totalRevenue), false) +
+    dstat("Tržby tento měsíc", usd(stats.monthRevenue), true) +
+    dstat("Tržby celkem", usd(stats.totalRevenue), false) +
     dstat("Úspěšné platby tento měsíc", stats.monthCount, false) +
-    dstat("Meta ads tento měsíc", czk(stats.metaAdsSpendCzk), false);
+    dstat("Meta ads tento měsíc", usd(stats.metaAdsSpendUsd), false);
+
+  // reálný graf tržeb po týdnech (nahrazuje mock REVENUE_WEEKS)
+  if (Array.isArray(stats.revenueByWeek) && stats.revenueByWeek.length) {
+    document.getElementById("finRevenueChart").innerHTML =
+      renderLineChart(stats.revenueByWeek, "var(--accent)", "#ff6b6b", usd);
+  }
 
   // panel „Rozpad tržeb“ přepneme na poslední platby
   const breakdown = document.getElementById("finBreakdown");
@@ -439,9 +466,13 @@ function renderRealFinance(stats) {
     ? stats.recentPayments.map((p) => {
         const tag = p.status === "succeeded" ? "win" : p.status === "failed" ? "loss" : "pend";
         const label = p.status === "succeeded" ? "zaplaceno" : p.status === "failed" ? "selhalo" : esc(p.status);
+        // starší platby v EUR/CZK (před přechodem na USD) se zobrazí v původní
+        // měně u jednotlivé platby, ale do součtů nahoře jdou přepočtené na USD
         const amt = p.currency === "eur"
-          ? `${(Number(p.amount) || 0).toLocaleString("cs-CZ")} EUR`
-          : czk(Number(p.amount) || 0);
+          ? `${(Number(p.amount) || 0).toLocaleString("en-US")} EUR`
+          : p.currency === "czk"
+          ? `${(Number(p.amount) || 0).toLocaleString("cs-CZ")} Kč`
+          : usd(Number(p.amount) || 0);
         return `<div class="k-row neutral">${esc(p.email || "—")} · ${esc(p.package_key || "?")}<span class="n"><span class="tag ${tag}">${label}</span> ${amt}</span></div>`;
       }).join("")
     : `<p class="bet-msg">Zatím žádné platby.</p>`;
@@ -457,25 +488,36 @@ function renderRealFinance(stats) {
             ` <button class="btn btn-ghost" data-reject-payout="${esc(p.id)}" data-account="${esc(p.account_id)}">Zamítnout</button>`
           : "";
         const who = p.email
-          ? `${esc(p.email)} · ${esc(p.package_key || "?")} (kapitál ${czk(Number(p.capital) || 0)}) · utratil ${czk(Number(p.totalSpentCzk) || 0)}`
+          ? `${esc(p.email)} · ${esc(p.package_key || "?")} (kapitál ${usd(Number(p.capital) || 0)}) · utratil ${usd(Number(p.totalSpentUsd) || 0)}`
           : `Výplata #${esc(String(p.id).slice(0, 8))}`;
         const when = new Date(p.created_at).toLocaleString("cs-CZ");
-        return `<div class="k-row neutral"><span>${who}<br><span style="color:var(--text-muted);font-size:.8125rem">${p.method ? `${esc(p.method)} · ` : ""}${when}</span></span><span class="n"><span class="tag ${tag}">${label}</span> ${czk(Number(p.amount) || 0)}${approveBtn}</span></div>`;
+        return `<div class="k-row neutral"><span>${who}<br><span style="color:var(--text-muted);font-size:.8125rem">${p.method ? `${esc(p.method)} · ` : ""}${when}</span></span><span class="n"><span class="tag ${tag}">${label}</span> ${usd(Number(p.amount) || 0)}${approveBtn}</span></div>`;
       }).join("")
     : `<p class="bet-msg">Zatím žádné výplaty.</p>`;
 
-  // reálný Meta spend jako nový řádek v tabulce marketingových kanálů
+  // marketingové kanály — jen reálně měřené (Meta + affiliate); ostatní
+  // se poctivě označí jako nesledované místo vymyšlených čísel
   const table = document.getElementById("finChannelsTable");
-  const tbody = table.querySelector("tbody");
-  if (tbody) {
-    tbody.insertAdjacentHTML("beforeend", `
-      <tr>
-        <td>Meta Ads (reálný spend)</td>
-        <td class="odds"><b>${czk(stats.metaAdsSpendCzk)}</b></td>
-        <td class="odds">—</td>
-        <td class="odds">—</td>
-        <td class="odds">—</td>
-      </tr>`);
+  if (table) {
+    table.innerHTML = `
+      <thead><tr><th>Kanál</th><th>Výdaje</th><th>Tržby</th><th>Registrace</th><th>Stav</th></tr></thead>
+      <tbody>
+        ${(stats.marketingChannels || []).map((c) => c.tracked ? `
+          <tr>
+            <td>${esc(c.channel)}</td>
+            <td class="odds">${c.spendUsd != null ? `<b>${usd(c.spendUsd)}</b>` : "—"}</td>
+            <td class="odds">${c.revenueUsd != null ? usd(c.revenueUsd) : "—"}</td>
+            <td class="odds">${c.signups ?? "—"}</td>
+            <td class="odds"><span class="tag win">měřeno</span></td>
+          </tr>` : `
+          <tr style="opacity:.55">
+            <td>${esc(c.channel)}</td>
+            <td class="odds">—</td>
+            <td class="odds">—</td>
+            <td class="odds">—</td>
+            <td class="odds"><span class="tag pend">not tracked</span></td>
+          </tr>`).join("")}
+      </tbody>`;
   }
 }
 
@@ -556,6 +598,73 @@ function renderBettingAnalytics(ba) {
   leaguesEl.innerHTML = `<p class="bf-label" style="margin:0 0 6px">Top ligy</p>` + rows(ba && ba.leagues);
 }
 
+// ---------- Problémy: risk-scoring přehled (fraud pravidla + flagované účty) ----------
+const RISK_RULES = [
+  ["SHARED_DEVICE_IP", "CRITICAL", "Registrace ze stejné IP jako jiný účet (bez přímého důkazu koluze)"],
+  ["SHARED_PAYMENT_METHOD", "CRITICAL", "Stejná platební metoda jako na jiném účtu"],
+  ["FAST_TRACK", "WARNING", "Extrémně rychlý postup fázemi (fáze 1 dokončena < 3 dny)"],
+  ["arbitrage", "WARNING", "Sázka na obě strany stejného trhu (sure bet) v tiketu"],
+  ["value", "WARNING", "Value-bet strategie (mimo povolený styl sázení)"],
+  ["HIGH_WIN_RATE", "INFO", "Win rate výrazně nad průměrem — jen kontext, samo o sobě není problém"],
+];
+
+function renderProblems(stats) {
+  const el = document.getElementById("problemsTable");
+  const statGrid = document.getElementById("problemsStatGrid");
+  const rulesEl = document.getElementById("problemsRulesTable");
+  const badge = document.getElementById("problemsBadge");
+  if (!el) return;
+
+  const accs = stats.problemAccounts || [];
+  const holdCount = accs.filter((a) => a.watch_status === "hold").length;
+  const watchCount = accs.filter((a) => a.watch_status === "watch").length;
+
+  if (badge) {
+    badge.hidden = !accs.length;
+    badge.textContent = String(accs.length);
+  }
+  if (statGrid) {
+    const dstat = (label, value, green) => `
+      <div class="dstat">
+        <div class="lbl">${label}</div>
+        <div class="val ${green ? "green" : ""}">${value}</div>
+      </div>`;
+    statGrid.innerHTML =
+      dstat("Auto-hold (skóre ≥ 100)", holdCount) +
+      dstat("Sledované (skóre 30–99)", watchCount) +
+      dstat("Celkem flagováno", accs.length);
+  }
+
+  el.innerHTML = `
+    <thead><tr><th>E-mail</th><th>Balíček</th><th>Fáze</th><th>Skóre</th><th>Stav</th><th>Nálezy</th><th>Vytvořeno</th></tr></thead>
+    <tbody>
+      ${accs.length ? accs.map((a) => {
+        const tag = a.watch_status === "hold" ? "loss" : "pend";
+        const label = a.watch_status === "hold" ? "AUTO-HOLD" : "SLEDOVAT";
+        const reasons = Array.isArray(a.risk_reasons) && a.risk_reasons.length
+          ? a.risk_reasons.map(esc).join(" · ")
+          : "—";
+        return `
+        <tr class="row-player" data-acc="${esc(a.id)}" title="Otevřít detail hráče">
+          <td>${esc(a.email)}</td>
+          <td>${esc(a.package_key || "?")}</td>
+          <td>Fáze ${esc(a.phase ?? "—")}</td>
+          <td class="odds"><b>${Number(a.risk_score) || 0}</b> / 100</td>
+          <td><span class="tag ${tag}">${label}</span></td>
+          <td style="max-width:360px">${reasons}</td>
+          <td style="color:var(--text-muted)">${new Date(a.created_at).toLocaleDateString("cs-CZ")}</td>
+        </tr>`;
+      }).join("") : `<tr><td colspan="7">Žádné flagované účty — vše čisté.</td></tr>`}
+    </tbody>`;
+
+  if (rulesEl) {
+    rulesEl.innerHTML = RISK_RULES.map(([flag, tier, desc]) => {
+      const tag = tier === "CRITICAL" ? "loss" : tier === "WARNING" ? "pend" : "win";
+      return `<div class="k-row neutral"><b>${esc(flag)}</b> — ${esc(desc)}<span class="n"><span class="tag ${tag}">${tier}</span></span></div>`;
+    }).join("");
+  }
+}
+
 // přepneme render tabulky hráčů na reálná data (mock verze zůstává jako fallback)
 const renderPlayersTableMock = renderPlayersTable;
 renderPlayersTable = function () {
@@ -569,13 +678,13 @@ renderPlayersTable = function () {
       ${rows.length ? rows.map((a) => {
         const status = realStatus(a.state);
         const risk = a.risk_score == null ? null : Number(a.risk_score);
-        const riskTag = risk == null ? "" : risk > 60 ? "loss" : risk >= 30 ? "pend" : "win";
+        const riskTag = risk == null ? "" : risk >= 100 ? "loss" : risk >= 30 ? "pend" : "win";
         return `
         <tr class="row-player" data-acc="${esc(a.id)}" title="Otevřít detail hráče">
           <td>${esc(a.email)}</td>
           <td>${esc(a.package_key)}</td>
           <td>Fáze ${esc(a.phase)}</td>
-          <td class="odds">${czk(Number(a.capital) || 0)}</td>
+          <td class="odds">${usd(Number(a.capital) || 0)}</td>
           <td>${risk == null ? '<span style="color:var(--text-muted)">—</span>' : `<span class="tag ${riskTag}" title="Rizikové skóre">${risk}</span>`}</td>
           <td><span class="tag ${status.tag}">${status.label}</span></td>
           <td style="color:var(--text-muted)">${new Date(a.created_at).toLocaleDateString("cs-CZ")}</td>
@@ -599,8 +708,10 @@ function openPlayerDetail(acc) {
   if (!playerModal || !REAL) return;
   const fmtDate = (d) => new Date(d).toLocaleString("cs-CZ");
   const fmtAmount = (p) => p.currency === "eur"
-    ? `${(Number(p.amount) || 0).toLocaleString("cs-CZ")} EUR`
-    : czk(Number(p.amount) || 0);
+    ? `${(Number(p.amount) || 0).toLocaleString("en-US")} EUR`
+    : p.currency === "czk"
+    ? `${(Number(p.amount) || 0).toLocaleString("cs-CZ")} Kč`
+    : usd(Number(p.amount) || 0);
 
   // všechny účty uživatele (hráč jich může mít několik) + jeho platby a payouty
   const accounts = (REAL.recentAccounts || []).filter((a) => a.email === acc.email);
@@ -608,8 +719,8 @@ function openPlayerDetail(acc) {
   const payments = (REAL.recentPayments || []).filter((p) => p.email === acc.email);
   const payouts = (REAL.recentPayouts || []).filter((p) => accountIds.includes(String(p.account_id)));
 
-  // pole totalSpentCzk doplní edge funkce admin-stats (suma succeeded plateb v CZK, per e-mail)
-  const spent = acc.totalSpentCzk != null ? czk(Number(acc.totalSpentCzk) || 0) : "—";
+  // pole totalSpentUsd doplní edge funkce admin-stats (suma succeeded plateb v USD, per e-mail)
+  const spent = acc.totalSpentUsd != null ? usd(Number(acc.totalSpentUsd) || 0) : "—";
 
   const infoRow = (k, v) => `<div class="pm-row"><span class="k">${k}</span><span class="v">${v}</span></div>`;
   const kycRow = (a) => {
@@ -633,7 +744,7 @@ function openPlayerDetail(acc) {
     return `
     <div class="pm-acc">
       <div class="pm-acc-head">
-        <span class="t">${esc(a.package_key || "?")} · ${czk(Number(a.capital) || 0)}</span>
+        <span class="t">${esc(a.package_key || "?")} · ${usd(Number(a.capital) || 0)}</span>
         <span class="tag ${status.tag}">${status.label}</span>
       </div>
       <div class="pm-grid">
@@ -646,8 +757,8 @@ function openPlayerDetail(acc) {
         : ""}
       ${synced ? `
         <div class="pm-grid" style="margin-top:10px">
-          ${infoRow("Zůstatek", czk(Number(a.phase_balance) || 0))}
-          ${infoRow("Profit", `<span style="color:${profit >= 0 ? "var(--accent)" : "#ff9d9d"}">${profit >= 0 ? "+" : ""}${czk(profit)}</span>`)}
+          ${infoRow("Zůstatek", usd(Number(a.phase_balance) || 0))}
+          ${infoRow("Profit", `<span style="color:${profit >= 0 ? "var(--accent)" : "#ff9d9d"}">${profit >= 0 ? "+" : ""}${usd(profit)}</span>`)}
           ${infoRow("Kvalif. tikety", `${Number(a.qualifying_tickets) || 0} / 5`)}
           ${infoRow("Tikety (výherní)", `${total} (${won}) · ${winrate} %`)}
         </div>
@@ -659,13 +770,13 @@ function openPlayerDetail(acc) {
           <div class="pm-grid">
             ${infoRow("Top sporty", (a.betting_profile.topSports || []).map((x) => `${esc(x.name)} (${x.count})`).join(", ") || "—")}
             ${infoRow("Top ligy", (a.betting_profile.topLeagues || []).map((x) => `${esc(x.name)} (${x.count})`).join(", ") || "—")}
-            ${infoRow("Prům. sázka", czk(Number(a.betting_profile.avgStake) || 0))}
+            ${infoRow("Prům. sázka", usd(Number(a.betting_profile.avgStake) || 0))}
             ${infoRow("Prům. kurz", (Number(a.betting_profile.avgOdds) || 0).toFixed(2))}
           </div>` : ""}
         ${a.risk_score != null ? `
           <h4 class="pm-h">Riziko</h4>
           <div class="pm-flags" style="align-items:center">
-            <span class="tag ${Number(a.risk_score) > 60 ? "loss" : Number(a.risk_score) >= 30 ? "pend" : "win"}">skóre ${Number(a.risk_score)} / 100</span>
+            <span class="tag ${Number(a.risk_score) >= 100 ? "loss" : Number(a.risk_score) >= 30 ? "pend" : "win"}">skóre ${Number(a.risk_score)} / 100 · ${a.watch_status === "hold" ? "HOLD" : a.watch_status === "watch" ? "SLEDOVAT" : "clear"}</span>
             <span class="pm-date">${Array.isArray(a.risk_reasons) && a.risk_reasons.length ? a.risk_reasons.map(esc).join(" · ") : "bez nálezů"}</span>
           </div>` : ""}
         <p class="pm-date" style="margin-top:8px">Poslední synchronizace: ${fmtDate(a.synced_at)}</p>`
@@ -701,17 +812,22 @@ function openPlayerDetail(acc) {
         const paid = p.status === "sent" || p.status === "paid";
         const tag = paid ? "win" : p.status === "failed" || p.status === "rejected" ? "loss" : "pend";
         const label = paid ? "vyplaceno" : p.status === "failed" ? "selhalo" : p.status === "rejected" ? "zamítnuto" : "čeká na schválení";
-        return `<div class="k-row neutral">${czk(Number(p.amount) || 0)}${p.method ? ` · ${esc(p.method)}` : ""}<span class="n"><span class="tag ${tag}">${label}</span> <span class="pm-date">${fmtDate(p.created_at)}</span></span></div>`;
+        return `<div class="k-row neutral">${usd(Number(p.amount) || 0)}${p.method ? ` · ${esc(p.method)}` : ""}<span class="n"><span class="tag ${tag}">${label}</span> <span class="pm-date">${fmtDate(p.created_at)}</span></span></div>`;
       }).join("") : `<p class="bet-msg" style="padding:16px">Žádné žádosti o výplatu.</p>`}
     </div>`;
   playerModal.hidden = false;
 }
 
 // klik na řádek otevře detail (tlačítko „Vyplatit“ v řádku detail neotevírá)
+// funguje jak pro #playersTable, tak pro #problemsTable (starší flagovaný účet
+// nemusí být mezi posledními 50 registracemi, proto fallback na problemAccounts)
 document.addEventListener("click", (e) => {
-  const row = e.target.closest("#playersTable tr[data-acc]");
+  const row = e.target.closest("#playersTable tr[data-acc], #problemsTable tr[data-acc]");
   if (!row || e.target.closest("[data-payout]")) return;
-  const acc = REAL && (REAL.recentAccounts || []).find((x) => String(x.id) === row.dataset.acc);
+  const acc = REAL && (
+    (REAL.recentAccounts || []).find((x) => String(x.id) === row.dataset.acc) ||
+    (REAL.problemAccounts || []).find((x) => String(x.id) === row.dataset.acc)
+  );
   if (acc) openPlayerDetail(acc);
 });
 
@@ -743,14 +859,14 @@ async function payoutWithConfirm(payload) {
 document.addEventListener("click", async (e) => {
   const btn = e.target.closest("[data-payout]");
   if (!btn) return;
-  const amount = window.prompt(`Částka k vyplacení pro ${btn.dataset.email} (Kč):`);
+  const amount = window.prompt(`Částka k vyplacení pro ${btn.dataset.email} ($):`);
   if (amount === null) return;
   const value = Number(String(amount).replace(/\s/g, "").replace(",", "."));
   if (!Number.isFinite(value) || value <= 0) {
     window.alert("Zadejte platnou částku.");
     return;
   }
-  if (!window.confirm(`Opravdu vyplatit ${czk(value)} hráči ${btn.dataset.email}?`)) return;
+  if (!window.confirm(`Opravdu vyplatit ${usd(value)} hráči ${btn.dataset.email}?`)) return;
   btn.disabled = true;
   try {
     const result = await payoutWithConfirm({ accountId: btn.dataset.payout, amount: value });
@@ -768,7 +884,7 @@ document.addEventListener("click", async (e) => {
   const btn = e.target.closest("[data-approve-payout]");
   if (!btn) return;
   const amount = Number(btn.dataset.amount);
-  if (!window.confirm(`Opravdu schválit a vyplatit ${czk(amount)} (žádost #${String(btn.dataset.approvePayout).slice(0, 8)})?`)) return;
+  if (!window.confirm(`Opravdu schválit a vyplatit ${usd(amount)} (žádost #${String(btn.dataset.approvePayout).slice(0, 8)})?`)) return;
   btn.disabled = true;
   try {
     const result = await payoutWithConfirm({

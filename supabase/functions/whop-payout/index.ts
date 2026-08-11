@@ -78,7 +78,7 @@ serve(async (req) => {
     }
 
     if (payoutAmount <= 0 || payoutAmount > 100000) {
-      return jsonResponse({ error: "Částka musí být 1–100 000 Kč." }, 400);
+      return jsonResponse({ error: "Amount must be $1–$100,000." }, 400);
     }
 
     const { data: account } = await supabase
