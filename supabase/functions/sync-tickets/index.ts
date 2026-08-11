@@ -71,12 +71,11 @@ serve(async (req) => {
         : [];
 
     // deno-lint-ignore no-explicit-any
-    const rows = incoming.map((t: any) => {
+    const draftRows = incoming.map((t: any) => {
       const selections = saneSelections(t.selections);
       const starts = selections.map((s) => s.startTime).filter(Boolean) as string[];
       const firstStart = starts.length ? starts.reduce((a, b) => (a < b ? a : b)) : null;
       return {
-        account_id: account.id,
         client_ticket_id: saneStr(t.id, 60),
         selections,
         first_start_time: firstStart,
@@ -89,14 +88,38 @@ serve(async (req) => {
       };
     }).filter((r) => r.client_ticket_id && r.selections.length);
 
-    if (!rows.length) return jsonResponse({ ok: true, synced: 0 });
+    if (!draftRows.length) return jsonResponse({ ok: true, synced: 0, settled: [] });
+
+    // Nikdy nepřepsat už vyřízený tiket zpátky na pending — settle-tickets
+    // (cron) ho mohl vyhodnotit dřív, než klient stihl re-syncnout svou
+    // ještě-pending verzi. Existující nepending stav vždy vyhrává.
+    const ids = draftRows.map((r) => r.client_ticket_id) as string[];
+    const { data: existingRows } = await supabase
+      .from("tickets")
+      .select("client_ticket_id, status, payout, settled_at")
+      .eq("account_id", account.id)
+      .in("client_ticket_id", ids);
+    const existingByTicket = new Map((existingRows ?? []).map((r) => [r.client_ticket_id, r]));
+
+    const settledForClient: { id: string; status: string; payout: number | null; settledAt: string | null }[] = [];
+    const rows = draftRows.map((r) => {
+      const existing = existingByTicket.get(r.client_ticket_id!);
+      if (existing && existing.status !== "pending") {
+        if (r.status === "pending") {
+          // server (nebo dřívější sync) tenhle tiket už vyřídil, klient o tom ještě neví
+          settledForClient.push({ id: r.client_ticket_id!, status: existing.status, payout: existing.payout, settledAt: existing.settled_at });
+        }
+        return { ...r, account_id: account.id, status: existing.status, payout: existing.payout, settled_at: existing.settled_at };
+      }
+      return { ...r, account_id: account.id };
+    });
 
     const { error } = await supabase
       .from("tickets")
       .upsert(rows, { onConflict: "account_id,client_ticket_id" });
     if (error) throw error;
 
-    return jsonResponse({ ok: true, synced: rows.length });
+    return jsonResponse({ ok: true, synced: rows.length, settled: settledForClient });
   } catch (err) {
     console.error("sync-tickets error:", err);
     return jsonResponse(

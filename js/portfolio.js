@@ -438,9 +438,36 @@ const Portfolio = (() => {
     return state;
   }
 
+  // Server-side pojistka (settle-tickets cron) vyhodnotila tikety, i když
+  // tahle karta nebyla otevřená — sync-tickets nám to vrátí, tady se to
+  // promítne do lokálního zůstatku (stejná mechanika jako checkSettlements,
+  // jen výsledek už spočítal server, ne my). Vrací pole nově vyřízených
+  // tiketů (pro toast/konfety v dashboard.js), nebo null když nic nového.
+  function applyServerSettlements(results) {
+    const state = get();
+    if (!state || !results || !results.length) return null;
+    const newlySettled = [];
+    results.forEach((r) => {
+      const t = state.tickets.find((x) => x.id === r.id);
+      if (!t || t.status !== "pending") return; // už vyřízeno lokálně, nebo neznámý tiket
+      t.status = r.status;
+      t.payout = r.payout || 0;
+      t.settledAt = r.settledAt || new Date().toISOString();
+      state.balance += t.payout;
+      if (state.balance > state.hwm) state.hwm = state.balance;
+      state.equityHistory.push({ t: t.settledAt, balance: state.balance });
+      newlySettled.push(t);
+    });
+    if (!newlySettled.length) return null;
+    advancePhaseIfNeeded(state);
+    save(state);
+    return newlySettled;
+  }
+
   return {
     init, get, save, ensure, phaseTarget, daysRemaining, drawdownInfo,
     dailyLossInfo, breachInfo, cashOut,
     summary, dailyNet, placeBet, checkSettlements, countQualifyingTickets,
+    applyServerSettlements,
   };
 })();

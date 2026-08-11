@@ -447,7 +447,7 @@ async function syncAccountNow() {
     // rate/timing analýza) — posíláme celý seznam, sync-tickets to bezpečně
     // upsertuje (unique account_id+client_ticket_id), objem na hráče je malý.
     if (state.tickets && state.tickets.length) {
-      await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/sync-tickets`, {
+      const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/sync-tickets`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({
@@ -463,6 +463,25 @@ async function syncAccountNow() {
           })),
         }),
       });
+      const data = await res.json().catch(() => ({}));
+
+      // server-side pojistka (settle-tickets cron) mohla vyhodnotit tikety,
+      // zatímco tahle karta byla zavřená — promítneme to hned do zůstatku
+      // a ukážeme stejnou oslavu/toast jako u lokálního vyhodnocení.
+      if (Array.isArray(data.settled) && data.settled.length) {
+        const newlySettled = Portfolio.applyServerSettlements(data.settled);
+        if (newlySettled && newlySettled.length) {
+          newlySettled.forEach((t) => { if (typeof celebrateTicket === "function") celebrateTicket(t); });
+          const fresh = Portfolio.get();
+          if (fresh) {
+            if (typeof renderBadges === "function") renderBadges(fresh);
+            if (typeof renderMomentum === "function") renderMomentum(fresh);
+          }
+          if (typeof renderPrehled === "function") renderPrehled();
+          if (typeof renderVykon === "function") renderVykon();
+          if (typeof renderBankBar === "function") renderBankBar();
+        }
+      }
     }
   } catch (e) { /* sync je best-effort */ }
 }
