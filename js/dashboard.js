@@ -1192,6 +1192,26 @@ if (sportTabs) {
   document.getElementById("betRefresh").addEventListener("click", () => selectSport(activeSport, true));
 }
 
+// ---------- live matches: auto-refresh so scores/clocks aren't stuck until a manual click ----------
+// odds-api.io itself doesn't push per-second updates (it's a polled aggregator,
+// not a raw live-data feed), so true to-the-second is not realistic — this
+// polls every 15s while the LIVE filter is on and the Betting tab is visible,
+// which is as close to "live" as the underlying data source allows without
+// burning through the odds-api rate budget for no visible benefit.
+async function autoRefreshLiveMatches() {
+  if (!filters.live) return;
+  const view = document.getElementById("view-sazeni");
+  if (!view || view.hidden) return;
+  try {
+    cacheDrop(activeSport + ":live");
+    const data = await loadSportEvents(activeSport, true);
+    if (!filters.live || document.getElementById("view-sazeni")?.hidden) return;
+    sportEvents = data;
+    renderMatches();
+  } catch (e) { /* silent — next tick retries */ }
+}
+setInterval(autoRefreshLiveMatches, 15 * 1000);
+
 // ---------- leaderboard: real ranking from leaderboard-get ----------
 let lbMetric = "profit";
 let lbRows = [];
