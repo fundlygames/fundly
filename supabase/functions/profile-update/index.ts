@@ -35,6 +35,9 @@ serve(async (req) => {
     if (body.leaderboardOptIn !== undefined) {
       patch.leaderboard_opt_in = !!body.leaderboardOptIn;
     }
+    if (body.payoutMethod !== undefined) {
+      patch.payout_method = String(body.payoutMethod ?? "").trim().slice(0, 100) || null;
+    }
     if (!Object.keys(patch).length) {
       return jsonResponse({ error: "Nothing to update." }, 400);
     }

@@ -1471,6 +1471,162 @@ if (supportForm) {
   });
 }
 
+// ---------- account settings: password, 2FA (TOTP), preferred payout method ----------
+// Vykresluje se do dvou míst (Profile tab i limited "no account" dashboard),
+// odsud proto prefix "s"/"na" na id, ať se prvky v DOM nesrazí.
+function renderSettingsPanel(prefix) {
+  return `
+    <div class="panel mt">
+      <h3>Account settings</h3>
+      <div class="two-col" style="margin-top:4px">
+        <form id="${prefix}PassForm">
+          <div class="field">
+            <label for="${prefix}NewPass">New password</label>
+            <input class="input" id="${prefix}NewPass" type="password" autocomplete="new-password" minlength="8" placeholder="••••••••" required />
+          </div>
+          <button class="btn btn-ghost" type="submit" id="${prefix}PassSubmit">Change password</button>
+          <p class="auth-note mt" id="${prefix}PassNote" hidden></p>
+        </form>
+        <div>
+          <div class="field" style="margin-bottom:8px">
+            <label for="${prefix}PayoutMethod">Preferred payout method</label>
+            <div class="ref-box" style="margin-top:0">
+              <input class="input" id="${prefix}PayoutMethod" placeholder="e.g. PayPal, bank transfer, crypto wallet" />
+              <button class="btn btn-primary" style="height:auto" id="${prefix}PayoutSave">Save</button>
+            </div>
+          </div>
+          <p class="t-meta">Pre-fills your withdrawal requests — the actual payout account is verified through Whop KYC.</p>
+        </div>
+      </div>
+    </div>
+    <div class="panel mt">
+      <h3>Two-factor authentication</h3>
+      <div id="${prefix}MfaState"><p class="t-small">Checking status…</p></div>
+    </div>`;
+}
+
+async function setupAccountSettings(prefix) {
+  const client = await FundlyBackend.getClient();
+  if (!client) return;
+
+  // změna hesla
+  const passForm = document.getElementById(`${prefix}PassForm`);
+  if (passForm) {
+    passForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById(`${prefix}PassSubmit`);
+      const note = document.getElementById(`${prefix}PassNote`);
+      btn.disabled = true;
+      try {
+        const { error } = await client.auth.updateUser({ password: document.getElementById(`${prefix}NewPass`).value });
+        if (error) throw error;
+        passForm.reset();
+        note.textContent = "Password changed.";
+        note.hidden = false;
+      } catch (err) {
+        note.textContent = err.message || "Could not change the password.";
+        note.hidden = false;
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  }
+
+  // preferovaná výplatní metoda
+  const payoutSave = document.getElementById(`${prefix}PayoutSave`);
+  if (payoutSave) {
+    payoutSave.addEventListener("click", async () => {
+      payoutSave.disabled = true;
+      try {
+        await saveProfileSetting({ payoutMethod: document.getElementById(`${prefix}PayoutMethod`).value });
+        payoutSave.textContent = "Saved";
+      } catch (e) {
+        payoutSave.textContent = "Failed";
+      }
+      setTimeout(() => { payoutSave.textContent = "Save"; payoutSave.disabled = false; }, 1500);
+    });
+  }
+  try {
+    const { data: account } = await client
+      .from("challenge_accounts")
+      .select("payout_method")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const input = document.getElementById(`${prefix}PayoutMethod`);
+    if (input && account?.payout_method) input.value = account.payout_method;
+  } catch (e) { /* best-effort prefill */ }
+
+  // 2FA (TOTP) přes Supabase Auth MFA — funguje jen pokud je MFA zapnuté v projektu
+  const mfaState = document.getElementById(`${prefix}MfaState`);
+  if (!mfaState) return;
+  async function renderMfaState() {
+    try {
+      const { data, error } = await client.auth.mfa.listFactors();
+      if (error) throw error;
+      const verified = (data.totp || []).find((f) => f.status === "verified");
+      if (verified) {
+        mfaState.innerHTML = `
+          <div class="k-row win">Two-factor authentication is enabled<span class="n"><button class="btn btn-ghost" id="${prefix}MfaDisable">Disable</button></span></div>`;
+        document.getElementById(`${prefix}MfaDisable`).addEventListener("click", async () => {
+          await client.auth.mfa.unenroll({ factorId: verified.id });
+          renderMfaState();
+        });
+      } else {
+        mfaState.innerHTML = `<button class="btn btn-primary" id="${prefix}MfaEnroll">Enable two-factor authentication</button>`;
+        document.getElementById(`${prefix}MfaEnroll`).addEventListener("click", async () => {
+          const enrollBtn = document.getElementById(`${prefix}MfaEnroll`);
+          enrollBtn.disabled = true;
+          try {
+            const { data: enrolled, error: enrollError } = await client.auth.mfa.enroll({ factorType: "totp" });
+            if (enrollError) throw enrollError;
+            mfaState.innerHTML = `
+              <p class="t-small">Scan this QR code with your authenticator app, then enter the 6-digit code.</p>
+              <img src="${enrolled.totp.qr_code}" alt="TOTP QR code" style="width:160px;height:160px;margin:12px 0;border-radius:8px;background:#fff;padding:8px" />
+              <form id="${prefix}MfaVerifyForm" style="max-width:220px">
+                <div class="field"><input class="input" id="${prefix}MfaCode" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="123456" required /></div>
+                <button class="btn btn-primary" type="submit">Verify & enable</button>
+                <p class="auth-note mt" id="${prefix}MfaNote" hidden></p>
+              </form>`;
+            document.getElementById(`${prefix}MfaVerifyForm`).addEventListener("submit", async (e) => {
+              e.preventDefault();
+              const note = document.getElementById(`${prefix}MfaNote`);
+              try {
+                const challenge = await client.auth.mfa.challenge({ factorId: enrolled.id });
+                if (challenge.error) throw challenge.error;
+                const verify = await client.auth.mfa.verify({
+                  factorId: enrolled.id,
+                  challengeId: challenge.data.id,
+                  code: document.getElementById(`${prefix}MfaCode`).value.trim(),
+                });
+                if (verify.error) throw verify.error;
+                renderMfaState();
+              } catch (err) {
+                note.textContent = err.message || "Invalid code.";
+                note.hidden = false;
+              }
+            });
+          } catch (err) {
+            mfaState.innerHTML = `<p class="t-small">Two-factor authentication is not available on this account yet.</p>`;
+          } finally {
+            enrollBtn.disabled = false;
+          }
+        });
+      }
+    } catch (e) {
+      mfaState.innerHTML = `<p class="t-small">Two-factor authentication is not available yet.</p>`;
+    }
+  }
+  renderMfaState();
+}
+
+["s", "na"].forEach((prefix) => {
+  const slot = document.getElementById(prefix === "s" ? "settingsSlot" : "naSettingsSlot");
+  if (!slot) return;
+  slot.innerHTML = renderSettingsPanel(prefix);
+  setupAccountSettings(prefix);
+});
+
 // nastavení leaderboardu (přezdívka + sdílení) — uloží se přes profile-update
 async function saveProfileSetting(patch) {
   const client = await FundlyBackend.getClient();
