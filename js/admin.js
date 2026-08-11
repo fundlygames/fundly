@@ -13,7 +13,7 @@ const czk = (n) => n.toLocaleString("cs-CZ") + " Kč";
 const usd = (n) => "$" + Math.round(Number(n) || 0).toLocaleString("en-US");
 
 // ---------- přepínání sekcí ----------
-const views = ["finance", "hraci", "affiliate", "problemy", "diagnostika"];
+const views = ["finance", "hraci", "affiliate", "support", "problemy", "diagnostika"];
 
 function showView(name) {
   views.forEach((v) => {
@@ -398,6 +398,7 @@ async function loadRealStats() {
   renderBettingAnalytics(stats.bettingAnalytics);
   renderProblems(stats);
   renderAffiliate();
+  loadSupportTickets();
 }
 
 // ---------- E-maily zákazníků (Finance view) ----------
@@ -664,6 +665,102 @@ function renderProblems(stats) {
     }).join("");
   }
 }
+
+// ---------- Support: tikety z kontaktního formuláře ----------
+let supportTab = "all";
+let SUPPORT_TICKETS = [];
+
+async function loadSupportTickets() {
+  try {
+    const data = await adminFetch("support-manage", { action: "list" });
+    SUPPORT_TICKETS = data.tickets || [];
+    const badge = document.getElementById("supportBadge");
+    const openCount = SUPPORT_TICKETS.filter((t) => t.status === "open").length;
+    if (badge) {
+      badge.hidden = !openCount;
+      badge.textContent = String(openCount);
+    }
+    renderSupportList();
+  } catch (e) {
+    const el = document.getElementById("supportList");
+    if (el) el.innerHTML = `<p class="bet-msg">Tikety se nepodařilo načíst.</p>`;
+  }
+}
+
+function renderSupportList() {
+  const el = document.getElementById("supportList");
+  if (!el) return;
+  const rows = SUPPORT_TICKETS.filter((t) => supportTab === "all" || t.status === supportTab);
+  const statusTag = { open: ["pend", "Čeká"], answered: ["win", "Zodpovězeno"], closed: ["loss", "Uzavřeno"] };
+  el.innerHTML = rows.length ? rows.map((t) => {
+    const [tag, label] = statusTag[t.status] || ["pend", t.status];
+    return `
+    <div class="panel mt" style="padding:16px">
+      <div class="pm-row" style="margin-bottom:6px">
+        <span class="k">${esc(t.email)}${t.subject ? ` · ${esc(t.subject)}` : ""}</span>
+        <span class="v"><span class="tag ${tag}">${label}</span> <span style="color:var(--text-muted);font-size:.75rem">${new Date(t.created_at).toLocaleString("cs-CZ")} · ${t.source === "dashboard" ? "dashboard" : "web"}</span></span>
+      </div>
+      <p class="t-small" style="white-space:pre-wrap">${esc(t.message)}</p>
+      ${t.admin_reply ? `
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line)">
+          <p class="bf-label" style="margin-bottom:4px">Odpověď (${t.replied_at ? new Date(t.replied_at).toLocaleString("cs-CZ") : ""})</p>
+          <p class="t-small" style="white-space:pre-wrap">${esc(t.admin_reply)}</p>
+        </div>` : `
+        <form data-reply-form="${esc(t.id)}" style="margin-top:10px;display:flex;gap:8px;align-items:flex-start">
+          <textarea class="input" rows="2" placeholder="Napište odpověď…" required style="resize:vertical;flex:1"></textarea>
+          <button class="btn btn-primary" type="submit" style="height:auto">Odeslat</button>
+        </form>`}
+      ${t.status !== "closed" ? `<button class="btn btn-ghost" data-close-ticket="${esc(t.id)}" style="margin-top:8px">Uzavřít</button>` : ""}
+    </div>`;
+  }).join("") : `<p class="bet-msg">Žádné tikety pro tenhle filtr.</p>`;
+}
+
+document.getElementById("supportTabs")?.addEventListener("click", (e) => {
+  const btn = e.target.closest("button");
+  if (!btn) return;
+  document.querySelectorAll("#supportTabs button").forEach((b) => {
+    const on = b === btn;
+    b.classList.toggle("active", on);
+    b.setAttribute("aria-pressed", String(on));
+  });
+  supportTab = btn.dataset.supportTab;
+  renderSupportList();
+});
+
+document.getElementById("supportList")?.addEventListener("submit", async (e) => {
+  const form = e.target.closest("[data-reply-form]");
+  if (!form) return;
+  e.preventDefault();
+  const ticketId = form.dataset.replyForm;
+  const textarea = form.querySelector("textarea");
+  const reply = textarea.value.trim();
+  if (!reply) return;
+  const btn = form.querySelector("button");
+  btn.disabled = true;
+  try {
+    const result = await adminFetch("support-manage", { action: "reply", ticketId, reply });
+    if (result.emailSent === false) {
+      window.alert("Odpověď uložena, ale e-mail se nepodařilo odeslat (RESEND_API_KEY zatím není nastavený) — zákazník uvidí odpověď, jen mu nepřišel e-mail.");
+    }
+    await loadSupportTickets();
+  } catch (err) {
+    window.alert(err.message || "Odpověď se nepodařilo odeslat.");
+    btn.disabled = false;
+  }
+});
+
+document.getElementById("supportList")?.addEventListener("click", async (e) => {
+  const btn = e.target.closest("[data-close-ticket]");
+  if (!btn) return;
+  btn.disabled = true;
+  try {
+    await adminFetch("support-manage", { action: "close", ticketId: btn.dataset.closeTicket });
+    await loadSupportTickets();
+  } catch (err) {
+    window.alert(err.message || "Nepodařilo se uzavřít tiket.");
+    btn.disabled = false;
+  }
+});
 
 // přepneme render tabulky hráčů na reálná data (mock verze zůstává jako fallback)
 const renderPlayersTableMock = renderPlayersTable;

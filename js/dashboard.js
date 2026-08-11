@@ -1307,6 +1307,49 @@ async function loadAffiliateStats() {
 // ---------- profile ----------
 // badges are rendered via renderBadges() above (called from refreshAfterSettlement)
 
+// ---------- profile: contact support ----------
+const supportForm = document.getElementById("supportForm");
+if (supportForm) {
+  supportForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById("supportSubmit");
+    const note = document.getElementById("supportNote");
+    btn.disabled = true;
+    note.hidden = true;
+    try {
+      if (typeof fundlyBackendEnabled !== "function" || !fundlyBackendEnabled()) {
+        throw new Error("Support is temporarily unavailable — please email us directly.");
+      }
+      const client = await FundlyBackend.getClient();
+      const user = client ? (await client.auth.getUser()).data.user : null;
+      const session = client ? (await client.auth.getSession()).data.session : null;
+      if (!user) throw new Error("Please sign in first.");
+      const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/support-submit`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(session ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({
+          email: user.email,
+          message: document.getElementById("supportMessage").value.trim(),
+          source: "dashboard",
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "The message could not be sent.");
+      supportForm.reset();
+      note.textContent = "Message sent — we'll get back to you by email.";
+      note.hidden = false;
+    } catch (err) {
+      note.textContent = err.message || "The message could not be sent.";
+      note.hidden = false;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+}
+
 const lbShare = document.getElementById("lbShare");
 if (lbShare) {
   lbShare.addEventListener("click", () => {

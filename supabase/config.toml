@@ -35,3 +35,9 @@ verify_jwt = false
 
 [functions.account-maintenance]
 verify_jwt = false
+
+[functions.support-submit]
+verify_jwt = false
+
+[functions.support-manage]
+verify_jwt = false

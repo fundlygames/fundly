@@ -298,6 +298,43 @@ authForm.addEventListener("submit", (e) => {
   }, 700);
 });
 
+// ---------- contact form ----------
+const contactForm = document.getElementById("contactForm");
+if (contactForm) {
+  contactForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById("contactSubmit");
+    const note = document.getElementById("contactNote");
+    btn.disabled = true;
+    note.hidden = true;
+    try {
+      if (typeof fundlyBackendEnabled !== "function" || !fundlyBackendEnabled()) {
+        throw new Error("Support is temporarily unavailable — please email us directly.");
+      }
+      const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/support-submit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: document.getElementById("contactEmail").value.trim(),
+          subject: document.getElementById("contactSubject").value.trim(),
+          message: document.getElementById("contactMessage").value.trim(),
+          source: "contact_form",
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "The message could not be sent.");
+      contactForm.reset();
+      note.textContent = "Message sent — we'll get back to you by email.";
+      note.hidden = false;
+    } catch (err) {
+      note.textContent = err.message || "The message could not be sent.";
+      note.hidden = false;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+}
+
 // ---------- nav border on scroll ----------
 const nav = document.getElementById("nav");
 const heroSentinel = new IntersectionObserver(
