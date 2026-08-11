@@ -610,10 +610,12 @@ const RISK_RULES = [
   ["TIMING_ANOMALY", "WARNING", "Vysoký podíl tiketů podaných < 5 min před uzávěrkou"],
   ["LOW_VARIANCE", "WARNING", "Podezřele stabilní win rate napříč okny — možný hedžing"],
   ["LOW_LIQUIDITY_CONCENTRATION", "WARNING", "Přes 70 % objemu na jediné lize"],
+  ["FEED_LAG_PATTERN", "WARNING", "Kurz se opakovaně zkrátí hned po sázce (>60 % případů)"],
   ["arbitrage", "WARNING", "Sázka na obě strany stejného trhu (sure bet) v tiketu"],
   ["value", "WARNING", "Value-bet strategie (mimo povolený styl sázení)"],
   ["HIGH_WIN_RATE", "INFO", "Win rate výrazně nad průměrem — jen kontext, samo o sobě není problém"],
-  ["FEED_LAG_PATTERN / SIMILAR_KYC_ATTEMPT / HIGH_CLV", "TODO", "Zatím nesledujeme — chybí historie pohybu kurzů / log KYC pokusů"],
+  ["HIGH_CLV", "INFO", "Konzistentně nad closing line — jen kontext, samo o sobě je to skill"],
+  ["SIMILAR_KYC_ATTEMPT", "TODO", "Zatím nesledujeme — čeká na reálný Whop KYC webhook payload"],
 ];
 
 function renderProblems(stats) {
