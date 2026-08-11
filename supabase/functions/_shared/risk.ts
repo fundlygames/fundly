@@ -167,6 +167,64 @@ export async function computeServerRiskSignals(supabase: any, account: {
         reasons.push(`MULTI_ACCOUNT_COLLUSION: opačná sázka na event #${collision.eventId} jako jiný účet`);
       }
     }
+
+    // ---------- FEED_LAG_PATTERN + HIGH_CLV: potřebují historii kurzů ----------
+    // (viz odds_snapshots tabulka + odds-snapshot cron). Bez dat pro tuhle
+    // konkrétní selekci se prostě přeskočí — nic se nevymýšlí.
+    type FullSel = { eventId: string | null; marketName: string | null; field: string | null; hdp?: number | null; oddValue: number | null; startTime: string | null };
+    const fullSelections = (tickets as { selections: FullSel[]; placed_at: string }[])
+      .flatMap((t) => (t.selections || []).map((s) => ({ ...s, placedAt: t.placed_at })))
+      .filter((s) => s.eventId && s.marketName && s.field && s.oddValue != null)
+      .slice(0, 30); // dotazuje se sekvenčně per-selection, pojistka na dobu odezvy sync-account
+
+    if (fullSelections.length >= 5) {
+      const clvSamples: number[] = [];
+      const lagHits: boolean[] = [];
+
+      for (const sel of fullSelections) {
+        let query = supabase
+          .from("odds_snapshots")
+          .select("odd_value, captured_at")
+          .eq("event_id", sel.eventId)
+          .eq("market_name", sel.marketName)
+          .eq("field", sel.field)
+          .order("captured_at", { ascending: true });
+        const { data: snaps } = await query;
+        const list = (snaps ?? []) as { odd_value: number; captured_at: string }[];
+        if (!list.length) continue;
+
+        // HIGH_CLV: poslední snapshot před začátkem zápasu = closing line.
+        if (sel.startTime) {
+          const beforeStart = list.filter((s) => new Date(s.captured_at).getTime() <= new Date(sel.startTime!).getTime());
+          const closing = beforeStart[beforeStart.length - 1];
+          if (closing && closing.odd_value > 0) {
+            clvSamples.push((sel.oddValue! - closing.odd_value) / closing.odd_value);
+          }
+        }
+
+        // FEED_LAG_PATTERN: první snapshot PO podání sázky — zkrátil se kurz
+        // výrazně (>5 %) hned po tom, co vsadil?
+        const afterBet = list.find((s) => new Date(s.captured_at).getTime() > new Date(sel.placedAt).getTime());
+        if (afterBet && afterBet.odd_value > 0) {
+          const move = (sel.oddValue! - afterBet.odd_value) / sel.oddValue!;
+          lagHits.push(move > 0.05);
+        }
+      }
+
+      if (clvSamples.length >= 5) {
+        const avgClv = clvSamples.reduce((a, b) => a + b, 0) / clvSamples.length;
+        if (avgClv > 0.03) {
+          reasons.push(`INFO HIGH_CLV: v průměru +${Math.round(avgClv * 100)} % nad closing line (${clvSamples.length} vzorků)`);
+        }
+      }
+      if (lagHits.length >= 5) {
+        const hitRate = lagHits.filter(Boolean).length / lagHits.length;
+        if (hitRate > 0.6) {
+          score += RISK_WARNING;
+          reasons.push(`FEED_LAG_PATTERN: kurz se v jeho prospěch zkrátil hned po sázce v ${Math.round(hitRate * 100)} % případů (${lagHits.length} vzorků)`);
+        }
+      }
+    }
   }
 
   // Skóre se NEKAPUJE na 100 — víc CRITICAL nálezů najednou má vypadat
