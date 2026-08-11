@@ -32,11 +32,22 @@ serve(async (req) => {
     // Přednostně existující plan z Whop dashboardu (env WHOP_PLAN_<KEY>),
     // jinak inline plan s cenou ze serverové mapy balíčků. Balíčky jsou
     // jednorázové (one-time fee), activation taktéž.
+    // klientovo IP protéká metadaty až do webhooku (Whop server-to-server
+    // volání nese jen IP Whopu, ne zákazníka) — používá ho risk-scoring
+    // pro SHARED_DEVICE_IP mezi účty.
+    const checkoutIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+      ?? req.headers.get("cf-connecting-ip")
+      ?? null;
+
     const planId = whopPlanId(pkg.key);
     const body: Record<string, unknown> = {
       // po zaplacení Whop přesměruje zpět na dashboard
       redirect_url: `${SITE_URL}/dashboard.html?paid=1`,
-      metadata: { package_key: pkg.key, email: String(email).trim() },
+      metadata: {
+        package_key: pkg.key,
+        email: String(email).trim(),
+        ...(checkoutIp ? { checkout_ip: checkoutIp } : {}),
+      },
     };
     if (planId) {
       body.plan_id = planId;

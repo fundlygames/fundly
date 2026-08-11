@@ -32,3 +32,6 @@ verify_jwt = false
 
 [functions.affiliate-stats]
 verify_jwt = false
+
+[functions.account-maintenance]
+verify_jwt = false

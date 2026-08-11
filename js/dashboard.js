@@ -274,9 +274,10 @@ function computeRisk(state, s) {
     score += 15;
     reasons.push("opakované pokrytí stejného zápasu");
   }
+  // HIGH_WIN_RATE je INFO — jen kontext vedle jiných nálezů, samo o sobě
+  // do skóre nepřičítá (vysoký winrate může být prostě skill).
   if (s.won + s.lost >= 10 && s.winRate > 85) {
-    score += 15;
-    reasons.push(`anomální winrate (${s.winRate} %)`);
+    reasons.push(`INFO HIGH_WIN_RATE (${s.winRate} %)`);
   }
   // rapid-fire: 5+ tiketů během 10 minut
   const times = state.tickets.map((t) => new Date(t.placedAt).getTime()).sort((a, b) => a - b);
@@ -416,7 +417,7 @@ async function syncChallengeAccount() {
     }
     const { data: accounts, error } = await client
       .from("challenge_accounts")
-      .select("package_key, capital, phase, state, flags, created_at")
+      .select("package_key, capital, phase, state, flags, created_at, inactivity_warned_7, inactivity_warned_13")
       .order("created_at", { ascending: false });
     if (error) return;
     if (!accounts || !accounts.length) {
@@ -433,6 +434,14 @@ async function syncChallengeAccount() {
     const accFlags = Array.isArray(account.flags) ? account.flags : [];
     if (account.state === "funded" && !accFlags.includes("activation_paid")) {
       showActivationPanel(user.email);
+    }
+
+    // neaktivita: min. 1 tiket / 14 dní na funded účtu, jinak se účet spálí
+    // (viz account-maintenance cron) — banner podle posledního varování.
+    if (account.state === "funded" && account.inactivity_warned_13) {
+      showToast("loss", "Last warning: place a bet", "No activity for 13+ days. The account will be closed after 14 days of inactivity.");
+    } else if (account.state === "funded" && account.inactivity_warned_7) {
+      showToast("pend", "Stay active", "No activity for 7+ days. Place at least one bet every 14 days to keep the account funded.");
     }
 
     const state = Portfolio.get();

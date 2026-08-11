@@ -7,6 +7,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders, handleCors, jsonResponse } from "../_shared/cors.ts";
 import { isAdminRequest } from "../_shared/admin.ts";
 import { whopFetch, mapKycStatus } from "../_shared/whop.ts";
+import { RISK_CRITICAL } from "../_shared/risk.ts";
 
 // Vytvoří Whop transfer z firemního ledger účtu hráči (podle jeho Whop user id).
 // Endpoint podle Whop API reference: POST /transfers
@@ -139,10 +140,11 @@ serve(async (req) => {
       );
     }
 
-    // Rizikový účet (risk_score > 60): transfer zatím neprovedeme — admin ho
-    // musí potvrdit druhým voláním s confirmRisky: true (varování v admin UI).
+    // Rizikový účet (skóre >= 100, tj. aspoň jeden CRITICAL flag): auto-hold,
+    // transfer zatím neprovedeme — admin ho musí potvrdit druhým voláním
+    // s confirmRisky: true (varování v admin UI, sekce Problémy).
     const riskScore = Number(account.risk_score) || 0;
-    if (riskScore > 60 && !confirmRisky) {
+    if (riskScore >= RISK_CRITICAL && !confirmRisky) {
       return jsonResponse({
         needsConfirm: true,
         riskScore,

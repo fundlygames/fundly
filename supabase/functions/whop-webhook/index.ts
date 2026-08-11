@@ -3,7 +3,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { packageByKey } from "../_shared/packages.ts";
-import { whopFetch, mapKycStatus } from "../_shared/whop.ts";
+import { whopFetch, mapKycStatus, extractPaymentFingerprint } from "../_shared/whop.ts";
 
 function base64ToBytes(b64: string): Uint8Array {
   const bin = atob(b64);
@@ -157,6 +157,8 @@ async function insertPayment(supabase: any, data: any, status: string) {
     status,
     promo_code: promoCode,
     affiliate,
+    checkout_ip: metadata.checkout_ip ?? null,
+    payment_fingerprint: extractPaymentFingerprint(data),
     whop_metadata: data, // kompletní payload (whop-payout z něj čte user.id)
   });
   return true;
@@ -229,6 +231,8 @@ serve(async (req) => {
           phase: 1,
           capital: pkg.cap,
           state: "active",
+          signup_ip: metadata.checkout_ip ?? null,
+          payment_fingerprint: extractPaymentFingerprint(data),
         });
 
         // „Účet je připraven" e-mail: magic link přes Supabase admin API.

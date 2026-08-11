@@ -52,7 +52,7 @@ serve(async (req) => {
     // challenge účet přihlášeného hráče (nejnovější)
     const { data: account } = await supabase
       .from("challenge_accounts")
-      .select("id, state, capital, flags")
+      .select("id, state, capital, flags, funded_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -72,6 +72,40 @@ serve(async (req) => {
     const flags = Array.isArray(account.flags) ? account.flags : [];
     if (!flags.includes("activation_paid")) {
       return jsonResponse({ error: "Pay the activation fee first." }, 400);
+    }
+
+    // ---------- payout cooldown: 14 dní od posledního proplaceného payoutu, ----------
+    // pro první payout 14 dní od dosažení funded fáze. Podmínka splněná dřív
+    // se nefrontuje — žádost se rovnou odmítne s datem, odkdy jde zkusit znovu.
+    const COOLDOWN_DAYS = 14;
+    const { data: lastPayout } = await supabase
+      .from("payouts")
+      .select("created_at")
+      .eq("account_id", account.id)
+      .in("status", ["paid", "sent"])
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const cooldownFrom = lastPayout?.created_at ?? account.funded_at;
+    if (cooldownFrom) {
+      const nextEligible = new Date(new Date(cooldownFrom).getTime() + COOLDOWN_DAYS * 86400000);
+      if (nextEligible.getTime() > Date.now()) {
+        return jsonResponse({
+          error: `You can request your next payout starting ${nextEligible.toISOString().slice(0, 10)} (14-day cooldown between payouts).`,
+        }, 400);
+      }
+    }
+
+    // žádost už čeká na vyřízení → nezakládat druhou souběžně
+    const { data: pendingExisting } = await supabase
+      .from("payouts")
+      .select("id")
+      .eq("account_id", account.id)
+      .eq("status", "pending")
+      .limit(1)
+      .maybeSingle();
+    if (pendingExisting) {
+      return jsonResponse({ error: "You already have a pending withdrawal request." }, 400);
     }
 
     // Schéma challenge_accounts zatím profit nesleduje — stav portfolia žije

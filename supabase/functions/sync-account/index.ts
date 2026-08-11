@@ -8,6 +8,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { handleCors, jsonResponse } from "../_shared/cors.ts";
+import { computeServerRiskSignals, watchStatusFor } from "../_shared/risk.ts";
 
 const ALLOWED_STATES = ["active", "funded", "breached"];
 
@@ -112,7 +113,7 @@ serve(async (req) => {
     // challenge účet přihlášeného hráče (nejnovější)
     const { data: account } = await supabase
       .from("challenge_accounts")
-      .select("id, state")
+      .select("id, state, phase, tickets_total, created_at, phase1_completed_at, phase2_completed_at, funded_at, signup_ip, payment_fingerprint")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -123,6 +124,37 @@ serve(async (req) => {
 
     // breached je terminální — klient ho nesmí přepsat zpět na active/funded
     const nextState = account.state === "breached" ? "breached" : state;
+    const now = new Date().toISOString();
+
+    // fázové časové značky — stamp jen při prvním přechodu (sloupec dosud prázdný)
+    const phaseStamps: Record<string, string> = {};
+    if (account.phase === 1 && phase === 2 && !account.phase1_completed_at) {
+      phaseStamps.phase1_completed_at = now;
+    }
+    if (account.phase === 2 && phase === 3 && !account.phase2_completed_at) {
+      phaseStamps.phase2_completed_at = now;
+    }
+    if (nextState === "funded" && !account.funded_at) {
+      phaseStamps.funded_at = now;
+    }
+
+    // aktivita: víc tiketů než při minulém syncu → účet je aktivní, reset
+    // varování z pravidla neaktivity (account-maintenance je případně nastaví znovu)
+    const lastTicketStamp = ticketsTotal > (account.tickets_total ?? 0)
+      ? { last_ticket_at: now, inactivity_warned_7: false, inactivity_warned_13: false }
+      : {};
+
+    // server-side signály (cross-account) + sloučení s klientským skóre
+    const serverRisk = await computeServerRiskSignals(supabase, {
+      id: account.id,
+      signup_ip: account.signup_ip,
+      payment_fingerprint: account.payment_fingerprint,
+      phase1_completed_at: phaseStamps.phase1_completed_at ?? account.phase1_completed_at,
+      funded_at: phaseStamps.funded_at ?? account.funded_at,
+      created_at: account.created_at,
+    });
+    const finalScore = Math.min(100, (riskScore ?? 0) + serverRisk.score);
+    const finalReasons = [...riskReasons, ...serverRisk.reasons].slice(0, 15);
 
     const { error: updateError } = await supabase
       .from("challenge_accounts")
@@ -136,9 +168,13 @@ serve(async (req) => {
         flags,
         tickets_total: ticketsTotal,
         tickets_won: ticketsWon,
-        synced_at: new Date().toISOString(),
+        synced_at: now,
+        ...phaseStamps,
+        ...lastTicketStamp,
         ...(bettingProfile ? { betting_profile: bettingProfile } : {}),
-        ...(riskScore !== null ? { risk_score: riskScore, risk_reasons: riskReasons } : {}),
+        risk_score: finalScore,
+        risk_reasons: finalReasons,
+        watch_status: watchStatusFor(finalScore),
       })
       .eq("id", account.id);
     if (updateError) throw updateError;
