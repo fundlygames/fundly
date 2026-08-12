@@ -335,6 +335,29 @@ if (contactForm) {
   });
 }
 
+// ---------- mobile menu ----------
+const navBurger = document.getElementById("navBurger");
+const mobileMenu = document.getElementById("mobileMenu");
+if (navBurger && mobileMenu) {
+  const closeMenu = () => {
+    mobileMenu.hidden = true;
+    navBurger.setAttribute("aria-expanded", "false");
+  };
+  navBurger.addEventListener("click", () => {
+    const opening = mobileMenu.hidden;
+    mobileMenu.hidden = !opening;
+    navBurger.setAttribute("aria-expanded", String(opening));
+  });
+  // zavřít po kliku na odkaz/tlačítko uvnitř (anchor scroll, login, CTA)
+  mobileMenu.addEventListener("click", (e) => {
+    if (e.target.closest("a, button")) closeMenu();
+  });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeMenu(); });
+  // při zvětšení okna na desktop šířku menu samo zavřít, ať nezůstane
+  // "otevřené" schované za media query
+  window.addEventListener("resize", () => { if (window.innerWidth >= 1024) closeMenu(); });
+}
+
 // ---------- nav border on scroll ----------
 const nav = document.getElementById("nav");
 const heroSentinel = new IntersectionObserver(
