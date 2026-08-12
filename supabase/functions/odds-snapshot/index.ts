@@ -38,7 +38,10 @@ serve(async (req) => {
   }
 
   const apiKey = Deno.env.get("ODDS_API_KEY");
-  const bookmaker = Deno.env.get("ODDS_API_BOOKMAKER") ?? "Bet365";
+  // Plán je omezený na max 2 bookmakery — stejný fallback pořadí jako
+  // js/dashboard.js (loadSportEvents), ať se snapshoty berou ze stejného
+  // zdroje kurzů, ze kterého hráč reálně sázel.
+  const bookmakers = (Deno.env.get("ODDS_API_BOOKMAKER") ?? "Bet365,Sportsbet.com.au").split(",").map((b) => b.trim());
   if (!apiKey) return jsonResponse({ skipped: true, reason: "ODDS_API_KEY not set" });
 
   try {
@@ -68,11 +71,20 @@ serve(async (req) => {
     const eventIds = [...new Set(selections.map((s) => s.eventId).filter(Boolean))] as string[];
     if (!eventIds.length) return jsonResponse({ ok: true, events: 0, snapshots: 0 });
 
+    // deno-lint-ignore no-explicit-any
+    function pickMarkets(ev: any): any[] {
+      for (const bm of bookmakers) {
+        const markets = (ev.bookmakers && ev.bookmakers[bm]) || [];
+        if (markets.length) return markets;
+      }
+      return [];
+    }
+
     const rows: { event_id: string; market_name: string; field: string; hdp: number | null; odd_value: number }[] = [];
     for (let i = 0; i < eventIds.length; i += 10) {
-      const chunk = await fetchOddsMulti(eventIds.slice(i, i + 10), apiKey, bookmaker);
+      const chunk = await fetchOddsMulti(eventIds.slice(i, i + 10), apiKey, bookmakers.join(","));
       for (const ev of chunk) {
-        const markets = (ev.bookmakers && ev.bookmakers[bookmaker]) || [];
+        const markets = pickMarkets(ev);
         // ML: nejjednodušší trh, žádné hdp matchování — home/draw/away rovnou.
         const ml = markets.find((m: { name: string }) => m.name === "ML");
         const mlRow = ml?.odds?.[0];

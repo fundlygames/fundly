@@ -599,19 +599,25 @@ window.addEventListener("DOMContentLoaded", syncChallengeAccount);
 // API_BASE/API_KEY/BOOKMAKER/CACHE_TTL/cacheGet/cacheSet/cacheDrop/apiGet: see js/portfolio.js
 const ODDS_MIN = 1.0;
 const ODDS_MAX = 8.0;
-const EVENTS_PER_SPORT = 25; // /odds/multi takes max 10 events per 1 request → batches below
+// /odds/multi takes max 10 events per 1 request → batches below.
+// 60 instead of 25: measured against live data — most raw events from
+// /events don't actually have odds from either allowed bookmaker, so a
+// bigger initial pool roughly doubles/triples the matches that end up
+// showing up (e.g. football went from 8 to 26 usable at limit=60).
+const EVENTS_PER_SPORT = 60;
 
-// sports as on the original dashboard + added coverage (Betano)
+// Sporty s reálným pokrytím na současném odds-api plánu (max 2 bookmakery:
+// Bet365 + Sportsbet.com.au). Hokej, MMA a volejbal se záměrně vynechávají —
+// ověřeno napříč oběma povolenými bookmakery: 0 zápasů s použitelnými kurzy
+// pro žádný z nich. Není to chyba fetchování, je to mez datového zdroje —
+// jakmile bude plán s víc bookmakery, sem se zase přidají.
 const SPORTS = [
   ["basketball", "Basketball", "basketbal"],
   ["football", "Football", "fotbal"],
-  ["ice-hockey", "Hockey", "hokej"],
   ["table-tennis", "Table tennis", "stolni-tenis"],
   ["tennis", "Tennis", "tenis"],
   ["darts", "Darts", "sipky"],
-  ["mixed-martial-arts", "MMA", "mma"],
   ["boxing", "Boxing", "boxing"],
-  ["volleyball", "Volleyball", "volejbal"],
 ];
 
 let activeSport = "basketball";
@@ -645,17 +651,28 @@ async function loadSportEvents(sport, live) {
   const ids = events.map((e) => e.id).slice(0, EVENTS_PER_SPORT);
   const chunks = [];
   for (let i = 0; i < ids.length; i += 10) {
-    chunks.push(await apiGet("/odds/multi", { eventIds: ids.slice(i, i + 10).join(","), bookmakers: BOOKMAKER }));
+    chunks.push(await apiGet("/odds/multi", { eventIds: ids.slice(i, i + 10).join(","), bookmakers: BOOKMAKERS.join(",") }));
   }
   const withOdds = chunks.flat();
+
+  // fallback napříč oběma povolenými bookmakery — první, co má pro daný
+  // zápas použitelné ML kurzy, vyhrává (Bet365 má přednost, viz BOOKMAKERS)
+  function pickBookmaker(e) {
+    for (const bm of BOOKMAKERS) {
+      const markets = (e.bookmakers && e.bookmakers[bm]) || [];
+      const ml = markets.find((m) => m.name === "ML");
+      const row = ml && ml.odds && ml.odds[0];
+      if (row && row.home && row.away) return { bookmaker: bm, markets, row };
+    }
+    return null;
+  }
 
   const merged = withOdds
     .map((e) => {
       const base = baseById[e.id] || {};
-      const markets = (e.bookmakers && e.bookmakers[BOOKMAKER]) || [];
-      const ml = markets.find((m) => m.name === "ML");
-      const row = ml && ml.odds && ml.odds[0];
-      if (!row || !row.home || !row.away) return null;
+      const picked = pickBookmaker(e);
+      if (!picked) return null;
+      const { bookmaker, markets, row } = picked;
       return {
         id: e.id,
         home: e.home,
@@ -665,6 +682,7 @@ async function loadSportEvents(sport, live) {
         live: !!live || base.status === "live" || !!(base.clock && base.clock.running),
         clock: base.clock || null,   // { minute, period, running, statusDetail }
         scores: base.scores || null, // { home, away } (případně periods.ft apod.)
+        bookmaker,
         odds: [parseFloat(row.home), row.draw ? parseFloat(row.draw) : null, parseFloat(row.away)],
         markets: markets
           .filter((m) => Array.isArray(m.odds) && m.odds.length)
@@ -1300,13 +1318,22 @@ async function loadPayoutHistory() {
 
     // "First payout" badge: alespoň jedna vyplacená žádost — marker se ukládá
     // do lokálního stavu, protože badge se počítá čistě z Portfolio state.
-    const hasPaid = (payouts || []).some((p) => p.status === "paid" || p.status === "sent");
-    if (hasPaid) {
+    const paidPayouts = (payouts || []).filter((p) => p.status === "paid" || p.status === "sent");
+    if (paidPayouts.length) {
       const state = Portfolio.get();
-      if (state && !state.hasPayout) {
-        state.hasPayout = true;
-        Portfolio.save(state);
-        renderBadges(state);
+      if (state) {
+        let changed = false;
+        if (!state.hasPayout) { state.hasPayout = true; changed = true; }
+        // Kvalifikační tikety na payout se resetují PO každém vyřízeném
+        // payoutu — lastPayoutAt se dřív nikde nenastavoval, takže se
+        // efektivně nikdy nereselo. Bereme nejnovější vyřízený payout.
+        const latestPaidAt = paidPayouts.reduce((max, p) => (!max || p.created_at > max ? p.created_at : max), null);
+        if (latestPaidAt && latestPaidAt !== state.lastPayoutAt) { state.lastPayoutAt = latestPaidAt; changed = true; }
+        if (changed) {
+          Portfolio.save(state);
+          renderBadges(state);
+          if (typeof renderPrehled === "function") renderPrehled();
+        }
       }
     }
 
@@ -2039,19 +2066,27 @@ function renderPayoutConds(state) {
   const el = document.getElementById("wdConds");
   if (!el) return;
   if (state.phase !== "funded") {
-    el.innerHTML = `<p class="t-meta" style="margin-top:10px">Withdrawals unlock with a funded account. Once funded, build a one-time profit buffer of +5 % of capital; before every payout you then need 5 winning tickets with a net profit of at least +0.5 % of capital (the counter resets after each payout). Payout is 80 % of your profit, max. $4,000.</p>`;
+    el.innerHTML = `<p class="t-meta" style="margin-top:10px">Withdrawals unlock with a funded account. Once funded, build a one-time profit buffer of +5 % of capital; before every payout you then need 5 winning tickets with a net profit of at least +0.5 % of capital (the counter resets after each payout). Payouts open every 14 days. Payout is 80 % of your profit, max. $4,000.</p>`;
     return;
   }
-  const meta = packageMeta(packageByKey(state.packageKey));
+  const meta = Portfolio.ruleMeta(state);
   const bufferNeed = Math.round(state.cap * (meta.payoutBufferPct / 100));
   // buffer je jednorázový: stačí, když ho někdy překročil high-water mark
   const bufferMet = state.hwm >= state.cap + bufferNeed;
   const profit = Math.max(0, state.balance - state.cap);
   const qual = Portfolio.countQualifyingTickets(state, state.lastPayoutAt || state.phaseStartedAt);
+
+  // 14denní cooldown (viz request-payout na serveru — tohle je jen náhled,
+  // finální rozhodnutí dělá server v okamžiku žádosti).
+  const cooldownFrom = state.lastPayoutAt || state.phaseStartedAt;
+  const nextEligible = new Date(new Date(cooldownFrom).getTime() + 14 * 86400000);
+  const cooldownDone = nextEligible.getTime() <= Date.now();
+
   el.innerHTML = `
     <div class="k-rows" style="margin-top:12px">
       <div class="k-row neutral">Profit buffer (one-time, +${meta.payoutBufferPct} % of capital)<span class="n ${bufferMet ? "green" : ""}">${bufferMet ? "Done" : `${usd(profit)} / ${usd(bufferNeed)}`}</span></div>
       <div class="k-row neutral">Qualifying tickets (reset each payout)<span class="n ${qual >= meta.qualifyingTickets ? "green" : ""}">${Math.min(qual, meta.qualifyingTickets)} / ${meta.qualifyingTickets}</span></div>
+      <div class="k-row neutral">Payout cooldown (14 days between payouts)<span class="n ${cooldownDone ? "green" : ""}">${cooldownDone ? "Open now" : `Opens ${nextEligible.toLocaleDateString("en-US")}`}</span></div>
       <div class="k-row neutral">Payout<span class="n">80 % of profit · max $4,000</span></div>
     </div>`;
 }
@@ -2100,7 +2135,7 @@ function renderProfile(state) {
   set("pfDaysLeft", state.phase === "funded" ? "Unlimited" : `${daysLeft} days`);
   const deadline = new Date(new Date(state.phaseStartedAt).getTime() + 30 * 86400000);
   set("pfDeadline", state.phase === "funded"
-    ? "A funded account has no time limit"
+    ? "No time limit, but place at least 1 ticket every 14 days or the account closes"
     : `Left until the end of the phase · Deadline: ${deadline.toLocaleDateString("en-US")}`);
 
   const rules = document.getElementById("pfRules");

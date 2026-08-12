@@ -5,7 +5,13 @@
 const API_BASE = "https://api.odds-api.io/v3";
 // POZOR: klíč je v klientském JS viditelný, pro produkci patří za vlastní proxy.
 const API_KEY = "ce3091bbbb4c283c68c0d51cee36f37bd259db6d6931c81ec214e518cb79ae0b";
-const BOOKMAKER = "Bet365";
+// Plán odds-api.io je omezený na max 2 bookmakery zvolené na účtu (Bet365 +
+// Sportsbet.com.au) — pár sportů (hokej, MMA, volejbal) u obou nemá vůbec
+// žádná data, to je limit datového zdroje, ne chyba kódu. BOOKMAKERS je
+// prioritní seznam pro fallback (loadSportEvents v dashboard.js), BOOKMAKER
+// zůstává pro místa, co čekají jediný bookmaker (value-bets endpoint).
+const BOOKMAKERS = ["Bet365", "Sportsbet.com.au"];
+const BOOKMAKER = BOOKMAKERS[0];
 const CACHE_TTL = 5 * 60 * 1000; // 5 min, free tier má 100 requestů/hod
 
 function cacheGet(key, ttl) {
