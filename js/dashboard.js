@@ -1917,6 +1917,9 @@ function renderPrehled() {
 
   const dd = Portfolio.drawdownInfo(state);
   const dl = Portfolio.dailyLossInfo(state);
+  const worst = Portfolio.worstCaseInfo(state, 0);
+  const worstFloor = Math.max(worst.dailyFloor, worst.totalFloor);
+  const worstRemaining = Math.max(0, worst.worstCaseBalance - worstFloor);
 
   // right column: rules and limits with thin progress bars
   const meta = packageMeta(packageByKey(state.packageKey));
@@ -1941,6 +1944,13 @@ function renderPrehled() {
     ${rrRow(dd.trailing ? "Max. loss (trailing)" : "Max. loss (static)", `${usd(Math.round(dd.remaining))} / ${usd(state.drawdown)}`, Math.round(dd.pct), ddTone,
       dd.trailing ? `Floor follows your highest balance (${usd(dd.floor)})` : `Fixed floor ${usd(dd.floor)} — it never moves`)}
     ${rrRow("Max. daily loss", `${usd(Math.round(dl.remaining))} / ${usd(dl.limit)} today`, pctDaily, dlTone, "Resets at midnight UTC")}
+    ${(() => {
+      const marginBefore = Math.max(1, state.balance - worstFloor);
+      const pctExposure = Math.max(0, Math.min(100, Math.round((worstRemaining / marginBefore) * 100)));
+      const tone = pctExposure < 30 ? "danger" : pctExposure < 60 ? "warn" : "";
+      return rrRow("Open exposure", `${usd(worst.exposure)} pending`, pctExposure, tone,
+        `Worst case if everything open lost: ${usd(Math.round(worst.worstCaseBalance))} (margin to limit: ${usd(Math.round(worstRemaining))})`);
+    })()}
     ${state.phase === "funded" ? "" : rrRow("Time limit", `${daysLeft} / 30 days`, pctTime, pctTime < 25 ? "danger" : "", "")}
     ${rrRow("Qualifying tickets", `${Math.min(qual, meta.qualifyingTickets)} / ${meta.qualifyingTickets}`, pctTickets, "", "Winning tickets with net profit ≥ +0.5 % of capital")}
     ${rrRow("Max. stake", usd(state.maxStake), null, "", "Per single ticket")}
@@ -1967,6 +1977,10 @@ function renderPrehled() {
       <span class="v">${usd(Math.round(dl.remaining))} / ${usd(dl.limit)} left</span>
     </div>
     <div class="limit-row">
+      <span class="k">Open exposure <small>(pending tickets, worst case if all lost)</small></span>
+      <span class="v">${usd(worst.exposure)} → ${usd(Math.round(worst.worstCaseBalance))} balance</span>
+    </div>
+    <div class="limit-row">
       <span class="k">Qualifying tickets <small>(winning, profit ≥ +0.5 % of capital)</small></span>
       <span class="v">${Math.min(qual, meta.qualifyingTickets)} / ${meta.qualifyingTickets}</span>
     </div>
@@ -1986,7 +2000,9 @@ function renderPrehled() {
       <div class="rule-tile"><div class="k">Qualifying tickets</div><div class="v">5 × ≥ +0.5 %</div></div>
       <div class="rule-tile"><div class="k">Profit withdrawal</div><div class="v">80 % of profit</div></div>
       <div class="rule-tile"><div class="k">Max. payout</div><div class="v">$4,000</div></div>
-    </div>`;
+      <div class="rule-tile"><div class="k">Consistency rule</div><div class="v">${usd(Math.round(Portfolio.consistencyLimit(state)))} max / ticket</div></div>
+    </div>
+    <p class="t-meta" style="margin-top:10px">Consistency rule: no single ticket's potential profit may exceed 40 % of the current phase target (or of the profit buffer once funded) — this keeps one lucky ticket from carrying the whole result.</p>`;
 
   const steps = [
     { title: "Phase 1 · Fundly Challenge", desc: `Target +${usd(state.target1)}`, img: "assets/journey-phase1.jpg" },

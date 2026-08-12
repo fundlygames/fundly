@@ -236,6 +236,37 @@ const Portfolio = (() => {
       t.status === "pending" && t.selections.some((s) => s.eventId === eventId));
   }
 
+  // Open exposure = součet vkladů všech aktuálně čekajících tiketů. Balance
+  // se mění jen při vypořádání, takže samotná stávka na balance "nesahá" —
+  // proto se otevřená expozice musí počítat zvlášť pro worst-case kontrolu.
+  function openExposure(state) {
+    return state.tickets
+      .filter((t) => t.status === "pending")
+      .reduce((a, t) => a + t.stake, 0);
+  }
+
+  // Worst-case kontrola expozice: kdyby v tomto okamžiku prohrály úplně
+  // všechny čekající tikety (+ ten, co se právě zadává), nesmí to podkročit
+  // ani denní, ani celkový limit. Blokuje obcházení limitů podáním víc
+  // tiketů souběžně, než se první stihne vyhodnotit.
+  function worstCaseInfo(state, newStake) {
+    const exposure = openExposure(state);
+    const worstCaseBalance = state.balance - exposure - (newStake || 0);
+    const trailing = state.phase === "funded";
+    const dailyFloor = (state.dayStartBalance ?? state.cap) * (1 - 0.04);
+    const totalFloor = (trailing ? state.hwm : state.cap) * (1 - 0.10);
+    return { exposure, worstCaseBalance, dailyFloor, totalFloor, trailing };
+  }
+
+  // Consistency rule: jeden tiket nesmí tvořit víc než 40 % z cíle zisku
+  // aktuální fáze (fáze 1/2), nebo z profit bufferu (+5 % kapitálu) na
+  // funded účtu, kde žádný jiný pevný "cíl" k dispozici není.
+  function consistencyLimit(state) {
+    const meta = packageMeta(packageByKey(state.packageKey));
+    if (state.phase === "funded") return state.cap * (meta.payoutBufferPct / 100) * 0.4;
+    return phaseTarget(state) * 0.4;
+  }
+
   function placeBet(selections, stake, extraFlags) {
     const state = get();
     if (!state) return { ok: false, error: "Please sign in first." };
@@ -255,13 +286,27 @@ const Portfolio = (() => {
       return { ok: false, error: "You already have a pending bet on this match. Wait for it to settle before betting on it again." };
     }
 
+    const combinedOdds = selections.reduce((acc, s) => acc * s.oddValue, 1);
+
+    // Exposure-based worst-case check (viz zadání pravidel) — nahrazuje
+    // holé porovnání s balance, počítá i s ostatními otevřenými tikety.
+    const worst = worstCaseInfo(state, amount);
+    if (worst.worstCaseBalance < worst.dailyFloor || worst.worstCaseBalance < worst.totalFloor) {
+      return { ok: false, error: "This bet would breach your loss limit if every open ticket lost. Wait for pending tickets to settle or lower the stake." };
+    }
+
+    // Consistency rule: potenciální čistý zisk jednoho tiketu ≤ 40 % z cíle.
+    const potentialProfit = amount * (combinedOdds - 1);
+    const capLimit = consistencyLimit(state);
+    if (potentialProfit > capLimit) {
+      return { ok: false, error: `A single ticket can't account for more than 40 % of the phase profit target (max potential profit here: $${Math.round(capLimit).toLocaleString("en-US")}).` };
+    }
+
     // flagy zakázaných strategií (value z dashboard.js, arbitrage zde)
     const flags = [...new Set([
       ...(extraFlags || []),
       ...(detectArbitrage(selections, state) ? ["arbitrage"] : []),
     ])];
-
-    const combinedOdds = selections.reduce((acc, s) => acc * s.oddValue, 1);
     const now = new Date().toISOString();
     const ticket = {
       id: `t${Date.now()}`,
@@ -466,7 +511,7 @@ const Portfolio = (() => {
 
   return {
     init, get, save, ensure, phaseTarget, daysRemaining, drawdownInfo,
-    dailyLossInfo, breachInfo, cashOut,
+    dailyLossInfo, breachInfo, cashOut, openExposure, worstCaseInfo, consistencyLimit,
     summary, dailyNet, placeBet, checkSettlements, countQualifyingTickets,
     applyServerSettlements,
   };
