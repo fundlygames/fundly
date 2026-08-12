@@ -490,104 +490,127 @@
           </div>
         </div>
 
-        <div class="panel">
-          <h3>Badges · <span style="color:var(--text-muted);font-weight:500" id="badgeCount">0 / 12</span></h3>
-          <div class="badges" id="badgeGrid"><!-- JS --></div>
+        <div class="subtabs" role="tablist" aria-label="Profile section" id="profileTabs">
+          <button class="active" data-ptab="overview" aria-pressed="true">Overview</button>
+          <button data-ptab="badges" aria-pressed="false">Badges</button>
+          <button data-ptab="leaderboard" aria-pressed="false">Leaderboard &amp; referrals</button>
+          <button data-ptab="settings" aria-pressed="false">Settings</button>
+          <button data-ptab="support" aria-pressed="false">Support</button>
         </div>
 
-        <div class="panel mt">
-          <h3>Contact support</h3>
-          <p class="t-small" style="margin-bottom:12px">Question about a payout, your account, or a rule? We'll reply by email.</p>
-          <form id="supportForm">
-            <div class="field">
-              <label for="supportMessage">Message</label>
-              <textarea class="input" id="supportMessage" rows="4" placeholder="How can we help?" required style="resize:vertical;min-height:100px"></textarea>
-            </div>
-            <button class="btn btn-primary" type="submit" id="supportSubmit">Send message</button>
-            <p class="auth-note mt" id="supportNote" hidden></p>
-          </form>
-        </div>
-
-        <div class="two-col">
+        <!-- ---- Overview: account snapshot + risk/time limits + package rules ---- -->
+        <div class="profile-sub" data-psec="overview">
           <div class="panel">
-            <h3>Invite your friends</h3>
-            <p class="t-small">For every friend who buys a package, you get 5 % cashback to your challenge balance.</p>
-            <div class="ref-stats">
-              <div><div class="num">0</div><div class="lbl">Invited</div></div>
-              <div><div class="num green">0</div><div class="lbl">Active</div></div>
-              <div><div class="num green">$0</div><div class="lbl">Bonus</div></div>
+            <div class="acct-head">
+              <span class="a-ic">
+                <svg width="20" height="20" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M4.5 2h6v4a3 3 0 01-6 0V2z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M7.5 9v2.5M5 13h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+              </span>
+              <span class="grow" style="flex:1">
+                <span class="t" id="pfName">–</span><br />
+                <span class="d">Capital: <span id="pfCap">–</span></span>
+              </span>
+              <span class="chip-phase" id="pfPhase">–</span>
             </div>
-            <p class="t-meta" style="margin-top:10px">Live stats are in the <a href="#" data-view-link="affiliate" style="color:var(--accent);font-weight:600">Affiliate tab</a>.</p>
+            <div class="stat-grid">
+              <div class="dstat"><div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><rect x="1.5" y="4" width="12" height="8" rx="2" stroke="currentColor" stroke-width="1.6"/><circle cx="7.5" cy="8" r="1.6" fill="currentColor"/></svg></span>Current balance</div><div class="val" id="pfBalance">–</div></div>
+              <div class="dstat"><div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M1.5 11.5l4-4 3 3 5-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Total profit</div><div class="val" id="pfProfit">–</div></div>
+              <div class="dstat"><div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 5a1.5 1.5 0 001.5-1.5h8A1.5 1.5 0 0013 5v1.6a1.9 1.9 0 000 3.8V12a1.5 1.5 0 00-1.5 1.5h-8A1.5 1.5 0 002 12V5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" transform="translate(0,-1.2)"/></svg></span>Total tickets</div><div class="val" id="pfTickets">–</div></div>
+              <div class="dstat"><div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M4.5 2h6v4a3 3 0 01-6 0V2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M7.5 9v2.5M5 13h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>Win rate</div><div class="val" id="pfWinRate">–</div></div>
+            </div>
+            <div class="bc-goal">
+              <div class="bc-goal-row"><span id="pfGoalLabel">Progress to target</span><span><b id="pfGoalPct">–</b></span></div>
+              <div class="progress"><span id="pfGoalBar" style="width:0%"></span></div>
+              <div class="bc-meta"><span id="pfGoalMeta"></span></div>
+            </div>
           </div>
-          <div class="stack">
+
+          <div class="two-col">
             <div class="panel">
-              <div class="switch-row">
-                <span class="grow">
-                  <span class="t">Share on the leaderboard</span><br />
-                  <span class="d">Without a nickname you appear anonymously as Player #4f2c.</span>
-                </span>
-                <button class="switch" role="switch" aria-checked="true" id="lbShare" aria-label="Share on the leaderboard"></button>
+              <h3>Risk limits</h3>
+              <p class="t-small" style="margin-bottom:12px">Failure rules: max. loss −10 % of capital (static in the Challenge, trailing once funded) and max. daily loss −4 %.</p>
+              <div class="limit-row">
+                <span class="k">Max. loss (static) <small id="pfDdDetail">(fixed floor –)</small></span>
+                <span class="v" id="pfDdRemain">–</span>
               </div>
+              <div class="progress"><span id="pfDdBar" style="width:100%"></span></div>
             </div>
             <div class="panel">
-              <div class="field" style="margin-bottom:8px">
-                <label for="nickInput">Leaderboard nickname</label>
-                <div class="ref-box" style="margin-top:0">
-                  <input class="input" id="nickInput" placeholder="Player #xxxx (anonymous)" style="font-family:inherit" />
-                  <button class="btn btn-primary" style="height:auto" id="nickSave">Save</button>
+              <h3>Time limit</h3>
+              <div class="val green" style="font-size:1.75rem;font-weight:800" id="pfDaysLeft">–</div>
+              <p class="t-small" id="pfDeadline">Left until the end of the phase</p>
+            </div>
+          </div>
+
+          <div class="panel mt">
+            <h3>Package rules</h3>
+            <div class="rules-grid" id="pfRules"><!-- JS: renderProfile() --></div>
+          </div>
+        </div>
+
+        <!-- ---- Badges ---- -->
+        <div class="profile-sub" data-psec="badges" hidden>
+          <div class="panel">
+            <h3>Badges · <span style="color:var(--text-muted);font-weight:500" id="badgeCount">0 / 12</span></h3>
+            <div class="badges" id="badgeGrid"><!-- JS --></div>
+          </div>
+        </div>
+
+        <!-- ---- Leaderboard & referrals ---- -->
+        <div class="profile-sub" data-psec="leaderboard" hidden>
+          <div class="two-col">
+            <div class="panel">
+              <h3>Invite your friends</h3>
+              <p class="t-small">For every friend who buys a package, you get 5 % cashback to your challenge balance.</p>
+              <div class="ref-stats">
+                <div><div class="num">0</div><div class="lbl">Invited</div></div>
+                <div><div class="num green">0</div><div class="lbl">Active</div></div>
+                <div><div class="num green">$0</div><div class="lbl">Bonus</div></div>
+              </div>
+              <p class="t-meta" style="margin-top:10px">Live stats are in the <a href="#" data-view-link="affiliate" style="color:var(--accent);font-weight:600">Affiliate tab</a>.</p>
+            </div>
+            <div class="stack">
+              <div class="panel">
+                <div class="switch-row">
+                  <span class="grow">
+                    <span class="t">Share on the leaderboard</span><br />
+                    <span class="d">Without a nickname you appear anonymously as Player #4f2c.</span>
+                  </span>
+                  <button class="switch" role="switch" aria-checked="true" id="lbShare" aria-label="Share on the leaderboard"></button>
+                </div>
+              </div>
+              <div class="panel">
+                <div class="field" style="margin-bottom:8px">
+                  <label for="nickInput">Leaderboard nickname</label>
+                  <div class="ref-box" style="margin-top:0">
+                    <input class="input" id="nickInput" placeholder="Player #xxxx (anonymous)" style="font-family:inherit" />
+                    <button class="btn btn-primary" style="height:auto" id="nickSave">Save</button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="panel mt">
-          <div class="acct-head">
-            <span class="a-ic">
-              <svg width="20" height="20" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M4.5 2h6v4a3 3 0 01-6 0V2z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M7.5 9v2.5M5 13h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-            </span>
-            <span class="grow" style="flex:1">
-              <span class="t" id="pfName">–</span><br />
-              <span class="d">Capital: <span id="pfCap">–</span></span>
-            </span>
-            <span class="chip-phase" id="pfPhase">–</span>
-          </div>
-          <div class="stat-grid">
-            <div class="dstat"><div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><rect x="1.5" y="4" width="12" height="8" rx="2" stroke="currentColor" stroke-width="1.6"/><circle cx="7.5" cy="8" r="1.6" fill="currentColor"/></svg></span>Current balance</div><div class="val" id="pfBalance">–</div></div>
-            <div class="dstat"><div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M1.5 11.5l4-4 3 3 5-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Total profit</div><div class="val" id="pfProfit">–</div></div>
-            <div class="dstat"><div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 5a1.5 1.5 0 001.5-1.5h8A1.5 1.5 0 0013 5v1.6a1.9 1.9 0 000 3.8V12a1.5 1.5 0 00-1.5 1.5h-8A1.5 1.5 0 002 12V5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" transform="translate(0,-1.2)"/></svg></span>Total tickets</div><div class="val" id="pfTickets">–</div></div>
-            <div class="dstat"><div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M4.5 2h6v4a3 3 0 01-6 0V2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M7.5 9v2.5M5 13h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>Win rate</div><div class="val" id="pfWinRate">–</div></div>
-          </div>
-          <div class="bc-goal">
-            <div class="bc-goal-row"><span id="pfGoalLabel">Progress to target</span><span><b id="pfGoalPct">–</b></span></div>
-            <div class="progress"><span id="pfGoalBar" style="width:0%"></span></div>
-            <div class="bc-meta"><span id="pfGoalMeta"></span></div>
-          </div>
+        <!-- ---- Settings ---- -->
+        <div class="profile-sub" data-psec="settings" hidden>
+          <div id="settingsSlot"><!-- JS: renderSettingsPanel("s") --></div>
         </div>
 
-        <div class="two-col">
+        <!-- ---- Support ---- -->
+        <div class="profile-sub" data-psec="support" hidden>
           <div class="panel">
-            <h3>Risk limits</h3>
-            <p class="t-small" style="margin-bottom:12px">Failure rules: max. loss −10 % of capital (static in the Challenge, trailing once funded) and max. daily loss −4 %.</p>
-            <div class="limit-row">
-              <span class="k">Max. loss (static) <small id="pfDdDetail">(fixed floor –)</small></span>
-              <span class="v" id="pfDdRemain">–</span>
-            </div>
-            <div class="progress"><span id="pfDdBar" style="width:100%"></span></div>
-          </div>
-          <div class="panel">
-            <h3>Time limit</h3>
-            <div class="val green" style="font-size:1.75rem;font-weight:800" id="pfDaysLeft">–</div>
-            <p class="t-small" id="pfDeadline">Left until the end of the phase</p>
+            <h3>Contact support</h3>
+            <p class="t-small" style="margin-bottom:12px">Question about a payout, your account, or a rule? We'll reply by email.</p>
+            <form id="supportForm">
+              <div class="field">
+                <label for="supportMessage">Message</label>
+                <textarea class="input" id="supportMessage" rows="4" placeholder="How can we help?" required style="resize:vertical;min-height:100px"></textarea>
+              </div>
+              <button class="btn btn-primary" type="submit" id="supportSubmit">Send message</button>
+              <p class="auth-note mt" id="supportNote" hidden></p>
+            </form>
           </div>
         </div>
-
-        <div class="panel mt">
-          <h3>Package rules</h3>
-          <div class="rules-grid" id="pfRules"><!-- JS: renderProfile() --></div>
-        </div>
-
-        <div id="settingsSlot"><!-- JS: renderSettingsPanel("s") --></div>
       </section>
 
       <!-- ============ BEZ AKTIVNÍHO ÚČTU (limited dashboard) ============ -->

@@ -1748,6 +1748,20 @@ async function setupAccountSettings(prefix) {
   setupAccountSettings(prefix);
 });
 
+// ---------- profile: subtabs (Overview / Badges / Leaderboard / Settings / Support) ----------
+document.getElementById("profileTabs")?.addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-ptab]");
+  if (!btn) return;
+  document.querySelectorAll("#profileTabs button").forEach((b) => {
+    const on = b === btn;
+    b.classList.toggle("active", on);
+    b.setAttribute("aria-pressed", String(on));
+  });
+  document.querySelectorAll(".profile-sub").forEach((sec) => {
+    sec.hidden = sec.dataset.psec !== btn.dataset.ptab;
+  });
+});
+
 // nastavení leaderboardu (přezdívka + sdílení) — uloží se přes profile-update
 async function saveProfileSetting(patch) {
   const client = await FundlyBackend.getClient();
