@@ -349,7 +349,7 @@ function computeRisk(state, s) {
     score += 10;
     reasons.push(`průměrný kurz outlier (${s.avgOdds.toFixed(2)})`);
   }
-  if (s.total >= 5 && state.tickets.every((t) => t.stake >= state.maxStake * 0.98)) {
+  if (s.total >= 5 && state.tickets.every((t) => t.stake >= Portfolio.ruleMeta(state).maxStake * 0.98)) {
     score += 15;
     reasons.push("všechny tikety na max. sázku");
   }
@@ -993,7 +993,7 @@ function renderBankBar() {
   if (!bal) return;
   const state = Portfolio.ensure("advanced");
   bal.textContent = usd(state.balance);
-  document.getElementById("bankMaxStake").textContent = usd(state.maxStake);
+  document.getElementById("bankMaxStake").textContent = usd(Portfolio.ruleMeta(state).maxStake);
   document.getElementById("bankOddsRange").textContent = `${ODDS_MIN.toFixed(2)} to ${ODDS_MAX.toFixed(2)}`;
 }
 
@@ -1857,6 +1857,7 @@ function renderPrehled() {
   const view = document.getElementById("view-prehled");
   if (!view) return;
   const state = Portfolio.ensure("advanced");
+  const meta = Portfolio.ruleMeta(state);
   const phaseLabel = state.phase === "funded" ? "Funded account" : `Phase ${state.phase}`;
   document.getElementById("ovSubtitle").textContent = `${phaseLabel} · Fundly Challenge`;
   document.getElementById("ovPhaseChip").textContent = phaseLabel;
@@ -1882,7 +1883,7 @@ function renderPrehled() {
       </div>
       <div class="bc-chips">
         <span class="chip-phase">${phaseLabel}</span>
-        <span class="chip-ghost">${state.packageName} · ${state.profitSplit} % share</span>
+        <span class="chip-ghost">${state.packageName} · ${meta.profitSplit} % share</span>
       </div>
     </div>
     <div class="bc-chart">${renderEquityChart(state)}</div>`;
@@ -1922,7 +1923,6 @@ function renderPrehled() {
   const worstRemaining = Math.max(0, worst.worstCaseBalance - worstFloor);
 
   // right column: rules and limits with thin progress bars
-  const meta = packageMeta(packageByKey(state.packageKey));
   const pctTime = Math.max(0, Math.min(100, Math.round((daysLeft / 30) * 100)));
   // qualifying tickets: winning ones with net profit ≥ 0.5 % of capital, in the current phase
   const qual = Portfolio.countQualifyingTickets(state, state.phaseStartedAt);
@@ -1941,7 +1941,7 @@ function renderPrehled() {
     ${state.phase === "funded"
       ? rrRow("Phase target", "Completed", null, "", "Funded account — no target, unlimited time")
       : rrRow("Phase target", `${usd(Math.max(0, profit))} / ${usd(target)}`, pct, pct >= 100 ? "" : "", pct >= 100 ? "Completed" : `${usd(toGoal)} to go`)}
-    ${rrRow(dd.trailing ? "Max. loss (trailing)" : "Max. loss (static)", `${usd(Math.round(dd.remaining))} / ${usd(state.drawdown)}`, Math.round(dd.pct), ddTone,
+    ${rrRow(dd.trailing ? "Max. loss (trailing)" : "Max. loss (static)", `${usd(Math.round(dd.remaining))} / ${usd(dd.limit)}`, Math.round(dd.pct), ddTone,
       dd.trailing ? `Floor follows your highest balance (${usd(dd.floor)})` : `Fixed floor ${usd(dd.floor)} — it never moves`)}
     ${rrRow("Max. daily loss", `${usd(Math.round(dl.remaining))} / ${usd(dl.limit)} today`, pctDaily, dlTone, "Resets at midnight UTC")}
     ${(() => {
@@ -1953,9 +1953,9 @@ function renderPrehled() {
     })()}
     ${state.phase === "funded" ? "" : rrRow("Time limit", `${daysLeft} / 30 days`, pctTime, pctTime < 25 ? "danger" : "", "")}
     ${rrRow("Qualifying tickets", `${Math.min(qual, meta.qualifyingTickets)} / ${meta.qualifyingTickets}`, pctTickets, "", "Winning tickets with net profit ≥ +0.5 % of capital")}
-    ${rrRow("Max. stake", usd(state.maxStake), null, "", "Per single ticket")}
+    ${rrRow("Max. stake", usd(meta.maxStake), null, "", "Per single ticket")}
     ${rrRow("Odds", `${ODDS_MIN.toFixed(2)} – ${ODDS_MAX.toFixed(2)}`, null, "", "")}
-    ${rrRow("Profit split", `${state.profitSplit} %`, null, "", "Your share of the profit")}
+    ${rrRow("Profit split", `${meta.profitSplit} %`, null, "", "Your share of the profit")}
     <div class="rr-phase">
       <span class="rr-phase-label">Phase</span>
       <span class="rr-phase-name">${phaseLabel}</span>
@@ -1991,10 +1991,10 @@ function renderPrehled() {
 
   document.getElementById("ovPravidla").innerHTML = `
     <div class="rules-grid">
-      <div class="rule-tile"><div class="k">Profit split</div><div class="v green">${state.profitSplit} %</div></div>
-      <div class="rule-tile"><div class="k">Max. stake</div><div class="v">${usd(state.maxStake)}</div></div>
+      <div class="rule-tile"><div class="k">Profit split</div><div class="v green">${meta.profitSplit} %</div></div>
+      <div class="rule-tile"><div class="k">Max. stake</div><div class="v">${usd(meta.maxStake)}</div></div>
       <div class="rule-tile"><div class="k">Odds</div><div class="v">${ODDS_MIN.toFixed(2)} to ${ODDS_MAX.toFixed(2)}</div></div>
-      <div class="rule-tile"><div class="k">Max. loss</div><div class="v">${usd(state.drawdown)}</div></div>
+      <div class="rule-tile"><div class="k">Max. loss</div><div class="v">${usd(dd.limit)}</div></div>
       <div class="rule-tile"><div class="k">Max. daily loss</div><div class="v">${usd(dl.limit)}</div></div>
       <div class="rule-tile"><div class="k">Time limit</div><div class="v">30 days / phase</div></div>
       <div class="rule-tile"><div class="k">Qualifying tickets</div><div class="v">5 × ≥ +0.5 %</div></div>
@@ -2005,9 +2005,9 @@ function renderPrehled() {
     <p class="t-meta" style="margin-top:10px">Consistency rule: no single ticket's potential profit may exceed 40 % of the current phase target (or of the profit buffer once funded) — this keeps one lucky ticket from carrying the whole result.</p>`;
 
   const steps = [
-    { title: "Phase 1 · Fundly Challenge", desc: `Target +${usd(state.target1)}`, img: "assets/journey-phase1.jpg" },
-    { title: "Phase 2 · Verification", desc: `Target +${usd(state.target2)}`, img: "assets/journey-phase2.jpg" },
-    { title: "Funded account", desc: `${state.profitSplit} % profit share, unlimited time, regular payouts.`, img: "assets/journey-funded.jpg" },
+    { title: "Phase 1 · Fundly Challenge", desc: `Target +${usd(meta.target1)}`, img: "assets/journey-phase1.jpg" },
+    { title: "Phase 2 · Verification", desc: `Target +${usd(meta.target2)}`, img: "assets/journey-phase2.jpg" },
+    { title: "Funded account", desc: `${meta.profitSplit} % profit share, unlimited time, regular payouts.`, img: "assets/journey-funded.jpg" },
   ];
   const currentIndex = state.phase === "funded" ? 2 : state.phase - 1;
   document.getElementById("ovCesta").innerHTML = `<div class="journey">${steps.map((step, i) => {
@@ -2060,6 +2060,7 @@ function renderPayoutConds(state) {
 function renderProfile(state) {
   if (!document.getElementById("pfName")) return;
   const s = Portfolio.summary(state);
+  const meta = Portfolio.ruleMeta(state);
   const dd = Portfolio.drawdownInfo(state);
   const target = Portfolio.phaseTarget(state);
   const profit = state.balance - state.phaseBaseline;
@@ -2104,10 +2105,10 @@ function renderProfile(state) {
 
   const rules = document.getElementById("pfRules");
   if (rules) rules.innerHTML = `
-    <div class="rule-tile"><div class="k">Profit split</div><div class="v green">${state.profitSplit} %</div></div>
-    <div class="rule-tile"><div class="k">Max. stake</div><div class="v">${usd(state.maxStake)}</div></div>
+    <div class="rule-tile"><div class="k">Profit split</div><div class="v green">${meta.profitSplit} %</div></div>
+    <div class="rule-tile"><div class="k">Max. stake</div><div class="v">${usd(meta.maxStake)}</div></div>
     <div class="rule-tile"><div class="k">Odds</div><div class="v">${ODDS_MIN.toFixed(2)} to ${ODDS_MAX.toFixed(2)}</div></div>
-    <div class="rule-tile"><div class="k">Max. loss</div><div class="v">${usd(state.drawdown)}</div></div>
+    <div class="rule-tile"><div class="k">Max. loss</div><div class="v">${usd(dd.limit)}</div></div>
     <div class="rule-tile"><div class="k">Max. daily loss</div><div class="v">${usd(dl.limit)}</div></div>
     <div class="rule-tile"><div class="k">Time limit</div><div class="v">30 days / phase</div></div>
     <div class="rule-tile"><div class="k">Qualifying tickets</div><div class="v">5 × ≥ +0.5 %</div></div>

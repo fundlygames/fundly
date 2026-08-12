@@ -81,21 +81,19 @@ const Portfolio = (() => {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
   }
 
+  // Pozn.: sem se záměrně NEukládají odvozené hodnoty pravidel (cíle, max.
+  // ztráta, max. sázka, profit split) — ty se vždy počítají čerstvě přes
+  // ruleMeta() z aktuálního packages.js. Kdyby se sem znovu přidaly a někde
+  // se z nich zase četlo, vrátí se přesně tenhle bug (staré účty by navždy
+  // běžely na pravidlech platných v den založení).
   function init(packageKey) {
     const pkg = packageByKey(packageKey);
-    const meta = packageMeta(pkg);
     const now = new Date().toISOString();
     const state = {
       packageKey: pkg.key,
       packageName: pkg.name,
       cap: pkg.cap,
       price: pkg.price,
-      target1: meta.target1,
-      target2: meta.target2,
-      drawdown: meta.drawdown,
-      dailyLoss: meta.dailyLoss,
-      maxStake: meta.maxStake,
-      profitSplit: meta.profitSplit,
       phase: 1,
       phaseBaseline: pkg.cap,
       phaseStartedAt: now,
@@ -115,8 +113,20 @@ const Portfolio = (() => {
     return get() || init(defaultPackageKey);
   }
 
+  // Jediný zdroj pravdy pro odvozená pravidla (cíle, max. ztráta, denní
+  // limit, max. sázka, profit split) — VŽDY počítáno čerstvě z aktuálního
+  // packageMeta(), nikdy z hodnot zamrzlých na účtu při jeho založení.
+  // Díky tomu se každá úprava procent v packages.js promítne i do účtů
+  // založených dřív (dřív se používaly hodnoty uložené v state.* a při
+  // změně pravidel v kódu zůstaly staré účty navždy na starých číslech —
+  // proto se mohlo stát, že denní ztráta vyšla vyšší než celková).
+  function ruleMeta(state) {
+    return packageMeta(packageByKey(state.packageKey));
+  }
+
   function phaseTarget(state) {
-    return state.phase === 1 ? state.target1 : state.phase === 2 ? state.target2 : 0;
+    const meta = ruleMeta(state);
+    return state.phase === 1 ? meta.target1 : state.phase === 2 ? meta.target2 : 0;
   }
 
   function daysRemaining(state) {
@@ -129,11 +139,12 @@ const Portfolio = (() => {
   // na funded účtu TRAILING (floor = high-water mark − 10 % kapitálu).
   // remaining = kolik zbývá do spálení účtu.
   function drawdownInfo(state) {
+    const meta = ruleMeta(state);
     const trailing = state.phase === "funded";
-    const floor = trailing ? state.hwm - state.drawdown : state.cap - state.drawdown;
+    const floor = trailing ? state.hwm - meta.drawdown : state.cap - meta.drawdown;
     const span = (trailing ? state.hwm : state.cap) - floor;
     const pct = span > 0 ? Math.max(0, Math.min(100, ((state.balance - floor) / span) * 100)) : 100;
-    return { hwm: state.hwm, floor, trailing, remaining: Math.max(0, state.balance - floor), pct };
+    return { hwm: state.hwm, floor, trailing, remaining: Math.max(0, state.balance - floor), pct, limit: meta.drawdown };
   }
 
   // Max. denní ztráta −4 % kapitálu. Start dne se fixuje na první přístup
@@ -145,8 +156,8 @@ const Portfolio = (() => {
       state.dayStartBalance = state.balance;
       save(state);
     }
-    const meta = packageMeta(packageByKey(state.packageKey));
-    const limit = state.dailyLoss ?? meta.dailyLoss;
+    const meta = ruleMeta(state);
+    const limit = meta.dailyLoss;
     const loss = Math.max(0, (state.dayStartBalance ?? state.cap) - state.balance);
     return { limit, loss, remaining: Math.max(0, limit - loss) };
   }
@@ -273,7 +284,8 @@ const Portfolio = (() => {
     if (!selections || !selections.length) return { ok: false, error: "Your ticket is empty." };
     const amount = Number(stake);
     if (!amount || amount <= 0) return { ok: false, error: "Enter a valid stake amount." };
-    if (amount > state.maxStake) return { ok: false, error: `Max. stake is $${state.maxStake.toLocaleString("en-US")}.` };
+    const maxStake = ruleMeta(state).maxStake;
+    if (amount > maxStake) return { ok: false, error: `Max. stake is $${maxStake.toLocaleString("en-US")}.` };
     if (amount > state.balance) return { ok: false, error: "Insufficient balance." };
     const seenEventIds = new Set();
     for (const s of selections) {
@@ -510,7 +522,7 @@ const Portfolio = (() => {
   }
 
   return {
-    init, get, save, ensure, phaseTarget, daysRemaining, drawdownInfo,
+    init, get, save, ensure, phaseTarget, daysRemaining, drawdownInfo, ruleMeta,
     dailyLossInfo, breachInfo, cashOut, openExposure, worstCaseInfo, consistencyLimit,
     summary, dailyNet, placeBet, checkSettlements, countQualifyingTickets,
     applyServerSettlements,
