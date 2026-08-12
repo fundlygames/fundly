@@ -34,15 +34,24 @@ type TicketRow = {
   combined_odds: number | null;
 };
 
-async function fetchEvent(id: string, apiKey: string): Promise<{ status: string; ft: { home: number; away: number } | null } | null> {
+type Period = { home: number; away: number } | null;
+
+async function fetchEvent(id: string, apiKey: string): Promise<{ status: string; ft: Period; p1: Period } | null> {
   try {
     const res = await fetch(`${API_BASE}/events/${id}?apiKey=${apiKey}`);
     if (!res.ok) return null;
     // deno-lint-ignore no-explicit-any
     const ev: any = await res.json();
-    const ft = (ev.scores && ev.scores.periods && ev.scores.periods.ft) || ev.scores || null;
+    const periods = ev.scores && ev.scores.periods;
+    const ft = (periods && periods.ft) || ev.scores || null;
+    const p1 = periods && periods.p1;
     const hasFt = ft && typeof ft.home === "number" && typeof ft.away === "number";
-    return { status: ev.status, ft: hasFt ? { home: ft.home, away: ft.away } : null };
+    const hasP1 = p1 && typeof p1.home === "number" && typeof p1.away === "number";
+    return {
+      status: ev.status,
+      ft: hasFt ? { home: ft.home, away: ft.away } : null,
+      p1: hasP1 ? { home: p1.home, away: p1.away } : null,
+    };
   } catch {
     return null;
   }
@@ -82,7 +91,7 @@ serve(async (req) => {
         .map((s) => s.eventId as string),
     )].slice(0, MAX_EVENTS_PER_RUN);
 
-    const statusMap = new Map<string, { status: string; ft: { home: number; away: number } | null }>();
+    const statusMap = new Map<string, { status: string; ft: Period; p1: Period }>();
     for (const id of eventIds) {
       const ev = await fetchEvent(id, apiKey);
       if (ev) statusMap.set(id, ev);
@@ -100,7 +109,7 @@ serve(async (req) => {
         const ev = statusMap.get(s.eventId);
         if (!ev || ev.status !== "settled") return null;
         if (!ev.ft) return "push"; // settled, ale bez čitelného skóre → vklad zpět
-        return settleSelection(s, ev.ft.home, ev.ft.away);
+        return settleSelection(s, { ft: ev.ft, p1: ev.p1 });
       });
       if (results.some((r) => r === null)) continue; // ještě není kompletně rozhodnuto
 

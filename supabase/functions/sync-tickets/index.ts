@@ -65,6 +65,7 @@ serve(async (req) => {
             league: saneStr(s.league, 120),
             marketName: saneStr(s.marketName, 60),
             field: saneStr(s.field, 40),
+            hdp: s.hdp == null ? null : saneNumber(s.hdp),
             startTime: saneDate(s.startTime),
             oddValue: saneNumber(s.oddValue),
           })).filter((s) => s.eventId)

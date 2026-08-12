@@ -374,45 +374,111 @@ const Portfolio = (() => {
     return { ok: true, cashout: amount };
   }
 
-  // Vyhodnotí jeden výběr tiketu podle finálního skóre zápasu (home/away).
-  // Trhy, které neumíme spolehlivě vyhodnotit z dostupných dat, vrací "push"
-  // (vklad se vrátí) místo hádání výsledku.
-  function settleSelection(sel, finalHome, finalAway) {
+  // Trhy seskupené podle toho, jaké skóre potřebují k vyhodnocení (FT =
+  // celý zápas, HT = poločas/1. sada) a jaký typ sázky to je. Market, který
+  // tu není zmíněný, se do nabídky vůbec nedostane (viz GRADEABLE_MARKETS
+  // v dashboard.js) — nikdy tak nejde vsadit na trh, co bychom uměli jen
+  // "tiše" vrátit jako push.
+  const HT_MARKETS = new Set([
+    "ML HT", "Half Time Result", "Totals HT", "Spread HT", "Odd/Even HT",
+    "Double Chance HT", "Alternative 1st Half Goal Line", "Alternative 1st Half Asian Handicap",
+  ]);
+  const ML_MARKETS = new Set(["ML", "ML HT", "Half Time Result"]);
+  const TOTALS_MARKETS = new Set([
+    "Totals", "Goals Over/Under", "Totals HT",
+    "Alternative Goal Line", "Alternative Total Goals", "Alternative 1st Half Goal Line",
+  ]);
+  const SPREAD_MARKETS = new Set([
+    "Spread", "Spread HT", "Alternative Asian Handicap", "Alternative 1st Half Asian Handicap",
+  ]);
+  const ODD_EVEN_MARKETS = new Set(["Odd/Even", "Odd/Even HT", "Odd/Even 2H"]);
+  const DOUBLE_CHANCE_MARKETS = new Set(["Double Chance", "Double Chance HT"]);
+
+  // Vyhodnotí jeden výběr tiketu. `scores` = { ft: {home,away}, p1:
+  // {home,away}|null } — p1 (poločas) je potřeba jen pro HT trhy a nemusí
+  // být vždy k dispozici, pak se HT trh vrátí jako push (nikdy neuhádneme).
+  // Trhy, které neumíme spolehlivě vyhodnotit, vrací "push" (vklad zpět)
+  // místo hádání výsledku.
+  function settleSelection(sel, scores) {
+    const market = sel.marketName;
+    const isHt = HT_MARKETS.has(market);
+    const period = isHt ? scores.p1 : scores.ft;
+    if (!period || typeof period.home !== "number" || typeof period.away !== "number") return "push";
+    const finalHome = period.home, finalAway = period.away;
     const total = finalHome + finalAway;
-    switch (sel.marketName) {
-      case "ML": {
-        if (finalHome === finalAway) return sel.field === "draw" ? "won" : "lost";
-        const winner = finalHome > finalAway ? "home" : "away";
-        return sel.field === winner ? "won" : "lost";
-      }
-      case "Totals":
-      case "Goals Over/Under": {
-        if (sel.hdp === undefined || sel.hdp === null) return "push";
-        if (total === sel.hdp) return "push";
-        const over = total > sel.hdp;
-        if (sel.field === "over") return over ? "won" : "lost";
-        if (sel.field === "under") return !over ? "won" : "lost";
-        return "push";
-      }
-      case "Both Teams To Score": {
-        const btts = finalHome > 0 && finalAway > 0;
-        if (sel.field === "yes") return btts ? "won" : "lost";
-        if (sel.field === "no") return !btts ? "won" : "lost";
-        return "push";
-      }
-      case "Spread": {
-        // Zjednodušení: hdp aplikujeme na domácí tým. Funguje přesně pro
-        // celé/poloviční linie; čtvrtinové linie (.25/.75) vrací jeden
-        // win/loss místo rozděleného vypořádání.
-        if (sel.hdp === undefined || sel.hdp === null) return "push";
-        const adjHome = finalHome + sel.hdp;
-        if (adjHome === finalAway) return "push";
-        const winner = adjHome > finalAway ? "home" : "away";
-        return sel.field === winner ? "won" : "lost";
-      }
-      default:
-        return "push";
+
+    if (ML_MARKETS.has(market)) {
+      if (finalHome === finalAway) return sel.field === "draw" ? "won" : "lost";
+      const winner = finalHome > finalAway ? "home" : "away";
+      return sel.field === winner ? "won" : "lost";
     }
+
+    if (TOTALS_MARKETS.has(market)) {
+      if (sel.hdp == null) return "push";
+      if (total === sel.hdp) return "push";
+      const over = total > sel.hdp;
+      if (sel.field === "over") return over ? "won" : "lost";
+      if (sel.field === "under") return !over ? "won" : "lost";
+      return "push";
+    }
+
+    if (market === "Both Teams To Score") {
+      const btts = finalHome > 0 && finalAway > 0;
+      if (sel.field === "yes") return btts ? "won" : "lost";
+      if (sel.field === "no") return !btts ? "won" : "lost";
+      return "push";
+    }
+
+    if (SPREAD_MARKETS.has(market)) {
+      // Zjednodušení: hdp aplikujeme na domácí tým. Funguje přesně pro
+      // celé/poloviční linie; čtvrtinové linie (.25/.75) vrací jeden
+      // win/loss místo rozděleného vypořádání.
+      if (sel.hdp == null) return "push";
+      const adjHome = finalHome + sel.hdp;
+      if (adjHome === finalAway) return "push";
+      const winner = adjHome > finalAway ? "home" : "away";
+      return sel.field === winner ? "won" : "lost";
+    }
+
+    if (market === "European Handicap") {
+      // Jako Spread, ale remíza po handicapu je platný 3. výsledek (draw),
+      // ne push.
+      if (sel.hdp == null) return "push";
+      const adjHome = finalHome + sel.hdp;
+      const winner = adjHome === finalAway ? "draw" : adjHome > finalAway ? "home" : "away";
+      return sel.field === winner ? "won" : "lost";
+    }
+
+    if (market === "Draw No Bet") {
+      if (finalHome === finalAway) return "push"; // remíza = vklad zpět
+      const winner = finalHome > finalAway ? "home" : "away";
+      return sel.field === winner ? "won" : "lost";
+    }
+
+    if (DOUBLE_CHANCE_MARKETS.has(market)) {
+      const winner = finalHome === finalAway ? "draw" : finalHome > finalAway ? "home" : "away";
+      const covers = { "1X": ["home", "draw"], "12": ["home", "away"], "X2": ["draw", "away"] };
+      const set = covers[sel.field];
+      if (!set) return "push";
+      return set.includes(winner) ? "won" : "lost";
+    }
+
+    if (ODD_EVEN_MARKETS.has(market)) {
+      // "2H" (druhý poločas) potřebuje FT i HT skóre zvlášť.
+      let sum;
+      if (market === "Odd/Even 2H") {
+        if (!scores.p1 || typeof scores.p1.home !== "number") return "push";
+        sum = (scores.ft.home - scores.p1.home) + (scores.ft.away - scores.p1.away);
+      } else {
+        sum = total;
+      }
+      const isOdd = Math.abs(sum) % 2 === 1;
+      if (sel.field === "odd") return isOdd ? "won" : "lost";
+      if (sel.field === "even") return !isOdd ? "won" : "lost";
+      return "push";
+    }
+
+    return "push";
   }
 
   const FAILED_LOOKUP = "__failed__"; // sentinel: cacheGet can't tell "no entry" apart from a cached null
@@ -469,7 +535,8 @@ const Portfolio = (() => {
         if (!ev || ev.status !== "settled") return null;
         const ft = (ev.scores && ev.scores.periods && ev.scores.periods.ft) || ev.scores;
         if (!ft || typeof ft.home !== "number" || typeof ft.away !== "number") return "push";
-        return settleSelection(s, ft.home, ft.away);
+        const p1 = ev.scores && ev.scores.periods && ev.scores.periods.p1;
+        return settleSelection(s, { ft, p1: p1 || null });
       });
       if (results.some((r) => r === null)) return;
 

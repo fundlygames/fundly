@@ -685,8 +685,8 @@ async function loadSportEvents(sport, live) {
         bookmaker,
         odds: [parseFloat(row.home), row.draw ? parseFloat(row.draw) : null, parseFloat(row.away)],
         markets: markets
-          .filter((m) => Array.isArray(m.odds) && m.odds.length)
-          .slice(0, 14), // all markets for the match detail
+          .filter((m) => Array.isArray(m.odds) && m.odds.length && GRADEABLE_MARKETS.has(m.name))
+          .slice(0, 14), // only markets we can actually settle — see GRADEABLE_MARKETS
       };
     })
     .filter(Boolean)
@@ -714,6 +714,7 @@ const MARKET_LABELS = {
   "ML": "Match winner",
   "Draw No Bet": "Draw no bet",
   "Double Chance": "Double chance",
+  "Double Chance HT": "Double chance · 1st half",
   "Spread": "Asian handicap",
   "European Handicap": "European handicap",
   "Totals": "Total points (over / under)",
@@ -722,11 +723,37 @@ const MARKET_LABELS = {
   "Spread HT": "Handicap · 1st half",
   "Totals HT": "Total · 1st half",
   "ML HT": "Winner · 1st half",
-  "Corners": "Corners",
-  "Correct Score": "Correct score",
+  "Half Time Result": "Winner · 1st half",
+  "Odd/Even": "Total goals odd / even",
+  "Odd/Even HT": "Odd / even · 1st half",
+  "Odd/Even 2H": "Odd / even · 2nd half",
+  "Alternative Goal Line": "Total points (alt. line)",
+  "Alternative Total Goals": "Total goals (alt. line)",
+  "Alternative 1st Half Goal Line": "Total · 1st half (alt. line)",
+  "Alternative Asian Handicap": "Asian handicap (alt. line)",
+  "Alternative 1st Half Asian Handicap": "Handicap · 1st half (alt. line)",
 };
-const PICK_LABELS = { home: "1", draw: "X", away: "2", over: "Over", under: "Under", yes: "Yes", no: "No" };
-const PICK_FIELDS = ["home", "draw", "away", "over", "under", "yes", "no"];
+// Trhy, co skutečně umíme vyhodnotit (viz settleSelection v js/portfolio.js —
+// obě sady MUSÍ zůstat v souladu). Zápas může nabízet desítky dalších trhů
+// (rohy, kdo skóruje jako první/poslední, správný výsledek, ...), ale bez
+// dat o průběhu zápasu (jen konečné skóre / poločas) je neumíme spolehlivě
+// vyhodnotit — takže se na ně vůbec nedá vsadit, místo aby tiket "tiše"
+// skončil jako push a hráč nechápal proč.
+const GRADEABLE_MARKETS = new Set([
+  "ML", "ML HT", "Half Time Result",
+  "Totals", "Goals Over/Under", "Totals HT",
+  "Alternative Goal Line", "Alternative Total Goals", "Alternative 1st Half Goal Line",
+  "Both Teams To Score",
+  "Spread", "Spread HT", "Alternative Asian Handicap", "Alternative 1st Half Asian Handicap",
+  "European Handicap", "Draw No Bet",
+  "Double Chance", "Double Chance HT",
+  "Odd/Even", "Odd/Even HT", "Odd/Even 2H",
+]);
+const PICK_LABELS = {
+  home: "1", draw: "X", away: "2", over: "Over", under: "Under", yes: "Yes", no: "No",
+  odd: "Odd", even: "Even", "1X": "1X", "12": "12", "X2": "X2",
+};
+const PICK_FIELDS = ["home", "draw", "away", "over", "under", "yes", "no", "odd", "even", "1X", "12", "X2"];
 
 function marketLabel(name) { return MARKET_LABELS[name] || name; }
 
