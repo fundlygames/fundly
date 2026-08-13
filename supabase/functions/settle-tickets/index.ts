@@ -35,11 +35,21 @@ type TicketRow = {
 };
 
 type Period = { home: number; away: number } | null;
+// gone = event nenalezen (odds-api.io drží historii jen ~24-48h, pak
+// event navždy zmizí, i pro dávno skončené zápasy — ověřeno naostro).
+type EventResult = { found: true; status: string; ft: Period; p1: Period } | { found: false };
 
-async function fetchEvent(id: string, apiKey: string): Promise<{ status: string; ft: Period; p1: Period } | null> {
+// Bezpečnostní práh: pokud je event nenalezený A poslední výběr tiketu
+// začal před víc než 30 hodinami (bezpečná rezerva před ~24-48h, kdy
+// odds-api data mažou), tiket se vypořádá jako push (vklad zpět) — nikdy
+// nezůstane zaseknutý navěky jen proto, že zdroj dat historii smazal.
+const STALE_AFTER_MS = 30 * 3600 * 1000;
+
+async function fetchEvent(id: string, apiKey: string): Promise<EventResult> {
   try {
     const res = await fetch(`${API_BASE}/events/${id}?apiKey=${apiKey}`);
-    if (!res.ok) return null;
+    if (res.status === 404) return { found: false };
+    if (!res.ok) throw new Error(`HTTP ${res.status}`); // transientní chyba, zkusí se příště znovu
     // deno-lint-ignore no-explicit-any
     const ev: any = await res.json();
     const periods = ev.scores && ev.scores.periods;
@@ -48,12 +58,13 @@ async function fetchEvent(id: string, apiKey: string): Promise<{ status: string;
     const hasFt = ft && typeof ft.home === "number" && typeof ft.away === "number";
     const hasP1 = p1 && typeof p1.home === "number" && typeof p1.away === "number";
     return {
+      found: true,
       status: ev.status,
       ft: hasFt ? { home: ft.home, away: ft.away } : null,
       p1: hasP1 ? { home: p1.home, away: p1.away } : null,
     };
   } catch {
-    return null;
+    return { found: false };
   }
 }
 
@@ -91,27 +102,42 @@ serve(async (req) => {
         .map((s) => s.eventId as string),
     )].slice(0, MAX_EVENTS_PER_RUN);
 
-    const statusMap = new Map<string, { status: string; ft: Period; p1: Period }>();
+    const statusMap = new Map<string, EventResult>();
     for (const id of eventIds) {
-      const ev = await fetchEvent(id, apiKey);
-      if (ev) statusMap.set(id, ev);
+      statusMap.set(id, await fetchEvent(id, apiKey));
     }
 
     let settledCount = 0;
+    let staleCount = 0;
     const nowIso = new Date().toISOString();
 
     for (const ticket of tickets) {
       const selections = ticket.selections || [];
       if (!selections.length) continue;
 
+      let hadStaleFallback = false;
       const results: ("won" | "lost" | "push" | null)[] = selections.map((s) => {
-        if (!s.eventId || !s.startTime || new Date(s.startTime).getTime() > now) return null;
+        if (!s.eventId || !s.startTime) return null;
+        const startedAgo = now - new Date(s.startTime).getTime();
+        if (startedAgo < 0) return null; // ještě nezačalo
         const ev = statusMap.get(s.eventId);
-        if (!ev || ev.status !== "settled") return null;
+        const stale = startedAgo > STALE_AFTER_MS;
+        if (!ev || !ev.found) {
+          // event zmizel z odds-api (historie se maže po ~24-48h) — po
+          // bezpečné rezervě to vypořádáme jako push, ať tiket nezůstane
+          // zaseknutý navěky jen kvůli chybějícím datům u zdroje.
+          if (stale) hadStaleFallback = true;
+          return stale ? "push" : null;
+        }
+        if (ev.status !== "settled") {
+          if (stale) hadStaleFallback = true;
+          return stale ? "push" : null;
+        }
         if (!ev.ft) return "push"; // settled, ale bez čitelného skóre → vklad zpět
         return settleSelection(s, { ft: ev.ft, p1: ev.p1 });
       });
       if (results.some((r) => r === null)) continue; // ještě není kompletně rozhodnuto
+      if (hadStaleFallback) staleCount++;
 
       let status: "won" | "lost" | "push";
       let payout = 0;
