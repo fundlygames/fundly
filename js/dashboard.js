@@ -1096,7 +1096,10 @@ function renderSlip() {
       note.hidden = false;
       return;
     }
-    note.textContent = "Ticket accepted! Track it in the Overview.";
+    note.textContent = result.warning
+      ? `Ticket accepted. ${result.warning}`
+      : "Ticket accepted! Track it in the Overview.";
+    note.className = result.warning ? "auth-note mt warn" : "auth-note mt";
     note.hidden = false;
     btn.disabled = true;
     scheduleAccountSync();

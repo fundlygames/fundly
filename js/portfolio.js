@@ -308,10 +308,12 @@ const Portfolio = (() => {
 
     // Exposure-based worst-case check (viz zadání pravidel) — nahrazuje
     // holé porovnání s balance, počítá i s ostatními otevřenými tikety.
+    // Je to jen varování, ne blokace: hráč smí vsadit i přes riziko
+    // breach, ale musí o něm vědět předem (na žádost testera).
     const worst = worstCaseInfo(state, amount);
-    if (worst.worstCaseBalance < worst.dailyFloor || worst.worstCaseBalance < worst.totalFloor) {
-      return { ok: false, error: "This bet would breach your loss limit if every open ticket lost. Wait for pending tickets to settle or lower the stake." };
-    }
+    const worstCaseWarning = (worst.worstCaseBalance < worst.dailyFloor || worst.worstCaseBalance < worst.totalFloor)
+      ? "Heads up: if every open ticket lost, this bet would breach your loss limit and could burn the account."
+      : null;
 
     // Consistency rule: potenciální čistý zisk jednoho tiketu ≤ 40 % z cíle.
     const potentialProfit = amount * (combinedOdds - 1);
@@ -353,7 +355,7 @@ const Portfolio = (() => {
     state.tickets.unshift(ticket);
     state.equityHistory.push({ t: now, balance: state.balance });
     save(state);
-    return { ok: true, ticket };
+    return { ok: true, ticket, warning: worstCaseWarning };
   }
 
   // Early cashout čekajícího tiketu: pragmaticky 90 % vkladu (bez dat
