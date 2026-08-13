@@ -1048,7 +1048,7 @@ function renderSlip() {
     return;
   }
   const portfolio = Portfolio.ensure("advanced");
-  const maxStake = portfolio.maxStake;
+  const maxStake = Portfolio.ruleMeta(portfolio).maxStake;
   const totalOdds = slip.reduce((a, s) => a * s.odds, 1);
   slipBody.innerHTML = `
     ${slip.map((s) => `

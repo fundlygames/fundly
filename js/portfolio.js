@@ -287,6 +287,9 @@ const Portfolio = (() => {
   function placeBet(selections, stake, extraFlags) {
     const state = get();
     if (!state) return { ok: false, error: "Please sign in first." };
+    if (breachInfo(state).breached) {
+      return { ok: false, error: "This account has breached its loss limit and is closed. Buy a new Challenge to keep trading." };
+    }
     if (!selections || !selections.length) return { ok: false, error: "Your ticket is empty." };
     const amount = Number(stake);
     if (!amount || amount <= 0) return { ok: false, error: "Enter a valid stake amount." };
