@@ -940,6 +940,45 @@ body::after {
 .slip-total .green { color: var(--accent); }
 .slip .field { margin: 10px 0 12px; }
 
+/* mobile: tiket je v DOM daleko pod dlouhým seznamem zápasů, sticky na
+   jednosloupcovém layoutu nepomůže — plovoucí lišta nad spodním menu dá
+   hned vědět, že se výběr přidal, a odskočí na tiket bez ručního scrollu. */
+.mobile-slip-bar {
+  position: fixed;
+  left: 10px;
+  right: 10px;
+  bottom: calc(66px + env(safe-area-inset-bottom));
+  z-index: 49;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--accent);
+  color: #04140c;
+  border: none;
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-family: inherit;
+  font-weight: 700;
+  box-shadow: 0 10px 24px rgb(20 241 149 / .3);
+  animation: msb-in .2s var(--ease);
+}
+@media (min-width: 1024px) { .mobile-slip-bar { display: none; } }
+.msb-count {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #04140c;
+  color: var(--accent);
+  font-size: .75rem;
+}
+.msb-text { flex: 1; text-align: left; font-size: .8125rem; }
+.msb-cta { font-size: .8125rem; flex-shrink: 0; }
+@keyframes msb-in { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
 /* ---------- rozbalovací tikety + early cashout ---------- */
 .k-row.tk { display: block; padding: 0; }
 .k-row.tk summary {

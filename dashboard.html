@@ -263,12 +263,21 @@
           <div class="panel" style="padding:6px 4px">
             <div id="matchList"><!-- JS --></div>
           </div>
-          <aside class="panel slip">
+          <aside class="panel slip" id="slipPanel">
             <h3>Ticket</h3>
             <div id="slipBody"><!-- JS --></div>
           </aside>
         </div>
       </section>
+
+      <!-- mobile: seznam zápasů je dlouhý, tiket je v DOM až za ním (sticky
+           na jednosloupcovém layoutu nepomůže) — plovoucí lišta dá vědět,
+           že se výběr přidal, bez nutnosti scrollovat úplně dolů -->
+      <button type="button" class="mobile-slip-bar" id="mobileSlipBar" hidden>
+        <span class="msb-count" id="msbCount">1</span>
+        <span class="msb-text" id="msbText">1 pick added</span>
+        <span class="msb-cta">View ticket ›</span>
+      </button>
 
       <!-- ============ LEADERBOARD ============ -->
       <section class="dash-view" id="view-zebricek" hidden>

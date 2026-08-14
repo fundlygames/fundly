@@ -26,6 +26,10 @@ function showView(name) {
   const moreBtn = document.getElementById("dnavMoreBtn");
   if (moreBtn) moreBtn.classList.toggle("active", MORE_SHEET_VIEWS.includes(name));
   closeMoreSheet();
+  // plovoucí "ticket added" lišta patří jen na Betting sekci
+  const slipBar = document.getElementById("mobileSlipBar");
+  if (slipBar && name !== "sazeni") slipBar.hidden = true;
+  else if (slipBar && name === "sazeni" && typeof updateMobileSlipBar === "function") updateMobileSlipBar();
   window.scrollTo({ top: 0, behavior: "instant" });
   if (name === "prehled" && typeof renderPrehled === "function") renderPrehled();
   if (name === "vykon" && typeof renderVykon === "function") renderVykon();
@@ -1103,7 +1107,21 @@ function renderBankBar() {
   document.getElementById("bankOddsRange").textContent = `${ODDS_MIN.toFixed(2)} to ${ODDS_MAX.toFixed(2)}`;
 }
 
+function updateMobileSlipBar() {
+  const bar = document.getElementById("mobileSlipBar");
+  if (!bar) return;
+  if (!slip.length) { bar.hidden = true; return; }
+  document.getElementById("msbCount").textContent = slip.length;
+  document.getElementById("msbText").textContent = slip.length === 1 ? "1 pick added" : `${slip.length} picks added`;
+  bar.hidden = false;
+}
+
+document.getElementById("mobileSlipBar")?.addEventListener("click", () => {
+  document.getElementById("slipPanel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
 function renderSlip() {
+  updateMobileSlipBar();
   if (!slip.length) {
     slipBody.innerHTML = `<p class="slip-empty"><img src="assets/fan-1.jpg" alt="" />Your ticket is empty.<br />Pick odds from the offer.</p>`;
     return;
