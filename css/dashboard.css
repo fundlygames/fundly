@@ -167,34 +167,77 @@ body::after {
 .notif-time { font-size: .6875rem; color: var(--text-muted); margin-top: 4px; }
 .notif-empty { padding: 24px 14px; text-align: center; color: var(--text-muted); font-size: .8125rem; }
 
-/* mobilní spodní lišta */
+/* mobilní spodní lišta: 5 hlavních položek (poslední = "More" sheet) */
 .dnav-mobile {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
   z-index: 50;
-  display: flex;
-  justify-content: space-around;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
   background: rgb(2 2 4 / .96);
+  backdrop-filter: blur(10px);
   border-top: 1px solid var(--line);
-  padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+  padding: 4px 2px calc(4px + env(safe-area-inset-bottom));
 }
 @media (min-width: 1024px) { .dnav-mobile { display: none; } }
 .dnav-mobile button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  justify-content: center;
+  gap: 3px;
   border: none;
   background: none;
   color: var(--text-muted);
-  font-size: .5625rem;
+  font-size: .625rem;
   font-weight: 600;
-  padding: 6px 8px;
+  min-height: 52px;
+  padding: 6px 2px;
+  border-radius: 10px;
+  transition: color .15s ease, background .15s ease;
+}
+.dnav-mobile button:active { background: #ffffff0f; }
+.dnav-mobile button.active { color: var(--accent); }
+.dnav-mobile button svg { flex-shrink: 0; }
+
+/* "More" sheet: zbylé sekce (Leaderboard/Affiliate/Academy/Profile) */
+.dnav-more-sheet {
+  position: fixed;
+  left: 10px;
+  right: 10px;
+  bottom: calc(66px + env(safe-area-inset-bottom));
+  z-index: 51;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  background: rgb(10 10 14 / .98);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 10px;
+  box-shadow: 0 -8px 28px rgb(0 0 0 / .4);
+}
+.dnav-more-sheet[hidden] { display: none; }
+@media (min-width: 1024px) { .dnav-more-sheet { display: none; } }
+.dnav-more-sheet button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  font-size: .6875rem;
+  font-weight: 600;
+  min-height: 56px;
+  padding: 8px 4px;
   border-radius: 10px;
 }
-.dnav-mobile button.active { color: var(--accent); }
+.dnav-more-sheet button:active { background: #ffffff0f; }
+.dnav-more-sheet button.active { color: var(--accent); }
 
 /* ---------- Layout ---------- */
 .dash-main { padding: 24px 0 96px; }
@@ -347,7 +390,7 @@ body::after {
 @media (min-width: 1024px) { .ov-layout { grid-template-columns: minmax(0, 1fr) 340px; } }
 
 /* limited dashboard (bez aktivního účtu): schováme navigaci a odsazení sidebaru */
-.limited .dside, .limited .dnav-mobile { display: none; }
+.limited .dside, .limited .dnav-mobile, .limited .dnav-more-sheet { display: none; }
 @media (min-width: 1024px) { .limited .dash-main { padding-left: 0; } }
 
 /* nápadný panel — aktivace funded účtu / CTA na novou výzvu */
@@ -669,7 +712,11 @@ body::after {
 .bet-filters { margin-bottom: 10px; }
 .bf-grid { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; }
 @media (min-width: 1024px) { .bf-grid { grid-template-columns: 2fr 1fr 1.4fr 1fr; } }
-.bf-grid .field { margin-bottom: 0; }
+/* grid/flex items default to min-width:auto, which refuses to shrink below
+   the <input>/<select>'s intrinsic content width — on narrow viewports that
+   pushed Date/League/Odds off the right edge of the screen entirely. */
+.bf-grid .field { margin-bottom: 0; min-width: 0; }
+.bf-grid .input { width: 100%; }
 .bf-quick {
   display: flex;
   align-items: center;

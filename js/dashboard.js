@@ -5,6 +5,17 @@ const usd = (n) => "$" + Math.round(n).toLocaleString("en-US");
 // ---------- section switching ----------
 const views = ["prehled", "vykon", "sazeni", "zebricek", "vyplaty", "affiliate", "akademie", "profil"];
 
+// "More" sheet na mobilu: sekce, co se nevejdou do spodní lišty
+// (Leaderboard/Affiliate/Academy/Profile) — otevře se přes #dnavMoreBtn.
+const MORE_SHEET_VIEWS = ["zebricek", "affiliate", "akademie", "profil"];
+
+function closeMoreSheet() {
+  const sheet = document.getElementById("dnavMoreSheet");
+  const btn = document.getElementById("dnavMoreBtn");
+  if (sheet) sheet.hidden = true;
+  if (btn) btn.setAttribute("aria-expanded", "false");
+}
+
 function showView(name) {
   views.forEach((v) => {
     document.getElementById(`view-${v}`).hidden = v !== name;
@@ -12,6 +23,9 @@ function showView(name) {
   document.querySelectorAll("[data-view]").forEach((b) => {
     b.classList.toggle("active", b.dataset.view === name);
   });
+  const moreBtn = document.getElementById("dnavMoreBtn");
+  if (moreBtn) moreBtn.classList.toggle("active", MORE_SHEET_VIEWS.includes(name));
+  closeMoreSheet();
   window.scrollTo({ top: 0, behavior: "instant" });
   if (name === "prehled" && typeof renderPrehled === "function") renderPrehled();
   if (name === "vykon" && typeof renderVykon === "function") renderVykon();
@@ -22,10 +36,19 @@ function showView(name) {
 }
 
 document.addEventListener("click", (e) => {
+  const moreBtn = e.target.closest("#dnavMoreBtn");
+  if (moreBtn) {
+    const sheet = document.getElementById("dnavMoreSheet");
+    const open = sheet.hidden;
+    sheet.hidden = !open;
+    moreBtn.setAttribute("aria-expanded", String(open));
+    return;
+  }
   const nav = e.target.closest("[data-view]");
   if (nav) { showView(nav.dataset.view); return; }
   const link = e.target.closest("[data-view-link]");
-  if (link) showView(link.dataset.viewLink);
+  if (link) { showView(link.dataset.viewLink); return; }
+  if (!e.target.closest("#dnavMoreSheet")) closeMoreSheet();
 });
 
 // ---------- overview: sub-tabs ----------
