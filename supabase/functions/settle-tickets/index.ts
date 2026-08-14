@@ -32,6 +32,7 @@ type TicketRow = {
   selections: TicketSelection[];
   stake: number | null;
   combined_odds: number | null;
+  placed_at: string;
 };
 
 type Period = { home: number; away: number } | null;
@@ -87,7 +88,7 @@ serve(async (req) => {
 
     const { data: pending } = await supabase
       .from("tickets")
-      .select("id, selections, stake, combined_odds")
+      .select("id, selections, stake, combined_odds, placed_at")
       .eq("status", "pending")
       .order("placed_at", { ascending: true })
       .limit(MAX_TICKETS_PER_RUN);
@@ -116,8 +117,16 @@ serve(async (req) => {
       if (!selections.length) continue;
 
       let hadStaleFallback = false;
+      // tiket "starý" i podle placed_at — pojistka pro selekce bez eventId/
+      // startTime (poškozená data ze staršího klienta), které by jinak
+      // navěky zůstaly viset, protože selectionová staleness kontrola níž
+      // se na ně vůbec nedostane.
+      const ticketStale = now - new Date(ticket.placed_at).getTime() > STALE_AFTER_MS;
       const results: ("won" | "lost" | "push" | null)[] = selections.map((s) => {
-        if (!s.eventId || !s.startTime) return null;
+        if (!s.eventId || !s.startTime) {
+          if (ticketStale) hadStaleFallback = true;
+          return ticketStale ? "push" : null;
+        }
         const startedAgo = now - new Date(s.startTime).getTime();
         if (startedAgo < 0) return null; // ještě nezačalo
         const ev = statusMap.get(s.eventId);

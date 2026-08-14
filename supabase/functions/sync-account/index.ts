@@ -71,6 +71,21 @@ serve(async (req) => {
       ? null
       : String(body.breachReason).slice(0, 200);
 
+    // plný snapshot pro věrnou obnovu stavu na jiném zařízení/po smazání
+    // localStorage (viz 015_account_restore.sql) — volitelné, starší klienti
+    // je neposílají, pak zůstanou předchozí hodnoty na řádku beze změny.
+    function saneDate(v: unknown): string | null {
+      if (!v) return null;
+      const d = new Date(String(v));
+      return Number.isNaN(d.getTime()) ? null : d.toISOString();
+    }
+    const hwm = saneNumber(body.hwm, 1e8);
+    const phaseBaseline = saneNumber(body.phaseBaseline, 1e8);
+    const phaseStartedAt = saneDate(body.phaseStartedAt);
+    const dayStartDate = body.dayStartDate ? String(body.dayStartDate).slice(0, 10) : null;
+    const dayStartBalance = saneNumber(body.dayStartBalance, 1e8);
+    const lastPayoutAt = saneDate(body.lastPayoutAt);
+
     // rizikové skóre z klienta (pravidelné, 0–100 + krátké důvody)
     const riskScore = body.riskScore == null ? null : saneInt(body.riskScore, 1000);
     if (body.riskScore != null && riskScore === null) {
@@ -170,6 +185,12 @@ serve(async (req) => {
         tickets_total: ticketsTotal,
         tickets_won: ticketsWon,
         synced_at: now,
+        ...(hwm != null ? { hwm } : {}),
+        ...(phaseBaseline != null ? { phase_baseline: phaseBaseline } : {}),
+        ...(phaseStartedAt ? { phase_started_at: phaseStartedAt } : {}),
+        ...(dayStartDate ? { day_start_date: dayStartDate } : {}),
+        ...(dayStartBalance != null ? { day_start_balance: dayStartBalance } : {}),
+        ...(lastPayoutAt ? { last_payout_at: lastPayoutAt } : {}),
         ...phaseStamps,
         ...lastTicketStamp,
         ...(bettingProfile ? { betting_profile: bettingProfile } : {}),

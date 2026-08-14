@@ -179,9 +179,10 @@ function fireConfetti() {
 }
 
 function celebrateTicket(ticket) {
+  const cSel0 = ticket.selections[0];
   const label = ticket.selections.length > 1
     ? `${ticket.selections.length}× accumulator`
-    : `${ticket.selections[0].homeTeam} – ${ticket.selections[0].awayTeam}`;
+    : (cSel0.homeTeam && cSel0.awayTeam ? `${cSel0.homeTeam} – ${cSel0.awayTeam}` : (cSel0.league || "Ticket"));
   if (ticket.status === "won") {
     showToast("win", "Ticket won! 🎉", `${label} · +${usd(ticket.payout - ticket.stake)}`);
     fireConfetti();
@@ -406,6 +407,14 @@ function buildAccountSnapshot(state) {
     ticketsWon: s.won,
     riskScore: risk.score,
     riskReasons: risk.reasons,
+    // pro věrnou obnovu stavu, kdyby klientovi zmizel localStorage (viz
+    // restore-account) — beze změny logiky vyhodnocování pravidel.
+    hwm: state.hwm,
+    phaseBaseline: state.phaseBaseline,
+    phaseStartedAt: state.phaseStartedAt,
+    dayStartDate: state.dayStartDate,
+    dayStartBalance: state.dayStartBalance,
+    lastPayoutAt: state.lastPayoutAt,
     bettingProfile: {
       topSports: top(bySport),
       topLeagues: top(byLeague),
@@ -581,6 +590,35 @@ async function syncChallengeAccount() {
 
     const state = Portfolio.get();
     if (state && state.packageKey === account.package_key) return;
+
+    // Lokální stav chybí nebo neodpovídá zaplacenému balíčku — nejdřív
+    // zkusit obnovit reálný postup ze serveru (localStorage může zmizet
+    // nezávisle na tom, co má hráč reálně rozehrané: Safari maže data
+    // po ~7 dnech neaktivity, soukromé okno, jiné zařízení/prohlížeč).
+    // Teprve když server nemá co obnovit (úplně nový účet, žádný sync
+    // v historii), založí se čerstvá simulace od nuly.
+    let restored = null;
+    try {
+      const { data: sessionData } = await client.auth.getSession();
+      const token = sessionData && sessionData.session && sessionData.session.access_token;
+      if (token) {
+        const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/restore-account`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json().catch(() => ({}));
+        if (data.account) restored = Portfolio.restore(data.account, data.tickets);
+      }
+    } catch (e) { /* restore je best-effort, spadneme zpátky na init() */ }
+
+    if (restored) {
+      if (typeof renderPrehled === "function") renderPrehled();
+      if (typeof renderVykon === "function") renderVykon();
+      if (typeof renderBankBar === "function") renderBankBar();
+      showToast("win", "Account restored", "Your progress was restored from the server.");
+      return;
+    }
+
     // the paid package differs from the local one → boot the simulation with it
     Portfolio.init(account.package_key);
     if (typeof renderPrehled === "function") renderPrehled();
@@ -1893,7 +1931,7 @@ function ticketDetailHtml(t) {
   return `
     <div class="tk-sels">
       ${t.selections.map((s) => `
-        <div class="tk-sel"><span>${s.homeTeam} – ${s.awayTeam} · ${s.pickLabel || s.field}<br><small style="color:var(--text-muted)">${fmtTime(s.startTime)}</small></span><span class="n">${s.oddValue.toFixed(2)}</span></div>`).join("")}
+        <div class="tk-sel"><span>${s.homeTeam && s.awayTeam ? `${s.homeTeam} – ${s.awayTeam}` : (s.league || "Match")} · ${s.pickLabel || s.field}<br><small style="color:var(--text-muted)">${fmtTime(s.startTime)}</small></span><span class="n">${s.oddValue.toFixed(2)}</span></div>`).join("")}
     </div>
     <div class="tk-meta">
       <span>Stake <b>${usd(t.stake)}</b></span>
@@ -1909,9 +1947,10 @@ function renderRecentTickets(state) {
     return `<p class="bet-msg">No tickets yet. Place your first one in the Betting section.</p>`;
   }
   return recent.map((t) => {
+    const rSel0 = t.selections[0];
     const label = t.selections.length > 1
       ? `${t.selections.length}× accumulator`
-      : `${t.selections[0].homeTeam} – ${t.selections[0].awayTeam}`;
+      : (rSel0.homeTeam && rSel0.awayTeam ? `${rSel0.homeTeam} – ${rSel0.awayTeam}` : (rSel0.league || "Ticket"));
     const [tag, tagText] = ticketTag(t);
     // čekající tiket je rozbalovací (detail + cashout)
     if (t.status === "pending") {
@@ -2249,10 +2288,11 @@ function renderVykon() {
 
   const recent = state.tickets.slice(0, 8);
   document.getElementById("vykonTicketTable").innerHTML = recent.length ? recent.map((t) => {
+    const vSel0 = t.selections[0];
     const label = t.selections.length > 1
       ? `${t.selections.length}× accumulator`
-      : `${t.selections[0].homeTeam} – ${t.selections[0].awayTeam}`;
-    const tip = t.selections.length > 1 ? "AKU" : (t.selections[0].pickLabel || "");
+      : (vSel0.homeTeam && vSel0.awayTeam ? `${vSel0.homeTeam} – ${vSel0.awayTeam}` : (vSel0.league || "Ticket"));
+    const tip = t.selections.length > 1 ? "AKU" : (vSel0.pickLabel || "");
     const [tag, tagText] = ticketTag(t);
     // čekající tiket: kliknutelný řádek + skrytý detail s cashoutem
     if (t.status === "pending") {

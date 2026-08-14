@@ -75,6 +75,9 @@ function isValueBetSelection(valueBets, sel) {
 
 const Portfolio = (() => {
   const STORAGE_KEY = "bf2:portfolio";
+  // odds-api.io drží data zápasu jen ~24-48h — stejná bezpečná rezerva
+  // jako server-side pojistka v settle-tickets/index.ts.
+  const STALE_AFTER_MS = 30 * 3600 * 1000;
 
   function get() {
     try {
@@ -110,6 +113,45 @@ const Portfolio = (() => {
       lastPayoutAt: null, // kvalifikační tikety se před každým payoutem resetují
       tickets: [],
       equityHistory: [{ t: now, balance: pkg.cap }],
+    };
+    save(state);
+    return state;
+  }
+
+  // Obnoví lokální stav ze serverového snapshotu (viz restore-account) místo
+  // zakládání čerstvého účtu — používá se, když klientovi zmizí localStorage
+  // (Safari ITP, soukromé okno, jiné zařízení), ale server má reálný placený
+  // účet s historií. account = řádek z challenge_accounts, tickets = řádky
+  // z tabulky tickets (nejnovější první).
+  function restore(account, tickets) {
+    const pkg = packageByKey(account.package_key);
+    const now = new Date().toISOString();
+    const state = {
+      packageKey: pkg.key,
+      packageName: pkg.name,
+      cap: pkg.cap,
+      price: pkg.price,
+      phase: account.phase === 3 ? "funded" : account.phase,
+      phaseBaseline: account.phase_baseline ?? pkg.cap,
+      phaseStartedAt: account.phase_started_at ?? now,
+      balance: account.phase_balance ?? pkg.cap,
+      hwm: account.hwm ?? account.phase_balance ?? pkg.cap,
+      dayStartDate: account.day_start_date ?? now.slice(0, 10),
+      dayStartBalance: account.day_start_balance ?? account.phase_balance ?? pkg.cap,
+      lastPayoutAt: account.last_payout_at ?? null,
+      tickets: (tickets || []).map((t) => ({
+        id: t.client_ticket_id,
+        placedAt: t.placed_at,
+        stake: Number(t.stake) || 0,
+        combinedOdds: Number(t.combined_odds) || 1,
+        status: t.status,
+        settledAt: t.settled_at,
+        payout: t.payout == null ? null : Number(t.payout),
+        selections: t.selections || [],
+      })),
+      // historii equity server nedrží — graf se od obnovy dál doplňuje nanovo,
+      // zůstatek/pravidla jsou ale plně přesné.
+      equityHistory: [{ t: now, balance: account.phase_balance ?? pkg.cap }],
     };
     save(state);
     return state;
@@ -523,10 +565,15 @@ const Portfolio = (() => {
     if (!pending.length) return state;
 
     const dueEventIds = new Set();
+    let anyStale = false;
     pending.forEach((t) => t.selections.forEach((s) => {
       if (new Date(s.startTime).getTime() <= now) dueEventIds.add(s.eventId);
     }));
-    if (!dueEventIds.size) return state;
+    pending.forEach((t) => {
+      const staleFrom = new Date(t.placedAt).getTime();
+      if (now - staleFrom > STALE_AFTER_MS) anyStale = true;
+    });
+    if (!dueEventIds.size && !anyStale) return state;
 
     const statuses = {};
     for (const id of dueEventIds) {
@@ -536,8 +583,14 @@ const Portfolio = (() => {
     let changed = false;
     pending.forEach((ticket) => {
       const results = ticket.selections.map((s) => {
+        // odds-api.io drží data zápasu jen ~24-48h — po bezpečné rezervě
+        // (30h od startu, případně od podání tiketu chybí-li startTime)
+        // se selekce vypořádá jako push, ať tiket nezůstane viset navěky
+        // stejně jako server-side pojistka v settle-tickets/index.ts.
+        const staleFrom = s.startTime ? new Date(s.startTime).getTime() : new Date(ticket.placedAt).getTime();
+        const stale = now - staleFrom > STALE_AFTER_MS;
         const ev = statuses[s.eventId];
-        if (!ev || ev.status !== "settled") return null;
+        if (!ev || ev.status !== "settled") return stale ? "push" : null;
         const ft = (ev.scores && ev.scores.periods && ev.scores.periods.ft) || ev.scores;
         if (!ft || typeof ft.home !== "number" || typeof ft.away !== "number") return "push";
         const p1 = ev.scores && ev.scores.periods && ev.scores.periods.p1;
@@ -600,7 +653,7 @@ const Portfolio = (() => {
   }
 
   return {
-    init, get, save, ensure, phaseTarget, daysRemaining, drawdownInfo, ruleMeta,
+    init, get, save, ensure, restore, phaseTarget, daysRemaining, drawdownInfo, ruleMeta,
     dailyLossInfo, breachInfo, cashOut, openExposure, worstCaseInfo, consistencyLimit,
     summary, dailyNet, placeBet, checkSettlements, countQualifyingTickets,
     applyServerSettlements,

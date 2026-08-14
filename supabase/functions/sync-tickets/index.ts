@@ -63,11 +63,14 @@ serve(async (req) => {
             eventId: saneStr(s.eventId, 60),
             sport: saneStr(s.sport, 60),
             league: saneStr(s.league, 120),
+            homeTeam: saneStr(s.homeTeam, 80),
+            awayTeam: saneStr(s.awayTeam, 80),
             marketName: saneStr(s.marketName, 60),
             field: saneStr(s.field, 40),
             hdp: s.hdp == null ? null : saneNumber(s.hdp),
             startTime: saneDate(s.startTime),
             oddValue: saneNumber(s.oddValue),
+            pickLabel: saneStr(s.pickLabel, 80),
           })).filter((s) => s.eventId)
         : [];
 
