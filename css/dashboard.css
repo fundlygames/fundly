@@ -130,6 +130,7 @@ body::after {
   z-index: 200;
   overflow: hidden;
 }
+.notif-panel[hidden] { display: none; }
 .notif-panel-head {
   display: flex;
   align-items: center;
@@ -726,6 +727,7 @@ body::after {
   padding-top: 14px;
   border-top: 1px solid var(--line);
 }
+.bf-quick[hidden] { display: none; }
 .bf-quick .filter-chip { height: 34px; }
 .bf-label { font-size: .75rem; color: var(--text-muted); }
 .live-dot {
@@ -962,6 +964,7 @@ body::after {
   box-shadow: 0 10px 24px rgb(20 241 149 / .3);
   animation: msb-in .2s var(--ease);
 }
+.mobile-slip-bar[hidden] { display: none; }
 @media (min-width: 1024px) { .mobile-slip-bar { display: none; } }
 .msb-count {
   flex-shrink: 0;

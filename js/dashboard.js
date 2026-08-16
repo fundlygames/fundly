@@ -532,8 +532,10 @@ function showLimitedDashboard(accounts) {
   document.querySelectorAll(".dash-view").forEach((v) => { v.hidden = true; });
   const view = document.getElementById("view-noaccount");
   if (view) view.hidden = false;
+  const pastPanel = document.getElementById("naPastPanel");
+  if (pastPanel) pastPanel.hidden = !accounts.length;
   const list = document.getElementById("naAccounts");
-  if (list) {
+  if (list && accounts.length) {
     const label = (s) => s === "funded" ? "Funded" : s === "active" ? "Active" : s === "breached" ? "Breached" : s;
     const tag = (s) => s === "funded" ? "win" : s === "active" ? "push" : "loss";
     list.innerHTML = accounts.map((a) => `
@@ -580,15 +582,18 @@ async function syncChallengeAccount() {
       window.location.replace("./");
       return;
     }
-    const { data: accounts, error } = await client
+    const { data: accountsRaw, error } = await client
       .from("challenge_accounts")
       .select("package_key, capital, phase, state, flags, created_at, inactivity_warned_7, inactivity_warned_13, nickname, leaderboard_opt_in")
       .order("created_at", { ascending: false });
     if (error) return;
-    if (!accounts || !accounts.length) {
-      window.location.replace("checkout");
-      return;
-    }
+    const accounts = accountsRaw || [];
+    // Přihlášený uživatel bez aktivního (active/funded) účtu — ať už nikdy
+    // žádný nekoupil, nebo mu poslední spálili/skončil — vždycky dostane
+    // tenhle limited dashboard (platební brána + nastavení účtu + historie
+    // starých účtů), ne tvrdý redirect na checkout. Dřív se bez jakéhokoli
+    // řádku v challenge_accounts posílalo rovnou na checkout a přeskočila
+    // se stránka, kde přihlášený člověk vidí svoje údaje.
     const account = accounts.find((a) => a.state === "active" || a.state === "funded");
     if (!account) {
       showLimitedDashboard(accounts);

@@ -29,6 +29,7 @@
   font-weight: 700;
   line-height: 1;
 }
+.nav-badge[hidden] { display: none; }
 
 .admin-env {
   color: var(--text-secondary);
