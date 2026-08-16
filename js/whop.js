@@ -78,6 +78,17 @@ const FundlyAuth = {
     return client.auth.signUp({ email, password });
   },
 
+  // Zapomenuté heslo: pošle e-mail s odkazem na dashboard, kde si po
+  // příchodu z odkazu (Supabase založí dočasnou "recovery" session) může
+  // hráč rovnou nastavit nové heslo přes panel "Account settings" —
+  // žádná zvláštní stránka pro to není potřeba.
+  async resetPassword(email) {
+    const client = await FundlyBackend.getClient();
+    if (!client) return { error: { message: "Backend is not configured." } };
+    const redirectTo = new URL("dashboard", window.location.href).href;
+    return client.auth.resetPasswordForEmail(email, { redirectTo });
+  },
+
   async getUser() {
     const client = await FundlyBackend.getClient();
     if (!client) return null;

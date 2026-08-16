@@ -1009,6 +1009,17 @@ footer {
   color: #f5b942;
   background: #f5b94222;
 }
+.auth-forgot { text-align: right; margin: -8px 0 16px; }
+.auth-forgot button {
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-size: .8125rem;
+  padding: 2px 4px;
+  border-radius: 6px;
+}
+.auth-forgot button:hover { color: var(--accent); text-decoration: underline; }
+.auth-forgot button:focus-visible { outline: 2px solid var(--primary); }
 .auth-switch {
   margin-top: 16px;
   text-align: center;

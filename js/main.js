@@ -199,6 +199,8 @@ function setAuthMode(mode) {
   authSwitchBtn.textContent = t.switchBtn;
   authPass.setAttribute("autocomplete", t.passAutocomplete);
   authNote.hidden = true;
+  const forgotRow = document.getElementById("authForgotRow");
+  if (forgotRow) forgotRow.hidden = mode !== "login";
 }
 
 function openAuth(mode) {
@@ -247,6 +249,29 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && !authModal.hidden) closeAuth();
 });
 authSwitchBtn.addEventListener("click", () => setAuthMode(authMode === "login" ? "register" : "login"));
+
+document.getElementById("authForgot")?.addEventListener("click", async () => {
+  const email = document.getElementById("authEmail").value.trim();
+  if (!email) {
+    authNote.textContent = "Enter your e-mail above first, then tap \"Forgot password?\" again.";
+    authNote.hidden = false;
+    document.getElementById("authEmail").focus();
+    return;
+  }
+  if (typeof fundlyBackendEnabled !== "function" || !fundlyBackendEnabled()) {
+    authNote.textContent = "Password reset is unavailable in demo mode.";
+    authNote.hidden = false;
+    return;
+  }
+  const btn = document.getElementById("authForgot");
+  btn.disabled = true;
+  const { error } = await FundlyAuth.resetPassword(email);
+  btn.disabled = false;
+  authNote.textContent = error
+    ? "Could not send the reset e-mail. Please try again."
+    : "If that e-mail has an account, we sent a password reset link to it.";
+  authNote.hidden = false;
+});
 
 authForm.addEventListener("submit", (e) => {
   e.preventDefault();
