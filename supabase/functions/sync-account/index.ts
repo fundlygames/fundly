@@ -159,19 +159,13 @@ serve(async (req) => {
       ? { last_ticket_at: now, inactivity_warned_7: false, inactivity_warned_13: false }
       : {};
 
-    // server-side signály (cross-account) + sloučení s klientským skóre
-    const serverRisk = await computeServerRiskSignals(supabase, {
-      id: account.id,
-      signup_ip: account.signup_ip,
-      payment_fingerprint: account.payment_fingerprint,
-      phase1_completed_at: phaseStamps.phase1_completed_at ?? account.phase1_completed_at,
-      funded_at: phaseStamps.funded_at ?? account.funded_at,
-      created_at: account.created_at,
-      betting_profile: bettingProfile ?? account.betting_profile,
-    });
-    const finalScore = (riskScore ?? 0) + serverRisk.score;
-    const finalReasons = [...riskReasons, ...serverRisk.reasons].slice(0, 15);
-
+    // Uložit hráčův snapshot HNED — to je jediná věc, na kterou klient
+    // reálně čeká (balance/tikety), a musí se to stihnout dřív, než hráč
+    // případně zavře kartu. computeServerRiskSignals() níž dělá cross-account
+    // fraud analýzu (až desítky dotazů) a klidně běžela dřív SYNCHRONNĚ před
+    // touhle odpovědí — u účtu s delší historií tím uměla natáhnout odezvu
+    // na 2+ s, což byl přesně ten prostor, kde hráč stihl zavřít kartu dřív,
+    // než se stihl uložit nový tiket ("vsaď → hned se odhlas → tiket zmizel").
     const { error: updateError } = await supabase
       .from("challenge_accounts")
       .update({
@@ -194,12 +188,42 @@ serve(async (req) => {
         ...phaseStamps,
         ...lastTicketStamp,
         ...(bettingProfile ? { betting_profile: bettingProfile } : {}),
-        risk_score: finalScore,
-        risk_reasons: finalReasons,
-        watch_status: watchStatusFor(finalScore),
       })
       .eq("id", account.id);
     if (updateError) throw updateError;
+
+    // Risk scoring doběhne na pozadí PO odeslání odpovědi (EdgeRuntime.
+    // waitUntil — Supabase edge runtime tohle podporuje přesně pro tenhle
+    // účel). Bez waitUntil (lokální/jiné prostředí) se to spustí "fire and
+    // forget" — nejhorší případ je, že se risk_score dopočítá o sync později.
+    const riskWork = (async () => {
+      try {
+        const serverRisk = await computeServerRiskSignals(supabase, {
+          id: account.id,
+          signup_ip: account.signup_ip,
+          payment_fingerprint: account.payment_fingerprint,
+          phase1_completed_at: phaseStamps.phase1_completed_at ?? account.phase1_completed_at,
+          funded_at: phaseStamps.funded_at ?? account.funded_at,
+          created_at: account.created_at,
+          betting_profile: bettingProfile ?? account.betting_profile,
+        });
+        const finalScore = (riskScore ?? 0) + serverRisk.score;
+        const finalReasons = [...riskReasons, ...serverRisk.reasons].slice(0, 15);
+        await supabase
+          .from("challenge_accounts")
+          .update({
+            risk_score: finalScore,
+            risk_reasons: finalReasons,
+            watch_status: watchStatusFor(finalScore),
+          })
+          .eq("id", account.id);
+      } catch (e) {
+        console.error("sync-account background risk scoring failed:", e);
+      }
+    })();
+    // deno-lint-ignore no-explicit-any
+    const edgeRuntime = (globalThis as any).EdgeRuntime;
+    if (edgeRuntime?.waitUntil) edgeRuntime.waitUntil(riskWork);
 
     return jsonResponse({ ok: true });
   } catch (err) {

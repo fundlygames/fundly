@@ -37,30 +37,33 @@ export async function computeServerRiskSignals(supabase: any, account: {
   let score = 0;
   const reasons: string[] = [];
 
+  // Čtyři nezávislé dotazy (žádný nepotřebuje výsledek jiného) — dřív šly
+  // sekvenčně za sebou, což u sync-account (volá se na KAŽDÉ podání sázky)
+  // zbytečně natahovalo odezvu o stovky ms navíc. Paralelně trvá tenhle
+  // úsek jako ten nejpomalejší jeden dotaz, ne součet všech čtyř.
+  const [ipRes, fpRes, myTicketsRes] = await Promise.all([
+    account.signup_ip
+      ? supabase.from("challenge_accounts").select("id", { count: "exact", head: true })
+          .eq("signup_ip", account.signup_ip).neq("id", account.id)
+      : Promise.resolve({ count: 0 }),
+    account.payment_fingerprint
+      ? supabase.from("challenge_accounts").select("id", { count: "exact", head: true })
+          .eq("payment_fingerprint", account.payment_fingerprint).neq("id", account.id)
+      : Promise.resolve({ count: 0 }),
+    supabase.from("tickets").select("selections, placed_at, first_start_time, status")
+      .eq("account_id", account.id).order("placed_at", { ascending: false }).limit(300),
+  ]);
+
   // SHARED_DEVICE_IP (CRITICAL): jiný účet se stejným IP při registraci.
-  if (account.signup_ip) {
-    const { count } = await supabase
-      .from("challenge_accounts")
-      .select("id", { count: "exact", head: true })
-      .eq("signup_ip", account.signup_ip)
-      .neq("id", account.id);
-    if ((count ?? 0) > 0) {
-      score += RISK_CRITICAL;
-      reasons.push("SHARED_DEVICE_IP: sdílené IP s jiným účtem");
-    }
+  if (account.signup_ip && (ipRes.count ?? 0) > 0) {
+    score += RISK_CRITICAL;
+    reasons.push("SHARED_DEVICE_IP: sdílené IP s jiným účtem");
   }
 
   // SHARED_PAYMENT_METHOD (CRITICAL): jiný účet platil stejnou kartou/metodou.
-  if (account.payment_fingerprint) {
-    const { count } = await supabase
-      .from("challenge_accounts")
-      .select("id", { count: "exact", head: true })
-      .eq("payment_fingerprint", account.payment_fingerprint)
-      .neq("id", account.id);
-    if ((count ?? 0) > 0) {
-      score += RISK_CRITICAL;
-      reasons.push("SHARED_PAYMENT_METHOD: stejná platební metoda jako jiný účet");
-    }
+  if (account.payment_fingerprint && (fpRes.count ?? 0) > 0) {
+    score += RISK_CRITICAL;
+    reasons.push("SHARED_PAYMENT_METHOD: stejná platební metoda jako jiný účet");
   }
 
   // FAST_TRACK (WARNING): fáze 1 dokončena extrémně rychle (< 3 dny od založení).
@@ -85,13 +88,7 @@ export async function computeServerRiskSignals(supabase: any, account: {
   }
 
   // ---------- tikety na serveru (viz tickets tabulka + sync-tickets) ----------
-  const { data: myTickets } = await supabase
-    .from("tickets")
-    .select("selections, placed_at, first_start_time, status")
-    .eq("account_id", account.id)
-    .order("placed_at", { ascending: false })
-    .limit(300);
-  const tickets = myTickets ?? [];
+  const tickets = myTicketsRes.data ?? [];
 
   if (tickets.length) {
     // BOT_PATTERN (WARNING): 5+ tiketů podaných během 10 minut, ze skutečných
@@ -181,17 +178,24 @@ export async function computeServerRiskSignals(supabase: any, account: {
       const clvSamples: number[] = [];
       const lagHits: boolean[] = [];
 
-      for (const sel of fullSelections) {
-        let query = supabase
+      // Dřív se dotazovalo sekvenčně, jedna selekce po druhé — až 30 čekání
+      // za sebou dokázalo samo o sobě natáhnout sync-account na ~2.5-3s,
+      // což je přesně to okno, kde hráč stihne zavřít kartu dřív, než se
+      // tiket uloží (viz "vsaď a hned zmiz historie"). Paralelně je to
+      // pořád stejný počet dotazů, ale trvá to jako ten nejpomalejší jeden.
+      const snapResults = await Promise.all(fullSelections.map((sel) =>
+        supabase
           .from("odds_snapshots")
           .select("odd_value, captured_at")
           .eq("event_id", sel.eventId)
           .eq("market_name", sel.marketName)
           .eq("field", sel.field)
-          .order("captured_at", { ascending: true });
-        const { data: snaps } = await query;
-        const list = (snaps ?? []) as { odd_value: number; captured_at: string }[];
-        if (!list.length) continue;
+          .order("captured_at", { ascending: true })
+      ));
+
+      fullSelections.forEach((sel, i) => {
+        const list = (snapResults[i]?.data ?? []) as { odd_value: number; captured_at: string }[];
+        if (!list.length) return;
 
         // HIGH_CLV: poslední snapshot před začátkem zápasu = closing line.
         if (sel.startTime) {
@@ -209,7 +213,7 @@ export async function computeServerRiskSignals(supabase: any, account: {
           const move = (sel.oddValue! - afterBet.odd_value) / sel.oddValue!;
           lagHits.push(move > 0.05);
         }
-      }
+      });
 
       if (clvSamples.length >= 5) {
         const avgClv = clvSamples.reduce((a, b) => a + b, 0) / clvSamples.length;
