@@ -26,6 +26,19 @@ function jumpToPasswordSettings(prefix) {
   }
 }
 
+// "Log out" byl doteď jen <a href="./"> bez skutečného odhlášení — session
+// v Supabase zůstávala platná, jen se opustila stránka. Nemazat přitom
+// bf2:portfolio: na stejném prohlížeči má hráč po opětovném přihlášení
+// vidět svoje tikety rovnou z lokálního stavu, ne čekat na restore ze
+// serveru (ten je pojistka pro NOVÝ prohlížeč/zařízení, ne běžnou cestu).
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-logout]");
+  if (!btn) return;
+  e.preventDefault();
+  const href = btn.getAttribute("href") || "./";
+  FundlyAuth.signOut().finally(() => { window.location.href = href; });
+});
+
 // ---------- section switching ----------
 const views = ["prehled", "vykon", "sazeni", "zebricek", "vyplaty", "affiliate", "akademie", "profil"];
 
@@ -345,6 +358,12 @@ function renderMomentum(state) {
 }
 
 // ---------- portfolio: boots the simulation and settles tickets periodically ----------
+// Zaznamenat PŘED Portfolio.ensure() níž, jestli lokální stav existoval už
+// před touto návštěvou — ensure() ho vzápětí sám založí, kdyby chyběl, a
+// syncChallengeAccount() dole potřebuje umět odlišit "opravdový starý
+// postup" od "prázdný placeholder co jsme si sami před chvílí vytvořili",
+// jinak se restore ze serveru nikdy nespustí (viz Portfolio.restore()).
+const hadLocalPortfolioBeforeBoot = !!Portfolio.get();
 Portfolio.ensure("advanced");
 renderBadges(Portfolio.get());
 
@@ -648,7 +667,14 @@ async function syncChallengeAccount() {
     if (isPasswordRecovery) jumpToPasswordSettings("s");
 
     const state = Portfolio.get();
-    if (state && state.packageKey === account.package_key) return;
+    // "existoval už PŘED touto návštěvou" musí platit taky — Portfolio.ensure()
+    // o pár řádků výš (spouští se na každé načtení dashboardu, ať je backend
+    // synchronizovaný nebo ne) jinak sám založí prázdný placeholder na
+    // defaultním "advanced" balíčku, který by tu vypadal jako "lokální stav
+    // je v pořádku" a restore ze serveru by se nikdy nespustil — čerstvý
+    // prohlížeč/zařízení by tak pokaždé vypadal jako čerstvě založený účet
+    // s nulovou historií, i když server reálný postup má.
+    if (state && state.packageKey === account.package_key && hadLocalPortfolioBeforeBoot) return;
 
     // Lokální stav chybí nebo neodpovídá zaplacenému balíčku — nejdřív
     // zkusit obnovit reálný postup ze serveru (localStorage může zmizet
