@@ -37,6 +37,9 @@ body::after {
   /* horní lištu na desktopu nahrazuje sidebar (jen hráčský dashboard,
      admin.html sdílí tento stylesheet, ale sidebar nemá) */
   .with-sidebar .nav { display: none; }
+  /* limited dashboard (bez aktivního účtu) sidebar úplně skrývá — bez
+     téhle výjimky by na desktopu nezůstal žádný viditelný Log out */
+  .with-sidebar.limited .nav { display: block; }
   .dside {
     position: fixed;
     top: 0;
