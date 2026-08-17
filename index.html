@@ -406,6 +406,19 @@
         <p class="auth-note" id="authNote" hidden></p>
         <button type="submit" class="btn btn-primary" style="width:100%" id="authSubmit">Log in</button>
       </form>
+      <!-- 2FA step-up: shown instead of authForm once the password is correct
+           but the account has TOTP enabled — a fresh sign-in session starts
+           at AAL1, and AAL2-gated actions (change password, disable MFA)
+           fail outright without this extra verification step. -->
+      <form id="authMfaForm" hidden novalidate>
+        <p class="t-small" style="margin-bottom:16px">Enter the 6-digit code from your authenticator app.</p>
+        <div class="field">
+          <label for="authMfaCode">Authentication code</label>
+          <input class="input" id="authMfaCode" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="123456" autocomplete="one-time-code" required />
+        </div>
+        <p class="auth-note" id="authMfaNote" hidden></p>
+        <button type="submit" class="btn btn-primary" style="width:100%" id="authMfaSubmit">Verify</button>
+      </form>
       <p class="auth-switch">
         <span id="authSwitchText">No account yet?</span>
         <button type="button" id="authSwitch">Sign up</button>

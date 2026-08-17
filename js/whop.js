@@ -89,6 +89,31 @@ const FundlyAuth = {
     return client.auth.resetPasswordForEmail(email, { redirectTo });
   },
 
+  // Po přihlášení heslem session vždy začíná na AAL1, i když má účet
+  // zapnuté TOTP — Supabase to samo od sebe nevyžaduje, musí se to
+  // zkontrolovat a domluvit ručně. Bez tohohle kroku zůstane session
+  // navěky na AAL1 a všechny AAL2-vyžadující akce (změna hesla, vypnutí
+  // MFA) tiše/natvrdo selžou, i když se uživatel nikdy nedozví proč.
+  async mfaStepUpNeeded() {
+    const client = await FundlyBackend.getClient();
+    if (!client) return null;
+    const { data, error } = await client.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (error || !data) return null;
+    if (data.nextLevel !== "aal2" || data.currentLevel === data.nextLevel) return null;
+    const { data: factors } = await client.auth.mfa.listFactors();
+    const factor = (factors?.totp || []).find((f) => f.status === "verified");
+    if (!factor) return null;
+    const challenge = await client.auth.mfa.challenge({ factorId: factor.id });
+    if (challenge.error) return null;
+    return { factorId: factor.id, challengeId: challenge.data.id };
+  },
+
+  async mfaVerify(factorId, challengeId, code) {
+    const client = await FundlyBackend.getClient();
+    if (!client) return { error: { message: "Backend is not configured." } };
+    return client.auth.mfa.verify({ factorId, challengeId, code });
+  },
+
   async getUser() {
     const client = await FundlyBackend.getClient();
     if (!client) return null;

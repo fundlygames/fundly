@@ -207,6 +207,11 @@ function openAuth(mode) {
   lastFocus = document.activeElement;
   setAuthMode(mode);
   authForm.reset();
+  authForm.hidden = false;
+  document.querySelector(".auth-switch").hidden = false;
+  const mfaForm = document.getElementById("authMfaForm");
+  if (mfaForm) mfaForm.hidden = true;
+  pendingMfa = null;
   authSubmit.disabled = false;
   authModal.hidden = false;
   document.body.style.overflow = "hidden";
@@ -273,6 +278,41 @@ document.getElementById("authForgot")?.addEventListener("click", async () => {
   authNote.hidden = false;
 });
 
+// ---------- 2FA step-up (see FundlyAuth.mfaStepUpNeeded) ----------
+const authMfaForm = document.getElementById("authMfaForm");
+const authMfaNote = document.getElementById("authMfaNote");
+let pendingMfa = null;
+
+function showMfaStep(stepUp) {
+  pendingMfa = stepUp;
+  authForm.hidden = true;
+  document.querySelector(".auth-switch").hidden = true;
+  authTitle.textContent = "Verification code";
+  authSub.textContent = "Two-factor authentication is enabled on this account";
+  authMfaForm.hidden = false;
+  authMfaNote.hidden = true;
+  document.getElementById("authMfaCode").value = "";
+  document.getElementById("authMfaCode").focus();
+}
+
+authMfaForm?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!pendingMfa) return;
+  const btn = document.getElementById("authMfaSubmit");
+  btn.disabled = true;
+  btn.textContent = "Verifying…";
+  const code = document.getElementById("authMfaCode").value.trim();
+  const { error } = await FundlyAuth.mfaVerify(pendingMfa.factorId, pendingMfa.challengeId, code);
+  btn.disabled = false;
+  btn.textContent = "Verify";
+  if (error) {
+    authMfaNote.textContent = "Incorrect code. Please try again.";
+    authMfaNote.hidden = false;
+    return;
+  }
+  window.location.href = "dashboard";
+});
+
 authForm.addEventListener("submit", (e) => {
   e.preventDefault();
   if (!authForm.reportValidity()) return;
@@ -296,8 +336,10 @@ authForm.addEventListener("submit", (e) => {
       const password = document.getElementById("authPass").value;
       // password filled → direct sign-in; empty → magic link to the e-mail
       if (password) {
-        FundlyAuth.signInWithPassword(email, password).then(({ error }) => {
+        FundlyAuth.signInWithPassword(email, password).then(async ({ error }) => {
           if (error) { fail("Incorrect e-mail or password."); return; }
+          const stepUp = await FundlyAuth.mfaStepUpNeeded().catch(() => null);
+          if (stepUp) { showMfaStep(stepUp); return; }
           window.location.href = "dashboard";
         }).catch(() => fail("Login failed."));
       } else {

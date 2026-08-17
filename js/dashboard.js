@@ -1857,9 +1857,24 @@ async function setupAccountSettings(prefix) {
       const verified = (data.totp || []).find((f) => f.status === "verified");
       if (verified) {
         mfaState.innerHTML = `
-          <div class="k-row win">Two-factor authentication is enabled<span class="n"><button class="btn btn-ghost" id="${prefix}MfaDisable">Disable</button></span></div>`;
-        document.getElementById(`${prefix}MfaDisable`).addEventListener("click", async () => {
-          await client.auth.mfa.unenroll({ factorId: verified.id });
+          <div class="k-row win">Two-factor authentication is enabled<span class="n"><button class="btn btn-ghost" id="${prefix}MfaDisable">Disable</button></span></div>
+          <p class="auth-note mt" id="${prefix}MfaDisableNote" hidden></p>`;
+        document.getElementById(`${prefix}MfaDisable`).addEventListener("click", async (e) => {
+          const disableBtn = e.currentTarget;
+          const disableNote = document.getElementById(`${prefix}MfaDisableNote`);
+          disableBtn.disabled = true;
+          // dřív se výsledek tiše zahazoval — bez AAL2 session (běžné po
+          // čerstvém přihlášení, viz FundlyAuth.mfaStepUpNeeded) unenroll()
+          // vrátí chybu a tlačítko vypadalo, že "nedělá nic".
+          const { error } = await client.auth.mfa.unenroll({ factorId: verified.id });
+          if (error) {
+            disableNote.textContent = error.message.includes("AAL2")
+              ? "Log out and back in (entering your 2FA code) before disabling it."
+              : error.message || "Could not disable two-factor authentication.";
+            disableNote.hidden = false;
+            disableBtn.disabled = false;
+            return;
+          }
           renderMfaState();
         });
       } else {
