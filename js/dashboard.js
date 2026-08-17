@@ -2,6 +2,30 @@
 
 const usd = (n) => "$" + Math.round(n).toLocaleString("en-US");
 
+// Zapomenuté heslo: Supabase po kliknutí na odkaz z e-mailu přesměruje sem
+// s "#access_token=...&type=recovery" ve fragmentu — supabase-js z toho sám
+// založí dočasnou přihlášenou session, ale nikam sama od sebe nenaviguje.
+// Fragment si musíme zachytit HNED (dřív, než ho supabase-js při zpracování
+// smaže z URL), abychom pak hráče mohli poslat rovnou na pole "New password"
+// místo aby zůstal na Overview a nevěděl, že se vlastně přihlásil.
+const isPasswordRecovery = /type=recovery/.test(window.location.hash);
+
+function jumpToPasswordSettings(prefix) {
+  if (prefix === "s" && typeof showView === "function") {
+    showView("profil");
+    document.querySelector('#profileTabs button[data-ptab="settings"]')?.click();
+  }
+  setTimeout(() => {
+    const input = document.getElementById(`${prefix}NewPass`);
+    if (!input) return;
+    input.scrollIntoView({ behavior: "smooth", block: "center" });
+    input.focus();
+  }, 50);
+  if (typeof showToast === "function") {
+    showToast("win", "Set your new password", "You're signed in from your password reset link — enter a new password below and save.");
+  }
+}
+
 // ---------- section switching ----------
 const views = ["prehled", "vykon", "sazeni", "zebricek", "vyplaty", "affiliate", "akademie", "profil"];
 
@@ -597,6 +621,7 @@ async function syncChallengeAccount() {
     const account = accounts.find((a) => a.state === "active" || a.state === "funded");
     if (!account) {
       showLimitedDashboard(accounts);
+      if (isPasswordRecovery) jumpToPasswordSettings("na");
       return;
     }
 
@@ -619,6 +644,8 @@ async function syncChallengeAccount() {
     } else if (account.state === "funded" && account.inactivity_warned_7) {
       showToast("pend", "Stay active", "No activity for 7+ days. Place at least one bet every 14 days to keep the account funded.");
     }
+
+    if (isPasswordRecovery) jumpToPasswordSettings("s");
 
     const state = Portfolio.get();
     if (state && state.packageKey === account.package_key) return;
