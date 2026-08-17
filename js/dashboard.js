@@ -541,10 +541,14 @@ async function pushAccountSnapshot() {
     if (!token) return; // demo režim / nepřihlášený
     const state = Portfolio.get();
     if (!state) return;
+    // keepalive: prohlížeč se pokusí request dokončit, i kdyby stránka
+    // mezitím zavřela/navigovala pryč (přesně hlášený případ: vsadit a
+    // hned zavřít kartu) — bez toho by fetch zůstal viset a odpadl.
     await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/sync-account`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify(buildAccountSnapshot(state)),
+      keepalive: true,
     });
 
     // jednotlivé tikety pro server-side risk detekci (kolize napříč účty,
@@ -566,6 +570,7 @@ async function pushAccountSnapshot() {
             payout: t.payout,
           })),
         }),
+        keepalive: true,
       });
       const data = await res.json().catch(() => ({}));
 
@@ -589,6 +594,15 @@ async function pushAccountSnapshot() {
     }
   } catch (e) { /* sync je best-effort */ }
 }
+
+// Poslední pojistka: hráč nemusí kliknout na Log out vůbec — zavře kartu,
+// přepne appku na mobilu, nebo naviguje jinam. "pagehide" se spustí ve
+// všech těchto případech (na rozdíl od "beforeunload", který moderní
+// mobilní prohlížeče při přepnutí appky nespolehlivě volají) — keepalive
+// výš dá požadavku šanci doběhnout, i když stránka mezitím zmizí.
+window.addEventListener("pagehide", () => {
+  if (typeof pushAccountSnapshot === "function") pushAccountSnapshot();
+});
 
 // při načtení dashboardu (případně přihlášeného) rovnou naplánujeme sync
 scheduleAccountSync();
@@ -1264,7 +1278,11 @@ function renderSlip() {
     note.className = result.warning ? "auth-note mt warn" : "auth-note mt";
     note.hidden = false;
     btn.disabled = true;
-    scheduleAccountSync();
+    // Ne scheduleAccountSync() (2-7s debounce): sázka je přesně ten
+    // okamžik, kdy je nejvyšší šance, že hráč hned zavře kartu/odhlásí se
+    // (přesně to hlásili — vsaď, hned se odhlas, tiket zmizel). Okamžitý
+    // push tu mezeru zkracuje z několika sekund na jednotky stovek ms.
+    if (typeof pushAccountSnapshot === "function") pushAccountSnapshot();
     setTimeout(() => {
       slip = [];
       renderMatches();
