@@ -39,7 +39,7 @@ function renderPlan(animate) {
           <div class="ph-row"><span class="k">Max. loss (static)</span><span class="v red">${usdSigned(-dd)}</span></div>
           <div class="ph-row"><span class="k">Max. daily loss</span><span class="v red">${usdSigned(-daily)}</span></div>
           <div class="ph-row"><span class="k">Time limit</span><span class="v">30 days</span></div>
-          <div class="ph-row"><span class="k">Qualifying tickets</span><span class="v">5 × ≥ +0.5 %</span></div>
+          <div class="ph-row"><span class="k">Qualifying entries</span><span class="v">5 × ≥ +0.5 %</span></div>
         </div>
       </div>
     </article>
@@ -53,7 +53,7 @@ function renderPlan(animate) {
           <div class="ph-row"><span class="k">Max. loss (static)</span><span class="v red">${usdSigned(-dd)}</span></div>
           <div class="ph-row"><span class="k">Max. daily loss</span><span class="v red">${usdSigned(-daily)}</span></div>
           <div class="ph-row"><span class="k">Time limit</span><span class="v">30 days</span></div>
-          <div class="ph-row"><span class="k">Qualifying tickets</span><span class="v">5 × ≥ +0.5 %</span></div>
+          <div class="ph-row"><span class="k">Qualifying entries</span><span class="v">5 × ≥ +0.5 %</span></div>
         </div>
       </div>
     </article>
@@ -61,13 +61,13 @@ function renderPlan(animate) {
       <div class="ph-art" style="background-image:url(assets/card2-tiper.jpg)" aria-hidden="true"></div>
       <div class="ph-body">
         <span class="ph-tag">Funded account</span>
-        <div class="ph-name">Fundly bettor</div>
+        <div class="ph-name">Fundly Partner</div>
         <div class="ph-rows">
           <div class="ph-row"><span class="k">Your share</span><span class="v green">80 %</span></div>
           <div class="ph-row"><span class="k">Max. loss (trailing)</span><span class="v red">${usdSigned(-dd)}</span></div>
           <div class="ph-row"><span class="k">Max. daily loss</span><span class="v red">${usdSigned(-daily)}</span></div>
           <div class="ph-row"><span class="k">Time limit</span><span class="v">Unlimited</span></div>
-          <div class="ph-row"><span class="k">Odds</span><span class="v">1.00 to 8.00</span></div>
+          <div class="ph-row"><span class="k">Permissible odds ratio</span><span class="v">1.00 to 8.00</span></div>
         </div>
       </div>
     </article>`;
@@ -80,8 +80,8 @@ function renderPlan(animate) {
     </div>
     <ul class="price-feats ${animate ? "pkg-anim" : ""}" style="animation-delay:.05s">
       <li>${check}2 evaluation phases</li>
-      <li>${check}80 % profit share</li>
-      <li>${check}Max. stake per ticket ${usd(stake)}</li>
+      <li>${check}80 % performance split</li>
+      <li>${check}Max. entry size ${usd(stake)}</li>
       <li>${check}Unlimited time on the funded account</li>
       <li>${check}Daily loss limit −4 % of capital</li>
     </ul>
