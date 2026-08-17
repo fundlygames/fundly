@@ -35,14 +35,22 @@ document.addEventListener("click", (e) => {
   const btn = e.target.closest("[data-logout]");
   if (!btn) return;
   e.preventDefault();
+  if (btn.dataset.loggingOut) return; // dvojklik
+  btn.dataset.loggingOut = "1";
+  btn.style.opacity = ".5";
+  btn.style.pointerEvents = "none";
   const href = btn.getAttribute("href") || "./";
   // nejdřív dotlačit poslední lokální stav na server (bez debounce), pak
   // teprve odhlásit — jinak mohl hráč vsadit a hned kliknout na Log out
   // dřív, než uplynulo okno debounce v syncAccountNow(), a poslední tiket
-  // se na server nikdy nedostal.
+  // se na server nikdy nedostal. Reálně naměřeno ~2-4 s (getSession +
+  // 2 sekvenční fetch), proto vizuální stav výš — jinak to bez zpětné
+  // vazby pár vteřin vypadá jako zaseknuté tlačítko. Tvrdý strop 5 s, ať
+  // pomalá síť neuvězní hráče na obrazovce navěky.
   const flush = typeof pushAccountSnapshot === "function" ? pushAccountSnapshot() : Promise.resolve();
-  flush.catch(() => {}).finally(() => {
-    FundlyAuth.signOut().finally(() => { window.location.href = href; });
+  const capped = Promise.race([flush.catch(() => {}), new Promise((r) => setTimeout(r, 5000))]);
+  capped.finally(() => {
+    FundlyAuth.signOut().catch(() => {}).finally(() => { window.location.href = href; });
   });
 });
 
