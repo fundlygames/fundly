@@ -36,7 +36,14 @@ document.addEventListener("click", (e) => {
   if (!btn) return;
   e.preventDefault();
   const href = btn.getAttribute("href") || "./";
-  FundlyAuth.signOut().finally(() => { window.location.href = href; });
+  // nejdřív dotlačit poslední lokální stav na server (bez debounce), pak
+  // teprve odhlásit — jinak mohl hráč vsadit a hned kliknout na Log out
+  // dřív, než uplynulo okno debounce v syncAccountNow(), a poslední tiket
+  // se na server nikdy nedostal.
+  const flush = typeof pushAccountSnapshot === "function" ? pushAccountSnapshot() : Promise.resolve();
+  flush.catch(() => {}).finally(() => {
+    FundlyAuth.signOut().finally(() => { window.location.href = href; });
+  });
 });
 
 // ---------- section switching ----------
@@ -508,6 +515,15 @@ async function syncAccountNow() {
     syncTimer = setTimeout(syncAccountNow, wait);
     return;
   }
+  await pushAccountSnapshot();
+}
+
+// Bez debounce — voláno přímo při odhlášení, ať se poslední sázka/tiket
+// vždycky stihne dostat na server dřív, než se zavře session. Bez tohohle
+// mohl hráč vsadit a hned se odhlásit dřív, než uplynulo okno debounce
+// (2-7 s) v syncAccountNow(), takže se poslední tiket nikdy neuložil a
+// na jiném zařízení/prohlížeči pak vypadal, jako by "zmizela historie".
+async function pushAccountSnapshot() {
   lastSyncAt = Date.now();
   try {
     const client = await FundlyBackend.getClient();
@@ -2421,3 +2437,21 @@ function renderVykon() {
     return `<tr><td>${label}</td><td>${tip}</td><td class="odds">${t.combinedOdds.toFixed(2)}</td><td>${usd(t.stake)}</td><td>${flagTags(t)}<span class="tag ${tag}">${tagText}</span></td></tr>`;
   }).join("") : `<tr><td colspan="5">No tickets yet.</td></tr>`;
 }
+
+document.getElementById("vykonRefresh")?.addEventListener("click", async (e) => {
+  const btn = e.currentTarget;
+  btn.disabled = true;
+  const label = btn.innerHTML;
+  btn.innerHTML = "Refreshing…";
+  try {
+    // vyhodnotí čekající tikety (klient), stáhne co mezitím dořešil server
+    // (settle-tickets cron), a teprve pak přerenderuje — tlačítko tak
+    // slouží i jako ruční pojistka, kdyby hráč pochyboval, že se něco
+    // "neuložilo": po refreshi vidí přesně to, co má server.
+    await Portfolio.checkSettlements();
+    if (typeof syncAccountNow === "function") await syncAccountNow();
+  } catch (err) { /* refresh je best-effort */ }
+  renderVykon();
+  btn.disabled = false;
+  btn.innerHTML = label;
+});
