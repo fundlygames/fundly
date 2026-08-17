@@ -900,7 +900,7 @@ footer {
   font-size: .8125rem;
   color: var(--text-muted);
 }
-.foot-bottom nav { display: flex; gap: 16px; }
+.foot-bottom nav { display: flex; flex-wrap: wrap; gap: 8px 16px; }
 .foot-bottom a:hover { color: var(--text-primary); }
 
 /* ---------- Auth modal ---------- */
