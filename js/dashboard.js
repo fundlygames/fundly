@@ -74,6 +74,7 @@ function showView(name) {
   if (name === "profil" && typeof renderBadges === "function") renderBadges(Portfolio.get());
   if (name === "vyplaty" && typeof loadPayoutHistory === "function") loadPayoutHistory();
   if (name === "affiliate" && typeof loadAffiliateStats === "function") loadAffiliateStats();
+  if (name === "zebricek" && typeof loadLeaderboard === "function") loadLeaderboard();
 }
 
 document.addEventListener("click", (e) => {
@@ -1454,7 +1455,11 @@ document.getElementById("lbMetric")?.addEventListener("click", (e) => {
   lbMetric = btn.dataset.metric;
   renderLb();
 });
-if (document.getElementById("lbList")) loadLeaderboard();
+// Ne rovnou tady: loadLeaderboard() na první řádce čte fundlyBackendEnabled()
+// z js/config.js, který se (na rozdíl od tohoto skriptu) načítá s "defer" —
+// v tomhle bodě ještě neexistuje, takže by to natrvalo ukázalo "needs the
+// backend — sign in first." i přihlášenému hráči. showView() teď leaderboard
+// dotáhne až při skutečném přepnutí na tu záložku (stejně jako Payouts/Affiliate).
 
 // ---------- payouts ----------
 // Status labels of the withdrawal history (values are written by the request-payout / whop-payout edge functions).
@@ -1881,11 +1886,26 @@ async function setupAccountSettings(prefix) {
   renderMfaState();
 }
 
+// HTML se vykreslí hned (čistá šablona, žádná závislost na backendu) —
+// #sNewPass/#naNewPass tak existují v DOM okamžitě, což potřebuje mj.
+// jumpToPasswordSettings() volaná ze syncChallengeAccount() na DOMContentLoaded.
+// setupAccountSettings() ale volá FundlyBackend.getClient() hned na první
+// řádce, a ten žije v js/whop.js, který se (na rozdíl od tohoto skriptu)
+// načítá s "defer" — spustí se tedy AŽ PO tomhle synchronním <script>.
+// Zavolat to rovnou tady shodilo funkci s ReferenceError dřív, než se
+// stihl navěsit submit listener na formulář změny hesla — tlačítko
+// "Change password" tak reálně nikdy nic neudělalo.
 ["s", "na"].forEach((prefix) => {
   const slot = document.getElementById(prefix === "s" ? "settingsSlot" : "naSettingsSlot");
   if (!slot) return;
   slot.innerHTML = renderSettingsPanel(prefix);
-  setupAccountSettings(prefix);
+});
+window.addEventListener("DOMContentLoaded", () => {
+  ["s", "na"].forEach((prefix) => {
+    if (document.getElementById(prefix === "s" ? "settingsSlot" : "naSettingsSlot")) {
+      setupAccountSettings(prefix);
+    }
+  });
 });
 
 // ---------- profile: subtabs (Overview / Badges / Leaderboard / Settings / Support) ----------
