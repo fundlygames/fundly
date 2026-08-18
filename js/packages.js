@@ -8,8 +8,15 @@ const PACKAGES = [
   { key: "elite",    name: "Elite",    cap: 100000, price: 1085 },
 ];
 
+// Neplatný/neznámý package_key (poškozená data, testovací/admin řádek,
+// překlep) spadne na PACKAGES[0] — nejmenší a nejlevnější balíček. Dřív
+// to padalo na PACKAGES[2] ("advanced", $25k cap) — reálný účet s
+// nestandardním package_key "test" tak dostal klientsky Advanced limity
+// (max sázka $375 místo správných $30 pro jeho skutečný Starter nákup),
+// hráč vsázel v tomhle rozsahu a vznikl nesmyslný, nekonzistentní stav.
+// Špatný default má selhat směrem k MÉNĚ výhod, nikdy k víc.
 function packageByKey(key) {
-  return PACKAGES.find((p) => p.key === key) || PACKAGES[2];
+  return PACKAGES.find((p) => p.key === key) || PACKAGES[0];
 }
 
 // Challenge parameters derived from the chosen package (authoritative doc:
