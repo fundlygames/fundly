@@ -726,11 +726,23 @@ async function syncChallengeAccount() {
       const { data: sessionData } = await client.auth.getSession();
       const token = sessionData && sessionData.session && sessionData.session.access_token;
       if (token) {
-        const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/restore-account`, {
+        const fetchRestore = () => fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/restore-account`, {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json().catch(() => ({}));
+        }).then((r) => r.json()).catch(() => ({}));
+        let data = await fetchRestore();
+        // Souběh víc zařízení na stejném účtu: nejde jen o obnovu na
+        // NOVÉM zařízení, hráči tady reálně přepínají mezi dvěma otevřenými
+        // okny/profily se stejným účtem. Pokud první tiket na zařízení A
+        // ještě nestihl doběhnout na server (sync teď trvá ~1s), zařízení B
+        // by tu vidělo "nic k obnovení" a založilo by si čerstvý účet — a
+        // ten by se vzápětí sám nahrál na server a přepsal reálný postup
+        // zařízení A. Jedno krátké opakování těsně pod tou 1s hranicí
+        // pokryje naprostou většinu těchhle "sotva to minulo" případů.
+        if (!data.account) {
+          await new Promise((r) => setTimeout(r, 1500));
+          data = await fetchRestore();
+        }
         if (data.account) restored = Portfolio.restore(data.account, data.tickets);
       }
     } catch (e) { /* restore je best-effort, spadneme zpátky na init() */ }
