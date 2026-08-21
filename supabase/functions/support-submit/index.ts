@@ -5,6 +5,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { handleCors, jsonResponse } from "../_shared/cors.ts";
+import { sendEmail } from "../_shared/email.ts";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -52,6 +53,25 @@ serve(async (req) => {
       .select("id, created_at")
       .single();
     if (error) throw error;
+
+    // Notifikace na support@fundly.games — dřív se nový tiket jen tiše
+    // zapsal do support_tickets a nikdo se o něm nedozvěděl, dokud admin
+    // ručně nezkontroloval admin.html. Best-effort: chybějící RESEND_API_KEY
+    // (viz _shared/email.ts) tohle tiše přeskočí, zápis tiketu tím není ohrožen.
+    const notifyTo = Deno.env.get("SUPPORT_NOTIFY_EMAIL") ?? "support@fundly.games";
+    sendEmail({
+      to: notifyTo,
+      subject: `New support ticket${subject ? `: ${String(subject).slice(0, 100)}` : ""}`,
+      html: `<div style="background:#020204;padding:32px;font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#e8e8ec">
+        <div style="max-width:520px;margin:0 auto;background:#0d0d12;border:1px solid #ffffff1a;border-radius:16px;padding:28px">
+          <div style="color:#14f195;font-weight:700;font-size:18px;margin-bottom:16px">fundly</div>
+          <h2 style="color:#fff;font-size:18px;margin:0 0 12px">New support ticket</h2>
+          <p style="color:#a0a0ab;font-size:13px;margin:0 0 4px">From: ${String(email).trim().replace(/</g, "&lt;")}</p>
+          <p style="color:#a0a0ab;font-size:13px;margin:0 0 16px">Source: ${source === "dashboard" ? "dashboard" : "contact form"}</p>
+          <p style="color:#e8e8ec;font-size:14px;line-height:1.6;white-space:pre-wrap">${msg.replace(/</g, "&lt;")}</p>
+        </div>
+      </div>`,
+    }).catch(() => { /* notifikace je best-effort, tiket už je uložený */ });
 
     return jsonResponse({ ok: true, ticket });
   } catch (err) {

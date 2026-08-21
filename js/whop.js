@@ -72,10 +72,17 @@ const FundlyAuth = {
   },
 
   // Sign-up with e-mail and password (checkout step 2 — account is created before payment).
-  async signUpWithPassword(email, password) {
+  // consent: volitelný záznam souhlasů z checkoutu (Terms 8.2 / Refund 2.2 —
+  // waiver 14denní lhůty na odstoupení vyžaduje "aktivní consent checkbox
+  // při checkoutu"). Uloží se do auth metadat uživatele jako právní důkaz
+  // s časovou značkou, ne jen jako klientská validace bez stopy na serveru.
+  async signUpWithPassword(email, password, consent) {
     const client = await FundlyBackend.getClient();
     if (!client) return { error: { message: "Backend is not configured." } };
-    return client.auth.signUp({ email, password });
+    const data = consent
+      ? { consent_terms_at: consent.termsAt, consent_rules_at: consent.rulesAt, consent_cooling_off_waived_at: consent.coolingOffAt }
+      : undefined;
+    return client.auth.signUp({ email, password, options: data ? { data } : undefined });
   },
 
   // Zapomenuté heslo: pošle e-mail s odkazem na dashboard, kde si po

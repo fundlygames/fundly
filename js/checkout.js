@@ -78,7 +78,7 @@
       <div class="sum-total"><span class="k">One-time fee</span><span class="v">${usd(p.price)}</span></div>
       <ul class="sum-feats">
         <li>${check}2 evaluation phases, 30 days each</li>
-        <li>${check}Unlimited time as a bettor once funded</li>
+        <li>${check}Unlimited time as a Fundly Partner once funded</li>
         <li>${check}Profit withdrawals once you reach the Funded phase</li>
         <li>${check}Reset for just ${usd(m.resetFee)} if you fail</li>
         <li>${check}All sports</li>
@@ -118,6 +118,7 @@
   const regPass2 = $("regPass2");
   const consentTerms = $("consentTerms");
   const consentRules = $("consentRules");
+  const consentCoolingOff = $("consentCoolingOff");
 
   function setErr(input, errEl, msg) {
     errEl.textContent = msg || "";
@@ -143,8 +144,8 @@
       ok = false;
     } else setErr(regPass2, $("errPass2"), null);
 
-    if (!consentTerms.checked || !consentRules.checked) {
-      setErr(null, $("errConsent"), "Please confirm both consents to continue.");
+    if (!consentTerms.checked || !consentRules.checked || !consentCoolingOff.checked) {
+      setErr(null, $("errConsent"), "Please confirm all three consents to continue.");
       ok = false;
     } else setErr(null, $("errConsent"), null);
 
@@ -170,7 +171,12 @@
     // Sign-up is best-effort: the payment session only needs the e-mail,
     // so a signUp error (rate limit, existing account) does not block payment.
     try {
-      const { error } = await FundlyAuth.signUpWithPassword(state.email, regPass.value);
+      const consentAt = new Date().toISOString();
+      const { error } = await FundlyAuth.signUpWithPassword(state.email, regPass.value, {
+        termsAt: consentAt,
+        rulesAt: consentAt,
+        coolingOffAt: consentAt,
+      });
       if (error) console.warn("signUp:", error.message);
     } catch (err) {
       console.warn("signUp failed:", err);
@@ -294,23 +300,29 @@
         </ul>
         <h4>Forbidden strategies</h4>
         <ul>
-          <li>Arbitrage / sure betting across outcomes</li>
-          <li>Value-bet exploitation of stale odds feeds</li>
+          <li>Arbitrage &amp; mispricing exploitation across outcomes</li>
+          <li>Latency exploitation of stale data feeds</li>
           <li>Max. stake per ticket: 1.5 % of capital</li>
         </ul>`,
     },
     terms: {
       title: "Terms and conditions",
       body: `
-        <p>Fundly provides access to a simulated betting environment used to evaluate skill. Participants never stake their own funds; the one-time Challenge fee is the only payment. Displayed results are individual and do not guarantee future returns.</p>
+        <p>Fundly Games is an educational, statistical data research, and performance-evaluation simulation platform — not a bookmaker, gambling operator, or financial institution. Participants never stake their own funds; the one-time evaluation fee is the only payment, and all account metrics are 100% simulated with zero real-world monetary value.</p>
         <p>Accounts are personal and non-transferable. Abuse of the platform (forbidden strategies, multi-accounting, exploitation of technical errors) leads to account termination without payout.</p>
-        <p>Betting can be addictive. The service is intended for persons over 18 years of age.</p>`,
+        <p>The service is intended for persons over 18 years of age. Read the full <a href="terms" target="_blank" rel="noopener">Terms and Conditions</a>.</p>`,
     },
     privacy: {
       title: "Privacy policy",
       body: `
         <p>We process your email address and account data solely to operate the service (account management, payouts, fraud prevention). Payment data is processed by Whop; we never see your card details.</p>
-        <p>We do not sell personal data. You can request export or deletion of your data at any time by contacting support.</p>`,
+        <p>We do not sell personal data. You can request export or deletion of your data at any time by contacting support. Read the full <a href="privacy" target="_blank" rel="noopener">Privacy Policy</a>.</p>`,
+    },
+    refund: {
+      title: "Refund & cancellation",
+      body: `
+        <p>Because you get immediate access to the simulation software, purchasing an Evaluation Package and checking this box waives your 14-day statutory cooling-off right the moment you log into the dashboard or submit your first simulated entry.</p>
+        <p>If you never log in and never place a single entry, you can still request a full refund within 14 days at support@fundly.games. Breached accounts are non-refundable but eligible for a 40% discounted reset. Read the full <a href="refund" target="_blank" rel="noopener">Refund and Cancellation Policy</a>.</p>`,
     },
   };
   const docModal = $("docModal");

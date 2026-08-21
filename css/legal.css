@@ -54,3 +54,13 @@
 .legal-wrap ul:last-child { margin-bottom: 0; }
 .legal-wrap li { margin-bottom: 6px; }
 .legal-wrap li:last-child { margin-bottom: 0; }
+
+.legal-callout {
+  background: var(--accent-tint);
+  border: 1px solid var(--accent-border-soft);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-bottom: 32px;
+}
+.legal-callout p { color: var(--text-primary); margin-bottom: 0; font-size: .9375rem; }
+.legal-callout .k { display: block; font-weight: 700; margin-bottom: 6px; color: var(--accent); }
