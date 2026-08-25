@@ -82,7 +82,7 @@ function renderPlan(animate) {
       <li>${check}2 evaluation phases</li>
       <li>${check}80 % performance split</li>
       <li>${check}Max. entry size ${usd(stake)}</li>
-      <li>${check}Unlimited time on the funded account</li>
+      <li>${check}Unlimited time in the partner phase</li>
       <li>${check}Daily loss limit −4 % of capital</li>
     </ul>
     <div class="price-row ${animate ? "pkg-anim" : ""}" style="animation-delay:.08s">
