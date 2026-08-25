@@ -4,6 +4,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { packageByKey } from "../_shared/packages.ts";
 import { whopFetch, mapKycStatus, extractPaymentFingerprint } from "../_shared/whop.ts";
+import { sendPurchaseEvent } from "../_shared/meta-capi.ts";
 
 function base64ToBytes(b64: string): Uint8Array {
   const bin = atob(b64);
@@ -198,6 +199,19 @@ serve(async (req) => {
           console.error("payment.succeeded bez e-mailu/balíčku:", data.id);
           break;
         }
+
+        // Meta Conversions API — autoritativní Purchase event (server-side, nejde
+        // obejít ad-blockerem). Best-effort, na chybu se platba nečeká.
+        sendPurchaseEvent({
+          email: String(email),
+          value: Number(data.total ?? data.amount_after_fees ?? data.subtotal ?? 0),
+          currency: data.currency ? String(data.currency) : "USD",
+          eventId: String(data.id),
+          contentName: pkg.name,
+          clientIp: metadata.checkout_ip ?? null,
+        }).then((r) => {
+          if (!r.sent) console.error("Meta CAPI Purchase selhal:", r.error);
+        }).catch((e) => console.error("Meta CAPI Purchase error:", e));
 
         // Aktivační poplatek funded účtu: nezakládáme nový challenge účet,
         // jen na nejnovější funded účet hráče připneme flag "activation_paid".

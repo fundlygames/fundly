@@ -103,10 +103,30 @@
       li.querySelector(".dot").innerHTML = i < n ? checkDot : String(i);
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
-    if (n === 3) startPayment();
+    if (n === 3) {
+      if (typeof fbq === "function") {
+        fbq("track", "AddPaymentInfo", {
+          content_ids: [state.pkg],
+          content_name: pkg().name,
+          currency: "USD",
+          value: pkg().price,
+        });
+      }
+      startPayment();
+    }
   }
 
-  $("btnToStep2").addEventListener("click", () => goToStep(2));
+  $("btnToStep2").addEventListener("click", () => {
+    if (typeof fbq === "function") {
+      fbq("track", "InitiateCheckout", {
+        content_ids: [state.pkg],
+        content_name: pkg().name,
+        currency: "USD",
+        value: pkg().price,
+      });
+    }
+    goToStep(2);
+  });
   $("btnBack1").addEventListener("click", () => goToStep(1));
   $("btnBack2").addEventListener("click", () => goToStep(2));
   $("btnBack3").addEventListener("click", (e) => { e.preventDefault(); goToStep(2); });
