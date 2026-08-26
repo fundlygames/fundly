@@ -1,7 +1,9 @@
 // _shared/capacity.ts — limit "jen prvních N kupujících", pak waitlist.
 // Nastavení: supabase secrets set LAUNCH_CAPACITY=20 (bez proměnné žádný limit neplatí).
-// Aktivační poplatek (funded účet) se do limitu nepočítá — to není nový "kupující",
-// jen doplatek existujícího zákazníka, který si Challenge už koupil dřív.
+// LAUNCH_SINCE (ISO timestamp, volitelné): počítej jen účty založené OD tohoto
+// okamžiku dál — starší (testovací) účty se do limitu nezapočítávají.
+// Aktivační poplatek (funded účet) se do limitu nepočítá vůbec — to není nový
+// "kupující", jen doplatek existujícího zákazníka, který si Challenge už koupil dřív.
 
 export function launchCapacity(): number | null {
   const raw = Deno.env.get("LAUNCH_CAPACITY");
@@ -12,10 +14,13 @@ export function launchCapacity(): number | null {
 
 // deno-lint-ignore no-explicit-any
 export async function soldCount(supabase: any): Promise<number> {
-  const { count, error } = await supabase
+  let query = supabase
     .from("challenge_accounts")
     .select("id", { count: "exact", head: true })
     .neq("package_key", "activation");
+  const since = Deno.env.get("LAUNCH_SINCE");
+  if (since) query = query.gte("created_at", since);
+  const { count, error } = await query;
   if (error) throw error;
   return count ?? 0;
 }
