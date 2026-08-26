@@ -1,9 +1,11 @@
 // whop-checkout — vytvoří Whop checkout configuration a vrátí hosted checkout URL.
 // POST { packageKey, email } → { checkoutUrl }
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders, handleCors, jsonResponse } from "../_shared/cors.ts";
 import { packageByKey, whopPlanId } from "../_shared/packages.ts";
 import { whopFetch } from "../_shared/whop.ts";
+import { launchCapacity, soldCount, isInvited } from "../_shared/capacity.ts";
 
 const SITE_URL = Deno.env.get("SITE_URL") ?? "https://matejc-beep.github.io/fundly";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -23,6 +25,22 @@ serve(async (req) => {
     if (!pkg) return jsonResponse({ error: "Neznámý balíček." }, 400);
     if (!EMAIL_RE.test(String(email ?? ""))) {
       return jsonResponse({ error: "Zadejte platný e-mail." }, 400);
+    }
+
+    // Limit "jen prvních N kupujících" (LAUNCH_CAPACITY) — aktivační poplatek
+    // se nepočítá, to je doplatek existujícího zákazníka, ne nový nákup.
+    if (pkg.key !== "activation") {
+      const cap = launchCapacity();
+      if (cap !== null) {
+        const supabase = createClient(
+          Deno.env.get("SUPABASE_URL")!,
+          Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+        );
+        const sold = await soldCount(supabase);
+        if (sold >= cap && !(await isInvited(supabase, String(email)))) {
+          return jsonResponse({ error: "Launch spots are full.", code: "SOLD_OUT" }, 409);
+        }
+      }
     }
 
     // Company kontext nese samotný API klíč — company_id se do body NEPOSÍLÁ

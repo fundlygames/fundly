@@ -59,3 +59,12 @@ verify_jwt = false
 
 [functions.settle-tickets]
 verify_jwt = false
+
+[functions.checkout-availability]
+verify_jwt = false
+
+[functions.waitlist-join]
+verify_jwt = false
+
+[functions.waitlist-manage]
+verify_jwt = false

@@ -13,7 +13,7 @@ const czk = (n) => n.toLocaleString("cs-CZ") + " Kč";
 const usd = (n) => "$" + Math.round(Number(n) || 0).toLocaleString("en-US");
 
 // ---------- přepínání sekcí ----------
-const views = ["finance", "hraci", "affiliate", "support", "reporty", "problemy", "diagnostika"];
+const views = ["finance", "hraci", "affiliate", "support", "waitlist", "reporty", "problemy", "diagnostika"];
 
 function showView(name) {
   views.forEach((v) => {
@@ -405,6 +405,7 @@ async function loadRealStats() {
   renderProblems(stats);
   renderAffiliate();
   loadSupportTickets();
+  loadWaitlist();
   loadReportHistory();
 }
 
@@ -826,6 +827,89 @@ document.getElementById("supportList")?.addEventListener("click", async (e) => {
     await loadSupportTickets();
   } catch (err) {
     window.alert(err.message || "Nepodařilo se uzavřít tiket.");
+    btn.disabled = false;
+  }
+});
+
+// ---------- Waitlist: fronta zájemců nad LAUNCH_CAPACITY ----------
+let WAITLIST = [];
+
+async function loadWaitlist() {
+  try {
+    const data = await adminFetch("waitlist-manage", { action: "list" });
+    WAITLIST = data.waitlist || [];
+    const pending = WAITLIST.filter((w) => !w.invited_at).length;
+    const badge = document.getElementById("waitlistBadge");
+    if (badge) {
+      badge.hidden = !pending;
+      badge.textContent = String(pending);
+    }
+    const statGrid = document.getElementById("waitlistStatGrid");
+    if (statGrid) {
+      const dstat = (label, value, green) => `
+        <div class="dstat">
+          <div class="lbl">${label}</div>
+          <div class="val ${green ? "green" : ""}">${value}</div>
+        </div>`;
+      statGrid.innerHTML = data.capacity !== null
+        ? dstat("Limit", data.capacity, false) +
+          dstat("Prodáno", data.sold, false) +
+          dstat("Volných míst", data.spotsLeft, true) +
+          dstat("Na waitlistu", WAITLIST.length, false)
+        : dstat("Limit", "Nenastaven (LAUNCH_CAPACITY)", false) +
+          dstat("Na waitlistu", WAITLIST.length, false);
+    }
+    renderWaitlistList();
+  } catch (e) {
+    const el = document.getElementById("waitlistList");
+    if (el) el.innerHTML = `<p class="bet-msg">Waitlist se nepodařilo načíst.</p>`;
+  }
+}
+
+function renderWaitlistList() {
+  const el = document.getElementById("waitlistList");
+  if (!el) return;
+  el.innerHTML = WAITLIST.length ? WAITLIST.map((w) => {
+    const status = w.redeemed_at
+      ? '<span class="tag win">koupil</span>'
+      : w.invited_at
+      ? '<span class="tag pend">pozván</span>'
+      : '<span class="tag push">čeká</span>';
+    return `<div class="k-row neutral">${esc(w.email)}${w.package_key ? ` · ${esc(w.package_key)}` : ""}
+      <span class="n">${status} <span style="color:var(--text-muted);font-size:.75rem">${new Date(w.created_at).toLocaleString("cs-CZ")}</span>
+      ${!w.invited_at ? ` <button class="btn btn-ghost" data-invite-waitlist="${esc(w.id)}" style="height:auto;padding:4px 10px">Pozvat</button>` : ""}</span>
+    </div>`;
+  }).join("") : `<p class="bet-msg">Waitlist je zatím prázdný.</p>`;
+}
+
+document.getElementById("waitlistList")?.addEventListener("click", async (e) => {
+  const btn = e.target.closest("[data-invite-waitlist]");
+  if (!btn) return;
+  btn.disabled = true;
+  btn.textContent = "Zvu…";
+  try {
+    const result = await adminFetch("waitlist-manage", { action: "invite", id: btn.dataset.inviteWaitlist });
+    if (result.emailSent === false) {
+      window.alert("Pozvánka uložena, ale e-mail se nepodařilo odeslat (RESEND_API_KEY zatím není nastavený) — musíte zájemce kontaktovat ručně.");
+    }
+    await loadWaitlist();
+  } catch (err) {
+    window.alert(err.message || "Pozvání se nepodařilo.");
+    btn.disabled = false;
+    btn.textContent = "Pozvat";
+  }
+});
+
+document.getElementById("waitlistInviteNextBtn")?.addEventListener("click", async (e) => {
+  const btn = e.target;
+  btn.disabled = true;
+  try {
+    const result = await adminFetch("waitlist-manage", { action: "invite_batch", count: 5 });
+    window.alert(`Pozváno: ${result.invited} (e-mail odeslán ${result.emailsSent}×).`);
+    await loadWaitlist();
+  } catch (err) {
+    window.alert(err.message || "Pozvání se nepodařilo.");
+  } finally {
     btn.disabled = false;
   }
 });

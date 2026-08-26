@@ -5,6 +5,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { packageByKey } from "../_shared/packages.ts";
 import { whopFetch, mapKycStatus, extractPaymentFingerprint } from "../_shared/whop.ts";
 import { sendPurchaseEvent } from "../_shared/meta-capi.ts";
+import { markRedeemed } from "../_shared/capacity.ts";
 
 function base64ToBytes(b64: string): Uint8Array {
   const bin = atob(b64);
@@ -212,6 +213,14 @@ serve(async (req) => {
         }).then((r) => {
           if (!r.sent) console.error("Meta CAPI Purchase selhal:", r.error);
         }).catch((e) => console.error("Meta CAPI Purchase error:", e));
+
+        // Pokud šlo o pozvaného z waitlistu, označíme pozvánku jako vyčerpanou
+        // (best-effort, no-op pro e-maily bez waitlist záznamu).
+        if (pkg.key !== "activation") {
+          markRedeemed(supabase, String(email)).catch((e) =>
+            console.error("waitlist markRedeemed error:", e)
+          );
+        }
 
         // Aktivační poplatek funded účtu: nezakládáme nový challenge účet,
         // jen na nejnovější funded účet hráče připneme flag "activation_paid".

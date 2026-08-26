@@ -57,6 +57,19 @@
         <p>Pick a package and create an account</p>
       </div>
 
+      <!-- ============ LAUNCH CAPACITY ============ -->
+      <div class="co-cap-banner" id="capBanner" hidden></div>
+      <div class="co-waitlist" id="waitlistPanel" hidden>
+        <h2>Launch spots are full</h2>
+        <p>All spots in this launch batch are claimed. Leave your e-mail and we'll invite you as soon as a spot opens up.</p>
+        <form id="waitlistForm" class="co-waitlist-form">
+          <input class="input" id="waitlistEmail" type="email" placeholder="you@example.com" autocomplete="email" required />
+          <button type="submit" class="btn btn-primary">Join the waitlist</button>
+        </form>
+        <span class="field-err" id="waitlistErr" hidden></span>
+        <p class="co-waitlist-done" id="waitlistDone" hidden>You're on the list — we'll e-mail you when a spot opens up.</p>
+      </div>
+
       <!-- ============ STEP INDICATOR ============ -->
       <ol class="co-steps" id="coSteps">
         <li class="co-step active" data-step-dot="1">

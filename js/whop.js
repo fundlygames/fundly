@@ -43,7 +43,9 @@ const FundlyCheckout = {
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.checkoutUrl) {
-      throw new Error(data.error || "Could not open the payment gateway.");
+      const err = new Error(data.error || "Could not open the payment gateway.");
+      err.code = data.code;
+      throw err;
     }
     return data;
   },

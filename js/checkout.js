@@ -25,6 +25,75 @@
   const pkg = () => packageByKey(state.pkg);
   const meta = () => packageMeta(pkg());
 
+  // ---------- launch capacity (limit "first N buyers", then waitlist) ----------
+  const EMAIL_RE_WL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const capBanner = $("capBanner");
+  const waitlistPanel = $("waitlistPanel");
+  const waitlistForm = $("waitlistForm");
+  const waitlistEmail = $("waitlistEmail");
+  const waitlistErr = $("waitlistErr");
+  const waitlistDone = $("waitlistDone");
+
+  async function joinWaitlist(email) {
+    const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/waitlist-join`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, packageKey: state.pkg }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || "Could not join the waitlist.");
+  }
+
+  waitlistForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = waitlistEmail.value.trim();
+    waitlistErr.hidden = true;
+    if (!EMAIL_RE_WL.test(email)) {
+      waitlistErr.textContent = "Enter a valid email address.";
+      waitlistErr.hidden = false;
+      return;
+    }
+    const btn = waitlistForm.querySelector("button");
+    btn.disabled = true;
+    try {
+      await joinWaitlist(email);
+      waitlistForm.hidden = true;
+      waitlistDone.hidden = false;
+    } catch (err) {
+      waitlistErr.textContent = err.message;
+      waitlistErr.hidden = false;
+      btn.disabled = false;
+    }
+  });
+
+  // Sold-out fallback shown inside step 3 when the payment session gets
+  // rejected with SOLD_OUT (someone else claimed the last spot in a race).
+  function showSoldOut() {
+    waitlistPanel.hidden = false;
+    if (state.email) waitlistEmail.value = state.email;
+    waitlistPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  async function checkAvailability() {
+    if (!(typeof fundlyBackendEnabled === "function" && fundlyBackendEnabled())) return;
+    try {
+      const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/checkout-availability`);
+      const data = await res.json().catch(() => ({}));
+      if (!data.capped) return;
+      if (data.soldOut) {
+        capBanner.textContent = "Launch spots are full — join the waitlist below, or continue below if you already have an invite.";
+        capBanner.hidden = false;
+        waitlistPanel.hidden = false;
+      } else if (typeof data.spotsLeft === "number" && data.spotsLeft <= 5) {
+        capBanner.textContent = `Only ${data.spotsLeft} launch spot${data.spotsLeft === 1 ? "" : "s"} left in this batch.`;
+        capBanner.hidden = false;
+      }
+    } catch (e) {
+      // Availability check is cosmetic UX only — a failure here must not block checkout.
+    }
+  }
+  checkAvailability();
+
   // ---------- step 1: package cards ----------
   const pkgGrid = $("pkgGrid");
 
@@ -282,7 +351,13 @@
       }
       mountWhopEmbed(data.sessionId, data.planId);
     } catch (err) {
-      showFallback(err.message, state.checkoutUrl);
+      if (err.code === "SOLD_OUT") {
+        payLoading.hidden = true;
+        whopMount.innerHTML = "";
+        showSoldOut();
+      } else {
+        showFallback(err.message, state.checkoutUrl);
+      }
     } finally {
       state.paymentRunning = false;
     }
