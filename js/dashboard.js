@@ -269,7 +269,7 @@ function celebrateTicket(ticket) {
   } else if (ticket.status === "lost") {
     showToast("loss", "Ticket lost", `${label} · −${usd(ticket.stake)}`);
   } else if (ticket.status === "push") {
-    showToast("push", "Stake refunded", label);
+    showToast("push", "Amount refunded", label);
   }
 }
 
@@ -288,7 +288,7 @@ const BADGES = [
   ["Accumulator expert", "b-akumulator", "b-akumulator"],
   ["Phase 1 complete", "b-faze-1", "b-faze-1"],
   ["Phase 2 complete", "b-faze-2", "b-faze-2"],
-  ["Funded player", "b-funded", "b-funded"],
+  ["Partner player", "b-funded", "b-funded"],
   ["100 bets", "b-100-sazek", "b-100-sazek"],
   ["Hunter instinct", "b-lovecky", "b-lovecky"],
   ["Iron hand", "b-zelezna-ruka", "b-zelezna-ruka"],
@@ -618,7 +618,7 @@ function showLimitedDashboard(accounts) {
   if (pastPanel) pastPanel.hidden = !accounts.length;
   const list = document.getElementById("naAccounts");
   if (list && accounts.length) {
-    const label = (s) => s === "funded" ? "Funded" : s === "active" ? "Active" : s === "breached" ? "Breached" : s;
+    const label = (s) => s === "funded" ? "Partner" : s === "active" ? "Active" : s === "breached" ? "Breached" : s;
     const tag = (s) => s === "funded" ? "win" : s === "active" ? "push" : "loss";
     list.innerHTML = accounts.map((a) => `
       <div class="k-row neutral">${a.package_key || "?"} · $${Number(a.capital || 0).toLocaleString("en-US")}
@@ -700,7 +700,7 @@ async function syncChallengeAccount() {
     if (account.state === "funded" && account.inactivity_warned_13) {
       showToast("loss", "Last warning: place a bet", "No activity for 13+ days. The account will be closed after 14 days of inactivity.");
     } else if (account.state === "funded" && account.inactivity_warned_7) {
-      showToast("pend", "Stay active", "No activity for 7+ days. Place at least one bet every 14 days to keep the account funded.");
+      showToast("pend", "Stay active", "No activity for 7+ days. Place at least one bet every 14 days to keep the account active.");
     }
 
     if (isPasswordRecovery) jumpToPasswordSettings("s");
@@ -1252,7 +1252,7 @@ function renderSlip() {
       </div>`).join("")}
     <div class="slip-total"><span>Total odds</span><b>${totalOdds.toFixed(2)}</b></div>
     <div class="field">
-      <label for="stakeInput">Stake (max. ${usd(maxStake)})</label>
+      <label for="stakeInput">Entry size (max. ${usd(maxStake)})</label>
       <input class="input" id="stakeInput" type="number" min="5" max="${maxStake}" value="${Math.min(80, maxStake)}" />
     </div>
     <div class="slip-total"><span>Potential win</span><b class="green" id="potWin"></b></div>
@@ -1637,7 +1637,7 @@ if (wdForm) {
         return;
       }
     }
-    note.textContent = "Withdrawals unlock with a funded account after completing both phases.";
+    note.textContent = "Withdrawals unlock with a Partner account after completing both phases.";
     note.hidden = false;
   });
 }
@@ -2122,7 +2122,7 @@ function ticketDetailHtml(t) {
         <div class="tk-sel"><span>${s.homeTeam && s.awayTeam ? `${s.homeTeam} – ${s.awayTeam}` : (s.league || "Match")} · ${s.pickLabel || s.field}<br><small style="color:var(--text-muted)">${fmtTime(s.startTime)}</small></span><span class="n">${s.oddValue.toFixed(2)}</span></div>`).join("")}
     </div>
     <div class="tk-meta">
-      <span>Stake <b>${usd(t.stake)}</b></span>
+      <span>Entry size <b>${usd(t.stake)}</b></span>
       <span>Odds <b>${t.combinedOdds.toFixed(2)}</b></span>
       <span>Potential win <b class="green">${usd(potWin)}</b></span>
     </div>
@@ -2156,7 +2156,7 @@ function renderPrehled() {
   if (!view) return;
   const state = Portfolio.ensure("advanced");
   const meta = Portfolio.ruleMeta(state);
-  const phaseLabel = state.phase === "funded" ? "Funded account" : `Phase ${state.phase}`;
+  const phaseLabel = state.phase === "funded" ? "Partner account" : `Phase ${state.phase}`;
   document.getElementById("ovSubtitle").textContent = `${phaseLabel} · Fundly Challenge`;
   document.getElementById("ovPhaseChip").textContent = phaseLabel;
   renderMomentum(state);
@@ -2237,7 +2237,7 @@ function renderPrehled() {
   document.getElementById("rulesRail").innerHTML = `
     <h3>Rules at a glance</h3>
     ${state.phase === "funded"
-      ? rrRow("Phase target", "Completed", null, "", "Funded account — no target, unlimited time")
+      ? rrRow("Phase target", "Completed", null, "", "Partner account — no target, unlimited time")
       : rrRow("Phase target", `${usd(Math.max(0, profit))} / ${usd(target)}`, pct, pct >= 100 ? "" : "", pct >= 100 ? "Completed" : `${usd(toGoal)} to go`)}
     ${rrRow(dd.trailing ? "Max. loss (trailing)" : "Max. loss (static)", `${usd(Math.round(dd.remaining))} / ${usd(dd.limit)}`, Math.round(dd.pct), ddTone,
       dd.trailing ? `Floor follows your highest balance (${usd(dd.floor)})` : `Fixed floor ${usd(dd.floor)} — it never moves`)}
@@ -2251,9 +2251,9 @@ function renderPrehled() {
     })()}
     ${state.phase === "funded" ? "" : rrRow("Time limit", `${daysLeft} / 30 days`, pctTime, pctTime < 25 ? "danger" : "", "")}
     ${rrRow("Qualifying tickets", `${Math.min(qual, meta.qualifyingTickets)} / ${meta.qualifyingTickets}`, pctTickets, "", "Winning tickets with net profit ≥ +0.5 % of capital")}
-    ${rrRow("Max. stake", usd(meta.maxStake), null, "", "Per single ticket")}
+    ${rrRow("Max. entry size", usd(meta.maxStake), null, "", "Per single ticket")}
     ${rrRow("Odds", `${ODDS_MIN.toFixed(2)} – ${ODDS_MAX.toFixed(2)}`, null, "", "")}
-    ${rrRow("Profit split", `${meta.profitSplit} %`, null, "", "Your share of the profit")}
+    ${rrRow("Performance split", `${meta.profitSplit} %`, null, "", "Your share of the performance reward")}
     <div class="rr-phase">
       <span class="rr-phase-label">Phase</span>
       <span class="rr-phase-name">${phaseLabel}</span>
@@ -2283,14 +2283,14 @@ function renderPrehled() {
       <span class="v">${Math.min(qual, meta.qualifyingTickets)} / ${meta.qualifyingTickets}</span>
     </div>
     <div class="limit-row">
-      <span class="k">Profit withdrawal <small>(funded account)</small></span>
+      <span class="k">Profit withdrawal <small>(Partner account)</small></span>
       <span class="v">80 % of profit · max $4,000</span>
     </div>`;
 
   document.getElementById("ovPravidla").innerHTML = `
     <div class="rules-grid">
-      <div class="rule-tile"><div class="k">Profit split</div><div class="v green">${meta.profitSplit} %</div></div>
-      <div class="rule-tile"><div class="k">Max. stake</div><div class="v">${usd(meta.maxStake)}</div></div>
+      <div class="rule-tile"><div class="k">Performance split</div><div class="v green">${meta.profitSplit} %</div></div>
+      <div class="rule-tile"><div class="k">Max. entry size</div><div class="v">${usd(meta.maxStake)}</div></div>
       <div class="rule-tile"><div class="k">Odds</div><div class="v">${ODDS_MIN.toFixed(2)} to ${ODDS_MAX.toFixed(2)}</div></div>
       <div class="rule-tile"><div class="k">Max. loss</div><div class="v">${usd(dd.limit)}</div></div>
       <div class="rule-tile"><div class="k">Max. daily loss</div><div class="v">${usd(dl.limit)}</div></div>
@@ -2300,12 +2300,12 @@ function renderPrehled() {
       <div class="rule-tile"><div class="k">Max. payout</div><div class="v">$4,000</div></div>
       <div class="rule-tile"><div class="k">Consistency rule</div><div class="v">${usd(Math.round(Portfolio.consistencyLimit(state)))} max / ticket</div></div>
     </div>
-    <p class="t-meta" style="margin-top:10px">Consistency rule: no single ticket's potential profit may exceed 40 % of the current phase target (or of the profit buffer once funded) — this keeps one lucky ticket from carrying the whole result.</p>`;
+    <p class="t-meta" style="margin-top:10px">Consistency rule: no single ticket's potential profit may exceed 40 % of the current phase target (or of the profit buffer once in Phase 3) — this keeps one lucky ticket from carrying the whole result.</p>`;
 
   const steps = [
     { title: "Phase 1 · Fundly Challenge", desc: `Target +${usd(meta.target1)}`, img: "assets/journey-phase1.jpg" },
     { title: "Phase 2 · Verification", desc: `Target +${usd(meta.target2)}`, img: "assets/journey-phase2.jpg" },
-    { title: "Funded account", desc: `${meta.profitSplit} % profit share, unlimited time, regular payouts.`, img: "assets/journey-funded.jpg" },
+    { title: "Partner account", desc: `${meta.profitSplit} % performance split, unlimited time, regular payouts.`, img: "assets/journey-funded.jpg" },
   ];
   const currentIndex = state.phase === "funded" ? 2 : state.phase - 1;
   document.getElementById("ovCesta").innerHTML = `<div class="journey">${steps.map((step, i) => {
@@ -2327,7 +2327,7 @@ function renderPrehled() {
 }
 renderPrehled();
 
-// ---------- payouts: payout conditions (funded account) ----------
+// ---------- payouts: payout conditions (Partner account) ----------
 // Per the rules doc: (1) profit buffer +5 % of capital — ONE-TIME at the start
 // of the funded phase (once the high-water mark passes it, it stays met);
 // (2) 5 qualifying tickets (winning, net profit ≥ +0.5 % of capital) BEFORE
@@ -2337,7 +2337,7 @@ function renderPayoutConds(state) {
   const el = document.getElementById("wdConds");
   if (!el) return;
   if (state.phase !== "funded") {
-    el.innerHTML = `<p class="t-meta" style="margin-top:10px">Withdrawals unlock with a funded account. Once funded, build a one-time profit buffer of +5 % of capital; before every payout you then need 5 winning tickets with a net profit of at least +0.5 % of capital (the counter resets after each payout). Payouts open every 14 days. Payout is 80 % of your profit, max. $4,000.</p>`;
+    el.innerHTML = `<p class="t-meta" style="margin-top:10px">Withdrawals unlock with a Partner account. Once in Phase 3, build a one-time profit buffer of +5 % of capital; before every payout you then need 5 winning tickets with a net profit of at least +0.5 % of capital (the counter resets after each payout). Payouts open every 14 days. Payout is 80 % of your profit, max. $4,000.</p>`;
     return;
   }
   const meta = Portfolio.ruleMeta(state);
@@ -2371,7 +2371,7 @@ function renderProfile(state) {
   const target = Portfolio.phaseTarget(state);
   const profit = state.balance - state.phaseBaseline;
   const pct = target > 0 ? Math.max(0, Math.min(100, Math.round((profit / target) * 100))) : 100;
-  const phaseLabel = state.phase === "funded" ? "Funded account" : `Phase ${state.phase}`;
+  const phaseLabel = state.phase === "funded" ? "Partner account" : `Phase ${state.phase}`;
   const set = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
 
   set("pfName", state.packageName);
@@ -2386,7 +2386,7 @@ function renderProfile(state) {
   document.getElementById("pfWinRate").classList.toggle("green", s.winRate >= 50);
 
   if (state.phase === "funded") {
-    set("pfGoalLabel", "Funded account");
+    set("pfGoalLabel", "Partner account");
     set("pfGoalPct", "No target");
     document.getElementById("pfGoalBar").style.width = "100%";
     set("pfGoalMeta", "Unlimited time, regular payouts.");
@@ -2411,8 +2411,8 @@ function renderProfile(state) {
 
   const rules = document.getElementById("pfRules");
   if (rules) rules.innerHTML = `
-    <div class="rule-tile"><div class="k">Profit split</div><div class="v green">${meta.profitSplit} %</div></div>
-    <div class="rule-tile"><div class="k">Max. stake</div><div class="v">${usd(meta.maxStake)}</div></div>
+    <div class="rule-tile"><div class="k">Performance split</div><div class="v green">${meta.profitSplit} %</div></div>
+    <div class="rule-tile"><div class="k">Max. entry size</div><div class="v">${usd(meta.maxStake)}</div></div>
     <div class="rule-tile"><div class="k">Odds</div><div class="v">${ODDS_MIN.toFixed(2)} to ${ODDS_MAX.toFixed(2)}</div></div>
     <div class="rule-tile"><div class="k">Max. loss</div><div class="v">${usd(dd.limit)}</div></div>
     <div class="rule-tile"><div class="k">Max. daily loss</div><div class="v">${usd(dl.limit)}</div></div>
@@ -2448,7 +2448,7 @@ function renderVykon() {
       <div class="val">${s.pending}</div>
     </div>
     <div class="dstat">
-      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.5v12M10.5 4.5c0-1.2-1.3-2-3-2s-3 .8-3 2 1.3 2 3 2 3 .8 3 2-1.3 2-3 2-3-.8-3-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>Staked</div>
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.5v12M10.5 4.5c0-1.2-1.3-2-3-2s-3 .8-3 2 1.3 2 3 2 3 .8 3 2-1.3 2-3 2-3-.8-3-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>Entered</div>
       <div class="val">${usd(s.staked)}</div>
     </div>
     <div class="dstat">
@@ -2462,7 +2462,7 @@ function renderVykon() {
     <div class="k-row pend">Pending<span class="n">${s.pending}</span></div>`;
 
   document.getElementById("vykonFinancials").innerHTML = `
-    <div class="k-row neutral">Staked<span class="n">${usd(s.staked)}</span></div>
+    <div class="k-row neutral">Entered<span class="n">${usd(s.staked)}</span></div>
     <div class="k-row neutral">Returned<span class="n">${usd(s.returned)}</span></div>
     <div class="k-row neutral">Net profit<span class="n ${s.netProfit >= 0 ? "green" : ""}">${s.netProfit >= 0 ? "+" : ""}${usd(s.netProfit)}</span></div>`;
 

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard | Fundly</title>
-  <meta name="description" content="Overview of your Fundly funded account." />
+  <meta name="description" content="Overview of your Fundly Partner account." />
   <meta name="theme-color" content="#020204" />
   <link rel="icon" type="image/png" href="assets/logo.png" />
   <link rel="stylesheet" href="css/style.css" />
@@ -75,7 +75,7 @@
       </button>
       <button class="dnav-link" data-view="sazeni">
         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 5a1.5 1.5 0 001.5-1.5h8A1.5 1.5 0 0013 5v1.6a1.9 1.9 0 000 3.8V12a1.5 1.5 0 00-1.5 1.5h-8A1.5 1.5 0 002 12V5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" transform="translate(0,-1.2)"/></svg>
-        Betting
+        Entries
       </button>
       <button class="dnav-link" data-view="zebricek">
         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M4.5 2h6v4a3 3 0 01-6 0V2zM4.5 3.5h-2a2 2 0 002 2.5M10.5 3.5h2a2 2 0 01-2 2.5M7.5 9v2.5M5 13h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -128,8 +128,8 @@
           <div class="ov-main">
             <!-- funded účet bez zaplaceného aktivačního poplatku -->
             <div class="panel act-panel" id="activationPanel" hidden>
-              <h3>Activate your funded account</h3>
-              <p class="t-small">Your funded account is almost ready. Pay the $80 activation fee to unlock payouts.</p>
+              <h3>Activate your Partner account</h3>
+              <p class="t-small">Your Partner account is almost ready. Pay the $80 activation fee to unlock payouts.</p>
               <button class="btn btn-primary" id="activationPay" style="margin-top:12px">Pay activation fee — $80</button>
               <p class="auth-note mt" id="activationNote" hidden></p>
             </div>
@@ -138,7 +138,7 @@
 
             <div class="stat-grid" id="ovStatGrid"><!-- JS: renderPrehled() --></div>
 
-            <button class="btn btn-primary btn-lg cta-bet" data-view-link="sazeni">Bet now</button>
+            <button class="btn btn-primary btn-lg cta-bet" data-view-link="sazeni">Enter now</button>
 
             <div class="panel" id="recentTicketsPanel">
               <h3>Recent tickets</h3>
@@ -160,7 +160,7 @@
 
             <div class="panel" data-ovpanel="tipy" hidden>
               <ul class="tip-list">
-                <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Bet consistent amounts — 1 to 2 % of capital per ticket is plenty.</li>
+                <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Enter consistent amounts — 1 to 2 % of capital per ticket is plenty.</li>
                 <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Stick to sports and leagues you truly know — volume alone won't hit the target.</li>
                 <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Max. loss is a fixed −10 % of capital, no trailing — the floor never moves.</li>
                 <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>You have 30 days to hit the target — don't rush. On average, roughly +0.35 % of capital per day is enough.</li>
@@ -209,7 +209,7 @@
             <h3>Recent tickets</h3>
             <div style="overflow-x:auto">
               <table class="ticket-table">
-                <thead><tr><th>Match</th><th>Pick</th><th>Odds</th><th>Stake</th><th>Status</th></tr></thead>
+                <thead><tr><th>Match</th><th>Pick</th><th>Odds</th><th>Amount</th><th>Status</th></tr></thead>
                 <tbody id="vykonTicketTable"><!-- JS: renderVykon() --></tbody>
               </table>
             </div>
@@ -221,14 +221,14 @@
       <section class="dash-view" id="view-sazeni" hidden>
         <div class="dash-head">
           <div>
-            <h1>Betting</h1>
+            <h1>Entries</h1>
             <p>Pick matches and build your ticket</p>
           </div>
         </div>
 
         <div class="bank-bar">
           <span>Balance: <b id="bankBalance">–</b></span>
-          <span class="right"><span>Max. stake: <b id="bankMaxStake">–</b></span><span>Odds: <b id="bankOddsRange">–</b></span></span>
+          <span class="right"><span>Max. entry size: <b id="bankMaxStake">–</b></span><span>Odds: <b id="bankOddsRange">–</b></span></span>
         </div>
 
         <div class="panel bet-filters" id="betFiltersPanel">
@@ -339,14 +339,14 @@
 
         <div class="hero-panel wd">
           <div>
-            <div class="t">Your vault opens with a funded account</div>
+            <div class="t">Your vault opens with a Partner account</div>
             <div class="d">80 % of every profit, payouts within 48 hours of approval.</div>
           </div>
         </div>
 
         <div class="notice">
           <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><rect x="3" y="6.5" width="9" height="6" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M5 6.5V5a2.5 2.5 0 015 0v1.5" stroke="currentColor" stroke-width="1.4"/></svg>
-          Withdrawals are only available on a funded account. Complete Phase 1 and Phase 2 first.
+          Withdrawals are only available on a Partner account. Complete Phase 1 and Phase 2 first.
         </div>
 
         <div class="two-col" style="margin-top:10px">
@@ -375,7 +375,7 @@
             <div class="panel">
               <h3>How it works</h3>
               <ol class="ol-steps">
-                <li>Once funded, build a one-time profit buffer of at least +5 % of capital.</li>
+                <li>Once in Phase 3, build a one-time profit buffer of at least +5 % of capital.</li>
                 <li>Before every payout, complete 5 winning tickets with a net profit of at least +0.5 % of capital — the counter resets after each payout.</li>
                 <li>Pick an amount — you receive 80 % of your profit, up to $4,000 per payout.</li>
                 <li>We approve the request within 24 hours and pay it out.</li>
@@ -399,7 +399,7 @@
         <div class="panel mt">
           <h3>Withdrawal history</h3>
           <div id="wdHistory">
-            <p class="slip-empty">No withdrawals yet. They unlock with a funded account.</p>
+            <p class="slip-empty">No withdrawals yet. They unlock with a Partner account.</p>
           </div>
         </div>
       </section>
@@ -437,24 +437,24 @@
         <div class="dash-head">
           <div>
             <h1>Academy</h1>
-            <p>Betting fundamentals for the Fundly Challenge</p>
+            <p>Simulation fundamentals for the Fundly Challenge</p>
           </div>
         </div>
 
         <div class="hero-panel">
           <div>
-            <div class="t">Learn the rules of the game before you bet</div>
-            <div class="d">Five short reads — bankroll, odds, value, qualifying tickets and drawdown.</div>
+            <div class="t">Learn the rules of the game before you enter</div>
+            <div class="d">Five short reads — capital management, odds, value, qualifying tickets and drawdown.</div>
           </div>
         </div>
 
         <div class="two-col">
           <div class="panel">
-            <h3>Bankroll management</h3>
+            <h3>Capital management</h3>
             <ul class="tip-list">
-              <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Your bankroll is your challenge capital — treat it as a budget, not a number to double overnight.</li>
-              <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Flat staking wins long-term: 1–2 % of capital per ticket. On Fundly the max stake is 1.5 % of capital anyway.</li>
-              <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Never chase losses by raising stakes — that is how accounts hit the drawdown floor.</li>
+              <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Treat your challenge capital as a fixed budget, not a number to double overnight.</li>
+              <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Flat entry sizing wins long-term: 1–2 % of capital per ticket. On Fundly the max entry size is 1.5 % of capital anyway.</li>
+              <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Never chase losses by raising entry sizes — that is how accounts hit the drawdown floor.</li>
             </ul>
           </div>
           <div class="panel">
@@ -464,7 +464,7 @@
               <div class="k-row neutral">Odds 1.50 → implied probability<span class="n">66.7 %</span></div>
               <div class="k-row neutral">Odds 2.00 → implied probability<span class="n">50 %</span></div>
               <div class="k-row neutral">Odds 4.00 → implied probability<span class="n">25 %</span></div>
-              <div class="k-row neutral">Return = stake × odds<span class="n">$10 × 2.00 = $20</span></div>
+              <div class="k-row neutral">Return = entry size × odds<span class="n">$10 × 2.00 = $20</span></div>
             </div>
             <p class="t-small" style="margin-top:12px">Implied probability = 1 ÷ odds. Bookmakers build a margin into the odds, so the total of all outcomes is always over 100 %.</p>
           </div>
@@ -486,9 +486,9 @@
           </div>
           <div class="panel">
             <h3>Drawdown</h3>
-            <p class="t-small" style="margin-bottom:12px">Drawdown is how far your balance may fall before the challenge fails. In the Challenge phases the max. loss is a static −10 % of capital — a fixed floor. On the funded account it becomes trailing: the floor follows your highest reached balance.</p>
+            <p class="t-small" style="margin-bottom:12px">Drawdown is how far your balance may fall before the challenge fails. In the Challenge phases the max. loss is a static −10 % of capital — a fixed floor. In Phase 3 it becomes trailing: the floor follows your highest reached balance.</p>
             <div class="limit-row">
-              <span class="k">Max. loss <small>(static → trailing on funded)</small></span>
+              <span class="k">Max. loss <small>(static → trailing in Phase 3)</small></span>
               <span class="v">−10 % of capital</span>
             </div>
             <div class="progress"><span style="width:90%"></span></div>
@@ -496,17 +496,17 @@
               <span class="k">Max. daily loss <small>(resets at midnight UTC)</small></span>
               <span class="v">−4 % of capital</span>
             </div>
-            <p class="t-small" style="margin-top:12px">Example: with $25,000 capital the static floor is $22,500. On a funded account peaking at $27,000 the trailing floor moves to $24,300.</p>
+            <p class="t-small" style="margin-top:12px">Example: with $25,000 capital the static floor is $22,500. In Phase 3, peaking at $27,000, the trailing floor moves to $24,300.</p>
           </div>
           <div class="panel">
             <h3>House rules in short</h3>
             <ol class="ol-steps">
               <li>Phase 1 target +10 %, Phase 2 target +5 % of capital, 30 days per phase.</li>
-              <li>Max. loss −10 % (static in the Challenge, trailing on funded), max. daily loss −4 % of capital.</li>
-              <li>Max. stake 1.5 % of capital per ticket.</li>
+              <li>Max. loss −10 % (static in the Challenge, trailing in Phase 3), max. daily loss −4 % of capital.</li>
+              <li>Max. entry size 1.5 % of capital per ticket.</li>
               <li>5 qualifying tickets per phase and before every payout.</li>
               <li>No arbitrage, no sure betting, no abusive strategies — flagged tickets lead to a breach.</li>
-              <li>Funded account: 80 % profit split, payouts within 48 hours of approval.</li>
+              <li>Partner account: 80 % performance split, payouts within 48 hours of approval.</li>
             </ol>
           </div>
         </div>
@@ -558,7 +558,7 @@
           <div class="two-col">
             <div class="panel">
               <h3>Risk limits</h3>
-              <p class="t-small" style="margin-bottom:12px">Failure rules: max. loss −10 % of capital (static in the Challenge, trailing once funded) and max. daily loss −4 %.</p>
+              <p class="t-small" style="margin-bottom:12px">Failure rules: max. loss −10 % of capital (static in the Challenge, trailing once in Phase 3) and max. daily loss −4 %.</p>
               <div class="limit-row">
                 <span class="k">Max. loss (static) <small id="pfDdDetail">(fixed floor –)</small></span>
                 <span class="v" id="pfDdRemain">–</span>
@@ -678,7 +678,7 @@
     </button>
     <button data-view="sazeni">
       <svg width="17" height="17" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 5a1.5 1.5 0 001.5-1.5h8A1.5 1.5 0 0013 5v1.6a1.9 1.9 0 000 3.8V12a1.5 1.5 0 00-1.5 1.5h-8A1.5 1.5 0 002 12V5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" transform="translate(0,-1.2)"/></svg>
-      Betting
+      Entries
     </button>
     <button data-view="vykon">
       <svg width="17" height="17" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M1.5 11.5l4-4 3 3 5-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>

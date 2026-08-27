@@ -334,9 +334,9 @@ const Portfolio = (() => {
     }
     if (!selections || !selections.length) return { ok: false, error: "Your ticket is empty." };
     const amount = Number(stake);
-    if (!amount || amount <= 0) return { ok: false, error: "Enter a valid stake amount." };
+    if (!amount || amount <= 0) return { ok: false, error: "Enter a valid entry amount." };
     const maxStake = ruleMeta(state).maxStake;
-    if (amount > maxStake) return { ok: false, error: `Max. stake is $${maxStake.toLocaleString("en-US")}.` };
+    if (amount > maxStake) return { ok: false, error: `Max. entry size is $${maxStake.toLocaleString("en-US")}.` };
     if (amount > state.balance) return { ok: false, error: "Insufficient balance." };
     const seenEventIds = new Set();
     for (const s of selections) {
