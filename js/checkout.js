@@ -141,14 +141,14 @@
       <h3 class="sum-h">Summary</h3>
       <div class="sum-row sum-head"><span class="k">Package</span><span class="k">Capital</span></div>
       <div class="sum-row"><span class="v big">${p.name}</span><span class="v green big">${usd(p.cap)}</span></div>
-      <div class="sum-row"><span class="k">Profit share</span><span class="v green">${m.profitSplit} %</span></div>
+      <div class="sum-row"><span class="k">Performance split</span><span class="v green">${m.profitSplit} %</span></div>
       <div class="sum-row"><span class="k">Max. stake</span><span class="v">${usd(m.maxStake)}</span></div>
       <div class="sum-row"><span class="k">${p.name} package</span><span class="v">${usd(p.price)}</span></div>
       <div class="sum-total"><span class="k">One-time fee</span><span class="v">${usd(p.price)}</span></div>
       <ul class="sum-feats">
         <li>${check}2 evaluation phases, 30 days each</li>
-        <li>${check}Unlimited time as a Fundly Partner once funded</li>
-        <li>${check}Profit withdrawals once you reach the Funded phase</li>
+        <li>${check}Unlimited time as a Fundly Partner in Phase 3</li>
+        <li>${check}Profit withdrawals once you reach Phase 3</li>
         <li>${check}Reset for just ${usd(m.resetFee)} if you fail</li>
         <li>${check}All sports</li>
       </ul>

@@ -60,7 +60,7 @@ function renderPlan(animate) {
     <article class="phase funded ${animate ? "pkg-anim" : ""}" style="animation-delay:.1s">
       <div class="ph-art" style="background-image:url(assets/card2-tiper.jpg)" aria-hidden="true"></div>
       <div class="ph-body">
-        <span class="ph-tag">Funded account</span>
+        <span class="ph-tag">Partner Account</span>
         <div class="ph-name">Fundly Partner</div>
         <div class="ph-rows">
           <div class="ph-row"><span class="k">Your share</span><span class="v green">80 %</span></div>
