@@ -7,7 +7,7 @@ import { packageByKey, whopPlanId } from "../_shared/packages.ts";
 import { whopFetch } from "../_shared/whop.ts";
 import { launchCapacity, soldCount, isInvited } from "../_shared/capacity.ts";
 
-const SITE_URL = Deno.env.get("SITE_URL") ?? "https://matejc-beep.github.io/fundly";
+const SITE_URL = Deno.env.get("SITE_URL") ?? "https://fundly.games";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 serve(async (req) => {

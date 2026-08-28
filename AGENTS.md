@@ -5,7 +5,7 @@
 ## Project
 
 Functional betting simulation + prop-firm dashboard. Static site.
-GitHub repo: `matejc-beep/fundly` (renamed from `betflow-upcomers-static`), deployed via GitHub Pages at https://matejc-beep.github.io/fundly/
+GitHub repo: `fundlygames/fundly` (migrated from the old `matejc-beep/fundly`), deployed via GitHub Pages at the custom domain https://fundly.games/
 Local dir: `~/betflow-upcomers-static` (kept for compatibility).
 Archived React/Supabase (Lovable) version: repo `matejc-beep/betflow-react-archive`, source `~/betflow-upcomers` — NOT in active use.
 
