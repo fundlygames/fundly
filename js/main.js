@@ -76,7 +76,7 @@ function renderPlan(animate) {
   priceCard.innerHTML = `
     <div class="${animate ? "pkg-anim" : ""}">
       <span class="pc-badge">${p.name} package</span>
-      <div class="cap">${usd(p.cap)}<small>capital at your disposal</small></div>
+      <div class="cap">${usd(p.cap)}<small>simulated capital at your disposal</small></div>
     </div>
     <ul class="price-feats ${animate ? "pkg-anim" : ""}" style="animation-delay:.05s">
       <li>${check}2 evaluation phases</li>
