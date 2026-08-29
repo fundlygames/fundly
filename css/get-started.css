@@ -116,6 +116,38 @@
 .gs-compare-r .us { color: var(--accent); font-weight: 700; }
 .gs-compare-r .them { color: var(--text-muted); }
 
+/* ---------- the math is short ---------- */
+.gs-math { padding: 64px 0; border-top: 1px solid var(--line); }
+.gs-math-inner { max-width: 640px; text-align: center; }
+.gs-math h2 { font-size: 1.875rem; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 8px; }
+.gs-math-label {
+  font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--text-muted); margin: 0 0 28px;
+}
+.gs-math-row { display: flex; justify-content: center; gap: 48px; margin-bottom: 28px; }
+.gs-math-cell { display: flex; flex-direction: column; gap: 4px; }
+.gs-math-cell .k { font-size: .8125rem; color: var(--text-muted); }
+.gs-math-cell .v { font-size: 2.5rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.gs-math-cell .v.green { color: var(--accent); }
+.gs-math-note { color: var(--text-secondary); font-size: .9375rem; line-height: 1.6; margin: 0 auto; max-width: 56ch; }
+@media (max-width: 480px) {
+  .gs-math-row { gap: 24px; }
+  .gs-math-cell .v { font-size: 1.875rem; }
+}
+
+/* ---------- start in minutes ---------- */
+.gs-steps { padding: 64px 0 72px; border-top: 1px solid var(--line); }
+.gs-steps h2 { text-align: center; font-size: 1.875rem; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 40px; }
+.gs-steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; max-width: 900px; margin: 0 auto; }
+@media (max-width: 720px) { .gs-steps-grid { grid-template-columns: 1fr; gap: 28px; } }
+.gs-step { text-align: center; }
+.gs-step-n {
+  display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px;
+  border-radius: 999px; background: var(--accent-tint); color: var(--accent); font-weight: 800; font-size: .8125rem;
+  margin-bottom: 14px;
+}
+.gs-step h3 { font-size: 1.0625rem; font-weight: 700; margin: 0 0 8px; }
+.gs-step p { color: var(--text-muted); font-size: .875rem; line-height: 1.5; max-width: 26ch; margin: 0 auto; }
+
 /* mobile sticky buy bar — mirrors the sidebar CTA once it scrolls off-screen on small viewports */
 .gs-mobile-bar {
   display: none;
