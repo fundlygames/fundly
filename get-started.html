@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Get Started | Fundly — Simulated Capital for Sports Analysts</title>
+  <meta name="description" content="Pick your simulated capital, see your targets and limits instantly, then start the Fundly Challenge. Up to $100,000, 80% performance split, no risk to your own money." />
+  <meta name="theme-color" content="#020204" />
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/get-started.css" />
+  <!-- Meta Pixel -->
+  <script>
+  !function(f,b,e,v,n,t,s)
+  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+  n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];
+  s.parentNode.insertBefore(t,s)}(window, document,'script',
+  'https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', '1607202704124174');
+  fbq('track', 'PageView');
+  </script>
+  <noscript><img height="1" width="1" style="display:none"
+  src="https://www.facebook.com/tr?id=1607202704124174&ev=PageView&noscript=1"
+  /></noscript>
+  <!-- End Meta Pixel Code -->
+  <!-- backend (Supabase/Whop) + shared package data — defer, page works without it too -->
+  <script defer src="js/config.js"></script>
+  <script defer src="js/packages.js"></script>
+  <script defer src="js/whop.js"></script>
+  <script defer src="js/get-started.js"></script>
+</head>
+<body>
+
+  <!-- ============ NAV ============ -->
+  <header class="nav scrolled">
+    <div class="container gs-top">
+      <a href="./" class="logo" aria-label="Fundly, home">
+        <img src="assets/logo.png" alt="" width="24" height="24" />
+        fundly
+      </a>
+      <a class="btn btn-ghost" href="./">Back to home</a>
+    </div>
+  </header>
+
+  <div class="gs-banner"><b>90 people</b> claimed a spot this week — first 20 buyers get priority KYC review</div>
+
+  <main>
+    <div class="container gs-layout">
+      <div>
+        <p class="gs-picker-label">Account size</p>
+        <div class="gs-size-row" id="gsSizeRow"><!-- JS --></div>
+
+        <h1 class="gs-hero-h">Simulated capital for your sports analytics.</h1>
+        <p class="gs-hero-sub">Pass a two-phase evaluation, keep 80% of your performance reward, no risk to your own money. Pick your capital below and see exactly what changes at each tier.</p>
+
+        <div class="gs-pkg-grid" id="gsPkgGrid"><!-- JS --></div>
+
+        <div class="gs-info-grid">
+          <div class="gs-info-box">
+            <h4>Phase targets</h4>
+            <div class="r"><span>Phase 1</span><span class="v green" id="gsT1">–</span></div>
+            <div class="r"><span>Phase 2</span><span class="v green" id="gsT2">–</span></div>
+          </div>
+          <div class="gs-info-box">
+            <h4>Limits</h4>
+            <div class="r"><span>Max. loss (static)</span><span class="v red" id="gsDd">–</span></div>
+            <div class="r"><span>Max. daily loss</span><span class="v red" id="gsDl">–</span></div>
+          </div>
+        </div>
+
+        <div class="gs-faq-strip">
+          <span class="gs-faq-chip">✓ Odds 1.00–8.00, all sports</span>
+          <span class="gs-faq-chip">✓ 30 days per phase</span>
+          <span class="gs-faq-chip">✓ 80% performance split</span>
+          <span class="gs-faq-chip">✓ Rewards in 48h</span>
+        </div>
+      </div>
+
+      <aside class="gs-sidebar">
+        <div class="gs-offer-tag"><span class="lbl">Limited launch offer</span><span class="sz" id="gsSbSize">–</span></div>
+        <div class="gs-price-row"><span class="now" id="gsSbPrice">–</span></div>
+        <div class="gs-save-line">One-time fee · no subscription</div>
+        <button class="btn btn-primary btn-lg" style="width:100%;margin-bottom:16px" id="gsCta">Claim your capital →</button>
+        <ul class="gs-feat-list">
+          <li><svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>2 evaluation phases, 30 days each</li>
+          <li><svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Unlimited time as a Fundly Partner</li>
+          <li><svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Reset for 40% if you fail</li>
+          <li><svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Data export &amp; full ticket history</li>
+        </ul>
+        <div class="gs-pay-icons"><span>VISA</span><span>Mastercard</span><span>Apple Pay</span><span>G Pay</span><span>Crypto</span></div>
+        <div class="gs-compare">
+          <div class="gs-compare-h"><span>&nbsp;</span><span class="us">Fundly</span><span>Others</span></div>
+          <div class="gs-compare-r"><span>Performance split</span><span class="us">80%</span><span class="them">up to 90%*</span></div>
+          <div class="gs-compare-r"><span>Reward speed</span><span class="us">48h</span><span class="them">days–weeks</span></div>
+          <div class="gs-compare-r"><span>Reset fee</span><span class="us">40%</span><span class="them">40–60%</span></div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <div class="gs-mobile-bar" id="gsMobileBar">
+    <div class="info"><span class="sz" id="gsMbSize">$25,000</span><span class="pr" id="gsMbPrice">$325</span></div>
+    <button class="btn btn-primary" id="gsMbCta">Claim now</button>
+  </div>
+
+  <!-- ============ FOOTER ============ -->
+  <footer>
+    <div class="container">
+      <div class="foot-grid">
+        <div class="foot-brand">
+          <a href="./" class="logo" aria-label="Fundly, home">
+            <img src="assets/logo.png" alt="" width="20" height="20" />
+            fundly
+          </a>
+          <p>A professional evaluation platform for sports analysts. Up to $100,000 in simulated capital and an 80 % performance split.</p>
+        </div>
+        <div class="foot-col">
+          <h4>Packages</h4>
+          <ul>
+            <li><a href="./#packages">Starter</a></li>
+            <li><a href="./#packages">Standard</a></li>
+            <li><a href="./#packages">Advanced</a></li>
+            <li><a href="./#packages">Pro</a></li>
+            <li><a href="./#packages">Elite</a></li>
+          </ul>
+        </div>
+        <div class="foot-col">
+          <h4>Information</h4>
+          <ul>
+            <li><a href="./#how-it-works">How it works</a></li>
+            <li><a href="./#why-fundly">Why Fundly</a></li>
+            <li><a href="./#faq">FAQ</a></li>
+          </ul>
+        </div>
+        <div class="foot-col">
+          <h4>Support</h4>
+          <ul>
+            <li><a href="./#contact">Contact us</a></li>
+            <li><a href="#">Service status</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="foot-legal">
+        <p>Legal Disclaimer: Fundly.games is operated by Grindit LLC (Sharjah Media City, Sharjah, UAE, Reg: 2541536). Fundly Games is not a bookmaker, gambling operator, or financial institution. All services, evaluation challenges, and metrics provided on this platform are strictly for educational and analytical simulation purposes, utilizing virtual credits with zero monetary value. Challenge fees cover software licensing, data evaluation, and analytical platform access.</p>
+      </div>
+      <div class="foot-bottom">
+        <span>© 2026 Fundly. All rights reserved.</span>
+        <nav aria-label="Legal links">
+          <a href="privacy">Privacy</a>
+          <a href="terms">Terms</a>
+          <a href="rules">Rules</a>
+          <a href="disclaimer">Disclaimer</a>
+          <a href="refund">Refund</a>
+        </nav>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
