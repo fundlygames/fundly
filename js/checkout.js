@@ -259,6 +259,11 @@
 
     // Sign-up is best-effort: the payment session only needs the e-mail,
     // so a signUp error (rate limit, existing account) does not block payment.
+    // If it fails because the e-mail is already registered (repeat customer
+    // buying another package, or a retried attempt), fall back to signing in
+    // with the entered password — otherwise the browser reaches step 3 with
+    // no session at all, and after payment dashboard.html finds no user and
+    // bounces to the homepage instead of the new/updated account.
     try {
       const consentAt = new Date().toISOString();
       const { error } = await FundlyAuth.signUpWithPassword(state.email, regPass.value, {
@@ -266,7 +271,15 @@
         rulesAt: consentAt,
         coolingOffAt: consentAt,
       });
-      if (error) console.warn("signUp:", error.message);
+      if (error) {
+        console.warn("signUp:", error.message);
+        try {
+          const signIn = await FundlyAuth.signInWithPassword(state.email, regPass.value);
+          if (signIn.error) console.warn("signIn fallback:", signIn.error.message);
+        } catch (err) {
+          console.warn("signIn fallback failed:", err);
+        }
+      }
     } catch (err) {
       console.warn("signUp failed:", err);
     }

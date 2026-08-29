@@ -274,7 +274,14 @@ function celebrateTicket(ticket) {
 }
 
 // ---------- return from Whop checkout (?paid=1) ----------
-if (new URLSearchParams(window.location.search).get("paid") === "1") {
+// Captured before the URL gets cleaned below — syncChallengeAccount() (runs
+// later, on DOMContentLoaded) uses this to retry instead of immediately
+// showing "Get an account": the whop-webhook that creates the
+// challenge_accounts row can take a few seconds to arrive after Whop
+// redirects back here, so the very first query can genuinely find nothing
+// yet even though the payment succeeded.
+const justPaid = new URLSearchParams(window.location.search).get("paid") === "1";
+if (justPaid) {
   showToast("win", "Payment received! 🎉", "We're setting up your account — everything will be ready in a moment.");
   // clean the parameter from the address so the toast does not pop up on refresh
   window.history.replaceState({}, "", "dashboard");
@@ -664,19 +671,46 @@ async function syncChallengeAccount() {
       window.location.replace("./");
       return;
     }
-    const { data: accountsRaw, error } = await client
-      .from("challenge_accounts")
-      .select("package_key, capital, phase, state, flags, created_at, inactivity_warned_7, inactivity_warned_13, nickname, leaderboard_opt_in")
-      .order("created_at", { ascending: false });
-    if (error) return;
-    const accounts = accountsRaw || [];
+    const fetchAccounts = async () => {
+      const { data, error: fetchError } = await client
+        .from("challenge_accounts")
+        .select("id, package_key, capital, phase, state, flags, created_at, inactivity_warned_7, inactivity_warned_13, nickname, leaderboard_opt_in")
+        .order("created_at", { ascending: false });
+      if (fetchError) throw fetchError;
+      return data || [];
+    };
+
+    let accounts;
+    try {
+      accounts = await fetchAccounts();
+    } catch (e) {
+      return;
+    }
     // Přihlášený uživatel bez aktivního (active/funded) účtu — ať už nikdy
     // žádný nekoupil, nebo mu poslední spálili/skončil — vždycky dostane
     // tenhle limited dashboard (platební brána + nastavení účtu + historie
     // starých účtů), ne tvrdý redirect na checkout. Dřív se bez jakéhokoli
     // řádku v challenge_accounts posílalo rovnou na checkout a přeskočila
     // se stránka, kde přihlášený člověk vidí svoje údaje.
-    const account = accounts.find((a) => a.state === "active" || a.state === "funded");
+    let account = accounts.find((a) => a.state === "active" || a.state === "funded");
+
+    // Čerstvě zaplaceno (?paid=1), ale whop-webhook ještě nestihl založit
+    // challenge_accounts řádek (obvykle pár sekund po platbě) — bez tohohle
+    // hráč hned po zaplacení uvidí "Get an account" místo svého nového účtu
+    // a klidně by si omylem koupil druhý. Pár krátkých pokusů místo
+    // okamžitého vzdání se.
+    if (!account && justPaid) {
+      for (let attempt = 0; attempt < 4 && !account; attempt++) {
+        await new Promise((r) => setTimeout(r, 2500));
+        try {
+          accounts = await fetchAccounts();
+        } catch (e) {
+          break;
+        }
+        account = accounts.find((a) => a.state === "active" || a.state === "funded");
+      }
+    }
+
     if (!account) {
       showLimitedDashboard(accounts);
       if (isPasswordRecovery) jumpToPasswordSettings("na");
@@ -713,7 +747,14 @@ async function syncChallengeAccount() {
     // je v pořádku" a restore ze serveru by se nikdy nespustil — čerstvý
     // prohlížeč/zařízení by tak pokaždé vypadal jako čerstvě založený účet
     // s nulovou historií, i když server reálný postup má.
-    if (state && state.packageKey === account.package_key && hadLocalPortfolioBeforeBoot) return;
+    //
+    // Porovnávat se MUSÍ i accountId, ne jen packageKey: jinak leftover local
+    // state z jiného účtu/testu se stejným balíčkem (např. "starter" zůstalý
+    // v localStorage z dřívějšího testování) projde jako "je to v pořádku" a
+    // nový zákazník po zaplacení uvidí cizí/starou historii tiketů místo
+    // čerstvého účtu. Reálný root cause incidentu 29.8. — nový nákup, hned
+    // zobrazená historie 47 tiketů z předchozího testu na stejném prohlížeči.
+    if (state && state.accountId && state.accountId === account.id && hadLocalPortfolioBeforeBoot) return;
 
     // Lokální stav chybí nebo neodpovídá zaplacenému balíčku — nejdřív
     // zkusit obnovit reálný postup ze serveru (localStorage může zmizet
@@ -756,7 +797,7 @@ async function syncChallengeAccount() {
     }
 
     // the paid package differs from the local one → boot the simulation with it
-    Portfolio.init(account.package_key);
+    Portfolio.init(account.package_key, account.id);
     if (typeof renderPrehled === "function") renderPrehled();
     if (typeof renderVykon === "function") renderVykon();
     if (typeof renderBankBar === "function") renderBankBar();

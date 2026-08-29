@@ -95,10 +95,11 @@ const Portfolio = (() => {
   // ruleMeta() z aktuálního packages.js. Kdyby se sem znovu přidaly a někde
   // se z nich zase četlo, vrátí se přesně tenhle bug (staré účty by navždy
   // běžely na pravidlech platných v den založení).
-  function init(packageKey) {
+  function init(packageKey, accountId) {
     const pkg = packageByKey(packageKey);
     const now = new Date().toISOString();
     const state = {
+      accountId: accountId ?? null,
       packageKey: pkg.key,
       packageName: pkg.name,
       cap: pkg.cap,
@@ -127,6 +128,7 @@ const Portfolio = (() => {
     const pkg = packageByKey(account.package_key);
     const now = new Date().toISOString();
     const state = {
+      accountId: account.id ?? null,
       packageKey: pkg.key,
       packageName: pkg.name,
       cap: pkg.cap,
