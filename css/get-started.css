@@ -148,6 +148,11 @@
 .gs-step h3 { font-size: 1.0625rem; font-weight: 700; margin: 0 0 8px; }
 .gs-step p { color: var(--text-muted); font-size: .875rem; line-height: 1.5; max-width: 26ch; margin: 0 auto; }
 
+/* ---------- dashboard preview ---------- */
+.gs-preview { padding: 64px 0 72px; border-top: 1px solid var(--line); }
+.gs-preview h2 { text-align: center; font-size: 1.875rem; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 8px; }
+.gs-preview-sub { text-align: center; color: var(--text-muted); font-size: .9375rem; margin: 0 0 32px; }
+
 /* mobile sticky buy bar — mirrors the sidebar CTA once it scrolls off-screen on small viewports */
 .gs-mobile-bar {
   display: none;
