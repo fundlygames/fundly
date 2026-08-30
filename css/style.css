@@ -327,7 +327,10 @@ button { font-family: inherit; cursor: pointer; }
 }
 @media (min-width: 768px) { .stats-grid { grid-template-columns: repeat(4, 1fr); } }
 .stat-tile {
-  background: var(--surface-1);
+  background:
+    linear-gradient(180deg, rgb(2 2 4 / .25), rgb(2 2 4 / .55)),
+    url("../assets/stat-tile-bg.jpg") center / cover no-repeat,
+    var(--surface-1);
   border-radius: var(--radius);
   box-shadow: inset 0 0 0 1px var(--line);
   padding: 20px;
