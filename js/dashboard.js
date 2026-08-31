@@ -822,13 +822,19 @@ const ODDS_MAX = 8.0;
 const EVENTS_PER_SPORT = 60;
 
 // Sporty s reálným pokrytím na současném odds-api plánu (max 2 bookmakery:
-// Bet365 + Sportsbet.com.au). Hokej, MMA a volejbal se záměrně vynechávají —
+// Bet365 + Sportsbet.com.au). MMA a volejbal se záměrně vynechávají —
 // ověřeno napříč oběma povolenými bookmakery: 0 zápasů s použitelnými kurzy
 // pro žádný z nich. Není to chyba fetchování, je to mez datového zdroje —
 // jakmile bude plán s víc bookmakery, sem se zase přidají.
+// Hokej byl dřív taky vynechaný ("0 zápasů"), ale to byl bug ve slugu —
+// odds-api slug je "ice-hockey", ne "hockey" ("hockey" vrací "Invalid sport
+// slug"). Se správným slugem má reálné pokrytí (ověřeno 30.8.: 13/13
+// eventů s vrácenými kurzy mělo použitelné ML kurzy) — a homepage marketing
+// copy i sports ticker (js/main.js) hokej stejně už dávno slibovaly.
 const SPORTS = [
   ["basketball", "Basketball", "basketbal"],
   ["football", "Football", "fotbal"],
+  ["ice-hockey", "Hockey", "hokej"],
   ["table-tennis", "Table tennis", "stolni-tenis"],
   ["tennis", "Tennis", "tenis"],
   ["darts", "Darts", "sipky"],
