@@ -769,7 +769,15 @@ body::after {
 }
 .filter-chip:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
-.sport-tabs { display: flex; gap: 2px; overflow-x: auto; padding: 2px; border-radius: var(--d-r); border: 1px solid #ffffff0f; background: #ffffff08; margin-bottom: 10px; scrollbar-width: none; }
+.sport-tabs {
+  display: flex; gap: 2px; overflow-x: auto; padding: 2px; border-radius: var(--d-r);
+  border: 1px solid #ffffff0f; background: #ffffff08; margin-bottom: 10px; scrollbar-width: none;
+  /* Buttons don't all fit on mobile (7 sports incl. hockey) — without this,
+     the row just hard-clips mid-button at the edge with no scrollbar visible,
+     which reads as broken/overlapping rather than "scroll for more". */
+  -webkit-mask-image: linear-gradient(to right, black 0%, black 90%, transparent 100%);
+  mask-image: linear-gradient(to right, black 0%, black 90%, transparent 100%);
+}
 .sport-tabs[hidden], .bet-filters[hidden], .match-count[hidden] { display: none; }
 .sport-tabs::-webkit-scrollbar { display: none; }
 .sport-tabs .ic-letter {
