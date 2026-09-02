@@ -257,6 +257,15 @@
       return;
     }
 
+    // Clear any stale session first (e.g. a leftover login from an earlier
+    // browser test with a different e-mail) — otherwise, if signUp/signIn
+    // below fails silently, the browser keeps whatever OLD session was
+    // active. Payment still succeeds (the webhook links the new account by
+    // e-mail, not by browser session), but the dashboard's RLS-scoped query
+    // then reads the wrong user's account and shows "no active challenge"
+    // even though the new paid account genuinely exists in the DB.
+    await FundlyAuth.signOut();
+
     // Sign-up is best-effort: the payment session only needs the e-mail,
     // so a signUp error (rate limit, existing account) does not block payment.
     // If it fails because the e-mail is already registered (repeat customer
