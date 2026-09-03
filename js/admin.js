@@ -400,6 +400,7 @@ async function loadRealStats() {
   renderRealPlayers(stats);
   renderPlayersTable(); // přepnutá verze níže vykreslí reálné účty
   renderEmails(stats.emailsList || []);
+  renderSignups(stats.signupFunnel, stats.signupsList || []);
   renderRealDiagnostika(stats);
   renderBettingAnalytics(stats.bettingAnalytics);
   renderProblems(stats);
@@ -442,6 +443,58 @@ function renderEmails(list) {
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
       a.download = `fundly-emails-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    };
+  }
+}
+
+// ---------- Sign-upy bez platby (Finance view) — checkout funnel gap ----------
+function renderSignups(funnel, list) {
+  const gridEl = document.getElementById("signupsStatGrid");
+  if (gridEl && funnel) {
+    const dstat = (label, value, green) => `
+      <div class="dstat">
+        <div class="lbl">${label}</div>
+        <div class="val ${green ? "green" : ""}">${value}</div>
+      </div>`;
+    gridEl.innerHTML =
+      dstat("Sign-upů celkem", funnel.totalSignups, false) +
+      dstat("Zaplatili", funnel.paid, true) +
+      dstat("Bez platby", funnel.unpaid, false);
+  }
+
+  const el = document.getElementById("signupsList");
+  if (!el) return;
+  el.innerHTML = list.length
+    ? list.map((s) => `
+      <div class="k-row neutral">${esc(s.email)}
+        <span class="n">${s.createdAt ? new Date(s.createdAt).toLocaleDateString("cs-CZ") : ""}</span>
+      </div>`).join("")
+    : `<p class="bet-msg">Nikdo zatím nezůstal jen u sign-upu.</p>`;
+  const btn = document.getElementById("signupsCopyBtn");
+  if (btn) {
+    btn.hidden = !list.length;
+    btn.onclick = async () => {
+      try {
+        await navigator.clipboard.writeText(list.map((s) => s.email).join("\n"));
+        btn.textContent = "Zkopírováno";
+        setTimeout(() => { btn.textContent = "Zkopírovat všechny e-maily"; }, 1500);
+      } catch (e) { /* clipboard nemusí být dostupný */ }
+    };
+  }
+  const exportBtn = document.getElementById("signupsExportBtn");
+  if (exportBtn) {
+    exportBtn.hidden = !list.length;
+    exportBtn.onclick = () => {
+      const csvCell = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+      const header = ["email", "signed_up_at"];
+      const rows = list.map((s) => [s.email, s.createdAt ? new Date(s.createdAt).toISOString() : ""]);
+      const csv = [header, ...rows].map((r) => r.map(csvCell).join(",")).join("\r\n");
+      const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `fundly-signups-unpaid-${new Date().toISOString().slice(0, 10)}.csv`;
       a.click();
       URL.revokeObjectURL(a.href);
     };

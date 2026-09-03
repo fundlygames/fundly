@@ -40,6 +40,7 @@ serve(async (req) => {
       promoPayments,
       promoConversions,
       problemAccounts,
+      allAuthUsers,
     ] = await Promise.all([
       supabase
         .from("payments")
@@ -94,6 +95,11 @@ serve(async (req) => {
         .neq("watch_status", "clear")
         .order("risk_score", { ascending: false })
         .limit(200),
+      // Všichni, kdo prošli sign-upem na checkoutu (krok 2 — e-mail/heslo se
+      // vytváří PŘED platbou, viz js/checkout.js), bez ohledu na to, jestli
+      // zaplatili. Bez tohohle admin nikdy neuvidí lidi, co odpadli mezi
+      // sign-upem a platbou — přesně ten "kolik lidí jde přes checkout" gap.
+      supabase.auth.admin.listUsers({ page: 1, perPage: 1000 }),
     ]);
 
     // deno-lint-ignore no-explicit-any
@@ -157,6 +163,24 @@ serve(async (req) => {
     }
     const emailsList = Object.values(emailMap)
       .sort((a, b) => String(b.lastAt ?? "").localeCompare(String(a.lastAt ?? "")));
+
+    // Checkout signup funnel: auth.users obsahuje KAŽDÉHO, kdo prošel krokem 2
+    // (e-mail/heslo se zakládá před platbou), zatímco emailMap výše je jen
+    // lidi s challenge_accounts/payments řádkem (= aspoň pokusili se zaplatit).
+    // Rozdíl = lidi, co odpadli mezi sign-upem a platbou.
+    const paidEmails = new Set(Object.keys(emailMap).map((e) => e.toLowerCase()));
+    // deno-lint-ignore no-explicit-any
+    const authUsers = (allAuthUsers?.data?.users ?? []) as any[];
+    const signupsList = authUsers
+      .filter((u) => u.email && !paidEmails.has(String(u.email).toLowerCase()))
+      .map((u) => ({ email: u.email, createdAt: u.created_at }))
+      .sort((a, b) => String(b.createdAt ?? "").localeCompare(String(a.createdAt ?? "")))
+      .slice(0, 200);
+    const signupFunnel = {
+      totalSignups: authUsers.length,
+      paid: authUsers.length - signupsList.length,
+      unpaid: signupsList.length,
+    };
 
     // Registrace po dnech (posledních 8 dní) — reálná data z challenge_accounts.
     const dayBuckets: { label: string; value: number }[] = [];
@@ -268,6 +292,8 @@ serve(async (req) => {
       problemAccounts: problemAccounts.data ?? [],
       recentPayouts: enrichedPayouts,
       emailsList,
+      signupFunnel,
+      signupsList,
       signupsByDay: dayBuckets,
       lastPaymentAt,
       lastSyncAt,
