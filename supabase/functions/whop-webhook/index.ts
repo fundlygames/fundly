@@ -6,6 +6,10 @@ import { packageByKey } from "../_shared/packages.ts";
 import { whopFetch, mapKycStatus, extractPaymentFingerprint } from "../_shared/whop.ts";
 import { sendPurchaseEvent } from "../_shared/meta-capi.ts";
 import { markRedeemed } from "../_shared/capacity.ts";
+import { sendEmail } from "../_shared/email.ts";
+import type { PackageDef } from "../_shared/packages.ts";
+
+const SITE_URL = Deno.env.get("SITE_URL") ?? "https://fundly.games";
 
 function base64ToBytes(b64: string): Uint8Array {
   const bin = atob(b64);
@@ -114,6 +118,25 @@ async function findOrCreateUser(supabase: any, email: string) {
       (u: { email?: string }) => u.email?.toLowerCase() === email.toLowerCase(),
     ) ?? null
   );
+}
+
+// „Payment confirmed" e-mail: shrnutí nákupu + přístup do účtu. `accessLink`
+// je buď magic link (žádné heslo nikdy nenastavené — viz findOrCreateUser),
+// nebo obyčejný odkaz na dashboard (zákazník má heslo z checkout signupu).
+function purchaseHtml(pkg: PackageDef, accessLink: string): string {
+  const deadline = new Date(Date.now() + 30 * 86400000).toLocaleDateString("en-US", {
+    year: "numeric", month: "long", day: "numeric",
+  });
+  return `
+  <div style="background:#020204;padding:32px;font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#e8e8ec">
+    <div style="max-width:520px;margin:0 auto;background:#0d0d12;border:1px solid #ffffff1a;border-radius:16px;padding:28px">
+      <div style="color:#14f195;font-weight:700;font-size:18px;margin-bottom:16px">fundly</div>
+      <h2 style="color:#fff;font-size:18px;margin:0 0 12px">Payment confirmed</h2>
+      <p style="color:#a0a0ab;font-size:14px;line-height:1.6;margin:0 0 20px">Your ${pkg.name} account (${pkg.cap.toLocaleString("en-US")} USD simulated capital) is active. Phase 1 runs 30 days — deadline ${deadline}.</p>
+      <a href="${accessLink}" style="display:inline-block;background:#14f195;color:#020204;font-weight:700;text-decoration:none;padding:12px 24px;border-radius:10px">Open your dashboard</a>
+      <p style="color:#5a5a66;font-size:12px;margin:20px 0 0">Package: ${pkg.name} · Price paid: $${pkg.price.toLocaleString("en-US")}</p>
+    </div>
+  </div>`;
 }
 
 // deno-lint-ignore no-explicit-any
@@ -258,16 +281,35 @@ serve(async (req) => {
           payment_fingerprint: extractPaymentFingerprint(data),
         });
 
-        // „Účet je připraven" e-mail: magic link přes Supabase admin API.
-        // Free email rate limit je těsný → try/catch + log, platbu to neblokuje.
-        try {
-          await supabase.auth.admin.generateLink({
-            type: "magiclink",
-            email: String(email),
+        // „Payment confirmed" e-mail s přístupem do účtu. generateLink() sama
+        // o sobě nic neposílá (jen vygeneruje token) — proto vlastní odkaz
+        // (action_link) vložíme do vlastního Resend e-mailu. Bez magic linku
+        // (chyba/rate limit) pošleme aspoň prostý odkaz na dashboard — účet
+        // z checkout signupu už má vlastní heslo, takže se stejně přihlásí.
+        // waitUntil (viz sync-account) — doběhne na pozadí po odeslání
+        // odpovědi Whopu, bez blokování webhooku; bez waitUntil fire-and-forget.
+        const emailWork = (async () => {
+          let accessLink = `${SITE_URL}/dashboard`;
+          try {
+            const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
+              type: "magiclink",
+              email: String(email),
+            });
+            if (linkError) throw linkError;
+            if (linkData?.properties?.action_link) accessLink = linkData.properties.action_link;
+          } catch (e) {
+            console.error("magiclink generování selhalo, posílám prostý dashboard odkaz:", e);
+          }
+          const result = await sendEmail({
+            to: String(email),
+            subject: "Payment confirmed — your Fundly account is active",
+            html: purchaseHtml(pkg, accessLink),
           });
-        } catch (e) {
-          console.error("magiclink e-mail po koupi selhal:", e);
-        }
+          if (!result.sent) console.error("purchase e-mail selhal:", result.error);
+        })().catch((e) => console.error("purchase e-mail handler error:", e));
+        // deno-lint-ignore no-explicit-any
+        const edgeRuntime = (globalThis as any).EdgeRuntime;
+        if (edgeRuntime?.waitUntil) edgeRuntime.waitUntil(emailWork);
         break;
       }
 
