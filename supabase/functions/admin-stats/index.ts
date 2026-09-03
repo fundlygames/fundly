@@ -106,14 +106,16 @@ serve(async (req) => {
     const sum = (rows: any[] | null, field: string) =>
       (rows ?? []).reduce((a, r) => a + (Number(r[field]) || 0), 0);
 
-    // Účty se kupují v USD — admin ukazuje všechno v USD. Staré platby v EUR/CZK
-    // (z doby před přechodem na USD) se přepočtou kurzem z env, ať nezkreslí součty.
+    // Účty se kupují v USD — admin ukazuje všechno v USD. Platby v jiných
+    // měnách (staré EUR/CZK, a nově GBP z Whop adaptive-pricing na checkoutu
+    // pro UK návštěvníky) se přepočtou kurzem z env, ať nezkreslí součty.
     const EUR_USD = Number(Deno.env.get("EUR_USD_RATE") ?? 1.08) || 1.08;
     const CZK_USD = Number(Deno.env.get("CZK_USD_RATE") ?? 0.044) || 0.044;
+    const GBP_USD = Number(Deno.env.get("GBP_USD_RATE") ?? 1.27) || 1.27;
     // deno-lint-ignore no-explicit-any
     const toUsd = (r: any) =>
       (Number(r.amount) || 0) *
-      (r.currency === "eur" ? EUR_USD : r.currency === "czk" ? CZK_USD : 1);
+      (r.currency === "eur" ? EUR_USD : r.currency === "czk" ? CZK_USD : r.currency === "gbp" ? GBP_USD : 1);
     // deno-lint-ignore no-explicit-any
     const sumUsd = (rows: any[] | null) =>
       (rows ?? []).reduce((a, r) => a + toUsd(r), 0);

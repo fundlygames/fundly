@@ -347,6 +347,9 @@
     el.setAttribute("data-whop-checkout-return-url", returnUrl());
     el.setAttribute("data-whop-checkout-theme", "dark");
     el.setAttribute("data-whop-checkout-theme-accent-color", "#14f195");
+    // Shows GBP/EUR/etc. pricing to non-US visitors automatically (Whop's own
+    // live FX, no separate currency plans needed) — UK traffic sees £, not $.
+    el.setAttribute("data-whop-checkout-adaptive-pricing", "true");
     whopMount.innerHTML = "";
     whopMount.appendChild(el);
 
