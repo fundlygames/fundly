@@ -143,7 +143,6 @@
       <div class="sum-row"><span class="v big">${p.name}</span><span class="v green big">${usd(p.cap)}</span></div>
       <div class="sum-row"><span class="k">Performance split</span><span class="v green">${m.profitSplit} %</span></div>
       <div class="sum-row"><span class="k">Max. entry size</span><span class="v">${usd(m.maxStake)}</span></div>
-      <div class="sum-row"><span class="k">${p.name} package</span><span class="v">${usd(p.price)}</span></div>
       <div class="sum-total"><span class="k">One-time fee</span><span class="v">${usd(p.price)}</span></div>
       <ul class="sum-feats">
         <li>${check}2 evaluation phases, 30 days each</li>
@@ -156,6 +155,24 @@
       <div class="sum-badges">
         <span><svg width="14" height="14" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.5l5 2v4c0 3-2.2 5.2-5 6-2.8-.8-5-3-5-6v-4l5-2z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M5.2 7.3l1.7 1.7 3-3.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Secure payment</span>
         <span><svg width="14" height="14" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M8.5 1.5L3 8.5h4l-1.5 5L11 6.5H7l1.5-5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>Instant access</span>
+        <span><svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.4"/><path d="M7 4v3l2 1.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>24/7 support</span>
+      </div>
+      <p class="sum-company">Operated by Grindit LLC · Company Reg. 2541536, UAE</p>
+
+      <div class="sum-block">
+        <h4 class="sum-block-h">What happens after you pay</h4>
+        <ol class="sum-steps">
+          <li><span class="n">1</span>Your Fundly account is created and login details are ready instantly</li>
+          <li><span class="n">2</span>Log in and submit your first simulated entry within minutes</li>
+          <li><span class="n">3</span>Pass Phase 1 and Phase 2, then become a Fundly Partner</li>
+        </ol>
+      </div>
+
+      <div class="sum-block">
+        <h4 class="sum-block-h">How the ${m.profitSplit}% reward works</h4>
+        <div class="sum-math">
+          <div class="sum-math-cell"><span class="k">On $10,000 profit, you keep</span><span class="v green">$${(10000 * m.profitSplit / 100).toLocaleString("en-US")}</span></div>
+        </div>
       </div>`;
   }
 
