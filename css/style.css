@@ -1118,3 +1118,32 @@ footer {
   }
   html { scroll-behavior: auto; }
 }
+
+/* ---------- floating Telegram support button (js/telegram-widget.js) ---------- */
+.tg-float {
+  position: fixed; right: 20px; bottom: 20px; z-index: 60;
+  display: flex; align-items: center; gap: 8px;
+  background: linear-gradient(135deg, #2AABEE, #229ED9);
+  color: #fff; text-decoration: none;
+  padding: 12px; border-radius: 9999px;
+  box-shadow: 0 8px 24px -6px rgb(34 158 217 / .6), 0 2px 8px rgb(0 0 0 / .3);
+  transition: transform .2s var(--ease), box-shadow .2s var(--ease), padding .2s var(--ease);
+}
+.tg-float:hover { transform: translateY(-2px); box-shadow: 0 12px 30px -6px rgb(34 158 217 / .75), 0 2px 8px rgb(0 0 0 / .3); }
+.tg-float svg { flex-shrink: 0; display: block; }
+.tg-float-label { font-size: .875rem; font-weight: 700; white-space: nowrap; max-width: 0; overflow: hidden; transition: max-width .2s var(--ease); }
+.tg-float:hover .tg-float-label, .tg-float:focus-visible .tg-float-label { max-width: 80px; }
+@media (max-width: 640px) {
+  .tg-float { right: 14px; bottom: 14px; padding: 12px; }
+  .tg-float-label { display: none; }
+}
+/* get-started's mobile sticky buy bar covers the same corner once it
+   appears — lift the button clear of it rather than overlapping. */
+@media (max-width: 980px) {
+  body:has(.gs-mobile-bar.show) .tg-float { bottom: 88px; }
+}
+/* dashboard's mobile bottom nav is always present (not scroll-triggered) — lift the button clear of it. */
+@media (max-width: 1023.5px) {
+  body:has(.dnav-mobile) .tg-float { bottom: 76px; }
+}
+@media (prefers-reduced-motion: reduce) { .tg-float, .tg-float-label { transition: none; } }
