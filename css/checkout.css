@@ -197,26 +197,23 @@ body::before {
 }
 .pkg-card.active .nm { color: var(--accent); }
 .pkg-card .cap { font-size: 1.0625rem; font-weight: 800; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
-/* spec řádky uvnitř karty — label vlevo / hodnota vpravo */
-.pkg-card .specs {
+/* jen cena — zbytek (targets/limits/odds) je teď v .co-details pro vybraný balíček */
+.pkg-card .price {
   width: 100%;
   margin-top: 6px;
   padding-top: 8px;
   border-top: 1px solid var(--line);
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  font-size: .8125rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
 }
-.pkg-card .spec {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 8px;
-  font-size: .75rem;
+.pkg-card.active .price { color: var(--accent); }
+.pkg-card .price .lbl { font-weight: 500; color: var(--text-muted); text-transform: none; letter-spacing: normal; }
+/* mobil: 2 sloupce, lichý poslední (Elite) přes celou šířku */
+@media (max-width: 639.5px) {
+  .pkg-grid > .pkg-card:last-child:nth-child(odd) { grid-column: span 2; }
 }
-.pkg-card .spec .k { color: var(--text-muted); }
-.pkg-card .spec .v { font-weight: 600; font-variant-numeric: tabular-nums; }
-.pkg-card .spec .v.green { color: var(--accent); }
 /* hranatý tag (jako MOST POPULAR v inspiraci) */
 .pkg-card .top-badge {
   position: absolute;
@@ -289,6 +286,26 @@ body::before {
   padding: 6px 10px;
 }
 .co-chip svg { color: var(--accent); }
+
+/* ---------- Detail panel (vybraný balíček) + shrnutá akce ---------- */
+.co-details { margin-top: 4px; }
+.co-checkout-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg);
+  border-radius: var(--co-r);
+  box-shadow: inset 0 0 0 1px var(--line);
+  padding: 14px 18px;
+  margin-bottom: 14px;
+}
+.co-checkout-pkg { display: flex; flex-direction: column; gap: 2px; }
+.co-checkout-pkg .nm { font-size: .9375rem; font-weight: 800; }
+.co-checkout-pkg .cap { font-size: .75rem; color: var(--text-muted); }
+.co-checkout-price { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.co-checkout-price .v { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; color: var(--accent); font-variant-numeric: tabular-nums; }
+.co-checkout-price .lbl { font-size: .6875rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; }
 
 /* ---------- Tlačítka ---------- */
 .co-cta { width: 100%; }

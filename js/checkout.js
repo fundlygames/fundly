@@ -97,21 +97,18 @@
   // ---------- step 1: package cards ----------
   const pkgGrid = $("pkgGrid");
 
+  // Compact cards: name + capital + price only — everything else (targets,
+  // limits, odds/days/split) lives in the details panel for the SELECTED
+  // package only, so comparing 5 packages doesn't mean scanning 5x that data.
   function renderPkgGrid() {
-    pkgGrid.innerHTML = PACKAGES.map((p) => {
-      const m = packageMeta(p);
-      return `
+    pkgGrid.innerHTML = PACKAGES.map((p) => `
       <button type="button" role="radio" aria-checked="${p.key === state.pkg}"
         class="pkg-card ${p.key === state.pkg ? "active" : ""}" data-key="${p.key}">
         ${p.top ? '<span class="top-badge">TOP</span>' : ""}
         <span class="nm">${p.name}</span>
         <span class="cap">${usd(p.cap)}</span>
-        <span class="specs">
-          <span class="spec"><span class="k">Phase 1 target</span><span class="v green">${usdSigned(m.target1)}</span></span>
-          <span class="spec"><span class="k">Max. entry size</span><span class="v">${usd(m.maxStake)}</span></span>
-        </span>
-      </button>`;
-    }).join("");
+        <span class="price">${usd(p.price)} <span class="lbl">one-time</span></span>
+      </button>`).join("");
   }
 
   pkgGrid.addEventListener("click", (e) => {
@@ -119,17 +116,62 @@
     if (!card || card.dataset.key === state.pkg) return;
     state.pkg = card.dataset.key;
     renderPkgGrid();
-    renderGoals();
+    renderDetails();
+    renderCheckoutRow();
     renderSummary();
   });
 
-  // ---------- phase targets and limits ----------
-  function renderGoals() {
+  // ---------- details panel: phase targets, limits, odds/days/split (selected package) ----------
+  function renderDetails() {
     const m = meta();
-    $("goalTarget1").textContent = usdSigned(m.target1);
-    $("goalTarget2").textContent = usdSigned(m.target2);
-    $("goalDrawdown").textContent = usdSigned(-m.drawdown);
-    $("goalDaily").textContent = usdSigned(-m.dailyLoss);
+    $("coDetails").innerHTML = `
+      <div class="co-cols">
+        <div class="co-box">
+          <h3 class="co-box-h">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.4"/><circle cx="7" cy="7" r="1.8" fill="currentColor"/></svg>
+            Phase targets
+          </h3>
+          <div class="co-row"><span class="k">Phase 1</span><span class="v green">${usdSigned(m.target1)}</span></div>
+          <div class="co-row"><span class="k">Phase 2</span><span class="v green">${usdSigned(m.target2)}</span></div>
+        </div>
+        <div class="co-box">
+          <h3 class="co-box-h">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 1.5l5.5 10h-11L7 1.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M7 5.5v2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="7" cy="9.8" r=".8" fill="currentColor"/></svg>
+            Limits
+          </h3>
+          <div class="co-row"><span class="k">Max. loss (static)</span><span class="v red">${usdSigned(-m.drawdown)}</span></div>
+          <div class="co-row"><span class="k">Max. daily loss</span><span class="v red">${usdSigned(-m.dailyLoss)}</span></div>
+          <p class="co-note">Static overall floor in the Challenge phases (trailing in Phase 3), plus a −4 % daily loss limit that resets at midnight UTC.</p>
+        </div>
+      </div>
+      <div class="co-chips">
+        <span class="co-chip">
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M1.5 10.5l3.5-3.5 2.5 2.5 5-5.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Odds 1.00–8.00
+        </span>
+        <span class="co-chip">
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.4"/><path d="M7 4v3l2 1.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          30 days/phase
+        </span>
+        <span class="co-chip">
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 1.5v11M10 4c0-1.1-1.3-2-3-2s-3 .9-3 2 1.3 2 3 2 3 .9 3 2-1.3 2-3 2-3-.9-3-2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          ${m.profitSplit} % profit
+        </span>
+      </div>`;
+  }
+
+  // ---------- condensed checkout action row (selected package, right above Continue) ----------
+  function renderCheckoutRow() {
+    const p = pkg();
+    $("coCheckoutRow").innerHTML = `
+      <div class="co-checkout-pkg">
+        <span class="nm">${p.name}</span>
+        <span class="cap">${usd(p.cap)} simulated capital</span>
+      </div>
+      <div class="co-checkout-price">
+        <span class="v">${usd(p.price)}</span>
+        <span class="lbl">one-time fee</span>
+      </div>`;
   }
 
   // ---------- summary (right column) ----------
@@ -411,7 +453,8 @@
 
   // ---------- init ----------
   renderPkgGrid();
-  renderGoals();
+  renderDetails();
+  renderCheckoutRow();
   renderSummary();
   goToStep(1);
 })();
