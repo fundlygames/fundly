@@ -428,15 +428,23 @@ section.cta-block { padding: 128px 0; }
 .preview-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
 @media (max-width: 860px) { .preview-grid { grid-template-columns: 1fr; } }
 .preview-card {
+  position: relative;
   margin: 0;
   min-width: 0;
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: inset 0 0 0 1px var(--line), var(--shadow-float);
   background: var(--surface-1);
-  transition: transform .2s var(--ease);
+  cursor: zoom-in;
+  transition: transform .25s var(--ease), box-shadow .25s var(--ease);
 }
-.preview-card:hover { transform: translateY(-4px); }
+.preview-grid .preview-card:hover {
+  transform: scale(1.55);
+  z-index: 5;
+  box-shadow: inset 0 0 0 1px var(--line), 0 30px 70px -20px rgb(0 0 0 / .75);
+}
+@media (max-width: 860px) { .preview-grid .preview-card:hover { transform: scale(1.15); } }
+@media (prefers-reduced-motion: reduce) { .preview-card, .preview-card:hover { transition: none; transform: none; } }
 .preview-card img { width: 100%; max-width: 100%; height: auto; display: block; aspect-ratio: 16 / 11.1; object-fit: cover; object-position: top; }
 .preview-card figcaption {
   padding: 12px 18px;

@@ -144,6 +144,7 @@
       <div class="sum-row"><span class="k">Performance split</span><span class="v green">${m.profitSplit} %</span></div>
       <div class="sum-row"><span class="k">Max. entry size</span><span class="v">${usd(m.maxStake)}</span></div>
       <div class="sum-total"><span class="k">One-time fee</span><span class="v">${usd(p.price)}</span></div>
+      <p class="sum-recur">${usd(p.price)} today. No subscription. No recurring charges. You will never be charged again unless you purchase another Challenge.</p>
       <ul class="sum-feats">
         <li>${check}2 evaluation phases, 30 days each</li>
         <li>${check}Unlimited time as a Fundly Partner in Phase 3</li>
@@ -152,12 +153,6 @@
         <li>${check}All sports</li>
       </ul>
       <p class="sum-note">One-time payment • No subscription<br />This is a simulated sports analytics environment. No real-money bets are placed through Fundly.</p>
-      <div class="sum-badges">
-        <span><svg width="14" height="14" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.5l5 2v4c0 3-2.2 5.2-5 6-2.8-.8-5-3-5-6v-4l5-2z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M5.2 7.3l1.7 1.7 3-3.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Secure payment</span>
-        <span><svg width="14" height="14" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M8.5 1.5L3 8.5h4l-1.5 5L11 6.5H7l1.5-5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>Instant access</span>
-        <a href="https://t.me/+420608187811" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;color:inherit;text-decoration:none"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.4"/><path d="M7 4v3l2 1.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>24/7 support</a>
-      </div>
-      <p class="sum-company">Operated by Grindit LLC · Company Reg. 2541536, UAE</p>
 
       <div class="sum-block">
         <h4 class="sum-block-h">What happens after you pay</h4>
@@ -168,8 +163,17 @@
         </ol>
       </div>
 
+      <div class="sum-badges">
+        <span><svg width="14" height="14" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.5l5 2v4c0 3-2.2 5.2-5 6-2.8-.8-5-3-5-6v-4l5-2z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M5.2 7.3l1.7 1.7 3-3.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Secure checkout</span>
+        <span><svg width="14" height="14" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M8.5 1.5L3 8.5h4l-1.5 5L11 6.5H7l1.5-5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>Instant account access</span>
+        <a href="https://t.me/+420608187811" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;color:inherit;text-decoration:none"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.4"/><path d="M7 4v3l2 1.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>24/7 support</a>
+        <a href="refund" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;color:inherit;text-decoration:none"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M4 5.5L1.5 8l2.5 2.5M1.5 8h7a3.5 3.5 0 0 0 0-7H6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Refund policy</a>
+      </div>
+      <p class="sum-company">Operated by Grindit LLC · Company Reg. 2541536, UAE</p>
+
       <div class="sum-block">
-        <h4 class="sum-block-h">How the ${m.profitSplit}% reward works</h4>
+        <h4 class="sum-block-h">How does the money work?</h4>
+        <p class="sum-block-p">You never risk your own betting bankroll. Fundly provides a simulated account for evaluation — successful partners can qualify for performance rewards according to our rules.</p>
         <div class="sum-math">
           <div class="sum-math-cell"><span class="k">On $10,000 profit, you keep</span><span class="v green">$${(10000 * m.profitSplit / 100).toLocaleString("en-US")}</span></div>
         </div>
