@@ -28,46 +28,47 @@ function renderPlan(animate) {
   const daily = m.dailyLoss;
   const stake = m.maxStake;
 
+  const t = window.t || ((k) => k);
   phaseCards.innerHTML = `
     <article class="phase ${animate ? "pkg-anim" : ""}">
       <div class="ph-art" style="background-image:url(assets/card2-vyzva.jpg)" aria-hidden="true"></div>
       <div class="ph-body">
-        <span class="ph-tag">Phase 1</span>
-        <div class="ph-name">Fundly Challenge</div>
+        <span class="ph-tag">${t("packages.phase1Tag")}</span>
+        <div class="ph-name">${t("packages.phase1Name")}</div>
         <div class="ph-rows">
-          <div class="ph-row"><span class="k">Profit target</span><span class="v green">${usdSigned(target1)}</span></div>
-          <div class="ph-row"><span class="k">Max. loss (static)</span><span class="v red">${usdSigned(-dd)}</span></div>
-          <div class="ph-row"><span class="k">Max. daily loss</span><span class="v red">${usdSigned(-daily)}</span></div>
-          <div class="ph-row"><span class="k">Time limit</span><span class="v">30 days</span></div>
-          <div class="ph-row"><span class="k">Qualifying entries</span><span class="v">5 × ≥ +0.5 %</span></div>
+          <div class="ph-row"><span class="k">${t("packages.profitTarget")}</span><span class="v green">${usdSigned(target1)}</span></div>
+          <div class="ph-row"><span class="k">${t("packages.maxLossStatic")}</span><span class="v red">${usdSigned(-dd)}</span></div>
+          <div class="ph-row"><span class="k">${t("packages.maxDailyLoss")}</span><span class="v red">${usdSigned(-daily)}</span></div>
+          <div class="ph-row"><span class="k">${t("packages.timeLimit")}</span><span class="v">${t("packages.days30")}</span></div>
+          <div class="ph-row"><span class="k">${t("packages.qualifyingEntries")}</span><span class="v">5 × ≥ +0.5 %</span></div>
         </div>
       </div>
     </article>
     <article class="phase ${animate ? "pkg-anim" : ""}" style="animation-delay:.05s">
       <div class="ph-art" style="background-image:url(assets/card2-verifikace.jpg)" aria-hidden="true"></div>
       <div class="ph-body">
-        <span class="ph-tag">Phase 2</span>
-        <div class="ph-name">Verification</div>
+        <span class="ph-tag">${t("packages.phase2Tag")}</span>
+        <div class="ph-name">${t("packages.phase2Name")}</div>
         <div class="ph-rows">
-          <div class="ph-row"><span class="k">Profit target</span><span class="v green">${usdSigned(target2)}</span></div>
-          <div class="ph-row"><span class="k">Max. loss (static)</span><span class="v red">${usdSigned(-dd)}</span></div>
-          <div class="ph-row"><span class="k">Max. daily loss</span><span class="v red">${usdSigned(-daily)}</span></div>
-          <div class="ph-row"><span class="k">Time limit</span><span class="v">30 days</span></div>
-          <div class="ph-row"><span class="k">Qualifying entries</span><span class="v">5 × ≥ +0.5 %</span></div>
+          <div class="ph-row"><span class="k">${t("packages.profitTarget")}</span><span class="v green">${usdSigned(target2)}</span></div>
+          <div class="ph-row"><span class="k">${t("packages.maxLossStatic")}</span><span class="v red">${usdSigned(-dd)}</span></div>
+          <div class="ph-row"><span class="k">${t("packages.maxDailyLoss")}</span><span class="v red">${usdSigned(-daily)}</span></div>
+          <div class="ph-row"><span class="k">${t("packages.timeLimit")}</span><span class="v">${t("packages.days30")}</span></div>
+          <div class="ph-row"><span class="k">${t("packages.qualifyingEntries")}</span><span class="v">5 × ≥ +0.5 %</span></div>
         </div>
       </div>
     </article>
     <article class="phase funded ${animate ? "pkg-anim" : ""}" style="animation-delay:.1s">
       <div class="ph-art" style="background-image:url(assets/card2-tiper.jpg)" aria-hidden="true"></div>
       <div class="ph-body">
-        <span class="ph-tag">Partner Account</span>
-        <div class="ph-name">Fundly Partner</div>
+        <span class="ph-tag">${t("packages.phase3Tag")}</span>
+        <div class="ph-name">${t("packages.phase3Name")}</div>
         <div class="ph-rows">
-          <div class="ph-row"><span class="k">Your share</span><span class="v green">80 %</span></div>
-          <div class="ph-row"><span class="k">Max. loss (trailing)</span><span class="v red">${usdSigned(-dd)}</span></div>
-          <div class="ph-row"><span class="k">Max. daily loss</span><span class="v red">${usdSigned(-daily)}</span></div>
-          <div class="ph-row"><span class="k">Time limit</span><span class="v">Unlimited</span></div>
-          <div class="ph-row"><span class="k">Permissible odds ratio</span><span class="v">1.00 to 8.00</span></div>
+          <div class="ph-row"><span class="k">${t("packages.yourShare")}</span><span class="v green">80 %</span></div>
+          <div class="ph-row"><span class="k">${t("packages.maxLossTrailing")}</span><span class="v red">${usdSigned(-dd)}</span></div>
+          <div class="ph-row"><span class="k">${t("packages.maxDailyLoss")}</span><span class="v red">${usdSigned(-daily)}</span></div>
+          <div class="ph-row"><span class="k">${t("packages.timeLimit")}</span><span class="v">${t("packages.unlimited")}</span></div>
+          <div class="ph-row"><span class="k">${t("packages.permissibleOdds")}</span><span class="v">1.00 to 8.00</span></div>
         </div>
       </div>
     </article>`;
@@ -75,22 +76,22 @@ function renderPlan(animate) {
   const check = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   priceCard.innerHTML = `
     <div class="${animate ? "pkg-anim" : ""}">
-      <span class="pc-badge">${p.name} package</span>
-      <div class="cap">${usd(p.cap)}<small>simulated capital at your disposal</small></div>
+      <span class="pc-badge">${p.name} ${t("packages.pkgSuffix")}</span>
+      <div class="cap">${usd(p.cap)}<small>${t("packages.simCapital")}</small></div>
     </div>
     <ul class="price-feats ${animate ? "pkg-anim" : ""}" style="animation-delay:.05s">
-      <li>${check}2 evaluation phases</li>
-      <li>${check}80 % performance split</li>
-      <li>${check}Max. entry size ${usd(stake)}</li>
-      <li>${check}Unlimited time in the partner phase</li>
-      <li>${check}Daily loss limit −4 % of capital</li>
+      <li>${check}${t("packages.f1")}</li>
+      <li>${check}${t("packages.f2")}</li>
+      <li>${check}${t("packages.f3")} ${usd(stake)}</li>
+      <li>${check}${t("packages.f4")}</li>
+      <li>${check}${t("packages.f5")}</li>
     </ul>
     <div class="price-row ${animate ? "pkg-anim" : ""}" style="animation-delay:.08s">
       <span class="cur">$</span><span class="amount">${p.price.toLocaleString("en-US")}</span>
-      <span class="per">one-time</span>
+      <span class="per">${t("packages.oneTime")}</span>
     </div>
-    <button type="button" class="btn btn-primary" style="width:100%" data-auth="register">Buy the Challenge</button>
-    <p class="price-note">One-time fee · 30 days per phase · no subscription</p>`;
+    <button type="button" class="btn btn-primary" style="width:100%" data-auth="register">${t("packages.buy")}</button>
+    <p class="price-note">${t("packages.note")}</p>`;
 }
 
 if (seg) {
@@ -103,6 +104,9 @@ if (seg) {
     renderSeg();
     renderPlan(true);
   });
+  // packages picker is JS-rendered, so language switches need an explicit
+  // re-render — data-i18n attributes only cover static HTML.
+  document.addEventListener("fundly:lang-changed", () => renderPlan(false));
 }
 
 // ---------- sports chips (marquee) ----------

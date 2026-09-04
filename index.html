@@ -55,14 +55,19 @@
         fundly
       </a>
       <nav class="nav-links" aria-label="Main navigation">
-        <a class="nav-link" href="#how-it-works">How it works</a>
-        <a class="nav-link" href="#packages">Packages</a>
-        <a class="nav-link" href="#why-fundly">Why Fundly</a>
-        <a class="nav-link" href="#faq">FAQ</a>
+        <a class="nav-link" href="#how-it-works" data-i18n="nav.howItWorks">How it works</a>
+        <a class="nav-link" href="#packages" data-i18n="nav.packages">Packages</a>
+        <a class="nav-link" href="#why-fundly" data-i18n="nav.whyFundly">Why Fundly</a>
+        <a class="nav-link" href="#faq" data-i18n="nav.faq">FAQ</a>
       </nav>
       <div class="nav-cta">
-        <button class="btn btn-ghost" data-auth="login" type="button">Log in</button>
-        <a class="btn btn-primary" href="#packages" data-quickstart="advanced">Start the Challenge</a>
+        <div class="lang-switch" aria-label="Language">
+          <button type="button" data-lang="en">EN</button>
+          <button type="button" data-lang="cs">CS</button>
+          <button type="button" data-lang="es">ES</button>
+        </div>
+        <button class="btn btn-ghost" data-auth="login" type="button" data-i18n="nav.login">Log in</button>
+        <a class="btn btn-primary" href="#packages" data-quickstart="advanced" data-i18n="nav.startChallenge">Start the Challenge</a>
       </div>
       <button class="nav-burger" id="navBurger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
         <svg class="ic-open" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 6h14M3 10h14M3 14h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
@@ -71,15 +76,20 @@
     </div>
     <div class="mobile-menu" id="mobileMenu" hidden>
       <nav class="mobile-menu-links" aria-label="Mobile navigation">
-        <a href="#how-it-works">How it works</a>
-        <a href="#packages">Packages</a>
-        <a href="#why-fundly">Why Fundly</a>
-        <a href="#faq">FAQ</a>
-        <a href="#contact">Contact</a>
+        <a href="#how-it-works" data-i18n="nav.howItWorks">How it works</a>
+        <a href="#packages" data-i18n="nav.packages">Packages</a>
+        <a href="#why-fundly" data-i18n="nav.whyFundly">Why Fundly</a>
+        <a href="#faq" data-i18n="nav.faq">FAQ</a>
+        <a href="#contact" data-i18n="nav.contact">Contact</a>
       </nav>
+      <div class="lang-switch lang-switch-mobile" aria-label="Language">
+        <button type="button" data-lang="en">EN</button>
+        <button type="button" data-lang="cs">CS</button>
+        <button type="button" data-lang="es">ES</button>
+      </div>
       <div class="mobile-menu-actions">
-        <button class="btn btn-ghost" data-auth="login" type="button" style="width:100%">Log in</button>
-        <a class="btn btn-primary" href="#packages" data-quickstart="advanced" style="width:100%">Start the Challenge</a>
+        <button class="btn btn-ghost" data-auth="login" type="button" style="width:100%" data-i18n="nav.login">Log in</button>
+        <a class="btn btn-primary" href="#packages" data-quickstart="advanced" style="width:100%" data-i18n="nav.startChallenge">Start the Challenge</a>
       </div>
     </div>
   </header>
@@ -89,11 +99,11 @@
     <section class="hero" aria-label="Intro">
       <div class="hero-bg" aria-hidden="true"></div>
       <div class="hero-scrim" aria-hidden="true"></div>
-      <h1><span class="dim">Get Simulated Capital</span><br />for Your Sports Analytics.</h1>
-      <p class="hero-sub">Test your analytical skills in a simulated environment — no personal bankroll required. Complete our 2-phase evaluation, become a B2B partner, and receive up to an <strong>80%</strong> reward for your performance data.</p>
+      <h1><span class="dim" data-i18n="hero.titleDim">Get Simulated Capital</span><br /><span data-i18n="hero.titleRest">for Your Sports Analytics.</span></h1>
+      <p class="hero-sub" data-i18n-html="hero.sub">Test your analytical skills in a simulated environment — no personal bankroll required. Complete our 2-phase evaluation, become a B2B partner, and receive up to an <strong>80%</strong> reward for your performance data.</p>
       <div class="hero-actions">
-        <a class="btn btn-primary btn-lg" href="#packages" data-quickstart="advanced">Start Challenge</a>
-        <a class="btn btn-ghost btn-lg" href="#how-it-works">How it works</a>
+        <a class="btn btn-primary btn-lg" href="#packages" data-quickstart="advanced" data-i18n="hero.start">Start Challenge</a>
+        <a class="btn btn-ghost btn-lg" href="#how-it-works" data-i18n="hero.howItWorks">How it works</a>
       </div>
     </section>
 
@@ -101,10 +111,10 @@
     <section class="stats-strip" aria-label="Fundly in numbers">
       <div class="container">
         <div class="stats-grid">
-          <div class="stat-tile reveal"><div class="num">2</div><div class="lbl">Evaluation phases</div></div>
-          <div class="stat-tile reveal" style="--reveal-delay:.06s"><div class="num green">$100,000</div><div class="lbl">Max. capital</div></div>
-          <div class="stat-tile reveal" style="--reveal-delay:.12s"><div class="num">30</div><div class="lbl">Days per phase</div></div>
-          <div class="stat-tile reveal" style="--reveal-delay:.18s"><div class="num">80 %</div><div class="lbl">Performance split</div></div>
+          <div class="stat-tile reveal"><div class="num">2</div><div class="lbl" data-i18n="stats.phases">Evaluation phases</div></div>
+          <div class="stat-tile reveal" style="--reveal-delay:.06s"><div class="num green">$100,000</div><div class="lbl" data-i18n="stats.maxCapital">Max. capital</div></div>
+          <div class="stat-tile reveal" style="--reveal-delay:.12s"><div class="num">30</div><div class="lbl" data-i18n="stats.daysPerPhase">Days per phase</div></div>
+          <div class="stat-tile reveal" style="--reveal-delay:.18s"><div class="num">80 %</div><div class="lbl" data-i18n="stats.split">Performance split</div></div>
         </div>
       </div>
     </section>
@@ -114,24 +124,24 @@
       <div class="container">
         <div class="how">
           <div class="card-fan reveal" aria-hidden="true">
-            <div class="fan-card fan-1"><span class="fc-label">Challenge</span></div>
-            <div class="fan-card fan-2"><span class="fc-label">Verification</span></div>
-            <div class="fan-card fan-3"><span class="fc-label">Rewards</span></div>
+            <div class="fan-card fan-1"><span class="fc-label" data-i18n="how.fan1">Challenge</span></div>
+            <div class="fan-card fan-2"><span class="fc-label" data-i18n="how.fan2">Verification</span></div>
+            <div class="fan-card fan-3"><span class="fc-label" data-i18n="how.fan3">Rewards</span></div>
           </div>
           <div class="steps">
             <div class="step active reveal">
-              <h3>Evaluation (Testing Phase)</h3>
-              <p>Purchase access to our analytical simulation software and demonstrate your risk management strategy within a 30-day window, from $2,000 up to $100,000 in simulated capital.</p>
+              <h3 data-i18n="how.s1h">Evaluation (Testing Phase)</h3>
+              <p data-i18n="how.s1p">Purchase access to our analytical simulation software and demonstrate your risk management strategy within a 30-day window, from $2,000 up to $100,000 in simulated capital.</p>
               <div class="bar"></div>
             </div>
             <div class="step active reveal" style="--reveal-delay:.08s">
-              <h3>Verification (Risk Control)</h3>
-              <p>Confirm your consistency and data discipline under a lower profit target in a simulated environment. You know the rules upfront and they never change.</p>
+              <h3 data-i18n="how.s2h">Verification (Risk Control)</h3>
+              <p data-i18n="how.s2p">Confirm your consistency and data discipline under a lower profit target in a simulated environment. You know the rules upfront and they never change.</p>
               <div class="bar"></div>
             </div>
             <div class="step active reveal" style="--reveal-delay:.16s">
-              <h3>Partner Status &amp; Performance Rewards</h3>
-              <p>Sign an Independent Contractor Agreement (B2B), provide your simulation data, and receive up to 80% performance rewards against valid invoices, for as long as you want.</p>
+              <h3 data-i18n-html="how.s3h">Partner Status &amp; Performance Rewards</h3>
+              <p data-i18n="how.s3p">Sign an Independent Contractor Agreement (B2B), provide your simulation data, and receive up to 80% performance rewards against valid invoices, for as long as you want.</p>
               <div class="bar"></div>
             </div>
           </div>
@@ -143,11 +153,11 @@
     <section id="packages" class="tight">
       <div class="container">
         <div class="section-head reveal">
-          <h2 class="t-h1">Choose your capital</h2>
-          <p>From $2,000 up to $100,000. The larger the simulated capital, the higher the performance reward potential.</p>
+          <h2 class="t-h1" data-i18n="packages.heading">Choose your capital</h2>
+          <p data-i18n="packages.sub">From $2,000 up to $100,000. The larger the simulated capital, the higher the performance reward potential.</p>
         </div>
 
-        <p class="picker-label" id="pickerLabel">Account size</p>
+        <p class="picker-label" id="pickerLabel" data-i18n="packages.accountSize">Account size</p>
         <div class="seg" role="radiogroup" aria-labelledby="pickerLabel" id="pkgSeg"></div>
 
         <div class="plan" id="planWrap">
@@ -161,21 +171,21 @@
     <section id="dashboard-preview" class="tight">
       <div class="container">
         <div class="section-head reveal">
-          <h2 class="t-h1">Your dashboard, built for clarity</h2>
-          <p>Real-time balance, live entries and performance stats — everything in one place, no spreadsheets.</p>
+          <h2 class="t-h1" data-i18n="dashPreview.heading">Your dashboard, built for clarity</h2>
+          <p data-i18n="dashPreview.sub">Real-time balance, live entries and performance stats — everything in one place, no spreadsheets.</p>
         </div>
         <div class="preview-grid">
           <figure class="preview-card reveal">
             <img src="assets/showcase-overview.jpg" alt="Fundly dashboard overview showing account balance, equity chart and phase progress" loading="lazy" width="1600" height="1111" />
-            <figcaption>Overview</figcaption>
+            <figcaption data-i18n="dashPreview.overview">Overview</figcaption>
           </figure>
           <figure class="preview-card reveal" style="--reveal-delay:.08s">
             <img src="assets/showcase-entries.jpg" alt="Fundly entries screen showing live sports matches and odds" loading="lazy" width="1600" height="1111" />
-            <figcaption>Live entries</figcaption>
+            <figcaption data-i18n="dashPreview.liveEntries">Live entries</figcaption>
           </figure>
           <figure class="preview-card reveal" style="--reveal-delay:.16s">
             <img src="assets/showcase-performance.jpg" alt="Fundly performance screen showing win rate, profit and ticket history" loading="lazy" width="1600" height="1111" />
-            <figcaption>Performance</figcaption>
+            <figcaption data-i18n="dashPreview.performance">Performance</figcaption>
           </figure>
         </div>
       </div>
@@ -185,8 +195,8 @@
     <section id="why-fundly" class="tight">
       <div class="container">
         <div class="section-head reveal">
-          <h2 class="t-h1">Why Fundly?</h2>
-          <p>Up to $100,000 in simulated capital, fair rules and contractor payouts on time.</p>
+          <h2 class="t-h1" data-i18n="why.heading">Why Fundly?</h2>
+          <p data-i18n="why.sub">Up to $100,000 in simulated capital, fair rules and contractor payouts on time.</p>
         </div>
         <div class="wf-grid">
           <!-- levý sloupec: krokový flow -->
@@ -194,29 +204,29 @@
             <div class="wf-step">
               <span class="wf-num">01</span>
               <div>
-                <h3>Every sport. One account.</h3>
-                <p>Football, hockey, tennis and esports. Simulation coefficients from 1.00 to 8.00 on any sport you know best.</p>
+                <h3 data-i18n="why.h1">Every sport. One account.</h3>
+                <p data-i18n="why.p1">Football, hockey, tennis and esports. Simulation coefficients from 1.00 to 8.00 on any sport you know best.</p>
               </div>
             </div>
             <div class="wf-step">
               <span class="wf-num">02</span>
               <div>
-                <h3>Fair and clear rules</h3>
-                <p>You know the targets, drawdown and limits before you pay. A clear −4 % daily loss limit, no fine print.</p>
+                <h3 data-i18n="why.h2">Fair and clear rules</h3>
+                <p data-i18n="why.p2">You know the targets, drawdown and limits before you pay. A clear −4 % daily loss limit, no fine print.</p>
               </div>
             </div>
             <div class="wf-step">
               <span class="wf-num">03</span>
               <div>
-                <h3>Real-time overview</h3>
-                <p>Track your challenge progress, limits and rewards in one place, without spreadsheets and guesswork.</p>
+                <h3 data-i18n="why.h3">Real-time overview</h3>
+                <p data-i18n="why.p3">Track your challenge progress, limits and rewards in one place, without spreadsheets and guesswork.</p>
               </div>
             </div>
             <div class="wf-step">
               <span class="wf-num">04</span>
               <div>
-                <h3>Fast support and rewards</h3>
-                <p>Support replies within hours and approved contractor rewards are disbursed within 48 hours.</p>
+                <h3 data-i18n="why.h4">Fast support and rewards</h3>
+                <p data-i18n="why.p4">Support replies within hours and approved contractor rewards are disbursed within 48 hours.</p>
               </div>
             </div>
             <div class="strip-fade wf-marquee" aria-hidden="true">
@@ -227,16 +237,16 @@
           <div class="wf-side">
             <div class="wf-stat big reveal" style="--reveal-delay:.06s">
               <div class="num">$100,000</div>
-              <div class="lbl">simulated capital up to — you bring the judgment, we provide the platform</div>
+              <div class="lbl" data-i18n="why.bigLbl">simulated capital up to — you bring the judgment, we provide the platform</div>
             </div>
             <div class="wf-duo">
               <div class="wf-stat reveal" style="--reveal-delay:.12s">
                 <div class="num">80 %</div>
-                <div class="lbl">performance split, fixed forever</div>
+                <div class="lbl" data-i18n="why.splitLbl">performance split, fixed forever</div>
               </div>
               <div class="wf-stat reveal" style="--reveal-delay:.18s">
                 <div class="num">48 h</div>
-                <div class="lbl">reward approval</div>
+                <div class="lbl" data-i18n="why.speedLbl">reward approval</div>
               </div>
             </div>
           </div>
@@ -248,50 +258,50 @@
     <section id="comparison" class="tight">
       <div class="container">
         <div class="vs2-head reveal">
-          <h2 class="t-h1">Learn without the risk</h2>
-          <p>It's a simulation — you analyze real sports data, but you never risk your own capital.</p>
+          <h2 class="t-h1" data-i18n="comparison.heading">Learn without the risk</h2>
+          <p data-i18n="comparison.sub">It's a simulation — you analyze real sports data, but you never risk your own capital.</p>
         </div>
         <div class="vs2-card reveal">
           <span class="vs2-glow vs2-glow-a" aria-hidden="true"></span>
           <span class="vs2-glow vs2-glow-b" aria-hidden="true"></span>
           <div class="vs2-header">
             <div class="vs2-side">
-              <span class="vs2-tag vs2-tag-a">Risking your own capital</span>
-              <div class="vs2-entity">On your own</div>
-              <div class="vs2-sub">Real money · real risk</div>
+              <span class="vs2-tag vs2-tag-a" data-i18n="comparison.tagA">Risking your own capital</span>
+              <div class="vs2-entity" data-i18n="comparison.entityA">On your own</div>
+              <div class="vs2-sub" data-i18n="comparison.subA">Real money · real risk</div>
             </div>
             <span class="vs2-vs" aria-hidden="true">VS</span>
             <div class="vs2-side vs2-side-b">
-              <span class="vs2-tag vs2-tag-b">The Fundly way</span>
-              <div class="vs2-entity">Fundly</div>
-              <div class="vs2-sub">Simulated capital · no personal bankroll required</div>
+              <span class="vs2-tag vs2-tag-b" data-i18n="comparison.tagB">The Fundly way</span>
+              <div class="vs2-entity" data-i18n="comparison.entityB">Fundly</div>
+              <div class="vs2-sub" data-i18n="comparison.subB">Simulated capital · no personal bankroll required</div>
             </div>
           </div>
           <div class="vs2-rows">
             <div class="vs2-row">
-              <span class="vs2-a">Your own money</span>
-              <span class="vs2-pill">Personal Capital</span>
-              <span class="vs2-b">Up to <b>$100,000</b> of simulated capital</span>
+              <span class="vs2-a" data-i18n="comparison.r1a">Your own money</span>
+              <span class="vs2-pill" data-i18n="comparison.r1pill">Personal Capital</span>
+              <span class="vs2-b" data-i18n-html="comparison.r1b">Up to <b>$100,000</b> of simulated capital</span>
             </div>
             <div class="vs2-row">
-              <span class="vs2-a">Unlimited risk</span>
-              <span class="vs2-pill">Risk</span>
-              <span class="vs2-b"><b>One-time fee</b>, nothing more</span>
+              <span class="vs2-a" data-i18n="comparison.r2a">Unlimited risk</span>
+              <span class="vs2-pill" data-i18n="comparison.r2pill">Risk</span>
+              <span class="vs2-b" data-i18n-html="comparison.r2b"><b>One-time fee</b>, nothing more</span>
             </div>
             <div class="vs2-row">
-              <span class="vs2-a">Limited capital</span>
-              <span class="vs2-pill">Upside</span>
-              <span class="vs2-b"><b>80 %</b> performance split</span>
+              <span class="vs2-a" data-i18n="comparison.r3a">Limited capital</span>
+              <span class="vs2-pill" data-i18n="comparison.r3pill">Upside</span>
+              <span class="vs2-b" data-i18n-html="comparison.r3b"><b>80 %</b> performance split</span>
             </div>
             <div class="vs2-row">
-              <span class="vs2-a">Tilt &amp; guesswork</span>
-              <span class="vs2-pill">Discipline</span>
-              <span class="vs2-b">Clear phases &amp; rules</span>
+              <span class="vs2-a" data-i18n-html="comparison.r4a">Tilt &amp; guesswork</span>
+              <span class="vs2-pill" data-i18n="comparison.r4pill">Discipline</span>
+              <span class="vs2-b" data-i18n-html="comparison.r4b">Clear phases &amp; rules</span>
             </div>
             <div class="vs2-row">
-              <span class="vs2-a">Alone</span>
-              <span class="vs2-pill">Support</span>
-              <span class="vs2-b">Community &amp; support</span>
+              <span class="vs2-a" data-i18n="comparison.r5a">Alone</span>
+              <span class="vs2-pill" data-i18n="comparison.r5pill">Support</span>
+              <span class="vs2-b" data-i18n-html="comparison.r5b">Community &amp; support</span>
             </div>
           </div>
         </div>
@@ -302,38 +312,38 @@
     <section id="faq" class="tight">
       <div class="container">
         <div class="section-head reveal">
-          <h2 class="t-h1">Frequently asked questions</h2>
+          <h2 class="t-h1" data-i18n="faq.heading">Frequently asked questions</h2>
         </div>
         <div class="faq-list reveal">
           <div class="faq-item">
-            <button class="faq-q" aria-expanded="false">Is Fundly Games a bookmaker or gambling platform?
+            <button class="faq-q" aria-expanded="false"><span data-i18n="faq.q1">Is Fundly Games a bookmaker or gambling platform?</span>
               <svg class="chev" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 6l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
-            <div class="faq-a"><div><p>No. Fundly Games is strictly an educational and analytical simulation platform. We do not accept wagers, bets, or deposits for gambling. All accounts operate exclusively within a 100% simulated environment using virtual credits with zero real-world value.</p></div></div>
+            <div class="faq-a"><div><p data-i18n="faq.a1">No. Fundly Games is strictly an educational and analytical simulation platform. We do not accept wagers, bets, or deposits for gambling. All accounts operate exclusively within a 100% simulated environment using virtual credits with zero real-world value.</p></div></div>
           </div>
           <div class="faq-item">
-            <button class="faq-q" aria-expanded="false">How does the Challenge work?
+            <button class="faq-q" aria-expanded="false"><span data-i18n="faq.q2">How does the Challenge work?</span>
               <svg class="chev" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 6l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
-            <div class="faq-a"><div><p>The Challenge has two phases. In the first you must reach a profit target of 10 % of capital, in the second 5 %, both within 30 days while respecting the static max. loss limit of 10 % of capital and the daily loss limit of 4 % of capital. In each phase you also need at least 5 winning simulation entries with a net profit of at least 0.5 % of capital. After passing both phases you transition to the Phase 3 Fundly Partner account with no time limit and a trailing max. loss of 10 % from your highest balance.</p></div></div>
+            <div class="faq-a"><div><p data-i18n="faq.a2">The Challenge has two phases. In the first you must reach a profit target of 10 % of capital, in the second 5 %, both within 30 days while respecting the static max. loss limit of 10 % of capital and the daily loss limit of 4 % of capital. In each phase you also need at least 5 winning simulation entries with a net profit of at least 0.5 % of capital. After passing both phases you transition to the Phase 3 Fundly Partner account with no time limit and a trailing max. loss of 10 % from your highest balance.</p></div></div>
           </div>
           <div class="faq-item">
-            <button class="faq-q" aria-expanded="false">What are the simulation entry rules?
+            <button class="faq-q" aria-expanded="false"><span data-i18n="faq.q3">What are the simulation entry rules?</span>
               <svg class="chev" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 6l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
-            <div class="faq-a"><div><p>You can submit simulated entries on all sports with a permissible coefficient range of 1.00 to 8.00. The maximum simulated risk per entry is 1.5 % of account capital and in each phase you must have at least 5 winning entries with a net profit of at least 0.5 % of capital, so the result never comes down to a single entry.</p></div></div>
+            <div class="faq-a"><div><p data-i18n="faq.a3">You can submit simulated entries on all sports with a permissible coefficient range of 1.00 to 8.00. The maximum simulated risk per entry is 1.5 % of account capital and in each phase you must have at least 5 winning entries with a net profit of at least 0.5 % of capital, so the result never comes down to a single entry.</p></div></div>
           </div>
           <div class="faq-item">
-            <button class="faq-q" aria-expanded="false">How are performance rewards disbursed?
+            <button class="faq-q" aria-expanded="false"><span data-i18n="faq.q4">How are performance rewards disbursed?</span>
               <svg class="chev" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 6l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
-            <div class="faq-a"><div><p>Successful analysts in Phase 3 operate as independent B2B contractors. Based on verified performance data and challenge rules — a profit buffer of +5 % of capital and 5 qualifying entries, up to $4,000 per request — contractors submit invoices to Grindit LLC, which are settled via bank transfer, crypto assets, or electronic wallets within 48 hours of approval.</p></div></div>
+            <div class="faq-a"><div><p data-i18n="faq.a4">Successful analysts in Phase 3 operate as independent B2B contractors. Based on verified performance data and challenge rules — a profit buffer of +5 % of capital and 5 qualifying entries, up to $4,000 per request — contractors submit invoices to Grindit LLC, which are settled via bank transfer, crypto assets, or electronic wallets within 48 hours of approval.</p></div></div>
           </div>
           <div class="faq-item">
-            <button class="faq-q" aria-expanded="false">What if I fail the Challenge?
+            <button class="faq-q" aria-expanded="false"><span data-i18n="faq.q5">What if I fail the Challenge?</span>
               <svg class="chev" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 6l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
-            <div class="faq-a"><div><p>You only lose the one-time evaluation fee, nothing more. You can buy a new Challenge anytime and try again — or restart cheaper: the reset fee is just 40 % of the package price.</p></div></div>
+            <div class="faq-a"><div><p data-i18n="faq.a5">You only lose the one-time evaluation fee, nothing more. You can buy a new Challenge anytime and try again — or restart cheaper: the reset fee is just 40 % of the package price.</p></div></div>
           </div>
         </div>
       </div>
@@ -343,15 +353,15 @@
     <section class="cta-block">
       <div class="cta-glow" aria-hidden="true"></div>
       <div class="container" style="display:flex;flex-direction:column;align-items:center;text-align:center">
-        <h2 class="t-h1 reveal">Ready to put your analytics to the test?</h2>
-        <p class="t-body reveal">Put your analytical skills to the test. No personal bankroll required, only your skill.</p>
+        <h2 class="t-h1 reveal" data-i18n="cta.heading">Ready to put your analytics to the test?</h2>
+        <p class="t-body reveal" data-i18n="cta.sub">Put your analytical skills to the test. No personal bankroll required, only your skill.</p>
         <div class="hero-actions reveal">
-          <a class="btn btn-primary btn-lg" href="#packages" data-quickstart="advanced">Start the Challenge</a>
+          <a class="btn btn-primary btn-lg" href="#packages" data-quickstart="advanced" data-i18n="cta.start">Start the Challenge</a>
         </div>
         <div class="cta-meta reveal">
-          <span>From $26</span>
-          <span>One-time fee</span>
-          <span>24/7 support</span>
+          <span data-i18n="cta.from">From $26</span>
+          <span data-i18n="cta.oneTime">One-time fee</span>
+          <span data-i18n="cta.support">24/7 support</span>
         </div>
       </div>
     </section>
@@ -359,22 +369,22 @@
     <!-- ============ CONTACT ============ -->
     <section class="section" id="contact">
       <div class="container" style="max-width:640px">
-        <h2 class="t-h1 reveal" style="text-align:center">Get in touch</h2>
-        <p class="t-body reveal" style="text-align:center;margin-bottom:32px">Questions about a package, payout, or your account? Send us a message.</p>
+        <h2 class="t-h1 reveal" style="text-align:center" data-i18n="contact.heading">Get in touch</h2>
+        <p class="t-body reveal" style="text-align:center;margin-bottom:32px" data-i18n="contact.sub">Questions about a package, payout, or your account? Send us a message.</p>
         <form id="contactForm" class="reveal">
           <div class="field">
-            <label for="contactEmail">Email</label>
+            <label for="contactEmail" data-i18n="contact.email">Email</label>
             <input class="input" id="contactEmail" type="email" autocomplete="email" placeholder="you@example.com" required />
           </div>
           <div class="field">
-            <label for="contactSubject">Subject</label>
-            <input class="input" id="contactSubject" type="text" placeholder="What's this about?" />
+            <label for="contactSubject" data-i18n="contact.subject">Subject</label>
+            <input class="input" id="contactSubject" type="text" placeholder="What's this about?" data-i18n-placeholder="contact.subjectPh" />
           </div>
           <div class="field">
-            <label for="contactMessage">Message</label>
-            <textarea class="input" id="contactMessage" rows="5" placeholder="How can we help?" required style="resize:vertical;min-height:120px"></textarea>
+            <label for="contactMessage" data-i18n="contact.message">Message</label>
+            <textarea class="input" id="contactMessage" rows="5" placeholder="How can we help?" required style="resize:vertical;min-height:120px" data-i18n-placeholder="contact.messagePh"></textarea>
           </div>
-          <button class="btn btn-primary" type="submit" id="contactSubmit" style="width:100%">Send message</button>
+          <button class="btn btn-primary" type="submit" id="contactSubmit" style="width:100%" data-i18n="contact.send">Send message</button>
           <p class="auth-note mt" id="contactNote" hidden></p>
         </form>
       </div>
@@ -390,10 +400,10 @@
             <img src="assets/logo.png" alt="" width="20" height="20" />
             fundly
           </a>
-          <p>A professional evaluation platform for sports analysts. Up to $100,000 in simulated capital and an 80 % performance split.</p>
+          <p data-i18n="footer.tagline">A professional evaluation platform for sports analysts. Up to $100,000 in simulated capital and an 80 % performance split.</p>
         </div>
         <div class="foot-col">
-          <h4>Packages</h4>
+          <h4 data-i18n="footer.packages">Packages</h4>
           <ul>
             <li><a href="#packages">Starter</a></li>
             <li><a href="#packages">Standard</a></li>
@@ -403,33 +413,33 @@
           </ul>
         </div>
         <div class="foot-col">
-          <h4>Information</h4>
+          <h4 data-i18n="footer.information">Information</h4>
           <ul>
-            <li><a href="#how-it-works">How it works</a></li>
-            <li><a href="#why-fundly">Why Fundly</a></li>
-            <li><a href="#faq">FAQ</a></li>
+            <li><a href="#how-it-works" data-i18n="nav.howItWorks">How it works</a></li>
+            <li><a href="#why-fundly" data-i18n="nav.whyFundly">Why Fundly</a></li>
+            <li><a href="#faq" data-i18n="nav.faq">FAQ</a></li>
           </ul>
         </div>
         <div class="foot-col">
-          <h4>Support</h4>
+          <h4 data-i18n="footer.support">Support</h4>
           <ul>
-            <li><a href="#contact">Contact us</a></li>
-            <li><a href="https://t.me/+420608187811" target="_blank" rel="noopener">Chat on Telegram</a></li>
-            <li><a href="#">Service status</a></li>
+            <li><a href="#contact" data-i18n="footer.contactUs">Contact us</a></li>
+            <li><a href="https://t.me/+420608187811" target="_blank" rel="noopener" data-i18n="footer.telegram">Chat on Telegram</a></li>
+            <li><a href="#" data-i18n="footer.status">Service status</a></li>
           </ul>
         </div>
       </div>
       <div class="foot-legal">
-        <p>Legal Disclaimer: Fundly.games is operated by Grindit LLC (Sharjah Media City, Sharjah, UAE, Reg: 2541536). Fundly Games is not a bookmaker, gambling operator, or financial institution. All services, evaluation challenges, and metrics provided on this platform are strictly for educational and analytical simulation purposes, utilizing virtual credits with zero monetary value. Challenge fees cover software licensing, data evaluation, and analytical platform access.</p>
+        <p data-i18n="footer.legal">Legal Disclaimer: Fundly.games is operated by Grindit LLC (Sharjah Media City, Sharjah, UAE, Reg: 2541536). Fundly Games is not a bookmaker, gambling operator, or financial institution. All services, evaluation challenges, and metrics provided on this platform are strictly for educational and analytical simulation purposes, utilizing virtual credits with zero monetary value. Challenge fees cover software licensing, data evaluation, and analytical platform access.</p>
       </div>
       <div class="foot-bottom">
-        <span>© 2026 Fundly. All rights reserved.</span>
+        <span data-i18n="footer.rights">© 2026 Fundly. All rights reserved.</span>
         <nav aria-label="Legal links">
-          <a href="privacy">Privacy</a>
-          <a href="terms">Terms</a>
-          <a href="rules">Rules</a>
-          <a href="disclaimer">Disclaimer</a>
-          <a href="refund">Refund</a>
+          <a href="privacy" data-i18n="footer.privacy">Privacy</a>
+          <a href="terms" data-i18n="footer.terms">Terms</a>
+          <a href="rules" data-i18n="footer.rules">Rules</a>
+          <a href="disclaimer" data-i18n="footer.disclaimer">Disclaimer</a>
+          <a href="refund" data-i18n="footer.refund">Refund</a>
         </nav>
       </div>
     </div>
@@ -443,16 +453,16 @@
       </button>
       <div class="modal-head">
         <img src="assets/logo.png" alt="" width="28" height="28" />
-        <h2 id="authTitle">Log in</h2>
-        <p id="authSub">Log in to your account</p>
+        <h2 id="authTitle" data-i18n="auth.login">Log in</h2>
+        <p id="authSub" data-i18n="auth.loginSub">Log in to your account</p>
       </div>
       <form id="authForm" novalidate>
         <div class="field">
-          <label for="authEmail">E-mail</label>
+          <label for="authEmail" data-i18n="auth.email">E-mail</label>
           <input class="input" id="authEmail" type="email" autocomplete="email" placeholder="you@example.com" required />
         </div>
         <div class="field">
-          <label for="authPass">Password</label>
+          <label for="authPass" data-i18n="auth.password">Password</label>
           <div class="pw-field">
             <input class="input" id="authPass" type="password" autocomplete="current-password" placeholder="••••••••" required />
             <button type="button" class="pw-toggle" data-pw-toggle aria-label="Show password" aria-pressed="false">
@@ -461,9 +471,9 @@
             </button>
           </div>
         </div>
-        <p class="auth-forgot" id="authForgotRow"><button type="button" id="authForgot">Forgot password?</button></p>
+        <p class="auth-forgot" id="authForgotRow"><button type="button" id="authForgot" data-i18n="auth.forgot">Forgot password?</button></p>
         <p class="auth-note" id="authNote" hidden></p>
-        <button type="submit" class="btn btn-primary" style="width:100%" id="authSubmit">Log in</button>
+        <button type="submit" class="btn btn-primary" style="width:100%" id="authSubmit" data-i18n="auth.login">Log in</button>
       </form>
       <!-- 2FA step-up: shown instead of authForm once the password is correct
            but the account has TOTP enabled — a fresh sign-in session starts
@@ -479,14 +489,15 @@
         <button type="submit" class="btn btn-primary" style="width:100%" id="authMfaSubmit">Verify</button>
       </form>
       <p class="auth-switch">
-        <span id="authSwitchText">No account yet?</span>
-        <button type="button" id="authSwitch">Sign up</button>
+        <span id="authSwitchText" data-i18n="auth.noAccount">No account yet?</span>
+        <button type="button" id="authSwitch" data-i18n="auth.signUp">Sign up</button>
       </p>
     </div>
   </div>
 
   <script src="js/packages.js"></script>
   <script src="js/portfolio.js"></script>
+  <script src="js/i18n.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>
