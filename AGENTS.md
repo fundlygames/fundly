@@ -6,8 +6,8 @@
 
 Functional betting simulation + prop-firm dashboard. Static site.
 GitHub repo: `fundlygames/fundly` (migrated from the old `matejc-beep/fundly`), deployed via GitHub Pages at the custom domain https://fundly.games/
-Local dir: `~/betflow-upcomers-static` (kept for compatibility).
-Archived React/Supabase (Lovable) version: repo `matejc-beep/betflow-react-archive`, source `~/betflow-upcomers` — NOT in active use.
+Local dir: kept under its original working-copy name for compatibility.
+Archived React/Supabase (Lovable) version: repo `matejc-beep/betflow-react-archive` — NOT in active use.
 
 ## Key files
 
@@ -69,7 +69,7 @@ Branch `feature/functional-betting-dashboard` — all 7 tasks + final review fix
 ## How to verify locally
 
 ```bash
-cd /Users/matejcaban/fundly-upcomers-static
+cd <project-root>
 python3 -m http.server 8791
 ```
 

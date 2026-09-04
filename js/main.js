@@ -1,4 +1,4 @@
-/* Fundly × Upcomers — interactions */
+/* Fundly — interactions */
 
 // package data: see js/packages.js (shared with dashboard)
 

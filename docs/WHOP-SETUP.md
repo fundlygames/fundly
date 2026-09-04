@@ -72,7 +72,7 @@ a Meta ads spend. Doporučujeme nejdřív vše vyzkoušet ve Whop **sandboxu**
 
 ## 3. Supabase: nasazení databáze a funkcí
 
-V kořeni repozitáře (`betflow-upcomers-static`):
+V kořeni repozitáře:
 
 ```bash
 supabase link --project-ref <PROJECT_REF>
