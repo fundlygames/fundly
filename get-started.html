@@ -84,32 +84,13 @@
     <div class="container gs-layout">
       <div>
         <p class="gs-picker-label">Account size</p>
-        <div class="gs-size-row" id="gsSizeRow"><!-- JS --></div>
 
         <h1 class="gs-hero-h">Simulated capital for your sports analytics.</h1>
         <p class="gs-hero-sub">Pass a two-phase evaluation, keep 80% of your performance reward, no personal bankroll required. Pick your capital below and see exactly what changes at each tier.</p>
 
-        <div class="gs-pkg-grid" id="gsPkgGrid"><!-- JS --></div>
+        <div class="gs-pkg-grid" id="gsPkgGrid"><!-- JS: compact — name/capital/price only --></div>
 
-        <div class="gs-info-grid">
-          <div class="gs-info-box">
-            <h4>Phase targets</h4>
-            <div class="r"><span>Phase 1</span><span class="v green" id="gsT1">–</span></div>
-            <div class="r"><span>Phase 2</span><span class="v green" id="gsT2">–</span></div>
-          </div>
-          <div class="gs-info-box">
-            <h4>Limits</h4>
-            <div class="r"><span>Max. loss (static)</span><span class="v red" id="gsDd">–</span></div>
-            <div class="r"><span>Max. daily loss</span><span class="v red" id="gsDl">–</span></div>
-          </div>
-        </div>
-
-        <div class="gs-faq-strip">
-          <span class="gs-faq-chip">✓ Odds 1.00–8.00, all sports</span>
-          <span class="gs-faq-chip">✓ 30 days per phase</span>
-          <span class="gs-faq-chip">✓ 80% performance split</span>
-          <span class="gs-faq-chip">✓ Rewards in 48h</span>
-        </div>
+        <div class="gs-details" id="gsDetails"><!-- JS: targets, limits, odds/days/split for the selected package --></div>
       </div>
 
       <aside class="gs-sidebar">
