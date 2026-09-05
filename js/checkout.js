@@ -6,6 +6,7 @@
 
   const usd = (n) => "$" + Math.round(n).toLocaleString("en-US");
   const usdSigned = (n) => (n > 0 ? "+" : n < 0 ? "-" : "") + "$" + Math.abs(Math.round(n)).toLocaleString("en-US");
+  const usdShort = (n) => "$" + (n >= 1000 ? Math.round(n / 1000) + "K" : n);
 
   const $ = (id) => document.getElementById(id);
   const t = window.t || ((k) => k);
@@ -104,14 +105,17 @@
   // limits, odds/days/split) lives in the details panel for the SELECTED
   // package only, so comparing 5 packages doesn't mean scanning 5x that data.
   function renderPkgGrid() {
-    pkgGrid.innerHTML = PACKAGES.map((p) => `
+    pkgGrid.innerHTML = PACKAGES.map((p, i) => {
+      const pct = Math.round(((i + 1) / PACKAGES.length) * 100);
+      return `
       <button type="button" role="radio" aria-checked="${p.key === state.pkg}"
         class="pkg-card ${p.key === state.pkg ? "active" : ""}" data-key="${p.key}">
         ${p.top ? '<span class="top-badge">TOP</span>' : ""}
+        <span class="pkg-ring" style="--pct:${pct}%"><span class="pkg-ring-inner">${usdShort(p.cap)}</span></span>
         <span class="nm">${p.name}</span>
-        <span class="cap">${usd(p.cap)}</span>
         <span class="price">${usd(p.price)} <span class="lbl">${t("packages.oneTime")}</span></span>
-      </button>`).join("");
+      </button>`;
+    }).join("");
   }
 
   pkgGrid.addEventListener("click", (e) => {
@@ -185,12 +189,16 @@
     const m = meta();
     const check = `<svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
     $("summaryPanel").innerHTML = `
-      <h3 class="sum-h">${t("co.summary")}</h3>
-      <div class="sum-row sum-head"><span class="k">${t("co.package")}</span><span class="k">${t("co.capital")}</span></div>
-      <div class="sum-row"><span class="v big">${p.name}</span><span class="v green big">${usd(p.cap)}</span></div>
-      <div class="sum-row"><span class="k">${t("stats.split")}</span><span class="v green">${m.profitSplit} %</span></div>
+      <div class="sum-hero">
+        <div class="sum-hero-lbl">${t("co.totalDueToday")}</div>
+        <div class="sum-hero-price">${usd(p.price)}</div>
+        <div class="sum-hero-note">${p.name} · ${usd(p.cap)} ${t("packages.simCapital")}</div>
+      </div>
+      <div class="sum-split">
+        <div class="sum-split-bar"><div class="sum-split-fill" style="width:${m.profitSplit}%"></div></div>
+        <div class="sum-split-lbl"><span>${t("stats.split")}</span><b>${m.profitSplit}% ${t("co.yours")}</b></div>
+      </div>
       <div class="sum-row"><span class="k">${t("co.maxEntrySize")}</span><span class="v">${usd(m.maxStake)}</span></div>
-      <div class="sum-total"><span class="k">${t("co.oneTimeFee")}</span><span class="v">${usd(p.price)}</span></div>
       <p class="sum-recur">${usd(p.price)} ${t("co.todaySuffix")} ${t("co.recurLine")}</p>
       <ul class="sum-feats">
         <li>${check}${t("co.featPhases")}</li>

@@ -169,6 +169,7 @@ const FUNDLY_I18N = (() => {
         limitsNote: "Static overall floor in the Challenge phases (trailing in Phase 3), plus a −4 % daily loss limit that resets at midnight UTC.",
         chipOddsShort: "Odds 1.00–8.00", chipDaysShort: "30 days/phase", chipProfitSuffix: "profit",
         maxEntrySize: "Max. entry size", todaySuffix: "today.",
+        totalDueToday: "Total due today", yours: "yours",
       },
     },
 
@@ -331,6 +332,7 @@ const FUNDLY_I18N = (() => {
         limitsNote: "Statická celková hranice ve fázích Challenge (trailing ve Fázi 3), plus limit denní ztráty −4 %, který se resetuje o půlnoci UTC.",
         chipOddsShort: "Kurzy 1,00–8,00", chipDaysShort: "30 dní/fáze", chipProfitSuffix: "ze zisku",
         maxEntrySize: "Max. velikost tiketu", todaySuffix: "dnes.",
+        totalDueToday: "Celkem k úhradě dnes", yours: "pro tebe",
       },
     },
 
@@ -493,6 +495,7 @@ const FUNDLY_I18N = (() => {
         limitsNote: "Suelo estático general en las fases del Challenge (trailing en la Fase 3), más un límite de pérdida diaria del −4 % que se restablece a medianoche UTC.",
         chipOddsShort: "Cuotas 1.00–8.00", chipDaysShort: "30 días/fase", chipProfitSuffix: "de beneficio",
         maxEntrySize: "Tamaño máx. de entrada", todaySuffix: "hoy.",
+        totalDueToday: "Total a pagar hoy", yours: "para ti",
       },
     },
 
@@ -655,6 +658,7 @@ const FUNDLY_I18N = (() => {
         limitsNote: "Statyczny ogólny próg w fazach Challenge (trailing w Fazie 3), plus dzienny limit straty −4%, resetowany o północy UTC.",
         chipOddsShort: "Kursy 1,00–8,00", chipDaysShort: "30 dni/fazę", chipProfitSuffix: "zysku",
         maxEntrySize: "Maks. wielkość zlecenia", todaySuffix: "dzisiaj.",
+        totalDueToday: "Razem do zapłaty dzisiaj", yours: "dla Ciebie",
       },
     },
 
@@ -817,6 +821,7 @@ const FUNDLY_I18N = (() => {
         limitsNote: "Statická celková hranica vo fázach Challenge (trailing vo Fáze 3), plus limit dennej straty −4 %, ktorý sa resetuje o polnoci UTC.",
         chipOddsShort: "Kurzy 1,00–8,00", chipDaysShort: "30 dní/fázu", chipProfitSuffix: "zo zisku",
         maxEntrySize: "Max. veľkosť tiketu", todaySuffix: "dnes.",
+        totalDueToday: "Celkom na úhradu dnes", yours: "pre teba",
       },
     },
 
@@ -979,6 +984,7 @@ const FUNDLY_I18N = (() => {
         limitsNote: "Statikus általános küszöb a Challenge fázisokban (trailing a 3. fázisban), plusz −4%-os napi veszteséglimit, amely éjfélkor (UTC) resetelődik.",
         chipOddsShort: "1,00–8,00 közötti odds", chipDaysShort: "30 nap/fázis", chipProfitSuffix: "profitból",
         maxEntrySize: "Max. tétnagyság", todaySuffix: "ma.",
+        totalDueToday: "Ma fizetendő összesen", yours: "neked",
       },
     },
   };
