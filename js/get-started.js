@@ -9,6 +9,7 @@
   const usd = (n) => "$" + Math.round(n).toLocaleString("en-US");
   const usdSigned = (n) => (n > 0 ? "+" : n < 0 ? "-" : "") + "$" + Math.abs(Math.round(n)).toLocaleString("en-US");
   const $ = (id) => document.getElementById(id);
+  const t = window.t || ((k) => k);
 
   const urlPkg = new URLSearchParams(window.location.search).get("package");
   let active = urlPkg && PACKAGES.some((p) => p.key === urlPkg) ? urlPkg : "advanced";
@@ -33,10 +34,10 @@
     $("gsPkgGrid").innerHTML = PACKAGES.map((p) => `
       <button type="button" role="radio" aria-checked="${p.key === active}"
         class="gs-pkg-card ${p.key === active ? "active" : ""}" data-key="${p.key}">
-        ${p.top ? '<span class="badge">Most popular</span>' : ""}
+        ${p.top ? `<span class="badge">${t("packages.mostPopular")}</span>` : ""}
         <span class="nm">${p.name}</span>
         <span class="cap">${usd(p.cap)}</span>
-        <span class="price">${usd(p.price)} <span class="lbl">one-time</span></span>
+        <span class="price">${usd(p.price)} <span class="lbl">${t("packages.oneTime")}</span></span>
       </button>`).join("");
   }
 
@@ -45,21 +46,21 @@
     $("gsDetails").innerHTML = `
       <div class="gs-info-grid">
         <div class="gs-info-box">
-          <h4>Phase targets</h4>
-          <div class="r"><span>Phase 1</span><span class="v green">${usdSigned(m.target1)}</span></div>
-          <div class="r"><span>Phase 2</span><span class="v green">${usdSigned(m.target2)}</span></div>
+          <h4>${t("gs.phaseTargets")}</h4>
+          <div class="r"><span>${t("packages.phase1Tag")}</span><span class="v green">${usdSigned(m.target1)}</span></div>
+          <div class="r"><span>${t("packages.phase2Tag")}</span><span class="v green">${usdSigned(m.target2)}</span></div>
         </div>
         <div class="gs-info-box">
-          <h4>Limits</h4>
-          <div class="r"><span>Max. loss (static)</span><span class="v red">${usdSigned(-m.drawdown)}</span></div>
-          <div class="r"><span>Max. daily loss</span><span class="v red">${usdSigned(-m.dailyLoss)}</span></div>
+          <h4>${t("gs.limits")}</h4>
+          <div class="r"><span>${t("packages.maxLossStatic")}</span><span class="v red">${usdSigned(-m.drawdown)}</span></div>
+          <div class="r"><span>${t("packages.maxDailyLoss")}</span><span class="v red">${usdSigned(-m.dailyLoss)}</span></div>
         </div>
       </div>
       <div class="gs-faq-strip">
-        <span class="gs-faq-chip">✓ Odds 1.00–8.00, all sports</span>
-        <span class="gs-faq-chip">✓ 30 days per phase</span>
-        <span class="gs-faq-chip">✓ ${m.profitSplit}% performance split</span>
-        <span class="gs-faq-chip">✓ Rewards in 48h</span>
+        <span class="gs-faq-chip">✓ ${t("gs.chipOdds")}</span>
+        <span class="gs-faq-chip">✓ ${t("gs.chipDays")}</span>
+        <span class="gs-faq-chip">✓ ${m.profitSplit}% ${t("gs.chipSplitSuffix")}</span>
+        <span class="gs-faq-chip">✓ ${t("gs.chipRewards")}</span>
       </div>`;
   }
 
@@ -91,6 +92,8 @@
   window.addEventListener("scroll", () => {
     mobileBar.classList.toggle("show", window.scrollY > 260);
   });
+
+  document.addEventListener("fundly:lang-changed", render);
 
   render();
 })();

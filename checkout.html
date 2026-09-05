@@ -47,6 +47,7 @@
   <script defer src="js/packages.js"></script>
   <script defer src="js/portfolio.js"></script>
   <script defer src="js/whop.js"></script>
+  <script defer src="js/i18n.js"></script>
   <script defer src="js/checkout.js"></script>
 </head>
 <body>
@@ -59,7 +60,15 @@
         fundly
       </a>
       <div class="nav-cta">
-        <a class="btn btn-ghost" href="./">Back to home</a>
+        <select class="lang-switch" aria-label="Language">
+          <option value="en">EN</option>
+          <option value="cs">CS</option>
+          <option value="sk">SK</option>
+          <option value="pl">PL</option>
+          <option value="hu">HU</option>
+          <option value="es">ES</option>
+        </select>
+        <a class="btn btn-ghost" href="./" data-i18n="gs.backToHome">Back to home</a>
       </div>
     </div>
   </header>
@@ -69,36 +78,36 @@
 
       <!-- ============ HEADER ============ -->
       <div class="co-hero">
-        <h1 class="t-h2">Start your <span class="acc">journey</span></h1>
-        <p>Pick a package and create an account</p>
+        <h1 class="t-h2" data-i18n-html="co.heroTitleHtml">Start your <span class="acc">journey</span></h1>
+        <p data-i18n="co.heroSub">Pick a package and create an account</p>
       </div>
 
       <!-- ============ LAUNCH CAPACITY ============ -->
       <div class="co-cap-banner" id="capBanner" hidden></div>
       <div class="co-waitlist" id="waitlistPanel" hidden>
-        <h2>Launch spots are full</h2>
-        <p>All spots in this launch batch are claimed. Leave your e-mail and we'll invite you as soon as a spot opens up.</p>
+        <h2 data-i18n="co.waitlistH">Launch spots are full</h2>
+        <p data-i18n="co.waitlistP">All spots in this launch batch are claimed. Leave your e-mail and we'll invite you as soon as a spot opens up.</p>
         <form id="waitlistForm" class="co-waitlist-form">
           <input class="input" id="waitlistEmail" type="email" placeholder="you@example.com" autocomplete="email" required />
-          <button type="submit" class="btn btn-primary">Join the waitlist</button>
+          <button type="submit" class="btn btn-primary" data-i18n="co.waitlistBtn">Join the waitlist</button>
         </form>
         <span class="field-err" id="waitlistErr" hidden></span>
-        <p class="co-waitlist-done" id="waitlistDone" hidden>You're on the list — we'll e-mail you when a spot opens up.</p>
+        <p class="co-waitlist-done" id="waitlistDone" hidden data-i18n="co.waitlistDone">You're on the list — we'll e-mail you when a spot opens up.</p>
       </div>
 
       <!-- ============ STEP INDICATOR ============ -->
       <ol class="co-steps" id="coSteps">
         <li class="co-step active" data-step-dot="1">
           <span class="dot">1</span>
-          <span class="lbl">Package selection</span>
+          <span class="lbl" data-i18n="co.stepPkg">Package selection</span>
         </li>
         <li class="co-step" data-step-dot="2">
           <span class="dot">2</span>
-          <span class="lbl">Sign up</span>
+          <span class="lbl" data-i18n="co.stepSignup">Sign up</span>
         </li>
         <li class="co-step" data-step-dot="3">
           <span class="dot">3</span>
-          <span class="lbl">Payment</span>
+          <span class="lbl" data-i18n="co.stepPayment">Payment</span>
         </li>
       </ol>
 
@@ -108,7 +117,7 @@
 
           <!-- Step 1: package selection -->
           <section class="co-panel" id="step1">
-            <h2 class="co-label">Capital selection</h2>
+            <h2 class="co-label" data-i18n="co.capitalSelection">Capital selection</h2>
             <div class="pkg-grid" id="pkgGrid" role="radiogroup" aria-label="Package selection"><!-- JS --></div>
 
             <div class="co-details" id="coDetails"><!-- JS: phase targets, limits, odds/days/split for the selected package --></div>
@@ -116,7 +125,7 @@
             <div class="co-checkout-row" id="coCheckoutRow"><!-- JS: selected package + capital + price --></div>
 
             <button type="button" class="btn btn-primary btn-lg co-cta" id="btnToStep2">
-              Continue
+              <span data-i18n="co.continueBtn">Continue</span>
               <svg class="arr" width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2.5 7.5h10m0 0l-4-4m4 4l-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
           </section>
@@ -125,16 +134,16 @@
           <section class="co-panel" id="step2" hidden>
             <h2 class="co-h">
               <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="5.25" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M2.5 14c.8-2.7 3-4.25 5.5-4.25s4.7 1.55 5.5 4.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-              Create your account
+              <span data-i18n="co.createAccount">Create your account</span>
             </h2>
             <form id="regForm" novalidate>
               <div class="field">
-                <label for="regEmail">Email</label>
+                <label for="regEmail" data-i18n="auth.email">Email</label>
                 <input class="input" id="regEmail" type="email" placeholder="you@example.com" autocomplete="email" />
                 <span class="field-err" id="errEmail" hidden></span>
               </div>
               <div class="field">
-                <label for="regPass">Password</label>
+                <label for="regPass" data-i18n="auth.password">Password</label>
                 <div class="pw-field">
                   <input class="input" id="regPass" type="password" placeholder="••••••••" autocomplete="new-password" />
                   <button type="button" class="pw-toggle" data-pw-toggle aria-label="Show password" aria-pressed="false">
@@ -145,7 +154,7 @@
                 <span class="field-err" id="errPass" hidden></span>
               </div>
               <div class="field">
-                <label for="regPass2">Confirm password</label>
+                <label for="regPass2" data-i18n="co.confirmPassword">Confirm password</label>
                 <div class="pw-field">
                   <input class="input" id="regPass2" type="password" placeholder="••••••••" autocomplete="new-password" />
                   <button type="button" class="pw-toggle" data-pw-toggle aria-label="Show password" aria-pressed="false">
@@ -158,56 +167,56 @@
 
               <label class="consent">
                 <input type="checkbox" id="consentTerms" />
-                <span>I agree to the <a href="terms" class="lnk" target="_blank" rel="noopener">terms and conditions</a> and the <a href="privacy" class="lnk" target="_blank" rel="noopener">privacy policy</a>.</span>
+                <span data-i18n-html="co.agreeTermsHtml">I agree to the <a href="terms" class="lnk" target="_blank" rel="noopener">terms and conditions</a> and the <a href="privacy" class="lnk" target="_blank" rel="noopener">privacy policy</a>.</span>
               </label>
               <label class="consent">
                 <input type="checkbox" id="consentRules" />
-                <span>I confirm that I have read and understood the <a href="rules" class="lnk" target="_blank" rel="noopener">Challenge rules</a>.</span>
+                <span data-i18n-html="co.agreeRulesHtml">I confirm that I have read and understood the <a href="rules" class="lnk" target="_blank" rel="noopener">Challenge rules</a>.</span>
               </label>
               <label class="consent">
                 <input type="checkbox" id="consentCoolingOff" />
-                <span>I request immediate access to the digital simulation software and understand that this waives my 14-day statutory cooling-off right once I log in or submit my first entry (see <a href="refund" class="lnk" target="_blank" rel="noopener">Refund &amp; cancellation</a>).</span>
+                <span data-i18n-html="co.agreeCoolingHtml">I request immediate access to the digital simulation software and understand that this waives my 14-day statutory cooling-off right once I log in or submit my first entry (see <a href="refund" class="lnk" target="_blank" rel="noopener">Refund &amp; cancellation</a>).</span>
               </label>
               <span class="field-err" id="errConsent" hidden></span>
 
               <div class="co-actions">
                 <button type="button" class="btn btn-ghost" id="btnBack1">
                   <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M12.5 7.5h-10m0 0l4-4m-4 4l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                  Back
+                  <span data-i18n="co.back">Back</span>
                 </button>
                 <button type="submit" class="btn btn-primary btn-lg co-grow" id="btnRegister">
-                  Complete sign up
+                  <span data-i18n="co.completeSignup">Complete sign up</span>
                   <svg class="arr" width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2.5 7.5h10m0 0l-4-4m4 4l-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </button>
               </div>
             </form>
-            <p class="co-switch">Already have an account? <a href="./" class="lnk">Log in</a></p>
+            <p class="co-switch" data-i18n-html="co.alreadyAccountHtml">Already have an account? <a href="./" class="lnk">Log in</a></p>
           </section>
 
           <!-- Step 3: payment (embedded Whop checkout) -->
           <section class="co-panel" id="step3" hidden>
             <h2 class="co-h">
               <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="1.5" y="3.5" width="13" height="9" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1.5 6.5h13" stroke="currentColor" stroke-width="1.5"/></svg>
-              Payment
+              <span data-i18n="co.payment">Payment</span>
             </h2>
 
             <div class="pay-loading" id="payLoading">
               <span class="spinner" aria-hidden="true"></span>
-              <p>Preparing the payment gateway…</p>
+              <p data-i18n="co.preparingGateway">Preparing the payment gateway…</p>
             </div>
 
             <div id="whopMount" class="whop-mount"><!-- the embedded checkout mounts here --></div>
 
             <div class="pay-fallback" id="payFallback" hidden>
-              <p class="pay-err" id="payErrMsg">The payment gateway could not be loaded.</p>
-              <a class="btn btn-primary btn-lg" id="payFallbackLink" href="#" target="_blank" rel="noopener">Open payment on Whop</a>
+              <p class="pay-err" id="payErrMsg" data-i18n="co.gatewayError">The payment gateway could not be loaded.</p>
+              <a class="btn btn-primary btn-lg" id="payFallbackLink" href="#" target="_blank" rel="noopener" data-i18n="co.openWhop">Open payment on Whop</a>
               <button type="button" class="btn btn-ghost" id="btnBack2">
                 <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M12.5 7.5h-10m0 0l4-4m-4 4l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Back
+                <span data-i18n="co.back">Back</span>
               </button>
             </div>
 
-            <p class="co-switch"><a href="#" class="lnk" id="btnBack3">← Back to sign up</a></p>
+            <p class="co-switch"><a href="#" class="lnk" id="btnBack3" data-i18n="co.backToSignup">← Back to sign up</a></p>
           </section>
 
         </div>
@@ -221,7 +230,7 @@
 
   <div class="co-mobile-bar" id="coMobileBar">
     <div class="info"><span class="sz" id="coMbPkg">Advanced</span><span class="pr" id="coMbPrice">$325</span></div>
-    <button class="btn btn-primary" id="coMbCta" type="button">Continue</button>
+    <button class="btn btn-primary" id="coMbCta" type="button" data-i18n="co.continueBtn">Continue</button>
   </div>
 
   <script src="js/telegram-widget.js"></script>
