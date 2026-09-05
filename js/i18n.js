@@ -285,9 +285,100 @@ const FUNDLY_I18N = (() => {
         forgot: "¿Olvidaste tu contraseña?", noAccount: "¿Aún no tienes cuenta?", signUp: "Regístrate",
       },
     },
+    pl: {
+      nav: {
+        howItWorks: "Jak to działa", packages: "Pakiety", whyFundly: "Dlaczego Fundly", faq: "FAQ", contact: "Kontakt",
+        login: "Zaloguj się", startChallenge: "Rozpocznij Challenge",
+      },
+      hero: {
+        titleDim: "Zdobądź symulowany kapitał", titleRest: "do swojej analityki sportowej.",
+        sub: "Przetestuj swoje umiejętności analityczne w symulowanym środowisku — bez ryzykowania własnego kapitału. Ukończ naszą 2-fazową ocenę, zostań partnerem B2B i otrzymuj do <strong>80%</strong> wynagrodzenia za swoje wyniki.",
+        start: "Rozpocznij Challenge", howItWorks: "Jak to działa",
+      },
+      stats: { phases: "Fazy oceny", maxCapital: "Maks. kapitał", daysPerPhase: "Dni na fazę", split: "Podział zysku" },
+      how: {
+        fan1: "Challenge", fan2: "Weryfikacja", fan3: "Nagrody",
+        s1h: "Ocena (faza testowa)",
+        s1p: "Wykup dostęp do naszego oprogramowania symulacji analitycznej i wykaż się strategią zarządzania ryzykiem w oknie 30 dni, od $2000 do $100 000 symulowanego kapitału.",
+        s2h: "Weryfikacja (kontrola ryzyka)",
+        s2p: "Potwierdź swoją konsekwencję i dyscyplinę danych przy niższym celu zysku w symulowanym środowisku. Zasady znasz z góry i nigdy się nie zmieniają.",
+        s3h: "Status partnera i wynagrodzenie za wyniki",
+        s3p: "Podpisz umowę niezależnego kontrahenta (B2B), udostępnij swoje dane symulacyjne i otrzymuj do 80% wynagrodzenia za wyniki na podstawie ważnych faktur, tak długo, jak chcesz.",
+      },
+      packages: {
+        heading: "Wybierz swój kapitał", sub: "Od $2000 do $100 000. Im większy symulowany kapitał, tym wyższy potencjał wynagrodzenia za wyniki.",
+        accountSize: "Wielkość konta",
+        phase1Tag: "Faza 1", phase1Name: "Fundly Challenge",
+        phase2Tag: "Faza 2", phase2Name: "Weryfikacja",
+        phase3Tag: "Konto partnerskie", phase3Name: "Fundly Partner",
+        profitTarget: "Cel zysku", maxLossStatic: "Maks. strata (statyczna)", maxLossTrailing: "Maks. strata (ruchoma)",
+        maxDailyLoss: "Maks. strata dzienna", timeLimit: "Limit czasu", days30: "30 dni", unlimited: "Bez limitu",
+        qualifyingEntries: "Tikiety kwalifikujące", yourShare: "Twój udział", permissibleOdds: "Dopuszczalny zakres kursów",
+        pkgSuffix: "pakiet", simCapital: "symulowanego kapitału do dyspozycji",
+        f1: "2 fazy oceny", f2: "80% podziału zysku", f3: "Maks. wielkość wpisu", f4: "Nieograniczony czas w fazie partnerskiej", f5: "Dzienny limit straty −4% kapitału",
+        oneTime: "jednorazowo", buy: "Kup Challenge",
+        note: "Opłata jednorazowa · 30 dni na fazę · brak subskrypcji",
+      },
+      dashPreview: {
+        heading: "Twój panel, stworzony dla przejrzystości", sub: "Saldo w czasie rzeczywistym, aktywne tikiety i statystyki wyników — wszystko w jednym miejscu, bez arkuszy kalkulacyjnych.",
+        overview: "Przegląd", liveEntries: "Aktywne tikiety", performance: "Wyniki",
+      },
+      why: {
+        heading: "Dlaczego Fundly?", sub: "Do $100 000 symulowanego kapitału, uczciwe zasady i terminowe wypłaty dla kontrahentów.",
+        h1: "Każdy sport. Jedno konto.", p1: "Piłka nożna, hokej, tenis i esport. Kursy symulacyjne od 1.00 do 8.00 w dowolnym sporcie, na którym się znasz najlepiej.",
+        h2: "Uczciwe i jasne zasady", p2: "Cele, obsunięcie kapitału i limity znasz jeszcze przed opłatą. Jasny dzienny limit straty −4%, bez drobnego druku.",
+        h3: "Przegląd w czasie rzeczywistym", p3: "Śledź postęp swojego challenge'u, limity i nagrody w jednym miejscu, bez arkuszy i zgadywania.",
+        h4: "Szybkie wsparcie i wypłaty", p4: "Wsparcie odpowiada w ciągu kilku godzin, a zatwierdzone wynagrodzenia dla kontrahentów są wypłacane w ciągu 48 godzin.",
+        bigLbl: "symulowanego kapitału do — ty wnosisz ocenę, my platformę",
+        splitLbl: "podziału zysku, na stałe na zawsze", speedLbl: "zatwierdzenie wynagrodzenia",
+      },
+      comparison: {
+        heading: "Ucz się bez ryzyka", sub: "To symulacja — analizujesz prawdziwe dane sportowe, ale nigdy nie ryzykujesz własnego kapitału.",
+        tagA: "Ryzykowanie własnego kapitału", entityA: "Na własną rękę", subA: "Prawdziwe pieniądze · prawdziwe ryzyko",
+        tagB: "Sposób Fundly", entityB: "Fundly", subB: "Symulowany kapitał · bez potrzeby własnego bankrollu",
+        r1a: "Twoje własne pieniądze", r1pill: "Kapitał własny", r1b: "Do <b>$100 000</b> symulowanego kapitału",
+        r2a: "Nieograniczone ryzyko", r2pill: "Ryzyko", r2b: "<b>Opłata jednorazowa</b>, nic więcej",
+        r3a: "Ograniczony kapitał", r3pill: "Potencjał", r3b: "<b>80%</b> podziału zysku",
+        r4a: "Tilt i zgadywanie", r4pill: "Dyscyplina", r4b: "Jasne fazy i zasady",
+        r5a: "Sam", r5pill: "Wsparcie", r5b: "Społeczność i wsparcie",
+      },
+      faq: {
+        heading: "Najczęściej zadawane pytania",
+        q1: "Czy Fundly Games to bukmacher lub platforma hazardowa?",
+        a1: "Nie. Fundly Games to wyłącznie edukacyjna i analityczna platforma symulacyjna. Nie przyjmujemy zakładów, obstawiania ani wpłat na hazard. Wszystkie konta działają wyłącznie w 100% symulowanym środowisku, wykorzystując wirtualne kredyty bez realnej wartości.",
+        q2: "Jak działa Challenge?",
+        a2: "Challenge składa się z dwóch faz. W pierwszej musisz osiągnąć cel zysku w wysokości 10% kapitału, w drugiej 5%, obie w ciągu 30 dni, przy zachowaniu statycznego limitu maks. straty 10% kapitału i dziennego limitu straty 4% kapitału. W każdej fazie potrzebujesz też co najmniej 5 zwycięskich tikietów symulacyjnych z zyskiem netto co najmniej 0,5% kapitału. Po zaliczeniu obu faz przechodzisz do fazy 3 — konta Fundly Partner bez limitu czasowego i z ruchomym maks. limitem straty 10% od Twojego najwyższego salda.",
+        q3: "Jakie są zasady tikietów symulacyjnych?",
+        a3: "Możesz składać symulowane tikiety na wszystkie sporty w dopuszczalnym zakresie kursów od 1.00 do 8.00. Maksymalne symulowane ryzyko na tikiet to 1,5% kapitału konta, a w każdej fazie potrzebujesz co najmniej 5 zwycięskich tikietów z zyskiem netto co najmniej 0,5% kapitału, więc wynik nigdy nie zależy od jednego tikietu.",
+        q4: "Jak wypłacane są wynagrodzenia za wyniki?",
+        a4: "Analitycy, którzy odnieśli sukces w fazie 3, działają jako niezależni kontrahenci B2B. Na podstawie zweryfikowanych danych o wynikach i zasad challenge'u — bufor zysku +5% kapitału i 5 tikietów kwalifikujących, do $4000 na wniosek — kontrahenci przesyłają faktury do Grindit LLC, które są rozliczane przelewem bankowym, kryptoaktywami lub portfelami elektronicznymi w ciągu 48 godzin od zatwierdzenia.",
+        q5: "Co jeśli nie zaliczę Challenge?",
+        a5: "Tracisz tylko jednorazową opłatę za ocenę, nic więcej. Możesz kupić nowy Challenge w dowolnym momencie i spróbować ponownie — lub zrestartować taniej: opłata za reset to tylko 40% ceny pakietu.",
+      },
+      cta: {
+        heading: "Gotowy, by sprawdzić swoją analitykę?", sub: "Sprawdź swoje umiejętności analityczne. Bez potrzeby własnego bankrollu, liczy się tylko Twoja umiejętność.",
+        start: "Rozpocznij Challenge", from: "Od $26", oneTime: "Opłata jednorazowa", support: "Wsparcie 24/7",
+      },
+      contact: {
+        heading: "Skontaktuj się z nami", sub: "Pytania dotyczące pakietu, wypłaty lub konta? Napisz do nas.",
+        email: "E-mail", subject: "Temat", subjectPh: "Czego to dotyczy?", message: "Wiadomość", messagePh: "Jak możemy pomóc?", send: "Wyślij wiadomość",
+      },
+      footer: {
+        tagline: "Profesjonalna platforma oceny dla analityków sportowych. Do $100 000 symulowanego kapitału i 80% podziału zysku.",
+        packages: "Pakiety", information: "Informacje", support: "Wsparcie",
+        contactUs: "Skontaktuj się z nami", telegram: "Czat na Telegramie", status: "Status usługi",
+        legal: "Zastrzeżenie prawne: Fundly.games jest prowadzone przez Grindit LLC (Sharjah Media City, Sharjah, ZEA, Reg: 2541536). Fundly Games nie jest bukmacherem, operatorem hazardowym ani instytucją finansową. Wszystkie usługi, wyzwania oceniające i wskaźniki dostarczane na tej platformie służą wyłącznie celom edukacyjnym i symulacji analitycznej, wykorzystując wirtualne kredyty bez wartości pieniężnej. Opłaty za challenge pokrywają licencjonowanie oprogramowania, ocenę danych i dostęp do platformy analitycznej.",
+        rights: "© 2026 Fundly. Wszelkie prawa zastrzeżone.",
+        privacy: "Prywatność", terms: "Regulamin", rules: "Zasady", disclaimer: "Zastrzeżenie", refund: "Zwrot",
+      },
+      auth: {
+        login: "Zaloguj się", loginSub: "Zaloguj się do swojego konta", email: "E-mail", password: "Hasło",
+        forgot: "Zapomniałeś hasła?", noAccount: "Nie masz jeszcze konta?", signUp: "Zarejestruj się",
+      },
+    },
   };
 
-  const SUPPORTED = ["en", "cs", "es"];
+  const SUPPORTED = ["en", "cs", "es", "pl"];
   const STORAGE_KEY = "fundly:lang";
   const GEO_CACHE_KEY = "fundly:geoLang";
 
@@ -337,6 +428,7 @@ const FUNDLY_I18N = (() => {
   function countryToLang(cc) {
     if (!cc) return null;
     if (cc === "CZ" || cc === "SK") return "cs";
+    if (cc === "PL") return "pl";
     const ES_COUNTRIES = ["ES", "MX", "AR", "CO", "CL", "PE", "VE", "EC", "GT", "CU", "BO", "DO", "HN", "PY", "SV", "NI", "CR", "PA", "UY", "GQ"];
     if (ES_COUNTRIES.includes(cc)) return "es";
     return null;
