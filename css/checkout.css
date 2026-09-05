@@ -538,3 +538,20 @@ body::before {
 .co-modal-body h4 { font-size: .8125rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--accent); margin: 18px 0 6px; }
 .co-modal-body p, .co-modal-body li { font-size: .875rem; color: var(--text-secondary); line-height: 1.65; }
 .co-modal-body ul { margin: 6px 0; padding-left: 18px; }
+
+/* ---------- mobile sticky price/continue bar (step 1 only) ---------- */
+.co-mobile-bar { display: none; }
+@media (max-width: 1023.5px) {
+  .co-mobile-bar {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
+    background: rgba(10,10,15,.94); backdrop-filter: blur(12px); border-top: 1px solid var(--line);
+    padding: 12px 16px; padding-bottom: max(12px, env(safe-area-inset-bottom));
+    opacity: 0; transform: translateY(100%); transition: all .2s var(--ease);
+  }
+  .co-mobile-bar.show { opacity: 1; transform: translateY(0); }
+  .co-mobile-bar .info { display: flex; flex-direction: column; line-height: 1.2; }
+  .co-mobile-bar .info .sz { font-size: .75rem; color: var(--text-muted); }
+  .co-mobile-bar .info .pr { font-weight: 800; color: var(--accent); font-size: 1.0625rem; }
+  .co-mobile-bar .btn { flex-shrink: 0; }
+}

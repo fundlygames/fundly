@@ -172,6 +172,8 @@
         <span class="v">${usd(p.price)}</span>
         <span class="lbl">one-time fee</span>
       </div>`;
+    $("coMbPkg").textContent = p.name;
+    $("coMbPrice").textContent = usd(p.price);
   }
 
   // ---------- summary (right column) ----------
@@ -235,6 +237,9 @@
       li.querySelector(".dot").innerHTML = i < n ? checkDot : String(i);
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
+    // sticky mobile bar only makes sense on step 1 (browsing packages) — a
+    // "price + continue" bar during sign-up/payment would be confusing.
+    mobileBar.classList.toggle("show", n === 1 && window.scrollY > 260);
     if (n === 3) {
       if (typeof fbq === "function") {
         fbq("track", "AddPaymentInfo", {
@@ -450,6 +455,13 @@
       state.paymentRunning = false;
     }
   }
+
+  // ---------- mobile sticky bar (step 1 only) ----------
+  const mobileBar = $("coMobileBar");
+  $("coMbCta").addEventListener("click", () => $("btnToStep2").click());
+  window.addEventListener("scroll", () => {
+    mobileBar.classList.toggle("show", state.step === 1 && window.scrollY > 260);
+  });
 
   // ---------- init ----------
   renderPkgGrid();

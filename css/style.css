@@ -1150,4 +1150,8 @@ footer {
 @media (max-width: 1023.5px) {
   body:has(.dnav-mobile) .tg-float { bottom: 76px; }
 }
+/* checkout's mobile sticky price/continue bar covers the same corner once shown. */
+@media (max-width: 1023.5px) {
+  body:has(.co-mobile-bar.show) .tg-float { bottom: 88px; }
+}
 @media (prefers-reduced-motion: reduce) { .tg-float, .tg-float-label { transition: none; } }
