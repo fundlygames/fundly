@@ -285,9 +285,285 @@ const FUNDLY_I18N = (() => {
         forgot: "¿Olvidaste tu contraseña?", noAccount: "¿Aún no tienes cuenta?", signUp: "Regístrate",
       },
     },
+
+    pl: {
+      nav: {
+        howItWorks: "Jak to działa", packages: "Pakiety", whyFundly: "Dlaczego Fundly", faq: "FAQ", contact: "Kontakt",
+        login: "Zaloguj się", startChallenge: "Rozpocznij Challenge",
+      },
+      hero: {
+        titleDim: "Zdobądź symulowany kapitał", titleRest: "do swojej analityki sportowej.",
+        sub: "Przetestuj swoje umiejętności analityczne w symulowanym środowisku — bez ryzykowania własnego kapitału. Ukończ naszą dwuetapową ocenę, zostań partnerem B2B i otrzymaj do <strong>80%</strong> nagrody za swoje wyniki.",
+        start: "Rozpocznij Challenge", howItWorks: "Jak to działa",
+      },
+      stats: { phases: "Etapy oceny", maxCapital: "Maks. kapitał", daysPerPhase: "Dni na etap", split: "Podział zysku" },
+      how: {
+        fan1: "Challenge", fan2: "Weryfikacja", fan3: "Nagrody",
+        s1h: "Ocena (faza testowa)",
+        s1p: "Wykup dostęp do naszego oprogramowania symulacyjnego i wykaż swoją strategię zarządzania ryzykiem w oknie 30 dni, od $2 000 do $100 000 symulowanego kapitału.",
+        s2h: "Weryfikacja (kontrola ryzyka)",
+        s2p: "Potwierdź swoją konsekwencję i dyscyplinę przy niższym celu zysku w symulowanym środowisku. Zasady znasz z góry i nigdy się nie zmieniają.",
+        s3h: "Status partnera i nagrody za wyniki",
+        s3p: "Podpisz umowę niezależnego kontrahenta (B2B), dostarczaj swoje dane symulacyjne i otrzymuj do 80% nagrody za wyniki na podstawie ważnych faktur, tak długo, jak chcesz.",
+      },
+      packages: {
+        heading: "Wybierz swój kapitał", sub: "Od $2 000 do $100 000. Im większy symulowany kapitał, tym większy potencjał nagrody za wyniki.",
+        accountSize: "Wielkość konta",
+        phase1Tag: "Etap 1", phase1Name: "Fundly Challenge",
+        phase2Tag: "Etap 2", phase2Name: "Weryfikacja",
+        phase3Tag: "Konto partnera", phase3Name: "Fundly Partner",
+        profitTarget: "Cel zysku", maxLossStatic: "Maks. strata (statyczna)", maxLossTrailing: "Maks. strata (kroczącą)",
+        maxDailyLoss: "Maks. strata dzienna", timeLimit: "Limit czasu", days30: "30 dni", unlimited: "Bez limitu",
+        qualifyingEntries: "Kwalifikujące zlecenia", yourShare: "Twój udział", permissibleOdds: "Dozwolony zakres kursów",
+        pkgSuffix: "pakiet", simCapital: "symulowanego kapitału do Twojej dyspozycji",
+        f1: "2 etapy oceny", f2: "80% podziału zysku", f3: "Maks. wielkość wejścia", f4: "Nieograniczony czas w fazie partnera", f5: "Dzienny limit straty −4% kapitału",
+        oneTime: "jednorazowo", buy: "Kup Challenge",
+        note: "Opłata jednorazowa · 30 dni na etap · bez subskrypcji",
+      },
+      dashPreview: {
+        heading: "Twój panel, zbudowany dla przejrzystości", sub: "Saldo w czasie rzeczywistym, aktywne zlecenia i statystyki wyników — wszystko w jednym miejscu, bez arkuszy kalkulacyjnych.",
+        overview: "Przegląd", liveEntries: "Aktywne zlecenia", performance: "Wyniki",
+      },
+      why: {
+        heading: "Dlaczego Fundly?", sub: "Do $100 000 symulowanego kapitału, uczciwe zasady i terminowe wypłaty dla kontrahentów.",
+        h1: "Każdy sport. Jedno konto.", p1: "Piłka nożna, hokej, tenis i esport. Współczynniki symulacji od 1.00 do 8.00 w dowolnym sporcie, który znasz najlepiej.",
+        h2: "Uczciwe i jasne zasady", p2: "Znasz cele, drawdown i limity przed zapłatą. Jasny dzienny limit straty −4%, bez drobnego druku.",
+        h3: "Podgląd w czasie rzeczywistym", p3: "Śledź postępy w wyzwaniu, limity i nagrody w jednym miejscu, bez arkuszy kalkulacyjnych i zgadywania.",
+        h4: "Szybkie wsparcie i nagrody", p4: "Wsparcie odpowiada w ciągu godzin, a zatwierdzone nagrody dla kontrahentów są wypłacane w ciągu 48 godzin.",
+        bigLbl: "symulowanego kapitału do — Ty wnosisz osąd, my platformę",
+        splitLbl: "podziału zysku, ustalony na zawsze", speedLbl: "zatwierdzenia nagrody",
+      },
+      comparison: {
+        heading: "Ucz się bez ryzyka", sub: "To symulacja — analizujesz prawdziwe dane sportowe, ale nigdy nie ryzykujesz własnego kapitału.",
+        tagA: "Ryzykowanie własnego kapitału", entityA: "Na własną rękę", subA: "Prawdziwe pieniądze · prawdziwe ryzyko",
+        tagB: "Sposób Fundly", entityB: "Fundly", subB: "Symulowany kapitał · bez własnego kapitału",
+        r1a: "Twoje własne pieniądze", r1pill: "Kapitał osobisty", r1b: "Do <b>$100 000</b> symulowanego kapitału",
+        r2a: "Nieograniczone ryzyko", r2pill: "Ryzyko", r2b: "Tylko <b>opłata jednorazowa</b>, nic więcej",
+        r3a: "Ograniczony kapitał", r3pill: "Potencjał", r3b: "<b>80%</b> podziału zysku",
+        r4a: "Tilt i zgadywanie", r4pill: "Dyscyplina", r4b: "Jasne etapy i zasady",
+        r5a: "Sam", r5pill: "Wsparcie", r5b: "Społeczność i wsparcie",
+      },
+      faq: {
+        heading: "Najczęściej zadawane pytania",
+        q1: "Czy Fundly Games to bukmacher lub platforma hazardowa?",
+        a1: "Nie. Fundly Games to wyłącznie edukacyjna i analityczna platforma symulacyjna. Nie przyjmujemy zakładów ani wpłat na hazard. Wszystkie konta działają wyłącznie w w 100% symulowanym środowisku, wykorzystując wirtualne kredyty bez realnej wartości.",
+        q2: "Jak działa Challenge?",
+        a2: "Challenge ma dwa etapy. W pierwszym musisz osiągnąć cel zysku 10% kapitału, w drugim 5%, oba w ciągu 30 dni, przestrzegając statycznego limitu maks. straty 10% kapitału i dziennego limitu straty 4% kapitału. W każdym etapie potrzebujesz też co najmniej 5 zwycięskich zleceń symulacyjnych z zyskiem netto co najmniej 0,5% kapitału. Po zaliczeniu obu etapów przechodzisz do konta Fundly Partner (etap 3) bez limitu czasu i z kroczącym limitem maks. straty 10% od najwyższego salda.",
+        q3: "Jakie są zasady zleceń symulacyjnych?",
+        a3: "Możesz składać zlecenia symulacyjne na wszystkie sporty z dozwolonym zakresem kursów od 1.00 do 8.00. Maksymalne symulowane ryzyko na zlecenie to 1,5% kapitału konta, a w każdym etapie potrzebujesz co najmniej 5 zwycięskich zleceń z zyskiem netto co najmniej 0,5% kapitału, więc wynik nigdy nie zależy od jednego zlecenia.",
+        q4: "Jak wypłacane są nagrody za wyniki?",
+        a4: "Skuteczni analitycy w etapie 3 działają jako niezależni kontrahenci B2B. Na podstawie zweryfikowanych danych o wynikach i zasad wyzwania — bufor zysku +5% kapitału i 5 kwalifikujących zleceń, do $4 000 na wniosek — kontrahenci składają faktury do Grindit LLC, które są rozliczane przelewem bankowym, aktywami kryptograficznymi lub portfelami elektronicznymi w ciągu 48 godzin od zatwierdzenia.",
+        q5: "Co jeśli nie zaliczę Challenge?",
+        a5: "Tracisz tylko jednorazową opłatę za ocenę, nic więcej. Możesz kupić nowy Challenge w dowolnym momencie i spróbować ponownie — lub zacząć taniej: opłata za reset to tylko 40% ceny pakietu.",
+      },
+      cta: {
+        heading: "Gotowy, by przetestować swoją analitykę?", sub: "Przetestuj swoje umiejętności analityczne. Bez własnego kapitału, tylko Twoje umiejętności.",
+        start: "Rozpocznij Challenge", from: "Od $26", oneTime: "Opłata jednorazowa", support: "Wsparcie 24/7",
+      },
+      contact: {
+        heading: "Skontaktuj się", sub: "Pytania o pakiet, nagrodę lub Twoje konto? Napisz do nas.",
+        email: "E-mail", subject: "Temat", subjectPh: "Czego to dotyczy?", message: "Wiadomość", messagePh: "Jak możemy pomóc?", send: "Wyślij wiadomość",
+      },
+      footer: {
+        tagline: "Profesjonalna platforma oceny dla analityków sportowych. Do $100 000 symulowanego kapitału i 80% podziału zysku.",
+        packages: "Pakiety", information: "Informacje", support: "Wsparcie",
+        contactUs: "Skontaktuj się", telegram: "Czat na Telegramie", status: "Status usługi",
+        legal: "Zastrzeżenie prawne: Fundly.games jest prowadzone przez Grindit LLC (Sharjah Media City, Sharjah, ZEA, Reg: 2541536). Fundly Games nie jest bukmacherem, operatorem hazardowym ani instytucją finansową. Wszystkie usługi, wyzwania oceniające i metryki na tej platformie służą wyłącznie celom edukacyjnym i symulacji analitycznej, wykorzystując wirtualne kredyty bez wartości pieniężnej. Opłaty za Challenge pokrywają licencjonowanie oprogramowania, ocenę danych i dostęp do platformy analitycznej.",
+        rights: "© 2026 Fundly. Wszelkie prawa zastrzeżone.",
+        privacy: "Prywatność", terms: "Warunki", rules: "Zasady", disclaimer: "Zastrzeżenie", refund: "Zwrot",
+      },
+      auth: {
+        login: "Zaloguj się", loginSub: "Zaloguj się do swojego konta", email: "E-mail", password: "Hasło",
+        forgot: "Zapomniałeś hasła?", noAccount: "Nie masz jeszcze konta?", signUp: "Zarejestruj się",
+      },
+    },
+
+    sk: {
+      nav: {
+        howItWorks: "Ako to funguje", packages: "Balíčky", whyFundly: "Prečo Fundly", faq: "FAQ", contact: "Kontakt",
+        login: "Prihlásiť sa", startChallenge: "Spustiť Challenge",
+      },
+      hero: {
+        titleDim: "Získajte simulovaný kapitál", titleRest: "pre vašu športovú analytiku.",
+        sub: "Otestujte svoje analytické schopnosti v simulovanom prostredí — bez rizika vlastného kapitálu. Absolvujte naše dvojfázové hodnotenie, staňte sa B2B partnerom a získajte až <strong>80%</strong> odmenu za svoj výkon.",
+        start: "Spustiť Challenge", howItWorks: "Ako to funguje",
+      },
+      stats: { phases: "Hodnotiace fázy", maxCapital: "Max. kapitál", daysPerPhase: "Dní na fázu", split: "Podiel na zisku" },
+      how: {
+        fan1: "Challenge", fan2: "Verifikácia", fan3: "Odmeny",
+        s1h: "Hodnotenie (testovacia fáza)",
+        s1p: "Zakúpte si prístup k našej analytickej simulačnej platforme a preukážte svoju stratégiu riadenia rizika v 30-dňovom okne, od $2 000 do $100 000 simulovaného kapitálu.",
+        s2h: "Verifikácia (kontrola rizika)",
+        s2p: "Potvrďte svoju konzistenciu a disciplínu pri nižšom cieľovom zisku v simulovanom prostredí. Pravidlá poznáte vopred a nikdy sa nemenia.",
+        s3h: "Status partnera a výkonnostné odmeny",
+        s3p: "Podpíšte zmluvu nezávislého dodávateľa (B2B), poskytujte svoje simulačné dáta a získavajte až 80% výkonnostné odmeny na základe platných faktúr, ako dlho budete chcieť.",
+      },
+      packages: {
+        heading: "Vyberte si kapitál", sub: "Od $2 000 do $100 000. Čím väčší simulovaný kapitál, tým vyšší potenciál výkonnostnej odmeny.",
+        accountSize: "Veľkosť účtu",
+        phase1Tag: "Fáza 1", phase1Name: "Fundly Challenge",
+        phase2Tag: "Fáza 2", phase2Name: "Verifikácia",
+        phase3Tag: "Partnerský účet", phase3Name: "Fundly Partner",
+        profitTarget: "Cieľový zisk", maxLossStatic: "Max. strata (statická)", maxLossTrailing: "Max. strata (klesajúca)",
+        maxDailyLoss: "Max. denná strata", timeLimit: "Časový limit", days30: "30 dní", unlimited: "Bez limitu",
+        qualifyingEntries: "Kvalifikačné tikety", yourShare: "Váš podiel", permissibleOdds: "Povolený kurzový rozsah",
+        pkgSuffix: "balíček", simCapital: "simulovaného kapitálu k dispozícii",
+        f1: "2 hodnotiace fázy", f2: "80% podiel na zisku", f3: "Max. veľkosť tiketu", f4: "Neobmedzený čas vo fáze partnera", f5: "Denný limit straty −4% kapitálu",
+        oneTime: "jednorazovo", buy: "Kúpiť Challenge",
+        note: "Jednorazový poplatok · 30 dní na fázu · žiadne predplatné",
+      },
+      dashPreview: {
+        heading: "Váš dashboard, postavený pre prehľadnosť", sub: "Zostatok v reálnom čase, živé tikety a výkonnostné štatistiky — všetko na jednom mieste, žiadne tabuľky.",
+        overview: "Prehľad", liveEntries: "Živé tikety", performance: "Výkon",
+      },
+      why: {
+        heading: "Prečo Fundly?", sub: "Až $100 000 simulovaného kapitálu, fair pravidlá a včasné odmeny pre dodávateľov.",
+        h1: "Každý šport. Jeden účet.", p1: "Futbal, hokej, tenis aj esporty. Simulačné kurzy od 1.00 do 8.00 na akomkoľvek športe, ktorému rozumiete najlepšie.",
+        h2: "Fair a jasné pravidlá", p2: "Ciele, drawdown aj limity poznáte ešte pred zaplatením. Jasný −4% denný limit straty, žiadne drobné písmo.",
+        h3: "Prehľad v reálnom čase", p3: "Sledujte postup vo výzve, limity aj odmeny na jednom mieste, bez tabuliek a odhadovania.",
+        h4: "Rýchla podpora a odmeny", p4: "Podpora odpovedá do hodín a schválené odmeny pre dodávateľov sú vyplatené do 48 hodín.",
+        bigLbl: "simulovaného kapitálu až — vy prinášate úsudok, my platformu",
+        splitLbl: "podiel na zisku, napevno navždy", speedLbl: "schválenie odmeny",
+      },
+      comparison: {
+        heading: "Učte sa bez rizika", sub: "Je to simulácia — analyzujete reálne športové dáta, ale nikdy neriskujete vlastný kapitál.",
+        tagA: "Riskujete vlastný kapitál", entityA: "Na vlastnú päsť", subA: "Skutočné peniaze · skutočné riziko",
+        tagB: "Cesta Fundly", entityB: "Fundly", subB: "Simulovaný kapitál · bez rizika vlastného bankrollu",
+        r1a: "Vaše vlastné peniaze", r1pill: "Vlastný kapitál", r1b: "Až <b>$100 000</b> simulovaného kapitálu",
+        r2a: "Neobmedzené riziko", r2pill: "Riziko", r2b: "Len <b>jednorazový poplatok</b>, nič viac",
+        r3a: "Obmedzený kapitál", r3pill: "Potenciál", r3b: "<b>80%</b> podiel na zisku",
+        r4a: "Tilt a odhady", r4pill: "Disciplína", r4b: "Jasné fázy a pravidlá",
+        r5a: "Sami", r5pill: "Podpora", r5b: "Komunita a podpora",
+      },
+      faq: {
+        heading: "Často kladené otázky",
+        q1: "Je Fundly Games stávková kancelária alebo hazardná platforma?",
+        a1: "Nie. Fundly Games je výhradne vzdelávacia a analytická simulačná platforma. Neprijímame stávky, vklady ani platby za hazardné hry. Všetky účty fungujú výhradne v 100% simulovanom prostredí s virtuálnymi kreditmi s nulovou reálnou hodnotou.",
+        q2: "Ako funguje Challenge?",
+        a2: "Challenge má dve fázy. V prvej musíte dosiahnuť cieľový zisk 10 % kapitálu, v druhej 5 %, obe do 30 dní pri dodržaní statického limitu max. straty 10 % kapitálu a denného limitu straty 4 % kapitálu. V každej fáze tiež potrebujete aspoň 5 víťazných simulačných tiketov s čistým ziskom aspoň 0,5 % kapitálu. Po úspešnom zvládnutí oboch fáz prechádzate do fázy 3 — účtu Fundly Partner bez časového obmedzenia a s klesajúcim max. stratou 10 % z vášho najvyššieho zostatku.",
+        q3: "Aké sú pravidlá pre simulačné tikety?",
+        a3: "Simulačné tikety môžete zadávať na všetky športy s povoleným rozsahom kurzov 1.00 až 8.00. Maximálne simulované riziko na tiket je 1,5 % kapitálu účtu a v každej fáze potrebujete aspoň 5 víťazných tiketov s čistým ziskom aspoň 0,5 % kapitálu, takže výsledok nikdy nezávisí od jediného tiketu.",
+        q4: "Ako sa vyplácajú výkonnostné odmeny?",
+        a4: "Úspešní analytici vo fáze 3 fungujú ako nezávislí B2B dodávatelia. Na základe overených výkonnostných dát a pravidiel výzvy — ziskový vankúš +5 % kapitálu a 5 kvalifikačných tiketov, až $4 000 na žiadosť — dodávatelia podávajú faktúry spoločnosti Grindit LLC, ktoré sú vyrovnané bankovým prevodom, kryptoaktívami alebo elektronickými peňaženkami do 48 hodín od schválenia.",
+        q5: "Čo ak Challenge nesplním?",
+        a5: "Prídete iba o jednorazový poplatok za hodnotenie, nič viac. Novú Challenge si môžete kúpiť kedykoľvek a skúsiť to znova — alebo reštartovať lacnejšie: poplatok za reset je len 40 % ceny balíčka.",
+      },
+      cta: {
+        heading: "Pripravení otestovať svoju analytiku?", sub: "Otestujte svoje analytické schopnosti. Bez rizika vlastného bankrollu, len vaše zručnosti.",
+        start: "Spustiť Challenge", from: "Od $26", oneTime: "Jednorazový poplatok", support: "Podpora 24/7",
+      },
+      contact: {
+        heading: "Ozvite sa nám", sub: "Otázka na balíček, odmenu alebo váš účet? Napíšte nám.",
+        email: "E-mail", subject: "Predmet", subjectPh: "Čoho sa to týka?", message: "Správa", messagePh: "Ako vám môžeme pomôcť?", send: "Odoslať správu",
+      },
+      footer: {
+        tagline: "Profesionálna hodnotiaca platforma pre športových analytikov. Až $100 000 simulovaného kapitálu a 80% podiel na zisku.",
+        packages: "Balíčky", information: "Informácie", support: "Podpora",
+        contactUs: "Kontaktujte nás", telegram: "Chat na Telegrame", status: "Stav služby",
+        legal: "Právne upozornenie: Fundly.games prevádzkuje spoločnosť Grindit LLC (Sharjah Media City, Sharjah, SAE, Reg: 2541536). Fundly Games nie je stávková kancelária, hazardný prevádzkovateľ ani finančná inštitúcia. Všetky služby, hodnotiace výzvy a metriky na tejto platforme slúžia výhradne na vzdelávacie a analytické simulačné účely s využitím virtuálnych kreditov s nulovou peňažnou hodnotou. Poplatky za výzvu pokrývajú licencovanie softvéru, vyhodnotenie dát a prístup k analytickej platforme.",
+        rights: "© 2026 Fundly. Všetky práva vyhradené.",
+        privacy: "Súkromie", terms: "Podmienky", rules: "Pravidlá", disclaimer: "Upozornenie", refund: "Vrátenie peňazí",
+      },
+      auth: {
+        login: "Prihlásiť sa", loginSub: "Prihláste sa do svojho účtu", email: "E-mail", password: "Heslo",
+        forgot: "Zabudnuté heslo?", noAccount: "Ešte nemáte účet?", signUp: "Zaregistrovať sa",
+      },
+    },
+
+    hu: {
+      nav: {
+        howItWorks: "Hogyan működik", packages: "Csomagok", whyFundly: "Miért a Fundly", faq: "GYIK", contact: "Kapcsolat",
+        login: "Bejelentkezés", startChallenge: "Challenge indítása",
+      },
+      hero: {
+        titleDim: "Szerezz szimulált tőkét", titleRest: "a sportelemzéseidhez.",
+        sub: "Teszteld elemzői képességeidet szimulált környezetben — saját tőke kockáztatása nélkül. Teljesítsd kétfázisú értékelésünket, válj B2B partnerré, és kapj akár <strong>80%</strong> jutalmat a teljesítményedért.",
+        start: "Challenge indítása", howItWorks: "Hogyan működik",
+      },
+      stats: { phases: "Értékelési fázisok", maxCapital: "Max. tőke", daysPerPhase: "Nap fázisonként", split: "Teljesítmény-megosztás" },
+      how: {
+        fan1: "Challenge", fan2: "Verifikáció", fan3: "Jutalmak",
+        s1h: "Értékelés (teszt fázis)",
+        s1p: "Vásárolj hozzáférést analitikai szimulációs szoftverünkhöz, és mutasd meg kockázatkezelési stratégiádat egy 30 napos ablakban, $2 000-tól $100 000-ig terjedő szimulált tőkével.",
+        s2h: "Verifikáció (kockázatkezelés)",
+        s2p: "Igazold következetességedet és fegyelmedet egy alacsonyabb profitcél mellett, szimulált környezetben. A szabályokat előre ismered, és sosem változnak.",
+        s3h: "Partner státusz és teljesítményjutalmak",
+        s3p: "Írj alá egy független vállalkozói szerződést (B2B), szolgáltasd a szimulációs adataidat, és kapj akár 80% teljesítményjutalmat érvényes számlák ellenében, ameddig csak szeretnéd.",
+      },
+      packages: {
+        heading: "Válaszd ki a tőkédet", sub: "$2 000-tól $100 000-ig. Minél nagyobb a szimulált tőke, annál nagyobb a teljesítményjutalom potenciálja.",
+        accountSize: "Számla mérete",
+        phase1Tag: "1. fázis", phase1Name: "Fundly Challenge",
+        phase2Tag: "2. fázis", phase2Name: "Verifikáció",
+        phase3Tag: "Partner számla", phase3Name: "Fundly Partner",
+        profitTarget: "Profitcél", maxLossStatic: "Max. veszteség (statikus)", maxLossTrailing: "Max. veszteség (követő)",
+        maxDailyLoss: "Max. napi veszteség", timeLimit: "Időkorlát", days30: "30 nap", unlimited: "Korlátlan",
+        qualifyingEntries: "Minősítő tételek", yourShare: "A te részesedésed", permissibleOdds: "Megengedett odds-tartomány",
+        pkgSuffix: "csomag", simCapital: "szimulált tőke áll rendelkezésedre",
+        f1: "2 értékelési fázis", f2: "80% teljesítmény-megosztás", f3: "Max. tételméret", f4: "Korlátlan idő a partner fázisban", f5: "Napi veszteséglimit −4% a tőkéből",
+        oneTime: "egyszeri", buy: "Challenge megvásárlása",
+        note: "Egyszeri díj · 30 nap fázisonként · nincs előfizetés",
+      },
+      dashPreview: {
+        heading: "A műszerfalad, az áttekinthetőségért", sub: "Valós idejű egyenleg, élő tételek és teljesítménystatisztikák — minden egy helyen, táblázatok nélkül.",
+        overview: "Áttekintés", liveEntries: "Élő tételek", performance: "Teljesítmény",
+      },
+      why: {
+        heading: "Miért a Fundly?", sub: "Akár $100 000 szimulált tőke, korrekt szabályok és időben teljesített kifizetések a vállalkozóknak.",
+        h1: "Minden sportág. Egy fiók.", p1: "Foci, jégkorong, tenisz és esport. 1.00-tól 8.00-ig terjedő szimulációs szorzók bármely sportágban, amit a legjobban ismersz.",
+        h2: "Korrekt és világos szabályok", p2: "A célokat, a drawdownt és a limiteket már fizetés előtt ismered. Egyértelmű −4%-os napi veszteséglimit, apró betűs rész nélkül.",
+        h3: "Valós idejű áttekintés", p3: "Kövesd nyomon a challenge előrehaladását, a limiteket és a jutalmakat egy helyen, táblázatok és találgatás nélkül.",
+        h4: "Gyors támogatás és jutalmak", p4: "A támogatás órákon belül válaszol, a jóváhagyott vállalkozói jutalmakat pedig 48 órán belül kifizetjük.",
+        bigLbl: "szimulált tőke akár — te hozod a szakértelmet, mi a platformot",
+        splitLbl: "teljesítmény-megosztás, örökre rögzítve", speedLbl: "jutalom jóváhagyása",
+      },
+      comparison: {
+        heading: "Tanulj kockázat nélkül", sub: "Ez egy szimuláció — valódi sportadatokat elemzel, de sosem kockáztatod a saját tőkédet.",
+        tagA: "Saját tőke kockáztatása", entityA: "Egyedül", subA: "Valódi pénz · valódi kockázat",
+        tagB: "A Fundly-módszer", entityB: "Fundly", subB: "Szimulált tőke · saját bankroll nélkül",
+        r1a: "A saját pénzed", r1pill: "Személyes tőke", r1b: "Akár <b>$100 000</b> szimulált tőke",
+        r2a: "Korlátlan kockázat", r2pill: "Kockázat", r2b: "Csak <b>egyszeri díj</b>, semmi más",
+        r3a: "Korlátozott tőke", r3pill: "Potenciál", r3b: "<b>80%</b> teljesítmény-megosztás",
+        r4a: "Tilt és találgatás", r4pill: "Fegyelem", r4b: "Világos fázisok és szabályok",
+        r5a: "Egyedül", r5pill: "Támogatás", r5b: "Közösség és támogatás",
+      },
+      faq: {
+        heading: "Gyakran ismételt kérdések",
+        q1: "A Fundly Games egy fogadóiroda vagy szerencsejáték-platform?",
+        a1: "Nem. A Fundly Games kizárólag oktatási és elemzési célú szimulációs platform. Nem fogadunk el téteket, fogadásokat vagy szerencsejáték célú befizetéseket. Minden fiók kizárólag 100%-ban szimulált környezetben működik, nulla valós értékű virtuális kreditek felhasználásával.",
+        q2: "Hogyan működik a Challenge?",
+        a2: "A Challenge két fázisból áll. Az elsőben a tőke 10%-ának megfelelő profitcélt kell elérned, a másodikban 5%-ot, mindkettőt 30 napon belül, betartva a tőke 10%-ának megfelelő statikus max. veszteséglimitet és a tőke 4%-ának megfelelő napi veszteséglimitet. Minden fázisban legalább 5 nyertes szimulációs tételre is szükséged van, legalább 0,5%-os nettó profittal. Mindkét fázis teljesítése után átkerülsz a 3. fázisba, a Fundly Partner számlára, időkorlát nélkül, és a legmagasabb egyenlegedhez képest követő 10%-os max. veszteséglimittel.",
+        q3: "Mik a szimulációs tételek szabályai?",
+        a3: "Szimulációs tételeket minden sportágban benyújthatsz, 1.00 és 8.00 közötti megengedett szorzótartománnyal. A maximális szimulált kockázat tételenként a számlatőke 1,5%-a, és minden fázisban legalább 5 nyertes tételre van szükséged legalább 0,5%-os nettó profittal, így az eredmény sosem múlik egyetlen tételen.",
+        q4: "Hogyan fizetik ki a teljesítményjutalmakat?",
+        a4: "A 3. fázisban sikeres elemzők független B2B vállalkozóként működnek. Az ellenőrzött teljesítményadatok és a challenge szabályai alapján — +5%-os profitpuffer a tőkéből és 5 minősítő tétel, kérésenként akár $4 000 — a vállalkozók számlát nyújtanak be a Grindit LLC-nek, amelyeket banki átutalással, kriptoeszközökkel vagy elektronikus pénztárcával rendeznek a jóváhagyástól számított 48 órán belül.",
+        q5: "Mi történik, ha nem teljesítem a Challenge-et?",
+        a5: "Csak az egyszeri értékelési díjat veszíted el, semmi mást. Bármikor vásárolhatsz új Challenge-et, és újra próbálkozhatsz — vagy indíts olcsóbban: a reset díja a csomagár mindössze 40%-a.",
+      },
+      cta: {
+        heading: "Készen állsz próbára tenni az elemzéseidet?", sub: "Tedd próbára elemzői képességeidet. Saját bankroll nélkül, csak a tudásoddal.",
+        start: "Challenge indítása", from: "$26-tól", oneTime: "Egyszeri díj", support: "0–24 támogatás",
+      },
+      contact: {
+        heading: "Vedd fel velünk a kapcsolatot", sub: "Kérdésed van egy csomagról, egy jutalomról vagy a fiókodról? Írj nekünk.",
+        email: "E-mail", subject: "Tárgy", subjectPh: "Miről van szó?", message: "Üzenet", messagePh: "Miben segíthetünk?", send: "Üzenet küldése",
+      },
+      footer: {
+        tagline: "Professzionális értékelési platform sportelemzők számára. Akár $100 000 szimulált tőke és 80% teljesítmény-megosztás.",
+        packages: "Csomagok", information: "Információk", support: "Támogatás",
+        contactUs: "Lépj kapcsolatba velünk", telegram: "Csevegés a Telegramon", status: "Szolgáltatás állapota",
+        legal: "Jogi nyilatkozat: A Fundly.games-t a Grindit LLC üzemelteti (Sharjah Media City, Sharjah, EAE, Reg: 2541536). A Fundly Games nem fogadóiroda, szerencsejáték-üzemeltető vagy pénzintézet. A platformon nyújtott összes szolgáltatás, értékelő challenge és mutató kizárólag oktatási és elemzési szimulációs célokat szolgál, nulla pénzértékű virtuális kreditek felhasználásával. A challenge díjai a szoftverlicencet, az adatértékelést és az elemzési platformhoz való hozzáférést fedezik.",
+        rights: "© 2026 Fundly. Minden jog fenntartva.",
+        privacy: "Adatvédelem", terms: "Felhasználási feltételek", rules: "Szabályok", disclaimer: "Jogi nyilatkozat", refund: "Visszatérítés",
+      },
+      auth: {
+        login: "Bejelentkezés", loginSub: "Jelentkezz be a fiókodba", email: "E-mail", password: "Jelszó",
+        forgot: "Elfelejtetted a jelszavad?", noAccount: "Még nincs fiókod?", signUp: "Regisztráció",
+      },
+    },
   };
 
-  const SUPPORTED = ["en", "cs", "es"];
+  const SUPPORTED = ["en", "cs", "es", "pl", "sk", "hu"];
   const STORAGE_KEY = "fundly:lang";
   const GEO_CACHE_KEY = "fundly:geoLang";
 
@@ -319,8 +595,8 @@ const FUNDLY_I18N = (() => {
     document.querySelectorAll("[data-i18n-aria-label]").forEach((el) => {
       el.setAttribute("aria-label", t(el.getAttribute("data-i18n-aria-label")));
     });
-    document.querySelectorAll(".lang-switch [data-lang]").forEach((btn) => {
-      btn.classList.toggle("active", btn.dataset.lang === lang);
+    document.querySelectorAll("select.lang-switch").forEach((sel) => {
+      sel.value = lang;
     });
     document.dispatchEvent(new CustomEvent("fundly:lang-changed", { detail: { lang } }));
   }
@@ -336,7 +612,10 @@ const FUNDLY_I18N = (() => {
   // ad-blocker, privacy extension) just leaves the page in English.
   function countryToLang(cc) {
     if (!cc) return null;
-    if (cc === "CZ" || cc === "SK") return "cs";
+    if (cc === "CZ") return "cs";
+    if (cc === "SK") return "sk";
+    if (cc === "PL") return "pl";
+    if (cc === "HU") return "hu";
     const ES_COUNTRIES = ["ES", "MX", "AR", "CO", "CL", "PE", "VE", "EC", "GT", "CU", "BO", "DO", "HN", "PY", "SV", "NI", "CR", "PA", "UY", "GQ"];
     if (ES_COUNTRIES.includes(cc)) return "es";
     return null;
@@ -367,11 +646,10 @@ const FUNDLY_I18N = (() => {
 
   detectAndApply();
 
-  // Switcher: works for any [data-lang] button inside .lang-switch, delegated
-  // so it keeps working even though applyTranslations() re-renders content.
-  document.addEventListener("click", (e) => {
-    const btn = e.target.closest(".lang-switch [data-lang]");
-    if (btn) setLang(btn.dataset.lang);
+  // Switcher: delegated change listener, works for any select.lang-switch
+  // even ones that don't exist yet at load time.
+  document.addEventListener("change", (e) => {
+    if (e.target.matches("select.lang-switch")) setLang(e.target.value);
   });
 
   return { t, setLang, getLang, SUPPORTED };

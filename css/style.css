@@ -196,15 +196,19 @@ button { font-family: inherit; cursor: pointer; }
 @media (min-width: 1024px) { .nav-cta { display: flex; } }
 .nav .btn { height: 40px; padding: 0 20px; }
 
-/* ---------- language switcher ---------- */
-.lang-switch { display: flex; gap: 2px; padding: 2px; border-radius: 9999px; background: #ffffff0a; margin-right: 4px; }
-.lang-switch button {
-  border: none; background: none; color: var(--text-muted); font-size: .75rem; font-weight: 700;
-  padding: 6px 10px; border-radius: 9999px; cursor: pointer; transition: color .15s var(--ease), background-color .15s var(--ease);
+/* ---------- language switcher (native <select>, scales to any number of languages) ---------- */
+select.lang-switch {
+  appearance: none; -webkit-appearance: none;
+  border: none; border-radius: 9999px;
+  background: #ffffff0a url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none'%3E%3Cpath d='M2 3.5L5 6.5L8 3.5' stroke='%237a7a86' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 10px center;
+  color: var(--text-secondary); font-size: .75rem; font-weight: 700;
+  padding: 8px 26px 8px 14px; margin-right: 4px; cursor: pointer;
+  transition: color .15s var(--ease), background-color .15s var(--ease);
 }
-.lang-switch button:hover { color: var(--text-primary); }
-.lang-switch button.active { background: var(--accent-tint); color: var(--accent); }
-.lang-switch-mobile { display: flex; justify-content: center; margin: 4px 0 14px; }
+select.lang-switch:hover { color: var(--text-primary); background-color: #ffffff14; }
+select.lang-switch:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+select.lang-switch option { background: var(--surface-1, #0d0d12); color: var(--text-primary); }
+.lang-switch-mobile { display: block; margin: 4px auto 14px; }
 
 /* ---------- mobile menu (nav links + login + CTA below 1024px) ---------- */
 .nav-burger {
