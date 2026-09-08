@@ -76,9 +76,9 @@
 
   <div class="gs-trust-strip">
     <div class="container gs-trust-inner">
-      <div class="gs-trust-item"><span class="n">$100,000</span><span class="l" data-i18n="stats.maxCapital">Max. capital</span></div>
-      <div class="gs-trust-item"><span class="n">80%</span><span class="l" data-i18n="stats.split">Performance split</span></div>
-      <div class="gs-trust-item"><span class="n">2</span><span class="l" data-i18n="stats.phases">Evaluation phases</span></div>
+      <div class="gs-trust-item"><span class="n" data-count="100000" data-count-prefix="$">$0</span><span class="l" data-i18n="stats.maxCapital">Max. capital</span></div>
+      <div class="gs-trust-item"><span class="n" data-count="80" data-count-suffix="%">0%</span><span class="l" data-i18n="stats.split">Performance split</span></div>
+      <div class="gs-trust-item"><span class="n" data-count="2">0</span><span class="l" data-i18n="stats.phases">Evaluation phases</span></div>
     </div>
   </div>
 
@@ -96,15 +96,15 @@
       <div>
         <p class="gs-picker-label" data-i18n="gs.accountSize">Account size</p>
 
-        <h1 class="gs-hero-h" data-i18n="gs.heroH">Simulated capital for your sports analytics.</h1>
-        <p class="gs-hero-sub" data-i18n="gs.heroSub">Pass a two-phase evaluation, keep 80% of your performance reward, no personal bankroll required. Pick your capital below and see exactly what changes at each tier.</p>
+        <h1 class="gs-hero-h reveal" data-i18n="gs.heroH">Simulated capital for your sports analytics.</h1>
+        <p class="gs-hero-sub reveal" style="--reveal-delay:.05s" data-i18n="gs.heroSub">Pass a two-phase evaluation, keep 80% of your performance reward, no personal bankroll required. Pick your capital below and see exactly what changes at each tier.</p>
 
-        <div class="gs-pkg-grid" id="gsPkgGrid"><!-- JS: compact — name/capital/price only --></div>
+        <div class="gs-pkg-grid reveal" style="--reveal-delay:.1s" id="gsPkgGrid"><!-- JS: compact — name/capital/price only --></div>
 
         <div class="gs-details" id="gsDetails"><!-- JS: targets, limits, odds/days/split for the selected package --></div>
       </div>
 
-      <aside class="gs-sidebar">
+      <aside class="gs-sidebar reveal" style="--reveal-delay:.15s">
         <div class="gs-offer-tag"><span class="lbl" data-i18n="gs.offerTag">Limited launch offer</span><span class="sz" id="gsSbSize">–</span></div>
         <div class="gs-price-row"><span class="now" id="gsSbPrice">–</span></div>
         <div class="gs-save-line" data-i18n="gs.saveLine">One-time fee · no subscription</div>
@@ -135,17 +135,17 @@
 
   <!-- ============ THE MATH ============ -->
   <section class="gs-math">
-    <div class="container gs-math-inner">
+    <div class="container gs-math-inner reveal">
       <h2 data-i18n="gs.mathHeading">The math is short.</h2>
       <p class="gs-math-label" data-i18n="gs.mathLabel">On a $10,000 simulated profit</p>
       <div class="gs-math-row">
         <div class="gs-math-cell">
           <span class="k" data-i18n="gs.youKeep">You keep</span>
-          <span class="v green">$8,000</span>
+          <span class="v green" data-count="8000" data-count-prefix="$">$0</span>
         </div>
         <div class="gs-math-cell">
           <span class="k" data-i18n="gs.weKeep">We keep</span>
-          <span class="v">$2,000</span>
+          <span class="v" data-count="2000" data-count-prefix="$">$0</span>
         </div>
       </div>
       <p class="gs-math-note" data-i18n="gs.mathNote">On a $10,000 profit, you keep $8,000. We keep $2,000. That fixed 80/20 split plus the one-time evaluation fee is the whole business — it's the same split from your first dollar to your ten-thousandth.</p>
@@ -155,21 +155,23 @@
   <!-- ============ START IN MINUTES ============ -->
   <section class="gs-steps">
     <div class="container">
-      <h2 data-i18n="gs.stepsHeading">Buy it now. Start in minutes.</h2>
+      <h2 class="reveal" data-i18n="gs.stepsHeading">Buy it now. Start in minutes.</h2>
       <div class="gs-steps-grid">
-        <div class="gs-step">
+        <div class="gs-step reveal">
           <span class="gs-step-n">01</span>
           <h3 data-i18n="gs.step1Name">Pay</h3>
           <p data-i18n="gs.step1Desc">One-time fee. No subscription, no monthly charge.</p>
         </div>
-        <div class="gs-step">
+        <span class="gs-step-arrow" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 10h13M11 5l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div class="gs-step reveal" style="--reveal-delay:.06s">
           <span class="gs-step-n">02</span>
           <h3 data-i18n="gs.step2Name">Get your login</h3>
           <p data-i18n="gs.step2Desc">Your account is set up and your simulation login details are sent to you.</p>
         </div>
-        <div class="gs-step">
+        <span class="gs-step-arrow" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 10h13M11 5l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div class="gs-step reveal" style="--reveal-delay:.12s">
           <span class="gs-step-n">03</span>
-          <h3 data-i18n="gs.step3Name">Analyze</h3>
+          <h3 data-i18n="gs.step3Name">Play</h3>
           <p data-i18n="gs.step3Desc">Log in and submit your first simulated entry within minutes.</p>
         </div>
       </div>
@@ -179,21 +181,47 @@
   <!-- ============ DASHBOARD PREVIEW ============ -->
   <section class="gs-preview">
     <div class="container">
-      <h2 data-i18n="gs.previewHeading">Your dashboard, built for clarity.</h2>
-      <p class="gs-preview-sub" data-i18n="gs.previewSub">Real-time balance, live entries and performance stats — this is what you're actually getting.</p>
+      <h2 class="reveal" data-i18n="gs.previewHeading">Your dashboard, built for clarity.</h2>
+      <p class="gs-preview-sub reveal" data-i18n="gs.previewSub">Real-time balance, live entries and performance stats — this is what you're actually getting.</p>
+      <p class="gs-preview-explain reveal" data-i18n="gs.previewExplain">Every sport, one account — football, hockey, tennis, esports and more, with simulation coefficients from 1.00 to 8.00. Pick a match, submit a simulated entry within your risk limit, and watch it settle live in the dashboard below.</p>
       <div class="preview-grid">
-        <figure class="preview-card">
+        <figure class="preview-card reveal">
           <img src="assets/showcase-overview.jpg" alt="Fundly dashboard overview showing account balance, equity chart and phase progress" loading="lazy" width="1600" height="1111" />
           <figcaption data-i18n="dashPreview.overview">Overview</figcaption>
         </figure>
-        <figure class="preview-card">
+        <figure class="preview-card reveal" style="--reveal-delay:.08s">
           <img src="assets/showcase-entries.jpg" alt="Fundly entries screen showing live sports matches and odds" loading="lazy" width="1600" height="1111" />
           <figcaption data-i18n="dashPreview.liveEntries">Live entries</figcaption>
         </figure>
-        <figure class="preview-card">
+        <figure class="preview-card reveal" style="--reveal-delay:.16s">
           <img src="assets/showcase-performance.jpg" alt="Fundly performance screen showing win rate, profit and ticket history" loading="lazy" width="1600" height="1111" />
           <figcaption data-i18n="dashPreview.performance">Performance</figcaption>
         </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FAQ ============ -->
+  <section class="gs-faq2">
+    <div class="container">
+      <h2 class="reveal" data-i18n="faq.heading">Frequently asked questions</h2>
+      <div class="gs-faq2-list">
+        <div class="gs-faq2-item reveal">
+          <h3 data-i18n="faq.q1">Is Fundly Games a bookmaker or gambling platform?</h3>
+          <p data-i18n="faq.a1">No. Fundly Games is strictly an educational and analytical simulation platform. We do not accept wagers, bets, or deposits for gambling. All accounts operate exclusively within a 100% simulated environment using virtual credits with zero real-world value.</p>
+        </div>
+        <div class="gs-faq2-item reveal" style="--reveal-delay:.06s">
+          <h3 data-i18n="faq.q4">How are performance rewards disbursed?</h3>
+          <p data-i18n="faq.a4">Successful analysts in Phase 3 operate as independent B2B contractors. Based on verified performance data and challenge rules — a profit buffer of +5 % of capital and 5 qualifying entries, up to $4,000 per request — contractors submit invoices to Grindit LLC, which are settled via bank transfer, crypto assets, or electronic wallets within 48 hours of approval.</p>
+        </div>
+        <div class="gs-faq2-item reveal" style="--reveal-delay:.12s">
+          <h3 data-i18n="faq.q3">What are the simulation entry rules?</h3>
+          <p data-i18n="faq.a3">You can submit simulated entries on all sports with a permissible coefficient range of 1.00 to 8.00. The maximum simulated risk per entry is 1.5 % of account capital and in each phase you must have at least 5 winning entries with a net profit of at least 0.5 % of capital, so the result never comes down to a single entry.</p>
+        </div>
+        <div class="gs-faq2-item reveal" style="--reveal-delay:.18s">
+          <h3 data-i18n="faq.q5">What if I fail the Challenge?</h3>
+          <p data-i18n="faq.a5">You only lose the one-time evaluation fee, nothing more. You can buy a new Challenge anytime and try again — or restart cheaper: the reset fee is just 40 % of the package price.</p>
+        </div>
       </div>
     </div>
   </section>

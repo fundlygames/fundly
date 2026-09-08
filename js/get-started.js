@@ -101,4 +101,53 @@
   document.addEventListener("fundly:lang-changed", render);
 
   render();
+
+  // ---------- scroll reveal (same pattern as js/main.js) ----------
+  const io = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+          io.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.15 }
+  );
+  document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+
+  // ---------- count-up on the real numbers already on the page (trust strip, math split) ----------
+  function formatCount(n, el) {
+    const prefix = el.dataset.countPrefix || "";
+    const suffix = el.dataset.countSuffix || "";
+    return prefix + Math.round(n).toLocaleString("en-US") + suffix;
+  }
+  function countUp(el) {
+    const target = Number(el.dataset.count);
+    if (!Number.isFinite(target)) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      el.textContent = formatCount(target, el);
+      return;
+    }
+    const duration = 900;
+    const start = Date.now();
+    const timer = setInterval(() => {
+      const p = Math.min(1, (Date.now() - start) / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = formatCount(target * eased, el);
+      if (p >= 1) clearInterval(timer);
+    }, 40);
+  }
+  const countIo = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          countUp(entry.target);
+          countIo.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.4 }
+  );
+  document.querySelectorAll("[data-count]").forEach((el) => countIo.observe(el));
 })();

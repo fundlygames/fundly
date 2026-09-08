@@ -3,6 +3,20 @@
    Builds on tokens from css/style.css.
    ============================================================ */
 
+/* ---------- ambient background wash (page feels alive, not flat black) ---------- */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(70% 55% at 12% 0%, rgb(var(--brand-rgb) / .22), transparent 68%),
+    radial-gradient(65% 55% at 100% 20%, rgb(var(--accent-rgb) / .16), transparent 72%),
+    radial-gradient(60% 50% at 50% 55%, rgb(var(--brand-rgb) / .1), transparent 70%),
+    radial-gradient(65% 50% at 15% 100%, rgb(var(--accent-rgb) / .14), transparent 72%);
+}
+
 .gs-top {
   display: flex; align-items: center; justify-content: space-between;
   padding: 18px 0; border-bottom: 1px solid var(--line);
@@ -15,7 +29,7 @@
 }
 .gs-banner b { color: var(--accent); }
 
-.gs-trust-strip { border-bottom: 1px solid var(--line); }
+.gs-trust-strip { }
 .gs-trust-inner {
   display: flex; justify-content: center; gap: 48px; padding: 22px 0; flex-wrap: wrap;
 }
@@ -137,7 +151,11 @@
 .gs-compare-r .them { color: var(--text-muted); }
 
 /* ---------- the math is short ---------- */
-.gs-math { padding: 64px 0; border-top: 1px solid var(--line); }
+.gs-math { position: relative; padding: 64px 0; overflow: hidden; }
+.gs-math::before {
+  content: ""; position: absolute; inset: 0 0 auto; height: 420px; z-index: -1;
+  background: radial-gradient(65% 100% at 50% 0%, rgb(var(--accent-rgb) / .14), transparent 75%);
+}
 .gs-math-inner { max-width: 640px; text-align: center; }
 .gs-math h2 { font-size: 1.875rem; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 8px; }
 .gs-math-label {
@@ -155,23 +173,57 @@
 }
 
 /* ---------- start in minutes ---------- */
-.gs-steps { padding: 64px 0 72px; border-top: 1px solid var(--line); }
-.gs-steps h2 { text-align: center; font-size: 1.875rem; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 40px; }
-.gs-steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; max-width: 900px; margin: 0 auto; }
-@media (max-width: 720px) { .gs-steps-grid { grid-template-columns: 1fr; gap: 28px; } }
-.gs-step { text-align: center; }
-.gs-step-n {
-  display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px;
-  border-radius: 999px; background: var(--accent-tint); color: var(--accent); font-weight: 800; font-size: .8125rem;
-  margin-bottom: 14px;
+.gs-steps { position: relative; padding: 44px 0; overflow: hidden; }
+.gs-steps h2 { text-align: center; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 28px; }
+.gs-steps-grid { display: flex; align-items: center; justify-content: center; gap: 8px; max-width: 900px; margin: 0 auto; }
+@media (max-width: 720px) { .gs-steps-grid { flex-direction: column; gap: 4px; } }
+.gs-step {
+  flex: 1;
+  text-align: center;
+  padding: 4px 14px;
 }
-.gs-step h3 { font-size: 1.0625rem; font-weight: 700; margin: 0 0 8px; }
-.gs-step p { color: var(--text-muted); font-size: .875rem; line-height: 1.5; max-width: 26ch; margin: 0 auto; }
+@media (max-width: 720px) { .gs-step { width: 100%; padding: 4px 8px; } }
+.gs-step-n {
+  display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px;
+  border-radius: 999px; border: 1px solid var(--accent-border-soft);
+  color: var(--accent); font-weight: 800; font-size: .6875rem;
+  margin-bottom: 10px;
+}
+.gs-step h3 { font-size: .9375rem; font-weight: 700; margin: 0 0 3px; }
+.gs-step p { color: var(--text-muted); font-size: .8125rem; line-height: 1.4; max-width: 24ch; margin: 0 auto; }
+.gs-step-arrow {
+  flex: 0 0 auto; display: flex; color: var(--text-muted); opacity: .45;
+}
+@media (max-width: 720px) { .gs-step-arrow { transform: rotate(90deg); margin: -4px 0; } }
 
 /* ---------- dashboard preview ---------- */
-.gs-preview { padding: 64px 0 72px; border-top: 1px solid var(--line); }
+.gs-preview { position: relative; padding: 64px 0 72px; overflow: hidden; }
+.gs-preview::before {
+  content: ""; position: absolute; inset: 0 0 auto; height: 420px; z-index: -1;
+  background: radial-gradient(65% 100% at 50% 0%, rgb(var(--accent-rgb) / .14), transparent 75%);
+}
 .gs-preview h2 { text-align: center; font-size: 1.875rem; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 8px; }
-.gs-preview-sub { text-align: center; color: var(--text-muted); font-size: .9375rem; margin: 0 0 32px; }
+.gs-preview-sub { text-align: center; color: var(--text-muted); font-size: .9375rem; margin: 0 0 12px; }
+.gs-preview-explain { text-align: center; color: var(--text-secondary); font-size: .9375rem; line-height: 1.6; margin: 0 auto 32px; max-width: 62ch; }
+
+/* ---------- FAQ ---------- */
+.gs-faq2 { position: relative; padding: 64px 0 72px; overflow: hidden; }
+.gs-faq2::before {
+  content: ""; position: absolute; inset: 0 0 auto; height: 420px; z-index: -1;
+  background: radial-gradient(60% 100% at 50% 0%, rgb(var(--brand-rgb) / .14), transparent 75%);
+}
+.gs-faq2 h2 { text-align: center; font-size: 1.875rem; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 32px; }
+.gs-faq2-list { display: grid; gap: 12px; max-width: 720px; margin: 0 auto; }
+.gs-faq2-item {
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  transition: border-color .2s var(--ease);
+}
+.gs-faq2-item:hover { border-color: var(--accent-border-soft); }
+.gs-faq2-item h3 { font-size: .9375rem; font-weight: 700; margin: 0 0 8px; }
+.gs-faq2-item p { color: var(--text-muted); font-size: .875rem; line-height: 1.55; margin: 0; }
 
 /* mobile sticky buy bar — mirrors the sidebar CTA once it scrolls off-screen on small viewports */
 .gs-mobile-bar {
