@@ -20,6 +20,14 @@
     paymentRunning: false,
   };
 
+  // Kicked off in parallel with the step-2 sign-up call (see regForm submit
+  // handler below) instead of waiting for step 3 to even start — the Whop
+  // session and the Supabase account are independent requests, so running
+  // them back-to-back was pure wasted latency on the slowest step of the
+  // funnel. startPayment() consumes this instead of calling createSession()
+  // fresh, when it's there.
+  let pendingCheckoutSession = null;
+
   // Package preset from URL (?package=elite), fallback to Advanced.
   const urlPkg = new URLSearchParams(window.location.search).get("package");
   if (urlPkg && PACKAGES.some((p) => p.key === urlPkg)) state.pkg = urlPkg;
@@ -342,6 +350,14 @@
       return;
     }
 
+    // Fire the Whop session request now, in parallel with the Supabase
+    // sign-up below — it only needs the package + e-mail, both already
+    // known. Errors are caught here (not thrown) so a rejected promise
+    // sitting unused during the sign-up call doesn't surface as an
+    // unhandled rejection; startPayment() below checks for the marker.
+    pendingCheckoutSession = FundlyCheckout.createSession(state.pkg, state.email)
+      .catch((err) => ({ __error: err }));
+
     // Clear any stale session first (e.g. a leftover login from an earlier
     // browser test with a different e-mail) — otherwise, if signUp/signIn
     // below fails silently, the browser keeps whatever OLD session was
@@ -432,9 +448,11 @@
     document.head.appendChild(s);
 
     // Wait for the embed iframe; if it does not appear within 20 s, show the fallback.
+    // Polled at 150ms (was 500ms) so the loading spinner doesn't linger for up
+    // to half a second after the iframe is actually already there.
     let waited = 0;
     const timer = setInterval(() => {
-      waited += 500;
+      waited += 150;
       const iframe = whopMount.querySelector("iframe");
       if (iframe) {
         clearInterval(timer);
@@ -443,7 +461,7 @@
         clearInterval(timer);
         showFallback(t("co.gatewayErrorRetry"), state.checkoutUrl);
       }
-    }, 500);
+    }, 150);
   }
 
   async function startPayment() {
@@ -454,7 +472,11 @@
     whopMount.innerHTML = "";
 
     try {
-      const data = await FundlyCheckout.createSession(state.pkg, state.email);
+      const data = pendingCheckoutSession
+        ? await pendingCheckoutSession
+        : await FundlyCheckout.createSession(state.pkg, state.email);
+      pendingCheckoutSession = null;
+      if (data && data.__error) throw data.__error;
       state.checkoutUrl = data.checkoutUrl;
       if (!data.sessionId || !data.planId) {
         throw new Error(t("co.errInvalidGatewayResponse"));
