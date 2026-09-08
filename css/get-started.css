@@ -180,27 +180,21 @@ body::before {
 .gs-step {
   flex: 1;
   text-align: center;
-  background: var(--surface-1);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 16px 14px;
-  transition: transform .2s var(--ease), border-color .2s var(--ease);
+  padding: 4px 14px;
 }
-@media (max-width: 720px) { .gs-step { width: 100%; } }
-.gs-step:hover { transform: translateY(-2px); border-color: var(--accent-border-soft); }
+@media (max-width: 720px) { .gs-step { width: 100%; padding: 4px 8px; } }
 .gs-step-n {
-  display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px;
-  border-radius: 999px; background: linear-gradient(135deg, var(--accent-tint), var(--brand-tint));
-  box-shadow: inset 0 0 0 1px var(--accent-border-soft);
+  display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px;
+  border-radius: 999px; border: 1px solid var(--accent-border-soft);
   color: var(--accent); font-weight: 800; font-size: .6875rem;
   margin-bottom: 10px;
 }
 .gs-step h3 { font-size: .9375rem; font-weight: 700; margin: 0 0 3px; }
 .gs-step p { color: var(--text-muted); font-size: .8125rem; line-height: 1.4; max-width: 24ch; margin: 0 auto; }
 .gs-step-arrow {
-  flex: 0 0 auto; display: flex; color: var(--text-muted); opacity: .6;
+  flex: 0 0 auto; display: flex; color: var(--text-muted); opacity: .45;
 }
-@media (max-width: 720px) { .gs-step-arrow { transform: rotate(90deg); margin: -2px 0; } }
+@media (max-width: 720px) { .gs-step-arrow { transform: rotate(90deg); margin: -4px 0; } }
 
 /* ---------- dashboard preview ---------- */
 .gs-preview { position: relative; padding: 64px 0 72px; overflow: hidden; }
