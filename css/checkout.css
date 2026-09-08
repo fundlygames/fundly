@@ -8,6 +8,11 @@
 
 .co-main { padding: 32px 0 96px; }
 
+/* checkout has no burger/mobile-menu fallback like index.html — .nav-cta
+   (language switcher + back link) must stay visible at every width, not
+   just >=1024px like on the full nav with a hamburger menu. */
+.nav-cta { display: flex; }
+
 /* ---------- Pozadí: jemný fialový fade (jen checkout) ---------- */
 body::before {
   content: "";

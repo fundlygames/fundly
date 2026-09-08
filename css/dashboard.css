@@ -25,7 +25,12 @@ body::after {
 }
 
 /* ---------- Dash nav (levý sidebar na desktopu) ---------- */
-/* sidebar je jen pro desktop ≥1024px; mobil má horní lištu + spodní lištu */
+/* sidebar je jen pro desktop ≥1024px; mobil má horní lištu + spodní lištu.
+   .nav-cta (notif bell, log out) má ve style.css display:none dokud není
+   >=1024px — na dashboardu je ale .nav zase schovaná právě od 1024px výš
+   (sidebar ji nahrazuje), takže bez tohohle přepisu by .nav-cta nebyla
+   vidět nikdy, na žádné šířce. */
+.nav-cta { display: flex; }
 .dside { display: none; }
 .dnav-links {
   display: none;
