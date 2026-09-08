@@ -43,6 +43,7 @@ const FUNDLY_I18N = (() => {
         f1: "2 evaluation phases", f2: "80 % performance split", f3: "Max. entry size", f4: "Unlimited time in the partner phase", f5: "Daily loss limit −4 % of capital",
         oneTime: "one-time", buy: "Buy the Challenge",
         note: "One-time fee · 30 days per phase · no subscription",
+        promoTag: "-{pct}% with code {code}",
       },
       dashPreview: {
         heading: "Your dashboard, built for clarity", sub: "Real-time balance, live entries and performance stats — everything in one place, no spreadsheets.",
@@ -206,6 +207,7 @@ const FUNDLY_I18N = (() => {
         f1: "2 hodnoticí fáze", f2: "80% podíl na zisku", f3: "Max. velikost tiketu", f4: "Neomezený čas v partnerské fázi", f5: "Denní limit ztráty −4 % kapitálu",
         oneTime: "jednorázově", buy: "Koupit Challenge",
         note: "Jednorázový poplatek · 30 dní na fázi · žádné předplatné",
+        promoTag: "-{pct}% s kódem {code}",
       },
       dashPreview: {
         heading: "Váš dashboard, postavený pro přehlednost", sub: "Zůstatek v reálném čase, živé tikety a výkonnostní statistiky — vše na jednom místě, žádné tabulky.",
@@ -369,6 +371,7 @@ const FUNDLY_I18N = (() => {
         f1: "2 fases de evaluación", f2: "80% de reparto de rendimiento", f3: "Tamaño máx. de entrada", f4: "Tiempo ilimitado en la fase de socio", f5: "Límite de pérdida diaria −4% del capital",
         oneTime: "pago único", buy: "Comprar el Challenge",
         note: "Pago único · 30 días por fase · sin suscripción",
+        promoTag: "-{pct}% con el código {code}",
       },
       dashPreview: {
         heading: "Tu panel, diseñado para la claridad", sub: "Saldo en tiempo real, tickets en vivo y estadísticas de rendimiento — todo en un solo lugar, sin hojas de cálculo.",
@@ -532,6 +535,7 @@ const FUNDLY_I18N = (() => {
         f1: "2 etapy oceny", f2: "80% podziału zysku", f3: "Maks. wielkość wejścia", f4: "Nieograniczony czas w fazie partnera", f5: "Dzienny limit straty −4% kapitału",
         oneTime: "jednorazowo", buy: "Kup Challenge",
         note: "Opłata jednorazowa · 30 dni na etap · bez subskrypcji",
+        promoTag: "-{pct}% z kodem {code}",
       },
       dashPreview: {
         heading: "Twój panel, zbudowany dla przejrzystości", sub: "Saldo w czasie rzeczywistym, aktywne zlecenia i statystyki wyników — wszystko w jednym miejscu, bez arkuszy kalkulacyjnych.",
@@ -695,6 +699,7 @@ const FUNDLY_I18N = (() => {
         f1: "2 hodnotiace fázy", f2: "80% podiel na zisku", f3: "Max. veľkosť tiketu", f4: "Neobmedzený čas vo fáze partnera", f5: "Denný limit straty −4% kapitálu",
         oneTime: "jednorazovo", buy: "Kúpiť Challenge",
         note: "Jednorazový poplatok · 30 dní na fázu · žiadne predplatné",
+        promoTag: "-{pct}% s kódom {code}",
       },
       dashPreview: {
         heading: "Váš dashboard, postavený pre prehľadnosť", sub: "Zostatok v reálnom čase, živé tikety a výkonnostné štatistiky — všetko na jednom mieste, žiadne tabuľky.",
@@ -858,6 +863,7 @@ const FUNDLY_I18N = (() => {
         f1: "2 értékelési fázis", f2: "80% teljesítmény-megosztás", f3: "Max. tételméret", f4: "Korlátlan idő a partner fázisban", f5: "Napi veszteséglimit −4% a tőkéből",
         oneTime: "egyszeri", buy: "Challenge megvásárlása",
         note: "Egyszeri díj · 30 nap fázisonként · nincs előfizetés",
+        promoTag: "-{pct}% a(z) {code} kóddal",
       },
       dashPreview: {
         heading: "A műszerfalad, az áttekinthetőségért", sub: "Valós idejű egyenleg, élő tételek és teljesítménystatisztikák — minden egy helyen, táblázatok nélkül.",

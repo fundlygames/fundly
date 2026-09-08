@@ -87,9 +87,11 @@ function renderPlan(animate) {
       <li>${check}${t("packages.f5")}</li>
     </ul>
     <div class="price-row ${animate ? "pkg-anim" : ""}" style="animation-delay:.08s">
-      <span class="cur">$</span><span class="amount">${p.price.toLocaleString("en-US")}</span>
+      ${promoActive() ? `<span class="price-was">$${p.price.toLocaleString("en-US")}</span>` : ""}
+      <span class="cur">$</span><span class="amount">${(promoActive() ? promoPrice(p.price) : p.price).toLocaleString("en-US")}</span>
       <span class="per">${t("packages.oneTime")}</span>
     </div>
+    ${promoActive() ? `<div class="price-promo-tag">${t("packages.promoTag").replace("{pct}", PROMO.percent).replace("{code}", PROMO.code)}</div>` : ""}
     <button type="button" class="btn btn-primary" style="width:100%" data-auth="register">${t("packages.buy")}</button>
     <p class="price-note">${t("packages.note")}</p>`;
 }

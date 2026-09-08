@@ -135,10 +135,59 @@ button { font-family: inherit; cursor: pointer; }
 .btn .arr { transition: transform .15s var(--ease); }
 .btn:hover .arr { transform: translate(2px, -2px); }
 
+/* ---------- Promo bar ---------- */
+.promo-bar {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  column-gap: 10px;
+  row-gap: 2px;
+  padding: 8px 40px;
+  font-size: .8125rem;
+  font-weight: 600;
+  text-align: center;
+  color: #05020a;
+  background: linear-gradient(90deg, rgb(var(--brand-rgb)), color-mix(in oklab, var(--brand) 70%, var(--accent)));
+}
+.promo-bar .promo-code {
+  padding: 1px 7px;
+  border-radius: 5px;
+  background: rgb(5 2 10 / .18);
+  font-weight: 800;
+  letter-spacing: .03em;
+}
+.promo-bar .promo-timer { font-variant-numeric: tabular-nums; opacity: .85; }
+.promo-bar .promo-close {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  opacity: .7;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+}
+.promo-bar .promo-close:hover { opacity: 1; }
+@media (max-width: 640px) {
+  .promo-bar { padding: 7px 34px; font-size: .75rem; }
+}
+
 /* ---------- Nav ---------- */
 .nav {
   position: sticky;
-  top: 0;
+  top: var(--promo-h, 0px);
   z-index: 50;
   background: linear-gradient(to bottom, rgb(2 2 4 / .92), rgb(2 2 4 / .78));
   border-bottom: 1px solid transparent;
@@ -870,7 +919,20 @@ section.cta-block { padding: 128px 0; }
 .price-row .amount { font-size: 2.5rem; font-weight: 800; letter-spacing: -0.02em; }
 .price-row .cur { font-size: 1rem; color: var(--text-muted); font-weight: 600; }
 .price-row .per { margin-left: auto; font-size: .75rem; color: var(--text-muted); }
+.price-row .price-was { font-size: 1.125rem; color: var(--text-muted); text-decoration: line-through; font-weight: 600; }
 .price-note { font-size: .75rem; color: var(--text-muted); text-align: center; }
+.price-promo-tag {
+  align-self: flex-start;
+  margin-top: -6px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--accent-tint);
+  border: 1px solid var(--accent-border-soft);
+  color: var(--accent);
+  font-size: .6875rem;
+  font-weight: 700;
+  letter-spacing: .01em;
+}
 .pkg-anim { animation: bet-in .34s cubic-bezier(.2, .9, .3, 1) both; }
 @keyframes bet-in {
   0% { opacity: 0; transform: scale(.96) translateY(3px); }
