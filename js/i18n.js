@@ -1093,6 +1093,10 @@ const FUNDLY_I18N = (() => {
   return { t, setLang, getLang, SUPPORTED };
 })();
 
-const t = FUNDLY_I18N.t;
-window.t = t;
+// Exposed only as window.t (never a bare top-level `t`) — a page-wide
+// `const`/`let t` collides with third-party scripts that declare their
+// own top-level `t` in the same script realm (e.g. Whop's dynamically
+// injected embedded-checkout loader), which throws a SyntaxError and
+// silently breaks the payment gateway from ever rendering.
+window.t = FUNDLY_I18N.t;
 window.FUNDLY_I18N = FUNDLY_I18N;
