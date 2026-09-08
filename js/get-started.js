@@ -37,7 +37,7 @@
         ${p.top ? `<span class="badge">${t("packages.mostPopular")}</span>` : ""}
         <span class="nm">${p.name}</span>
         <span class="cap">${usd(p.cap)}</span>
-        <span class="price">${usd(p.price)} <span class="lbl">${t("packages.oneTime")}</span></span>
+        <span class="price">${promoActive() ? `<span class="was">${usd(p.price)}</span> ` : ""}${usd(promoActive() ? promoPrice(p.price) : p.price)} <span class="lbl">${t("packages.oneTime")}</span></span>
       </button>`).join("");
   }
 
@@ -70,10 +70,15 @@
     renderPkgGrid();
     renderDetails();
 
+    const shownPrice = promoActive() ? promoPrice(pkg.price) : pkg.price;
+    const wasHtml = promoActive() ? `<span class="was">${usd(pkg.price)}</span> ` : "";
+
     $("gsSbSize").textContent = usd(pkg.cap);
-    $("gsSbPrice").textContent = usd(pkg.price);
+    $("gsSbPrice").innerHTML = wasHtml + usd(shownPrice);
     $("gsMbSize").textContent = usd(pkg.cap);
-    $("gsMbPrice").textContent = usd(pkg.price);
+    $("gsMbPrice").innerHTML = wasHtml + usd(shownPrice);
+    const promoNote = $("gsPromoNote");
+    if (promoNote) promoNote.textContent = promoActive() ? t("packages.promoTag").replace("{pct}", PROMO.percent).replace("{code}", PROMO.code) : "";
   }
 
   document.addEventListener("click", (e) => {

@@ -113,7 +113,7 @@
         ${p.top ? '<span class="top-badge">TOP</span>' : ""}
         <span class="pkg-ring" style="--pct:${pct}%"><span class="pkg-ring-inner">${usdShort(p.cap)}</span></span>
         <span class="nm">${p.name}</span>
-        <span class="price">${usd(p.price)} <span class="lbl">${t("packages.oneTime")}</span></span>
+        <span class="price">${promoActive() ? `<span class="was">${usd(p.price)}</span> ` : ""}${usd(promoActive() ? promoPrice(p.price) : p.price)} <span class="lbl">${t("packages.oneTime")}</span></span>
       </button>`;
     }).join("");
   }
@@ -170,17 +170,20 @@
   // ---------- condensed checkout action row (selected package, right above Continue) ----------
   function renderCheckoutRow() {
     const p = pkg();
+    const shownPrice = promoActive() ? promoPrice(p.price) : p.price;
+    const wasHtml = promoActive() ? `<span class="was">${usd(p.price)}</span> ` : "";
     $("coCheckoutRow").innerHTML = `
       <div class="co-checkout-pkg">
         <span class="nm">${p.name}</span>
         <span class="cap">${usd(p.cap)} ${t("packages.simCapital")}</span>
+        ${promoActive() ? `<span class="price-promo-tag">${t("packages.promoTag").replace("{pct}", PROMO.percent).replace("{code}", PROMO.code)}</span>` : ""}
       </div>
       <div class="co-checkout-price">
-        <span class="v">${usd(p.price)}</span>
+        <span class="v">${wasHtml}${usd(shownPrice)}</span>
         <span class="lbl">${t("co.oneTimeFee")}</span>
       </div>`;
     $("coMbPkg").textContent = p.name;
-    $("coMbPrice").textContent = usd(p.price);
+    $("coMbPrice").innerHTML = wasHtml + usd(shownPrice);
   }
 
   // ---------- summary (right column) ----------
@@ -188,18 +191,21 @@
     const p = pkg();
     const m = meta();
     const check = `<svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    const shownPrice = promoActive() ? promoPrice(p.price) : p.price;
+    const wasHtml = promoActive() ? `<span class="was">${usd(p.price)}</span> ` : "";
     $("summaryPanel").innerHTML = `
       <div class="sum-hero">
         <div class="sum-hero-lbl">${t("co.totalDueToday")}</div>
-        <div class="sum-hero-price">${usd(p.price)}</div>
+        <div class="sum-hero-price">${wasHtml}${usd(shownPrice)}</div>
         <div class="sum-hero-note">${p.name} · ${usd(p.cap)} ${t("packages.simCapital")}</div>
+        ${promoActive() ? `<span class="price-promo-tag">${t("packages.promoTag").replace("{pct}", PROMO.percent).replace("{code}", PROMO.code)}</span>` : ""}
       </div>
       <div class="sum-split">
         <div class="sum-split-bar"><div class="sum-split-fill" style="width:${m.profitSplit}%"></div></div>
         <div class="sum-split-lbl"><span>${t("stats.split")}</span><b>${m.profitSplit}% ${t("co.yours")}</b></div>
       </div>
       <div class="sum-row"><span class="k">${t("co.maxEntrySize")}</span><span class="v">${usd(m.maxStake)}</span></div>
-      <p class="sum-recur">${usd(p.price)} ${t("co.todaySuffix")} ${t("co.recurLine")}</p>
+      <p class="sum-recur">${usd(shownPrice)} ${t("co.todaySuffix")} ${t("co.recurLine")}</p>
       <ul class="sum-feats">
         <li>${check}${t("co.featPhases")}</li>
         <li>${check}${t("co.featPartner")}</li>
