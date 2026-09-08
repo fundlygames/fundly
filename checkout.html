@@ -9,6 +9,13 @@
   <link rel="icon" type="image/png" href="assets/logo.png" />
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/checkout.css" />
+  <!-- Warm up the connection to Whop's embedded-checkout CDN and cache the
+       loader script ahead of time — step 3 only actually runs it once the
+       user reaches payment, but the DNS/TLS handshake and script download
+       don't need to wait until then too. -->
+  <link rel="preconnect" href="https://js.whop.com" crossorigin />
+  <link rel="dns-prefetch" href="https://js.whop.com" />
+  <link rel="prefetch" as="script" href="https://js.whop.com/static/checkout/loader.js" />
   <!-- Meta Pixel -->
   <script>
   !function(f,b,e,v,n,t,s)
