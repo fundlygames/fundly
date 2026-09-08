@@ -604,5 +604,6 @@ body::before {
   .co-mobile-bar .info { display: flex; flex-direction: column; line-height: 1.2; }
   .co-mobile-bar .info .sz { font-size: .75rem; color: var(--text-muted); }
   .co-mobile-bar .info .pr { font-weight: 800; color: var(--accent); font-size: 1.0625rem; }
+  .co-mobile-bar .info .pr .was { font-weight: 500; color: var(--text-muted); text-decoration: line-through; font-size: .8125rem; }
   .co-mobile-bar .btn { flex-shrink: 0; }
 }
