@@ -717,6 +717,34 @@ async function syncChallengeAccount() {
       return;
     }
 
+    // Purchase conversion pixel — fires once, only on the actual return trip
+    // from Whop (?paid=1, already stripped from the URL above so a refresh
+    // can't refire it). Uses the package's list price: the client has no RLS
+    // access to the real charged amount in `payments` (service-role only),
+    // so this doesn't reflect a promo code the buyer may have applied at
+    // Whop's checkout — still far better than no Purchase signal at all,
+    // which is what Meta/Google were getting before this.
+    if (justPaid) {
+      const pkg = packageByKey(account.package_key);
+      if (typeof fbq === "function") {
+        fbq("track", "Purchase", {
+          value: pkg.price,
+          currency: "USD",
+          content_ids: [account.package_key],
+          content_name: pkg.name,
+          content_type: "product",
+        });
+      }
+      if (typeof gtag === "function") {
+        gtag("event", "purchase", {
+          transaction_id: account.id,
+          value: pkg.price,
+          currency: "USD",
+          items: [{ item_id: account.package_key, item_name: pkg.name, price: pkg.price, quantity: 1 }],
+        });
+      }
+    }
+
     // leaderboard nastavení: naplnit z reálného účtu (přepíšou HTML placeholder)
     const nickInputEl = document.getElementById("nickInput");
     if (nickInputEl && account.nickname) nickInputEl.value = account.nickname;
