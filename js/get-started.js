@@ -34,7 +34,7 @@
     $("gsPkgGrid").innerHTML = PACKAGES.map((p) => `
       <button type="button" role="radio" aria-checked="${p.key === active}"
         class="gs-pkg-card ${p.key === active ? "active" : ""}" data-key="${p.key}">
-        ${p.top ? `<span class="badge">${t("packages.mostPopular")}</span>` : ""}
+        ${p.top ? `<span class="badge">TOP</span>` : ""}
         <span class="nm">${p.name}</span>
         <span class="cap">${usd(p.cap)}</span>
         <span class="price">${promoActive() ? `<span class="was">${usd(p.price)}</span> ` : ""}${usd(promoActive() ? promoPrice(p.price) : p.price)} <span class="lbl">${t("packages.oneTime")}</span></span>
