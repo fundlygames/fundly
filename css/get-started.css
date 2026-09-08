@@ -206,32 +206,27 @@ body::before {
   background: radial-gradient(60% 100% at 50% 0%, rgb(var(--accent-rgb) / .1), transparent 70%);
 }
 .gs-preview h2 { text-align: center; font-size: 1.875rem; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 8px; }
-.gs-preview-sub { text-align: center; color: var(--text-muted); font-size: .9375rem; margin: 0 0 32px; }
+.gs-preview-sub { text-align: center; color: var(--text-muted); font-size: .9375rem; margin: 0 0 12px; }
+.gs-preview-explain { text-align: center; color: var(--text-secondary); font-size: .9375rem; line-height: 1.6; margin: 0 auto 32px; max-width: 62ch; }
 
-/* ---------- why trust fundly ---------- */
-.gs-trust { position: relative; padding: 64px 0 72px; border-top: 1px solid var(--line); overflow: hidden; }
-.gs-trust::before {
+/* ---------- FAQ ---------- */
+.gs-faq2 { position: relative; padding: 64px 0 72px; border-top: 1px solid var(--line); overflow: hidden; }
+.gs-faq2::before {
   content: ""; position: absolute; inset: 0 0 auto; height: 320px; z-index: -1;
   background: radial-gradient(55% 100% at 50% 0%, rgb(var(--brand-rgb) / .1), transparent 70%);
 }
-.gs-trust h2 { text-align: center; font-size: 1.875rem; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 40px; }
-.gs-trust-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 940px; margin: 0 auto; }
-@media (max-width: 720px) { .gs-trust-grid { grid-template-columns: 1fr; gap: 16px; } }
-.gs-trust-card {
+.gs-faq2 h2 { text-align: center; font-size: 1.875rem; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 32px; }
+.gs-faq2-list { display: grid; gap: 12px; max-width: 720px; margin: 0 auto; }
+.gs-faq2-item {
   background: var(--surface-1);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  padding: 24px 22px;
-  transition: transform .2s var(--ease), border-color .2s var(--ease);
+  padding: 20px 24px;
+  transition: border-color .2s var(--ease);
 }
-.gs-trust-card:hover { transform: translateY(-3px); border-color: var(--accent-border-soft); }
-.gs-trust-card .ic {
-  display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px;
-  border-radius: 12px; background: var(--accent-tint); box-shadow: inset 0 0 0 1px var(--accent-border-soft);
-  color: var(--accent); margin-bottom: 16px;
-}
-.gs-trust-card h3 { font-size: 1rem; font-weight: 700; margin: 0 0 6px; }
-.gs-trust-card p { color: var(--text-muted); font-size: .8438rem; line-height: 1.5; margin: 0; }
+.gs-faq2-item:hover { border-color: var(--accent-border-soft); }
+.gs-faq2-item h3 { font-size: .9375rem; font-weight: 700; margin: 0 0 8px; }
+.gs-faq2-item p { color: var(--text-muted); font-size: .875rem; line-height: 1.55; margin: 0; }
 
 /* mobile sticky buy bar — mirrors the sidebar CTA once it scrolls off-screen on small viewports */
 .gs-mobile-bar {
