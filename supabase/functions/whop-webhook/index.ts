@@ -98,26 +98,51 @@ function supabaseAdmin(): any {
   );
 }
 
-// Najde nebo založí auth uživatele podle e-mailu (heslo neřešíme,
-// přihlášení probíhá magic linkem).
 // deno-lint-ignore no-explicit-any
+async function findExistingUser(supabase: any, email: string) {
+  const target = email.toLowerCase();
+  // listUsers() is paginated (1000/page) — most checkout customers already
+  // have an auth user from the sign-up step (js/checkout.js), created well
+  // before this webhook fires, so this ALWAYS has to search every page, not
+  // just the first, once the project has more than 1000 total users, or the
+  // match silently fails for a real existing customer and the code below
+  // creates a second, duplicate, PASSWORDLESS account instead of linking to
+  // the one whose password the customer actually set at checkout.
+  for (let page = 1; page <= 50; page++) {
+    // deno-lint-ignore no-explicit-any
+    const { data: list, error } = await supabase.auth.admin.listUsers({ page, perPage: 1000 });
+    if (error) break;
+    // deno-lint-ignore no-explicit-any
+    const hit = list?.users?.find((u: any) => u.email?.toLowerCase() === target);
+    if (hit) return hit;
+    if (!list?.users || list.users.length < 1000) break; // last page
+  }
+  return null;
+}
+
+// Najde nebo založí auth uživatele podle e-mailu. VŽDY hledá existujícího
+// uživatele JAKO PRVNÍ — checkout signup (js/checkout.js) zakládá auth účet
+// s heslem dřív, než tahle funkce vůbec doběhne, takže "rovnou založit" by
+// jen náhodou trefilo tu samou e-mailovou kolizi (createUser pak selže) a
+// jindy (viz findExistingUser pozn.) by tiše vytvořilo DRUHÝ, bezheslový
+// účet — zákazník by se pak vlastním heslem z checkoutu nikdy nedostal na
+// svůj zaplacený challenge_accounts řádek (RLS je striktně auth.uid() =
+// user_id, žádná shoda e-mailu nestačí). Založení nového účtu je fallback
+// jen pro nákupy mimo náš checkout (přímý Whop odkaz) — pak přihlášení
+// probíhá magic linkem, viz e-mail níže.
 async function findOrCreateUser(supabase: any, email: string) {
+  const existing = await findExistingUser(supabase, email);
+  if (existing) return existing;
+
   const { data: created, error } = await supabase.auth.admin.createUser({
     email,
     email_confirm: true,
   });
   if (!error && created?.user) return created.user;
 
-  // už existuje → dohledáme ho podle e-mailu
-  const { data: list } = await supabase.auth.admin.listUsers({
-    page: 1,
-    perPage: 1000,
-  });
-  return (
-    list?.users?.find(
-      (u: { email?: string }) => u.email?.toLowerCase() === email.toLowerCase(),
-    ) ?? null
-  );
+  // createUser selhal a existující účet jsme taky nenašli (race — mezitím
+  // vznikl) — poslední pokus.
+  return await findExistingUser(supabase, email);
 }
 
 // „Payment confirmed" e-mail: shrnutí nákupu + přístup do účtu. `accessLink`
