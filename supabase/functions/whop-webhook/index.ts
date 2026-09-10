@@ -123,10 +123,20 @@ async function findOrCreateUser(supabase: any, email: string) {
 // „Payment confirmed" e-mail: shrnutí nákupu + přístup do účtu. `accessLink`
 // je buď magic link (žádné heslo nikdy nenastavené — viz findOrCreateUser),
 // nebo obyčejný odkaz na dashboard (zákazník má heslo z checkout signupu).
-function purchaseHtml(pkg: PackageDef, accessLink: string): string {
+function purchaseHtml(
+  pkg: PackageDef,
+  accessLink: string,
+  order: { id: string; amount: number; currency: string; promoCode: string | null; purchasedAt: Date },
+): string {
   const deadline = new Date(Date.now() + 30 * 86400000).toLocaleDateString("en-US", {
     year: "numeric", month: "long", day: "numeric",
   });
+  const purchasedAtStr = order.purchasedAt.toLocaleString("en-US", {
+    year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit", timeZoneName: "short",
+  });
+  // Skutečně zaplacená částka (po promo kódu) — NE katalogová cena z pkg,
+  // ta by byla zavádějící kdykoliv zákazník použil slevový kód u Whopu.
+  const amountStr = `${order.amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${order.currency}`;
   return `
   <div style="background:#020204;padding:32px;font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#e8e8ec">
     <div style="max-width:520px;margin:0 auto;background:#0d0d12;border:1px solid #ffffff1a;border-radius:16px;padding:28px">
@@ -134,7 +144,18 @@ function purchaseHtml(pkg: PackageDef, accessLink: string): string {
       <h2 style="color:#fff;font-size:18px;margin:0 0 12px">Payment confirmed</h2>
       <p style="color:#a0a0ab;font-size:14px;line-height:1.6;margin:0 0 20px">Your ${pkg.name} account (${pkg.cap.toLocaleString("en-US")} USD simulated capital) is active. Phase 1 runs 30 days — deadline ${deadline}.</p>
       <a href="${accessLink}" style="display:inline-block;background:#14f195;color:#020204;font-weight:700;text-decoration:none;padding:12px 24px;border-radius:10px">Open your dashboard</a>
-      <p style="color:#5a5a66;font-size:12px;margin:20px 0 0">Package: ${pkg.name} · Price paid: $${pkg.price.toLocaleString("en-US")}</p>
+
+      <table style="width:100%;border-collapse:collapse;margin:24px 0 4px;font-size:13px">
+        <tr><td style="color:#7a7a86;padding:5px 0">Order reference</td><td style="color:#e8e8ec;text-align:right;padding:5px 0">${order.id}</td></tr>
+        <tr><td style="color:#7a7a86;padding:5px 0">Date</td><td style="color:#e8e8ec;text-align:right;padding:5px 0">${purchasedAtStr}</td></tr>
+        <tr><td style="color:#7a7a86;padding:5px 0">Package</td><td style="color:#e8e8ec;text-align:right;padding:5px 0">${pkg.name}</td></tr>
+        ${order.promoCode ? `<tr><td style="color:#7a7a86;padding:5px 0">Promo code</td><td style="color:#e8e8ec;text-align:right;padding:5px 0">${order.promoCode}</td></tr>` : ""}
+        <tr><td style="color:#e8e8ec;font-weight:700;padding:9px 0 0;border-top:1px solid #ffffff1a">Amount paid</td><td style="color:#14f195;font-weight:700;text-align:right;padding:9px 0 0;border-top:1px solid #ffffff1a">${amountStr}</td></tr>
+      </table>
+
+      <p style="color:#5a5a66;font-size:12px;line-height:1.6;margin:20px 0 0">This is a payment confirmation from Fundly, not a tax invoice — Whop, our payment processor and merchant of record for this transaction, sends its own official receipt separately to this same e-mail address.</p>
+      <hr style="border:none;border-top:1px solid #ffffff1a;margin:20px 0" />
+      <p style="color:#5a5a66;font-size:11px;line-height:1.6;margin:0">Grindit LLC · Sharjah Media City, Sharjah, UAE · Reg. 2541536<br />Questions? Reply to this e-mail or reach us at <a href="mailto:support@fundly.games" style="color:#7a7a86">support@fundly.games</a>.</p>
     </div>
   </div>`;
 }
@@ -303,7 +324,15 @@ serve(async (req) => {
           const result = await sendEmail({
             to: String(email),
             subject: "Payment confirmed — your Fundly account is active",
-            html: purchaseHtml(pkg, accessLink),
+            html: purchaseHtml(pkg, accessLink, {
+              id: String(data.id ?? "—"),
+              // Stejný výpočet jako insertPayment() výše — skutečně
+              // strhnutá částka (po promo kódu), ne katalogová cena.
+              amount: Number(data.total ?? data.amount_after_fees ?? data.subtotal ?? pkg.price),
+              currency: String(data.currency ?? "USD").toUpperCase(),
+              promoCode: data.promo_code?.code ?? metadata.promo_code ?? null,
+              purchasedAt: new Date(),
+            }),
           });
           if (!result.sent) console.error("purchase e-mail selhal:", result.error);
         })().catch((e) => console.error("purchase e-mail handler error:", e));
