@@ -68,3 +68,9 @@ verify_jwt = false
 
 [functions.waitlist-manage]
 verify_jwt = false
+
+# Volá se PŘED přihlášením (zapomenuté heslo) — žádný uživatelský token
+# v tu chvíli neexistuje, ověření probíhá jen na úrovni Supabase admin API
+# uvnitř funkce (service role klíč), ne na úrovni gateway JWT.
+[functions.request-password-reset]
+verify_jwt = false
