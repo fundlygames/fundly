@@ -2,13 +2,16 @@
 // Pravidlo neaktivity: min. 1 tiket / 14 dní na funded účtu.
 //   den 7  bez tiketu  → inactivity_warned_7  (banner v dashboardu)
 //   den 13 bez tiketu  → inactivity_warned_13 (poslední upozornění)
-//   den 14 bez tiketu  → účet se spálí (state → breached, funded status zrušen)
-// Bez vlastního SMTP zatím jen banner v appce (viz syncChallengeAccount
-// v js/dashboard.js) — e-mailové upozornění doplníme, až poběží support/SMTP.
+//   den 14 bez tiketu  → účet se spálí (state → breached, funded status zrušen,
+//                         + e-mail — viz accountClosedHtml v _shared/email.ts)
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsonResponse } from "../_shared/cors.ts";
 import { isValidAdminKey } from "../_shared/admin.ts";
+import { sendEmail, accountClosedHtml } from "../_shared/email.ts";
+import { packageByKey } from "../_shared/packages.ts";
+
+const SITE_URL = Deno.env.get("SITE_URL") ?? "https://fundly.games";
 
 const WARN_1_DAYS = 7;
 const WARN_2_DAYS = 13;
@@ -32,7 +35,7 @@ serve(async (req) => {
 
     const { data: accounts, error } = await supabase
       .from("challenge_accounts")
-      .select("id, funded_at, last_ticket_at, inactivity_warned_7, inactivity_warned_13, created_at")
+      .select("id, email, package_key, funded_at, last_ticket_at, inactivity_warned_7, inactivity_warned_13, created_at")
       .eq("state", "funded");
     if (error) throw error;
 
@@ -45,11 +48,21 @@ serve(async (req) => {
       const idleDays = (now - new Date(since).getTime()) / 86400000;
 
       if (idleDays >= BURN_DAYS) {
+        const reason = `Inactive for ${BURN_DAYS}+ days`;
         await supabase
           .from("challenge_accounts")
-          .update({ state: "breached", breach_reason: `Inactive for ${BURN_DAYS}+ days` })
+          .update({ state: "breached", breach_reason: reason })
           .eq("id", acc.id);
         burned++;
+        if (acc.email) {
+          const pkg = packageByKey(String(acc.package_key ?? ""));
+          sendEmail({
+            to: String(acc.email),
+            subject: "Your Fundly account was closed",
+            html: accountClosedHtml(pkg.name, reason, `${SITE_URL}/get-started`),
+          }).then((r) => { if (!r.sent) console.error("account-closed e-mail selhal:", r.error); })
+            .catch((e) => console.error("account-closed e-mail error:", e));
+        }
       } else if (idleDays >= WARN_2_DAYS && !acc.inactivity_warned_13) {
         await supabase
           .from("challenge_accounts")

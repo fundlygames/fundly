@@ -9,8 +9,11 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { handleCors, jsonResponse } from "../_shared/cors.ts";
 import { computeServerRiskSignals, watchStatusFor } from "../_shared/risk.ts";
+import { sendEmail, accountClosedHtml } from "../_shared/email.ts";
+import { packageByKey } from "../_shared/packages.ts";
 
 const ALLOWED_STATES = ["active", "funded", "breached"];
+const SITE_URL = Deno.env.get("SITE_URL") ?? "https://fundly.games";
 
 function saneNumber(v: unknown, max: number): number | null {
   const n = Number(v);
@@ -128,7 +131,7 @@ serve(async (req) => {
     // challenge účet přihlášeného hráče (nejnovější)
     const { data: account } = await supabase
       .from("challenge_accounts")
-      .select("id, state, phase, tickets_total, created_at, phase1_completed_at, phase2_completed_at, funded_at, signup_ip, payment_fingerprint, betting_profile")
+      .select("id, email, package_key, state, phase, tickets_total, created_at, phase1_completed_at, phase2_completed_at, funded_at, signup_ip, payment_fingerprint, betting_profile")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -191,6 +194,19 @@ serve(async (req) => {
       })
       .eq("id", account.id);
     if (updateError) throw updateError;
+
+    // "Účet spálen" e-mail — jen při PRVNÍM přechodu do breached (breached je
+    // terminální, viz nextState výš, takže tahle podmínka je zaručeně true
+    // nejvýš jednou za účet). account.state je stav PŘED tímhle update.
+    if (account.state !== "breached" && nextState === "breached" && account.email) {
+      const pkg = packageByKey(String(account.package_key ?? ""));
+      sendEmail({
+        to: String(account.email),
+        subject: "Your Fundly account was closed",
+        html: accountClosedHtml(pkg.name, breachReason ?? "Loss limit exceeded", `${SITE_URL}/get-started`),
+      }).then((r) => { if (!r.sent) console.error("account-closed e-mail selhal:", r.error); })
+        .catch((e) => console.error("account-closed e-mail error:", e));
+    }
 
     // Risk scoring doběhne na pozadí PO odeslání odpovědi (EdgeRuntime.
     // waitUntil — Supabase edge runtime tohle podporuje přesně pro tenhle

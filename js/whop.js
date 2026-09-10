@@ -91,11 +91,27 @@ const FundlyAuth = {
   // příchodu z odkazu (Supabase založí dočasnou "recovery" session) může
   // hráč rovnou nastavit nové heslo přes panel "Account settings" —
   // žádná zvláštní stránka pro to není potřeba.
+  //
+  // Volá vlastní edge funkci (request-password-reset), ne
+  // client.auth.resetPasswordForEmail() přímo — ten posílá přes Supabase
+  // vlastní mailer, který nemá nastavené vlastní SMTP a e-maily tak
+  // nespolehlivě/vůbec nechodily. Naše funkce posílá stejným Resend
+  // kanálem jako potvrzení nákupu, který už prokazatelně funguje.
   async resetPassword(email) {
-    const client = await FundlyBackend.getClient();
-    if (!client) return { error: { message: "Backend is not configured." } };
-    const redirectTo = new URL("dashboard", window.location.href).href;
-    return client.auth.resetPasswordForEmail(email, { redirectTo });
+    if (typeof fundlyBackendEnabled !== "function" || !fundlyBackendEnabled()) {
+      return { error: { message: "Backend is not configured." } };
+    }
+    try {
+      const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/request-password-reset`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      if (!res.ok) return { error: { message: "Could not send the reset e-mail." } };
+      return { error: null };
+    } catch (e) {
+      return { error: { message: "Could not send the reset e-mail." } };
+    }
   },
 
   // Po přihlášení heslem session vždy začíná na AAL1, i když má účet
