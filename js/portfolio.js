@@ -335,6 +335,20 @@ const Portfolio = (() => {
       return { ok: false, error: "This account has breached its loss limit and is closed. Buy a new Challenge to keep trading." };
     }
     if (!selections || !selections.length) return { ok: false, error: "Your ticket is empty." };
+    // Past-post guard: odds-api.io occasionally still lists an event as
+    // upcoming ("pending") well after its real-world start time, usually
+    // for lower-tier/youth fixtures the feed never got final live status
+    // for. Selecting startTime alone isn't enough to tell "genuinely live
+    // right now" from "stale data" — so once the scheduled start has
+    // passed, the selection must carry `live: true`, set in dashboard.js
+    // only when the API's own status/clock fields confirm it, not just
+    // whichever endpoint happened to return it. This is what stops someone
+    // from betting on a match whose real result they already know, while
+    // leaving genuine in-play/live betting untouched.
+    const nowMs = Date.now();
+    if (selections.some((s) => new Date(s.startTime).getTime() <= nowMs && !s.live)) {
+      return { ok: false, error: "This match has already started and can't be confirmed as live right now — refresh the match list and try again." };
+    }
     const amount = Number(stake);
     if (!amount || amount <= 0) return { ok: false, error: "Enter a valid entry amount." };
     const maxStake = ruleMeta(state).maxStake;

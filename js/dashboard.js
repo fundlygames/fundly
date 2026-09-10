@@ -1244,6 +1244,11 @@ function resolvePick(id) {
     homeTeam: m.home,
     awayTeam: m.away,
     startTime: m.date,
+    // Independently confirmed by odds-api's own live-status fields (see
+    // loadSportEvents' `live` computation), not just "which endpoint did
+    // this come from" — lets placeBet() tell genuine in-play matches apart
+    // from stale/already-finished ones the feed still lists as upcoming.
+    live: !!m.live,
     marketName,
     field,
     hdp: row.hdp,
