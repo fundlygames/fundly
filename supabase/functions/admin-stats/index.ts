@@ -56,7 +56,7 @@ serve(async (req) => {
       supabase.from("challenge_accounts").select("state, email, created_at"),
       supabase
         .from("challenge_accounts")
-        .select("id, email, package_key, phase, capital, state, kyc_status, phase_balance, profit, qualifying_tickets, breach_reason, flags, tickets_total, tickets_won, synced_at, betting_profile, risk_score, risk_reasons, watch_status, created_at")
+        .select("id, email, package_key, phase, capital, state, kyc_status, phase_balance, profit, qualifying_tickets, breach_reason, flags, tickets_total, tickets_won, synced_at, betting_profile, risk_score, risk_reasons, watch_status, created_at, pending_phase, pending_requested_at, admin_note")
         .order("created_at", { ascending: false })
         .limit(50),
       supabase

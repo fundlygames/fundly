@@ -412,6 +412,10 @@ async function refreshAfterSettlement() {
     });
     renderBadges(afterState);
     renderMomentum(afterState);
+    // právě teď splnil cíl fáze — betting se pozastaví, dokud to neschválí admin
+    if (!beforeState?.pendingPhase && afterState.pendingPhase) {
+      showToast("pend", "Phase target reached! 🎯", "Betting is paused while our team reviews and approves the move to the next phase.");
+    }
   }
 
   if (typeof renderPrehled === "function") renderPrehled();
@@ -490,7 +494,8 @@ function buildAccountSnapshot(state) {
     .map(([name, count]) => ({ name, count }));
   return {
     phase: state.phase === "funded" ? 3 : state.phase,
-    state: breached ? "breached" : state.phase === "funded" ? "funded" : "active",
+    state: breached ? "breached" : state.pendingPhase ? "pending_approval" : state.phase === "funded" ? "funded" : "active",
+    pendingPhase: state.pendingPhase ? (state.pendingPhase === "funded" ? 3 : state.pendingPhase) : null,
     balance: state.balance,
     profit: state.balance - state.cap,
     qualifyingTickets: Portfolio.countQualifyingTickets(state, state.phaseStartedAt),
@@ -674,7 +679,7 @@ async function syncChallengeAccount() {
     const fetchAccounts = async () => {
       const { data, error: fetchError } = await client
         .from("challenge_accounts")
-        .select("id, package_key, capital, phase, state, flags, created_at, inactivity_warned_7, inactivity_warned_13, nickname, leaderboard_opt_in")
+        .select("id, package_key, capital, phase, pending_phase, state, flags, created_at, inactivity_warned_7, inactivity_warned_13, nickname, leaderboard_opt_in")
         .order("created_at", { ascending: false });
       if (fetchError) throw fetchError;
       return data || [];
@@ -692,7 +697,10 @@ async function syncChallengeAccount() {
     // starých účtů), ne tvrdý redirect na checkout. Dřív se bez jakéhokoli
     // řádku v challenge_accounts posílalo rovnou na checkout a přeskočila
     // se stránka, kde přihlášený člověk vidí svoje údaje.
-    let account = accounts.find((a) => a.state === "active" || a.state === "funded");
+    // pending_approval = fáze splněná, čeká na schválení adminem — pořád je
+    // to plnohodnotně "má aktivní účet", jen se dočasně nesází (viz
+    // Portfolio.placeBet()), takže patří do stejné podmínky jako active/funded.
+    let account = accounts.find((a) => a.state === "active" || a.state === "funded" || a.state === "pending_approval");
 
     // Čerstvě zaplaceno (?paid=1), ale whop-webhook ještě nestihl založit
     // challenge_accounts řádek (obvykle pár sekund po platbě) — bez tohohle
@@ -707,7 +715,7 @@ async function syncChallengeAccount() {
         } catch (e) {
           break;
         }
-        account = accounts.find((a) => a.state === "active" || a.state === "funded");
+        account = accounts.find((a) => a.state === "active" || a.state === "funded" || a.state === "pending_approval");
       }
     }
 
@@ -782,7 +790,17 @@ async function syncChallengeAccount() {
     // nový zákazník po zaplacení uvidí cizí/starou historii tiketů místo
     // čerstvého účtu. Reálný root cause incidentu 29.8. — nový nákup, hned
     // zobrazená historie 47 tiketů z předchozího testu na stejném prohlížeči.
-    if (state && state.accountId && state.accountId === account.id && hadLocalPortfolioBeforeBoot) return;
+    // Fáze/schvalování je autoritativní na serveru (viz approve-phase) —
+    // pokud se admin mezitím rozhodl (schválil/zamítl) a lokální stav o tom
+    // ještě neví (zařízení bylo zavřené), musí se přeskočit i "je to v
+    // pořádku" zkratka výš a spustit obnova ze serveru níž, jinak by hráč
+    // dál viděl starou fázi / "čeká na schválení" navěky.
+    const localPhaseNum = state ? (state.phase === "funded" ? 3 : state.phase) : null;
+    const localPendingNum = state && state.pendingPhase ? (state.pendingPhase === "funded" ? 3 : state.pendingPhase) : null;
+    const serverPendingNum = account.pending_phase ?? null;
+    const wasWaitingForApproval = localPendingNum != null;
+    const phaseInSync = localPhaseNum === account.phase && localPendingNum === serverPendingNum;
+    if (state && state.accountId && state.accountId === account.id && hadLocalPortfolioBeforeBoot && phaseInSync) return;
 
     // Lokální stav chybí nebo neodpovídá zaplacenému balíčku — nejdřív
     // zkusit obnovit reálný postup ze serveru (localStorage může zmizet
@@ -820,7 +838,18 @@ async function syncChallengeAccount() {
       if (typeof renderPrehled === "function") renderPrehled();
       if (typeof renderVykon === "function") renderVykon();
       if (typeof renderBankBar === "function") renderBankBar();
-      showToast("win", "Account restored", "Your progress was restored from the server.");
+      if (wasWaitingForApproval && account.state === "pending_approval") {
+        // pořád čeká — sem se dostane jen když se localStorage mezitím ztratil
+        showToast("pend", "Awaiting approval", "Your phase result is being reviewed — betting stays paused until it's approved.");
+      } else if (wasWaitingForApproval && account.state === "funded") {
+        showToast("win", "You're funded! 🏆", "Your Phase 2 result was approved — welcome to the partner program.");
+      } else if (wasWaitingForApproval && account.phase === localPendingNum) {
+        showToast("win", `Phase ${account.phase} approved`, "Your result was approved — the account has been reset for a fresh start.");
+      } else if (wasWaitingForApproval) {
+        showToast("pend", "Back to trading", "Your last phase result wasn't approved yet — betting has resumed on the current phase.");
+      } else {
+        showToast("win", "Account restored", "Your progress was restored from the server.");
+      }
       return;
     }
 
@@ -2238,7 +2267,16 @@ function renderPrehled() {
   const meta = Portfolio.ruleMeta(state);
   const phaseLabel = state.phase === "funded" ? "Partner account" : `Phase ${state.phase}`;
   document.getElementById("ovSubtitle").textContent = `${phaseLabel} · Fundly Challenge`;
-  document.getElementById("ovPhaseChip").textContent = phaseLabel;
+  document.getElementById("ovPhaseChip").textContent = state.pendingPhase ? `${phaseLabel} · Pending review` : phaseLabel;
+  const pendingPanel = document.getElementById("pendingApprovalPanel");
+  if (pendingPanel) {
+    pendingPanel.hidden = !state.pendingPhase;
+    if (state.pendingPhase) {
+      const nextLabel = state.pendingPhase === "funded" ? "a Partner (funded) account" : `Phase ${state.pendingPhase}`;
+      document.getElementById("pendingApprovalText").textContent =
+        `You cleared this phase's target. Betting is paused while our team reviews and approves the move to ${nextLabel} — you'll get an e-mail as soon as it's confirmed.`;
+    }
+  }
   renderMomentum(state);
 
   const target = Portfolio.phaseTarget(state);

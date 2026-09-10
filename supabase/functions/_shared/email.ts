@@ -53,6 +53,43 @@ export function accountClosedHtml(pkgName: string, reason: string, restartLink: 
   </div>`;
 }
 
+// "Phase 1 passed" e-mail — sent once, the moment an admin approves the
+// phase 1 → phase 2 transition (see approve-phase/index.ts). The account is
+// reset fresh for phase 2 at the same moment (new baseline/target/day-limit),
+// so this e-mail doubles as the "you can trade again" notice.
+export function phase1PassedHtml(pkgName: string, dashboardLink: string): string {
+  return `
+  <div style="background:#020204;padding:32px;font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#e8e8ec">
+    <div style="max-width:520px;margin:0 auto;background:#0d0d12;border:1px solid #ffffff1a;border-radius:16px;padding:28px">
+      <div style="color:#14f195;font-weight:700;font-size:18px;margin-bottom:16px">fundly</div>
+      <h2 style="color:#fff;font-size:18px;margin:0 0 12px">Phase 1 passed 🎉</h2>
+      <p style="color:#a0a0ab;font-size:14px;line-height:1.6;margin:0 0 8px">Your ${pkgName} account cleared Phase 1 and has been verified by our team.</p>
+      <p style="color:#a0a0ab;font-size:14px;line-height:1.6;margin:0 0 20px">You're now on Phase 2 — the account balance and daily limits have been reset for a fresh start. Keep the same discipline and you're one step from a funded partner account.</p>
+      <a href="${dashboardLink}" style="display:inline-block;background:#14f195;color:#020204;font-weight:700;text-decoration:none;padding:12px 24px;border-radius:10px">Go to my dashboard</a>
+      <hr style="border:none;border-top:1px solid #ffffff1a;margin:24px 0 16px" />
+      <p style="color:#5a5a66;font-size:11px;line-height:1.6;margin:0">Grindit LLC · Sharjah Media City, Sharjah, UAE · Reg. 2541536<br />Questions? Reply to this e-mail or reach us at <a href="mailto:support@fundly.games" style="color:#7a7a86">support@fundly.games</a>.</p>
+    </div>
+  </div>`;
+}
+
+// "Funded" e-mail — sent once, the moment an admin approves the phase 2 →
+// funded transition. Explicitly covers both milestones (clearing Phase 2 AND
+// going funded), since in this two-phase model they're the same event.
+export function fundedHtml(pkgName: string, profitSplit: number, dashboardLink: string): string {
+  return `
+  <div style="background:#020204;padding:32px;font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#e8e8ec">
+    <div style="max-width:520px;margin:0 auto;background:#0d0d12;border:1px solid #ffffff1a;border-radius:16px;padding:28px">
+      <div style="color:#14f195;font-weight:700;font-size:18px;margin-bottom:16px">fundly</div>
+      <h2 style="color:#fff;font-size:18px;margin:0 0 12px">You're funded! 🏆</h2>
+      <p style="color:#a0a0ab;font-size:14px;line-height:1.6;margin:0 0 8px">Your ${pkgName} account cleared Phase 2 and has been verified by our team — welcome to the partner program.</p>
+      <p style="color:#a0a0ab;font-size:14px;line-height:1.6;margin:0 0 20px">Your account has been reset for the funded stage with a ${profitSplit}% performance split, unlimited time, and regular payouts. Keep at least one bet every 14 days to stay active.</p>
+      <a href="${dashboardLink}" style="display:inline-block;background:#14f195;color:#020204;font-weight:700;text-decoration:none;padding:12px 24px;border-radius:10px">Go to my dashboard</a>
+      <hr style="border:none;border-top:1px solid #ffffff1a;margin:24px 0 16px" />
+      <p style="color:#5a5a66;font-size:11px;line-height:1.6;margin:0">Grindit LLC · Sharjah Media City, Sharjah, UAE · Reg. 2541536<br />Questions? Reply to this e-mail or reach us at <a href="mailto:support@fundly.games" style="color:#7a7a86">support@fundly.games</a>.</p>
+    </div>
+  </div>`;
+}
+
 export function supportReplyHtml(originalMessage: string, reply: string): string {
   return `
   <div style="background:#020204;padding:32px;font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#e8e8ec">

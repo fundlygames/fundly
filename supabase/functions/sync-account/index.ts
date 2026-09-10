@@ -12,7 +12,7 @@ import { computeServerRiskSignals, watchStatusFor } from "../_shared/risk.ts";
 import { sendEmail, accountClosedHtml } from "../_shared/email.ts";
 import { packageByKey } from "../_shared/packages.ts";
 
-const ALLOWED_STATES = ["active", "funded", "breached"];
+const ALLOWED_STATES = ["active", "funded", "breached", "pending_approval"];
 const SITE_URL = Deno.env.get("SITE_URL") ?? "https://fundly.games";
 
 function saneNumber(v: unknown, max: number): number | null {
@@ -73,6 +73,9 @@ serve(async (req) => {
     const breachReason = body.breachReason == null
       ? null
       : String(body.breachReason).slice(0, 200);
+    // cílová fáze (2 nebo 3), kterou hráč splnil a čeká na schválení adminem
+    // — viz approve-phase. Posílá se jen zároveň s state === "pending_approval".
+    const pendingPhaseIn = body.pendingPhase == null ? null : saneInt(body.pendingPhase, 3);
 
     // plný snapshot pro věrnou obnovu stavu na jiném zařízení/po smazání
     // localStorage (viz 015_account_restore.sql) — volitelné, starší klienti
@@ -131,7 +134,7 @@ serve(async (req) => {
     // challenge účet přihlášeného hráče (nejnovější)
     const { data: account } = await supabase
       .from("challenge_accounts")
-      .select("id, email, package_key, state, phase, tickets_total, created_at, phase1_completed_at, phase2_completed_at, funded_at, signup_ip, payment_fingerprint, betting_profile")
+      .select("id, email, package_key, state, phase, pending_phase, tickets_total, created_at, phase1_completed_at, phase2_completed_at, funded_at, signup_ip, payment_fingerprint, betting_profile")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -140,16 +143,34 @@ serve(async (req) => {
       return jsonResponse({ error: "You have no challenge account." }, 400);
     }
 
-    // breached je terminální — klient ho nesmí přepsat zpět na active/funded
-    const nextState = account.state === "breached" ? "breached" : state;
+    // breached je terminální — klient ho nesmí přepsat zpět na active/funded.
+    // pending_approval je "sticky", dokud admin přechod neschválí/nezamítne
+    // (viz approve-phase) — klient dál smí posílat balance/tikety z už
+    // rozehraných sázek (checkSettlements běží dál i při čekání), ale nesmí
+    // se sám odemknout zpět na active/funded. Výjimka: pořád smí přejít do
+    // breached (např. doběhne starý tiket a poruší denní limit ztráty).
+    let nextState: string;
+    if (account.state === "breached") {
+      nextState = "breached";
+    } else if (account.state === "pending_approval") {
+      nextState = state === "breached" ? "breached" : "pending_approval";
+    } else {
+      nextState = state;
+    }
+    // fáze se při čekání na schválení nesmí posunout — tu mění jen approve-phase.
+    const nextPhase = account.state === "pending_approval" ? account.phase : phase;
+    const nextPendingPhase = nextState === "pending_approval"
+      ? (account.state === "pending_approval" ? account.pending_phase : pendingPhaseIn)
+      : null;
+    const enteringPending = nextState === "pending_approval" && account.state !== "pending_approval";
     const now = new Date().toISOString();
 
     // fázové časové značky — stamp jen při prvním přechodu (sloupec dosud prázdný)
     const phaseStamps: Record<string, string> = {};
-    if (account.phase === 1 && phase === 2 && !account.phase1_completed_at) {
+    if (account.phase === 1 && nextPhase === 2 && !account.phase1_completed_at) {
       phaseStamps.phase1_completed_at = now;
     }
-    if (account.phase === 2 && phase === 3 && !account.phase2_completed_at) {
+    if (account.phase === 2 && nextPhase === 3 && !account.phase2_completed_at) {
       phaseStamps.phase2_completed_at = now;
     }
     if (nextState === "funded" && !account.funded_at) {
@@ -173,7 +194,9 @@ serve(async (req) => {
       .from("challenge_accounts")
       .update({
         state: nextState,
-        phase,
+        phase: nextPhase,
+        pending_phase: nextPendingPhase,
+        ...(enteringPending ? { pending_requested_at: now } : {}),
         phase_balance: balance,
         profit,
         qualifying_tickets: qualifyingTickets,
@@ -183,10 +206,12 @@ serve(async (req) => {
         tickets_won: ticketsWon,
         synced_at: now,
         ...(hwm != null ? { hwm } : {}),
-        ...(phaseBaseline != null ? { phase_baseline: phaseBaseline } : {}),
-        ...(phaseStartedAt ? { phase_started_at: phaseStartedAt } : {}),
-        ...(dayStartDate ? { day_start_date: dayStartDate } : {}),
-        ...(dayStartBalance != null ? { day_start_balance: dayStartBalance } : {}),
+        // fáze/baseline/den se při čekání na schválení nesmí přepsat klientem
+        // (approve-phase je nastaví na fresh hodnoty při schválení)
+        ...(account.state !== "pending_approval" && phaseBaseline != null ? { phase_baseline: phaseBaseline } : {}),
+        ...(account.state !== "pending_approval" && phaseStartedAt ? { phase_started_at: phaseStartedAt } : {}),
+        ...(account.state !== "pending_approval" && dayStartDate ? { day_start_date: dayStartDate } : {}),
+        ...(account.state !== "pending_approval" && dayStartBalance != null ? { day_start_balance: dayStartBalance } : {}),
         ...(lastPayoutAt ? { last_payout_at: lastPayoutAt } : {}),
         ...phaseStamps,
         ...lastTicketStamp,
