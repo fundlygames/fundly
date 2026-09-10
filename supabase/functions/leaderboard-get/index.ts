@@ -32,7 +32,7 @@ serve(async (req) => {
       .from("challenge_accounts")
       .select("id, user_id, nickname, package_key, capital, profit, tickets_total, tickets_won, state")
       .eq("leaderboard_opt_in", true)
-      .in("state", ["active", "funded"])
+      .in("state", ["active", "funded", "pending_approval"])
       .not("profit", "is", null)
       .order("profit", { ascending: false })
       .limit(50);

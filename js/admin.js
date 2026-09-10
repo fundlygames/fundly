@@ -586,6 +586,7 @@ function renderRealFinance(stats) {
 // ---------- Hráči: reálné účty ----------
 const REAL_STATUS = {
   active: { tag: "push", label: "Aktivní", filter: "aktivni" },
+  pending_approval: { tag: "pend", label: "Čeká na schválení", filter: "schvaleni" },
   funded: { tag: "win", label: "Financovaný", filter: "funded" },
   breached: { tag: "loss", label: "Breached", filter: "breached" },
 };
@@ -992,6 +993,9 @@ renderPlayersTable = function () {
           <td style="color:var(--text-muted)">${new Date(a.created_at).toLocaleDateString("cs-CZ")}</td>
           <td>${a.state === "funded"
             ? `<button class="btn btn-ghost" data-payout="${esc(a.id)}" data-email="${esc(a.email)}">Vyplatit</button>`
+            : a.state === "pending_approval"
+            ? `<button class="btn btn-primary" data-approve-phase="${esc(a.id)}" data-pending-phase="${esc(a.pending_phase)}" data-email="${esc(a.email)}">Schválit</button>
+               <button class="btn btn-ghost" data-reject-phase="${esc(a.id)}" data-email="${esc(a.email)}">Zamítnout</button>`
             : ""}</td>
         </tr>`;
       }).join("") : `<tr><td colspan="8">Žádné účty pro zvolený filtr.</td></tr>`}
@@ -1057,6 +1061,10 @@ function openPlayerDetail(acc) {
       ${a.state === "breached" && a.breach_reason
         ? `<div class="k-row loss" style="margin-top:10px">Porušení pravidel<span class="n">${esc(a.breach_reason)}</span></div>`
         : ""}
+      ${a.state === "pending_approval"
+        ? `<div class="k-row pend" style="margin-top:10px">Čeká na schválení přechodu do fáze ${esc(a.pending_phase === 3 ? "Funded" : a.pending_phase)}<span class="n">${a.pending_requested_at ? fmtDate(a.pending_requested_at) : ""}</span></div>`
+        : ""}
+      ${a.admin_note ? `<div class="k-row neutral" style="margin-top:10px">Poznámka admina<span class="n">${esc(a.admin_note)}</span></div>` : ""}
       ${synced ? `
         <div class="pm-grid" style="margin-top:10px">
           ${infoRow("Zůstatek", usd(Number(a.phase_balance) || 0))}
@@ -1085,6 +1093,11 @@ function openPlayerDetail(acc) {
       : `<p class="pm-date" style="margin-top:10px">Zatím nesynchronizováno — statistiky pravidel se zobrazí po první synchronizaci z dashboardu hráče.</p>`}
       ${a.state === "funded"
         ? `<button class="btn btn-primary" style="width:100%;margin-top:12px" data-payout="${esc(a.id)}" data-email="${esc(a.email)}">Vyplatit</button>`
+        : a.state === "pending_approval"
+        ? `<div style="display:flex;gap:8px;margin-top:12px">
+             <button class="btn btn-primary" style="flex:1" data-approve-phase="${esc(a.id)}" data-pending-phase="${esc(a.pending_phase)}" data-email="${esc(a.email)}">Schválit přechod</button>
+             <button class="btn btn-ghost" style="flex:1" data-reject-phase="${esc(a.id)}" data-email="${esc(a.email)}">Zamítnout</button>
+           </div>`
         : ""}
     </div>`;
   };
@@ -1125,7 +1138,7 @@ function openPlayerDetail(acc) {
 // nemusí být mezi posledními 50 registracemi, proto fallback na problemAccounts)
 document.addEventListener("click", (e) => {
   const row = e.target.closest("#playersTable tr[data-acc], #problemsTable tr[data-acc]");
-  if (!row || e.target.closest("[data-payout]")) return;
+  if (!row || e.target.closest("[data-payout], [data-approve-phase], [data-reject-phase]")) return;
   const acc = REAL && (
     (REAL.recentAccounts || []).find((x) => String(x.id) === row.dataset.acc) ||
     (REAL.problemAccounts || []).find((x) => String(x.id) === row.dataset.acc)
@@ -1177,6 +1190,40 @@ document.addEventListener("click", async (e) => {
     await loadRealStats();
   } catch (err) {
     window.alert(err.message || "Výplata se nepodařila.");
+    btn.disabled = false;
+  }
+});
+
+// ---------- fáze: schválení/zamítnutí čekajícího přechodu (Phase 1 → 2 → Funded) ----------
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest("[data-approve-phase]");
+  if (!btn) return;
+  const pendingPhase = Number(btn.dataset.pendingPhase);
+  const label = pendingPhase === 3 ? "Funded" : `Fáze ${pendingPhase}`;
+  if (!window.confirm(`Schválit přechod hráče ${btn.dataset.email} do ${label}? Účet se resetuje na čerstvý start této fáze.`)) return;
+  btn.disabled = true;
+  try {
+    await adminFetch("approve-phase", { accountId: btn.dataset.approvePhase, action: "approve" });
+    window.alert(`Přechod do ${label} schválen.`);
+    await loadRealStats();
+  } catch (err) {
+    window.alert(err.message || "Schválení se nepodařilo.");
+    btn.disabled = false;
+  }
+});
+
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest("[data-reject-phase]");
+  if (!btn) return;
+  const note = window.prompt(`Důvod zamítnutí pro ${btn.dataset.email} (volitelné):`, "");
+  if (note === null) return;
+  btn.disabled = true;
+  try {
+    await adminFetch("approve-phase", { accountId: btn.dataset.rejectPhase, action: "reject", note: note || null });
+    window.alert("Přechod zamítnut, hráč pokračuje ve stávající fázi.");
+    await loadRealStats();
+  } catch (err) {
+    window.alert(err.message || "Zamítnutí se nepodařilo.");
     btn.disabled = false;
   }
 });

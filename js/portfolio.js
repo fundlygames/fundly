@@ -107,6 +107,7 @@ const Portfolio = (() => {
       phase: 1,
       phaseBaseline: pkg.cap,
       phaseStartedAt: now,
+      pendingPhase: null, // 2 nebo "funded" — cíl fáze splněn, čeká na schválení adminem
       balance: pkg.cap,
       hwm: pkg.cap,
       dayStartDate: now.slice(0, 10), // UTC den pro denní limit ztráty
@@ -136,6 +137,7 @@ const Portfolio = (() => {
       phase: account.phase === 3 ? "funded" : account.phase,
       phaseBaseline: account.phase_baseline ?? pkg.cap,
       phaseStartedAt: account.phase_started_at ?? now,
+      pendingPhase: account.pending_phase === 3 ? "funded" : (account.pending_phase ?? null),
       balance: account.phase_balance ?? pkg.cap,
       hwm: account.hwm ?? account.phase_balance ?? pkg.cap,
       dayStartDate: account.day_start_date ?? now.slice(0, 10),
@@ -333,6 +335,9 @@ const Portfolio = (() => {
     if (!state) return { ok: false, error: "Please sign in first." };
     if (breachInfo(state).breached) {
       return { ok: false, error: "This account has breached its loss limit and is closed. Buy a new Challenge to keep trading." };
+    }
+    if (state.pendingPhase) {
+      return { ok: false, error: "You cleared this phase's target — betting is paused while our team reviews and approves the move to the next phase." };
     }
     if (!selections || !selections.length) return { ok: false, error: "Your ticket is empty." };
     // Past-post guard: odds-api.io occasionally still lists an event as
@@ -559,17 +564,20 @@ const Portfolio = (() => {
     }
   }
 
+  // Splnění cíle fáze už neposune fázi rovnou — jen ji "zamkne" ve stavu
+  // čekajícím na schválení adminem (state.pendingPhase). Skutečný posun
+  // (fáze/baseline/den reset na fresh start) provede až server v okamžiku
+  // schválení (approve-phase), odkud se pak vrátí zpátky přes Portfolio.restore()
+  // — viz syncChallengeAccount() v dashboard.js.
   function advancePhaseIfNeeded(state) {
-    if (state.phase === "funded") return;
+    if (state.phase === "funded" || state.pendingPhase) return;
     const target = phaseTarget(state);
     const profit = state.balance - state.phaseBaseline;
     const meta = packageMeta(packageByKey(state.packageKey));
     // postup = splněný cíl zisku + min. počet kvalifikačních tiketů v této fázi
     const qualified = countQualifyingTickets(state, state.phaseStartedAt) >= meta.qualifyingTickets;
     if (profit >= target && qualified) {
-      state.phase = state.phase === 1 ? 2 : "funded";
-      state.phaseBaseline = state.balance;
-      state.phaseStartedAt = new Date().toISOString();
+      state.pendingPhase = state.phase === 1 ? 2 : "funded";
     }
   }
 
