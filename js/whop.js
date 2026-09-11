@@ -36,11 +36,21 @@ const FundlyCheckout = {
   // Creates a Whop checkout session via the edge function and returns the whole
   // response ({ checkoutUrl, sessionId, planId }) without redirecting — for embedded checkout.
   async createSession(packageKey, email) {
-    const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/whop-checkout`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ packageKey, email }),
-    });
+    let res;
+    try {
+      res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/whop-checkout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ packageKey, email }),
+      });
+    } catch (networkErr) {
+      // raw fetch() failure (offline, flaky mobile connection, tab was
+      // backgrounded mid-request — Safari's own message for this is the
+      // cryptic, untranslated "Load failed"). Never show the browser's raw
+      // message to the customer — empty message here falls back to the
+      // translated string in checkout.js's showFallback().
+      throw new Error("");
+    }
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.checkoutUrl) {
       const err = new Error(data.error || "Could not open the payment gateway.");
