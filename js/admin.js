@@ -1064,6 +1064,9 @@ function openPlayerDetail(acc) {
       ${a.state === "pending_approval"
         ? `<div class="k-row pend" style="margin-top:10px">Čeká na schválení přechodu do fáze ${esc(a.pending_phase === 3 ? "Funded" : a.pending_phase)}<span class="n">${a.pending_requested_at ? fmtDate(a.pending_requested_at) : ""}</span></div>`
         : ""}
+      ${a.state === "pending_approval" && a.pending_phase === 3 && a.kyc_status !== "verified"
+        ? `<div class="k-row loss" style="margin-top:10px">KYC nedokončeno — Funded nejde schválit<span class="n">Nasměrujte hráče na verification session ve Whopu</span></div>`
+        : ""}
       ${a.admin_note ? `<div class="k-row neutral" style="margin-top:10px">Poznámka admina<span class="n">${esc(a.admin_note)}</span></div>` : ""}
       ${synced ? `
         <div class="pm-grid" style="margin-top:10px">
