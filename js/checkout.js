@@ -472,11 +472,17 @@
     whopMount.innerHTML = "";
 
     try {
-      const data = pendingCheckoutSession
-        ? await pendingCheckoutSession
-        : await FundlyCheckout.createSession(state.pkg, state.email);
+      let data = pendingCheckoutSession ? await pendingCheckoutSession : null;
       pendingCheckoutSession = null;
-      if (data && data.__error) throw data.__error;
+      if (!data || data.__error) {
+        // The background pre-fetch (started during step 2, see the submit
+        // handler above) can fail on its own — most commonly on mobile,
+        // when the tab gets backgrounded/throttled while the user is still
+        // filling in the registration form. By the time we're actually on
+        // the payment step the user is back in the foreground, so retry a
+        // fresh request instead of giving up on a stale failure.
+        data = await FundlyCheckout.createSession(state.pkg, state.email);
+      }
       state.checkoutUrl = data.checkoutUrl;
       if (!data.sessionId || !data.planId) {
         throw new Error(t("co.errInvalidGatewayResponse"));
