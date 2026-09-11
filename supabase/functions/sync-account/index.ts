@@ -9,7 +9,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { handleCors, jsonResponse } from "../_shared/cors.ts";
 import { computeServerRiskSignals, watchStatusFor } from "../_shared/risk.ts";
-import { sendEmail, accountClosedHtml } from "../_shared/email.ts";
+import { sendEmail, accountClosedHtml, pendingApprovalAdminHtml } from "../_shared/email.ts";
 import { packageByKey } from "../_shared/packages.ts";
 
 const ALLOWED_STATES = ["active", "funded", "breached", "pending_approval"];
@@ -231,6 +231,29 @@ serve(async (req) => {
         html: accountClosedHtml(pkg.name, breachReason ?? "Loss limit exceeded", `${SITE_URL}/get-started`),
       }).then((r) => { if (!r.sent) console.error("account-closed e-mail selhal:", r.error); })
         .catch((e) => console.error("account-closed e-mail error:", e));
+    }
+
+    // Admin notifikace — hráč právě splnil cíl fáze a čeká na schválení
+    // (viz approve-phase). enteringPending je true nejvýš jednou za přechod
+    // (dokud ho admin nevyřeší, sync-account ho dál drží na pending_approval
+    // beze změny, viz nextState výš).
+    if (enteringPending && account.email && nextPendingPhase) {
+      const pkg = packageByKey(String(account.package_key ?? ""));
+      const notifyTo = Deno.env.get("SUPPORT_NOTIFY_EMAIL") ?? "support@fundly.games";
+      sendEmail({
+        to: notifyTo,
+        subject: `Phase approval needed — ${account.email}`,
+        html: pendingApprovalAdminHtml({
+          email: String(account.email),
+          packageName: pkg?.name ?? String(account.package_key ?? "?"),
+          fromPhase: account.phase,
+          toPhase: nextPendingPhase,
+          balance,
+          profit,
+          adminLink: `${SITE_URL}/admin.html`,
+        }),
+      }).then((r) => { if (!r.sent) console.error("pending-approval admin e-mail selhal:", r.error); })
+        .catch((e) => console.error("pending-approval admin e-mail error:", e));
     }
 
     // Risk scoring doběhne na pozadí PO odeslání odpovědi (EdgeRuntime.

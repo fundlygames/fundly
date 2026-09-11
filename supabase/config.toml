@@ -39,6 +39,9 @@ verify_jwt = false
 [functions.approve-phase]
 verify_jwt = false
 
+[functions.admin-account-tickets]
+verify_jwt = false
+
 [functions.support-submit]
 verify_jwt = false
 
