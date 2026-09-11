@@ -1089,7 +1089,9 @@ function openPlayerDetail(acc) {
             <span class="tag ${Number(a.risk_score) >= 100 ? "loss" : Number(a.risk_score) >= 30 ? "pend" : "win"}">skóre ${Number(a.risk_score)} · ${a.watch_status === "hold" ? "HOLD" : a.watch_status === "watch" ? "SLEDOVAT" : "clear"}</span>
             <span class="pm-date">${Array.isArray(a.risk_reasons) && a.risk_reasons.length ? a.risk_reasons.map(esc).join(" · ") : "bez nálezů"}</span>
           </div>` : ""}
-        <p class="pm-date" style="margin-top:8px">Poslední synchronizace: ${fmtDate(a.synced_at)}</p>`
+        <p class="pm-date" style="margin-top:8px">Poslední synchronizace: ${fmtDate(a.synced_at)}</p>
+        <button class="btn btn-ghost" style="width:100%;margin-top:10px" data-show-tickets="${esc(a.id)}">Zobrazit tikety a průběh den po dni</button>
+        <div id="ticketsDetail-${esc(a.id)}" class="pm-tickets-detail"></div>`
       : `<p class="pm-date" style="margin-top:10px">Zatím nesynchronizováno — statistiky pravidel se zobrazí po první synchronizaci z dashboardu hráče.</p>`}
       ${a.state === "funded"
         ? `<button class="btn btn-primary" style="width:100%;margin-top:12px" data-payout="${esc(a.id)}" data-email="${esc(a.email)}">Vyplatit</button>`
@@ -1191,6 +1193,117 @@ document.addEventListener("click", async (e) => {
   } catch (err) {
     window.alert(err.message || "Výplata se nepodařila.");
     btn.disabled = false;
+  }
+});
+
+// ---------- detail hráče: kompletní tikety + vývoj zůstatku den po dni ----------
+// Dřív admin sekce ukazovala jen souhrny (počet tiketů, výherní podíl) —
+// tohle na vyžádání (tlačítko "Zobrazit tikety a průběh") dotáhne úplnou
+// historii přes admin-account-tickets a spočítá zůstatek po dnech, aby šlo
+// před schválením přechodu do další fáze přesně vidět, jak k výsledku hráč došel.
+function formatSelections(selections) {
+  if (!Array.isArray(selections) || !selections.length) return "—";
+  return selections.map((s) => {
+    const teams = s.homeTeam && s.awayTeam ? `${s.homeTeam} – ${s.awayTeam}` : (s.league || s.sport || "?");
+    const pick = s.pickLabel || s.field || s.marketName || "";
+    const odd = s.oddValue ? `@${Number(s.oddValue).toFixed(2)}` : "";
+    return `${esc(teams)}${pick ? ` (${esc(String(pick))})` : ""} ${odd}`.trim();
+  }).join(" + ");
+}
+
+function ticketStatusTag(status) {
+  const tag = status === "won" ? "win" : status === "lost" ? "loss" : status === "pending" ? "pend" : "neutral";
+  const label = status === "won" ? "výhra" : status === "lost" ? "prohra" : status === "pending" ? "čeká" : status === "push" ? "push" : status === "cashedout" ? "cash out" : esc(status);
+  return `<span class="tag ${tag}">${label}</span>`;
+}
+
+// Server equity historii nedrží (jen klientský localStorage) — den po dni
+// se proto dopočítá tady z jednotlivých vyřízených tiketů, počínaje
+// baseline aktuální fáze (phase_baseline/phase_started_at, nebo počáteční
+// kapitál, chybí-li — starší účty bez baseline sloupce).
+function computeDailyBalances(account, tickets) {
+  const baseline = Number(account.phase_baseline ?? account.capital) || 0;
+  const settled = tickets
+    .filter((t) => t.settled_at && t.status !== "pending")
+    .slice()
+    .sort((a, b) => new Date(a.settled_at) - new Date(b.settled_at));
+  let running = baseline;
+  const days = [];
+  let cur = null;
+  settled.forEach((t) => {
+    const day = String(t.settled_at).slice(0, 10);
+    const delta = (Number(t.payout) || 0) - (Number(t.stake) || 0);
+    running += delta;
+    if (!cur || cur.date !== day) {
+      cur = { date: day, count: 0, net: 0, endBalance: running };
+      days.push(cur);
+    }
+    cur.count += 1;
+    cur.net += delta;
+    cur.endBalance = running;
+  });
+  return { baseline, days };
+}
+
+async function loadAccountTickets(accountId) {
+  return adminFetch("admin-account-tickets", { accountId });
+}
+
+function renderTicketsDetail(container, data) {
+  const { account, tickets } = data;
+  const { baseline, days } = computeDailyBalances(account, tickets);
+  const dayRows = days.length
+    ? days.map((d) => `
+        <tr>
+          <td>${new Date(d.date).toLocaleDateString("cs-CZ")}</td>
+          <td>${d.count}</td>
+          <td style="color:${d.net >= 0 ? "var(--accent)" : "#ff9d9d"}">${d.net >= 0 ? "+" : ""}${usd(Math.round(d.net))}</td>
+          <td class="odds">${usd(Math.round(d.endBalance))}</td>
+        </tr>`).join("")
+    : `<tr><td colspan="4">Zatím žádné vyřízené tikety.</td></tr>`;
+
+  const ticketRows = tickets.length
+    ? tickets.slice().reverse().map((t) => `
+        <tr>
+          <td style="color:var(--text-muted)">${new Date(t.placed_at).toLocaleString("cs-CZ")}</td>
+          <td>${formatSelections(t.selections)}</td>
+          <td class="odds">${usd(Number(t.stake) || 0)}</td>
+          <td class="odds">${(Number(t.combined_odds) || 1).toFixed(2)}</td>
+          <td>${ticketStatusTag(t.status)}</td>
+          <td class="odds">${t.payout != null ? usd(Number(t.payout)) : "—"}</td>
+        </tr>`).join("")
+    : `<tr><td colspan="6">Žádné tikety.</td></tr>`;
+
+  container.innerHTML = `
+    <h4 class="pm-h">Průběh po dnech <span class="pm-date">(baseline aktuální fáze: ${usd(baseline)})</span></h4>
+    <div class="table-scroll"><table class="ticket-table">
+      <thead><tr><th>Den</th><th>Tikety</th><th>Netto</th><th>Zůstatek</th></tr></thead>
+      <tbody>${dayRows}</tbody>
+    </table></div>
+    <h4 class="pm-h" style="margin-top:16px">Všechny tikety (${tickets.length})</h4>
+    <div class="table-scroll"><table class="ticket-table">
+      <thead><tr><th>Podáno</th><th>Selekce</th><th>Vklad</th><th>Kurz</th><th>Stav</th><th>Výplata</th></tr></thead>
+      <tbody>${ticketRows}</tbody>
+    </table></div>`;
+}
+
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest("[data-show-tickets]");
+  if (!btn) return;
+  const accountId = btn.dataset.showTickets;
+  const container = document.getElementById(`ticketsDetail-${accountId}`);
+  if (!container) return;
+  btn.disabled = true;
+  const prevLabel = btn.textContent;
+  btn.textContent = "Načítám…";
+  try {
+    const data = await loadAccountTickets(accountId);
+    renderTicketsDetail(container, data);
+    btn.remove();
+  } catch (err) {
+    container.innerHTML = `<p class="bet-msg">${esc(err.message || "Tikety se nepodařilo načíst.")}</p>`;
+    btn.disabled = false;
+    btn.textContent = prevLabel;
   }
 });
 

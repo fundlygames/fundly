@@ -90,6 +90,34 @@ export function fundedHtml(pkgName: string, profitSplit: number, dashboardLink: 
   </div>`;
 }
 
+// Admin notifikace — hráč splnil cíl fáze a čeká na schválení (viz
+// sync-account's enteringPending). Na rozdíl od ostatních šablon v tomhle
+// souboru nejde o e-mail hráči, ale internímu týmu (SUPPORT_NOTIFY_EMAIL) —
+// stejný účel/vzor jako notifikace na nový support tiket v support-submit.
+export function pendingApprovalAdminHtml(params: {
+  email: string;
+  packageName: string;
+  fromPhase: number;
+  toPhase: number; // 3 = funded
+  balance: number;
+  profit: number;
+  adminLink: string;
+}): string {
+  const toLabel = params.toPhase === 3 ? "Funded" : `Phase ${params.toPhase}`;
+  return `
+  <div style="background:#020204;padding:32px;font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#e8e8ec">
+    <div style="max-width:520px;margin:0 auto;background:#0d0d12;border:1px solid #ffffff1a;border-radius:16px;padding:28px">
+      <div style="color:#14f195;font-weight:700;font-size:18px;margin-bottom:16px">fundly</div>
+      <h2 style="color:#fff;font-size:18px;margin:0 0 12px">Phase approval needed</h2>
+      <p style="color:#a0a0ab;font-size:14px;line-height:1.6;margin:0 0 4px">${params.email.replace(/</g, "&lt;")} (${params.packageName}) cleared Phase ${params.fromPhase} and is waiting to move to ${toLabel}.</p>
+      <p style="color:#a0a0ab;font-size:13px;line-height:1.6;margin:0 0 20px">Balance: $${Math.round(params.balance).toLocaleString("en-US")} · Profit this phase: $${Math.round(params.profit).toLocaleString("en-US")}</p>
+      <a href="${params.adminLink}" style="display:inline-block;background:#14f195;color:#020204;font-weight:700;text-decoration:none;padding:12px 24px;border-radius:10px">Review in admin</a>
+      <hr style="border:none;border-top:1px solid #ffffff1a;margin:24px 0 16px" />
+      <p style="color:#5a5a66;font-size:11px;line-height:1.6;margin:0">Players → Čeká na schválenie</p>
+    </div>
+  </div>`;
+}
+
 export function supportReplyHtml(originalMessage: string, reply: string): string {
   return `
   <div style="background:#020204;padding:32px;font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#e8e8ec">
