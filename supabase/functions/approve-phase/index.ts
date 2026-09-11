@@ -54,13 +54,25 @@ serve(async (req) => {
 
     const { data: account, error: fetchError } = await supabase
       .from("challenge_accounts")
-      .select("id, email, package_key, state, phase, pending_phase, phase_balance, phase1_completed_at, phase2_completed_at, funded_at")
+      .select("id, email, package_key, state, phase, pending_phase, phase_balance, phase1_completed_at, phase2_completed_at, funded_at, kyc_status")
       .eq("id", accountId)
       .maybeSingle();
     if (fetchError) throw fetchError;
     if (!account) return jsonResponse({ error: "Account not found." }, 404);
     if (account.state !== "pending_approval" || !account.pending_phase) {
       return jsonResponse({ error: "This account has no pending phase transition." }, 400);
+    }
+
+    // Fáze 3 (Funded) vyžaduje dokončené KYC/AML ověření (terms.html §5.1)
+    // před uzavřením Independent Contractor Agreement — bez toho hráč
+    // stejně nikdy nedostane vyplaceno (viz whop-payout), ale schválit
+    // přechod do Funded bez dokončeného KYC by odporovalo podmínkám, proto
+    // se to kontroluje už tady, ne až u samotné výplaty.
+    if (action === "approve" && account.pending_phase === 3 && account.kyc_status !== "verified") {
+      return jsonResponse(
+        { error: "Player has not completed KYC verification via Whop yet — required before approving Phase 3 (Funded)." },
+        400,
+      );
     }
 
     const now = new Date().toISOString();
