@@ -593,6 +593,30 @@ const REAL_STATUS = {
 const realStatus = (state) =>
   REAL_STATUS[state] || { tag: "loss", label: esc(state || "neaktivní"), filter: "breached" };
 
+// Profit + kolik chybí do cíle další fáze — cíle se vždy počítají čerstvě
+// z packageMeta() (stejné pravidlo jako v portfolio.js: nikdy neukládat
+// odvozené hodnoty, aby se každá změna procent v packages.js promítla i do
+// starších účtů). a.profit není k dispozici, dokud neproběhl první sync.
+function phaseProgressHtml(a) {
+  if (a.profit == null) return { profitHtml: '<span style="color:var(--text-muted)">—</span>', toGoalHtml: '<span style="color:var(--text-muted)">—</span>' };
+  const profit = Number(a.profit) || 0;
+  const profitHtml = `<span style="color:${profit >= 0 ? "var(--accent)" : "#ff9d9d"}">${profit >= 0 ? "+" : ""}${usd(profit)}</span>`;
+
+  let toGoalHtml;
+  if (a.state === "funded") {
+    toGoalHtml = '<span style="color:var(--text-muted)">Financovaný</span>';
+  } else if (a.state === "pending_approval") {
+    toGoalHtml = '<span style="color:var(--accent)">Cíl splněn</span>';
+  } else if (a.state === "breached") {
+    toGoalHtml = '<span style="color:var(--text-muted)">—</span>';
+  } else {
+    const meta = packageMeta(packageByKey(a.package_key));
+    const target = a.phase === 2 ? meta.target2 : meta.target1;
+    toGoalHtml = usd(Math.max(0, target - profit));
+  }
+  return { profitHtml, toGoalHtml };
+}
+
 function renderRealPlayers(stats) {
   const counts = stats.accountsByState || {};
   const total = Object.values(counts).reduce((a, v) => a + v, 0);
@@ -976,18 +1000,21 @@ renderPlayersTable = function () {
     (a) => playersFilter === "vse" || realStatus(a.state).filter === playersFilter
   );
   document.getElementById("playersTable").innerHTML = `
-    <thead><tr><th>E-mail</th><th>Balíček</th><th>Fáze</th><th>Kapitál</th><th>Riziko</th><th>Stav</th><th>Vytvořeno</th><th></th></tr></thead>
+    <thead><tr><th>E-mail</th><th>Balíček</th><th>Fáze</th><th>Kapitál</th><th>Profit</th><th>Do další fáze</th><th>Riziko</th><th>Stav</th><th>Vytvořeno</th><th></th></tr></thead>
     <tbody>
       ${rows.length ? rows.map((a) => {
         const status = realStatus(a.state);
         const risk = a.risk_score == null ? null : Number(a.risk_score);
         const riskTag = risk == null ? "" : risk >= 100 ? "loss" : risk >= 30 ? "pend" : "win";
+        const { profitHtml, toGoalHtml } = phaseProgressHtml(a);
         return `
         <tr class="row-player" data-acc="${esc(a.id)}" title="Otevřít detail hráče">
           <td>${esc(a.email)}</td>
           <td>${esc(a.package_key)}</td>
           <td>Fáze ${esc(a.phase)}</td>
           <td class="odds">${usd(Number(a.capital) || 0)}</td>
+          <td class="odds">${profitHtml}</td>
+          <td class="odds">${toGoalHtml}</td>
           <td>${risk == null ? '<span style="color:var(--text-muted)">—</span>' : `<span class="tag ${riskTag}" title="Rizikové skóre">${risk}</span>`}</td>
           <td><span class="tag ${status.tag}">${status.label}</span></td>
           <td style="color:var(--text-muted)">${new Date(a.created_at).toLocaleDateString("cs-CZ")}</td>
@@ -998,7 +1025,7 @@ renderPlayersTable = function () {
                <button class="btn btn-ghost" data-reject-phase="${esc(a.id)}" data-email="${esc(a.email)}">Zamítnout</button>`
             : ""}</td>
         </tr>`;
-      }).join("") : `<tr><td colspan="8">Žádné účty pro zvolený filtr.</td></tr>`}
+      }).join("") : `<tr><td colspan="10">Žádné účty pro zvolený filtr.</td></tr>`}
     </tbody>`;
 };
 
