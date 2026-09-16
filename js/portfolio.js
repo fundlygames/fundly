@@ -277,6 +277,33 @@ const Portfolio = (() => {
     return buckets;
   }
 
+  // Celý průběh aktuální fáze den po dni (ne jen posledních 7 dní jako
+  // dailyNet výš) — začíná na phaseBaseline, každý den má počet vyřízených
+  // tiketů, čistou změnu a zůstatek na konci dne. Stejný princip jako
+  // admin-account-tickets v adminovi, jen počítáno rovnou z lokálního stavu.
+  function dailyBalanceHistory(state) {
+    const settled = state.tickets
+      .filter((t) => t.settledAt && (t.status === "won" || t.status === "lost" || t.status === "push" || t.status === "cashedout"))
+      .slice()
+      .sort((a, b) => new Date(a.settledAt) - new Date(b.settledAt));
+    let running = state.phaseBaseline;
+    const days = [];
+    let cur = null;
+    settled.forEach((t) => {
+      const day = String(t.settledAt).slice(0, 10);
+      const delta = (t.payout || 0) - t.stake;
+      running += delta;
+      if (!cur || cur.date !== day) {
+        cur = { date: day, count: 0, net: 0, balance: running };
+        days.push(cur);
+      }
+      cur.count += 1;
+      cur.net += delta;
+      cur.balance = running;
+    });
+    return { baseline: state.phaseBaseline, days };
+  }
+
   // Arbitrage / sure-bet detection (jen flag, sázku neblokuje):
   // více výběrů na stejný zápas v jednom tiketu, nebo protikladná strana
   // téhož trhu už leží v jiném čekajícím tiketu.
@@ -679,7 +706,7 @@ const Portfolio = (() => {
   return {
     init, get, save, ensure, restore, phaseTarget, daysRemaining, drawdownInfo, ruleMeta,
     dailyLossInfo, breachInfo, cashOut, openExposure, worstCaseInfo, consistencyLimit,
-    summary, dailyNet, placeBet, checkSettlements, countQualifyingTickets,
+    summary, dailyNet, dailyBalanceHistory, placeBet, checkSettlements, countQualifyingTickets,
     applyServerSettlements,
   };
 })();
