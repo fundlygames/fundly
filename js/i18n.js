@@ -48,6 +48,7 @@ const FUNDLY_I18N = (() => {
       dashPreview: {
         heading: "Your dashboard, built for clarity", sub: "Real-time balance, live entries and performance stats — everything in one place, no spreadsheets.",
         overview: "Overview", liveEntries: "Live entries", performance: "Performance",
+        previewCta: "Try it yourself — Preview →",
       },
       why: {
         heading: "Why Fundly?", sub: "Up to $100,000 in simulated capital, fair rules and contractor payouts on time.",
@@ -110,6 +111,7 @@ const FUNDLY_I18N = (() => {
       shared: { companyLine: "Operated by Grindit LLC · Company Reg. 2541536, UAE" },
       gs: {
         backToHome: "Back to home",
+        previewCta: "Not ready to pay? Look inside your dashboard first →",
         accountSize: "Account size",
         bannerHtml: "<b>90 people</b> claimed a spot this week — first 20 buyers get priority KYC review",
         heroH: "The first sports prop firm. Prove your analytical discipline, earn a real share of the profit.",
@@ -220,6 +222,7 @@ const FUNDLY_I18N = (() => {
       dashPreview: {
         heading: "Váš dashboard, postavený pro přehlednost", sub: "Zůstatek v reálném čase, živé tikety a výkonnostní statistiky — vše na jednom místě, žádné tabulky.",
         overview: "Přehled", liveEntries: "Živé tikety", performance: "Výkon",
+        previewCta: "Vyzkoušej to sám — Náhled →",
       },
       why: {
         heading: "Proč Fundly?", sub: "Až $100 000 simulovaného kapitálu, fair pravidla a dodavatelské odměny včas.",
@@ -282,6 +285,7 @@ const FUNDLY_I18N = (() => {
       shared: { companyLine: "Provozuje Grindit LLC · Firemní reg. 2541536, SAE" },
       gs: {
         backToHome: "Zpět na hlavní stránku",
+        previewCta: "Ještě nejsi připravený platit? Podívej se nejdřív dovnitř →",
         accountSize: "Velikost účtu",
         bannerHtml: "<b>90 lidí</b> si tento týden zajistilo místo — prvních 20 kupujících má prioritní KYC kontrolu",
         heroH: "První sportovní prop firma. Prokaž analytickou disciplínu, získej skutečný podíl ze zisku.",
@@ -392,6 +396,7 @@ const FUNDLY_I18N = (() => {
       dashPreview: {
         heading: "Tu panel, diseñado para la claridad", sub: "Saldo en tiempo real, tickets en vivo y estadísticas de rendimiento — todo en un solo lugar, sin hojas de cálculo.",
         overview: "Resumen", liveEntries: "Tickets en vivo", performance: "Rendimiento",
+        previewCta: "Pruébalo tú mismo — Vista previa →",
       },
       why: {
         heading: "¿Por qué Fundly?", sub: "Hasta $100,000 de capital simulado, reglas justas y pagos a contratistas puntuales.",
@@ -454,6 +459,7 @@ const FUNDLY_I18N = (() => {
       shared: { companyLine: "Operado por Grindit LLC · Reg. de empresa 2541536, EAU" },
       gs: {
         backToHome: "Volver al inicio",
+        previewCta: "¿Aún no listo para pagar? Echa un vistazo a tu panel primero →",
         accountSize: "Tamaño de cuenta",
         bannerHtml: "<b>90 personas</b> reservaron su plaza esta semana — los primeros 20 compradores tienen revisión KYC prioritaria",
         heroH: "La primera prop firm deportiva. Demuestra tu disciplina analítica, gana una parte real del beneficio.",
@@ -564,6 +570,7 @@ const FUNDLY_I18N = (() => {
       dashPreview: {
         heading: "Twój panel, zbudowany dla przejrzystości", sub: "Saldo w czasie rzeczywistym, aktywne zlecenia i statystyki wyników — wszystko w jednym miejscu, bez arkuszy kalkulacyjnych.",
         overview: "Przegląd", liveEntries: "Aktywne zlecenia", performance: "Wyniki",
+        previewCta: "Wypróbuj sam — Podgląd →",
       },
       why: {
         heading: "Dlaczego Fundly?", sub: "Do $100 000 symulowanego kapitału, uczciwe zasady i terminowe wypłaty dla kontrahentów.",
@@ -626,6 +633,7 @@ const FUNDLY_I18N = (() => {
       shared: { companyLine: "Prowadzone przez Grindit LLC · Nr rej. 2541536, ZEA" },
       gs: {
         backToHome: "Powrót do strony głównej",
+        previewCta: "Jeszcze nie gotowy do płatności? Najpierw zajrzyj do panelu →",
         accountSize: "Wielkość konta",
         bannerHtml: "<b>90 osób</b> zarezerwowało miejsce w tym tygodniu — pierwszych 20 kupujących ma priorytetową weryfikację KYC",
         heroH: "Pierwsza sportowa prop firma. Udowodnij dyscyplinę analityczną, zdobądź realny udział w zysku.",
@@ -736,6 +744,7 @@ const FUNDLY_I18N = (() => {
       dashPreview: {
         heading: "Váš dashboard, postavený pre prehľadnosť", sub: "Zostatok v reálnom čase, živé tikety a výkonnostné štatistiky — všetko na jednom mieste, žiadne tabuľky.",
         overview: "Prehľad", liveEntries: "Živé tikety", performance: "Výkon",
+        previewCta: "Vyskúšaj si to sám — Náhľad →",
       },
       why: {
         heading: "Prečo Fundly?", sub: "Až $100 000 simulovaného kapitálu, fair pravidlá a včasné odmeny pre dodávateľov.",
@@ -798,6 +807,7 @@ const FUNDLY_I18N = (() => {
       shared: { companyLine: "Prevádzkuje Grindit LLC · Firemná reg. 2541536, SAE" },
       gs: {
         backToHome: "Späť na hlavnú stránku",
+        previewCta: "Ešte nie si pripravený platiť? Pozri sa najprv dovnútra →",
         accountSize: "Veľkosť účtu",
         bannerHtml: "<b>90 ľudí</b> si tento týždeň zabezpečilo miesto — prvých 20 kupujúcich má prioritnú KYC kontrolu",
         heroH: "Prvá športová prop firma. Preukáž analytickú disciplínu, získaj skutočný podiel zo zisku.",
@@ -908,6 +918,7 @@ const FUNDLY_I18N = (() => {
       dashPreview: {
         heading: "A műszerfalad, az áttekinthetőségért", sub: "Valós idejű egyenleg, élő tételek és teljesítménystatisztikák — minden egy helyen, táblázatok nélkül.",
         overview: "Áttekintés", liveEntries: "Élő tételek", performance: "Teljesítmény",
+        previewCta: "Próbáld ki magad — Előnézet →",
       },
       why: {
         heading: "Miért a Fundly?", sub: "Akár $100 000 szimulált tőke, korrekt szabályok és időben teljesített kifizetések a vállalkozóknak.",
@@ -970,6 +981,7 @@ const FUNDLY_I18N = (() => {
       shared: { companyLine: "Üzemeltető: Grindit LLC · Cégjegyzékszám 2541536, EAE" },
       gs: {
         backToHome: "Vissza a főoldalra",
+        previewCta: "Még nem állsz készen a fizetésre? Nézz be előbb az irányítópultba →",
         accountSize: "Számla mérete",
         bannerHtml: "<b>90 ember</b> foglalt helyet ezen a héten — az első 20 vásárló elsőbbségi KYC-ellenőrzést kap",
         heroH: "Az első sport prop firma. Bizonyítsd az analitikai fegyelmedet, szerezz valódi részesedést a nyereségből.",
