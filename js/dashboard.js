@@ -86,6 +86,10 @@ function showView(name) {
   if (name === "prehled" && typeof renderPrehled === "function") renderPrehled();
   if (name === "vykon" && typeof renderVykon === "function") renderVykon();
   if (name === "sazeni" && typeof renderBankBar === "function") renderBankBar();
+  if (name === "sazeni") {
+    const preview = document.getElementById("previewModePanel");
+    if (preview) preview.hidden = !window.__noRealAccount;
+  }
   if (name === "profil" && typeof renderBadges === "function") renderBadges(Portfolio.get());
   if (name === "vyplaty" && typeof loadPayoutHistory === "function") loadPayoutHistory();
   if (name === "affiliate" && typeof loadAffiliateStats === "function") loadAffiliateStats();
@@ -620,9 +624,14 @@ window.addEventListener("pagehide", () => {
 scheduleAccountSync();
 
 // ---------- limited dashboard: přihlášený uživatel bez aktivního účtu ----------
-// Skryje hlavní navigaci a sekce, ukáže jen CTA na novou výzvu + minulé účty.
+// Overview zůstane na CTA "koupit balíček" + historie starých účtů, ale
+// navigace zůstává funkční — hráč si může projít i zbytek dashboardu
+// (hlavně Entries: reálné zápasy a kurzy) bez placení. Skutečné podání
+// tiketu je zablokované (window.__noRealAccount, viz placeBet handler a
+// previewModePanel v Entries).
 function showLimitedDashboard(accounts) {
   document.body.classList.add("limited");
+  window.__noRealAccount = true;
   document.querySelectorAll(".dash-view").forEach((v) => { v.hidden = true; });
   const view = document.getElementById("view-noaccount");
   if (view) view.hidden = false;
@@ -1380,6 +1389,11 @@ function renderSlip() {
   document.getElementById("placeBet").addEventListener("click", async () => {
     const note = document.getElementById("betNote");
     const btn = document.getElementById("placeBet");
+    if (window.__noRealAccount) {
+      note.textContent = "You're browsing in preview mode — get an account to submit entries.";
+      note.hidden = false;
+      return;
+    }
     // value-bet flag (zakázaná strategie): pick je v odds-api value-bet
     // výpisu pro Betano. Endpoint je volitelný — chyba = žádný flag.
     let flags = [];
