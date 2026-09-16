@@ -1118,6 +1118,61 @@ footer {
 }
 .modal-close:hover { color: var(--text-primary); background: #ffffff1a; }
 .modal-close:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.modal-close { z-index: 2; }
+
+/* ---------- discount pop-up: gradient hero band with the %-off badge ---------- */
+.discount-modal { padding-top: 0; overflow: hidden; }
+.discount-hero {
+  position: relative;
+  margin: 0 -24px 22px;
+  padding: 40px 24px 26px;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 100% at 50% -20%, rgb(var(--accent-rgb) / .28), transparent 65%),
+    linear-gradient(180deg, var(--surface-1) 0%, var(--surface-2) 100%);
+  pointer-events: none;
+}
+.discount-glow {
+  position: absolute;
+  top: -55%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(var(--accent-rgb) / .4), transparent 72%);
+  filter: blur(2px);
+}
+.discount-badge { position: relative; display: flex; flex-direction: column; align-items: center; }
+.discount-pct {
+  font-size: 4.25rem;
+  font-weight: 800;
+  letter-spacing: -.03em;
+  line-height: 1;
+  background: linear-gradient(160deg, #fff 10%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 4px 24px rgb(var(--accent-rgb) / .35));
+}
+.discount-pct small { font-size: 1.75rem; font-weight: 700; margin-left: 2px; }
+.discount-off {
+  margin-top: 2px;
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.discount-code-preview {
+  margin-top: 14px;
+  text-align: center;
+  font-size: .75rem;
+  color: var(--text-muted);
+}
+.discount-code-preview b { font-family: var(--mono); color: var(--accent); letter-spacing: .06em; }
 .modal-head { display: flex; flex-direction: column; gap: 4px; margin-bottom: 20px; }
 .modal-head img { margin-bottom: 8px; }
 .modal-head h2 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.01em; }

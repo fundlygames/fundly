@@ -488,14 +488,20 @@ function esc(s) {
 // shown — not just on submit, so a closed/ignored popup doesn't nag again
 // on the next visit). Triggered by exit-intent (mouse leaves toward the
 // top of the viewport) on desktop, with a timed fallback for touch devices
-// that never fire mouseout the same way.
+// that never fire mouseout the same way. Nothing can trigger it before
+// MIN_DELAY_MS: a mouseout toward the tab/address bar seconds after
+// landing is completely normal navigation, not "about to leave" intent —
+// without this gate the popup fired almost immediately on page load.
 (() => {
   const modal = document.getElementById("discountModal");
   const form = document.getElementById("discountForm");
   if (!modal || !form) return;
   const SEEN_KEY = "fundly:discountPopupSeen";
+  const MIN_DELAY_MS = 8000;
+  let readyAt = Date.now() + MIN_DELAY_MS;
 
   function showDiscountModal() {
+    if (Date.now() < readyAt) return;
     if (localStorage.getItem(SEEN_KEY)) return;
     try { localStorage.setItem(SEEN_KEY, "1"); } catch (e) {}
     if (!modal.hidden || !authModal.hidden) return; // don't stack on top of the login modal
@@ -510,7 +516,7 @@ function esc(s) {
   document.addEventListener("mouseout", (e) => {
     if (!e.relatedTarget && e.clientY <= 0) showDiscountModal();
   });
-  setTimeout(showDiscountModal, 20000);
+  setTimeout(showDiscountModal, MIN_DELAY_MS);
 
   document.getElementById("discountClose").addEventListener("click", closeDiscountModal);
   modal.addEventListener("click", (e) => { if (e.target === modal) closeDiscountModal(); });
