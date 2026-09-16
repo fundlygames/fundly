@@ -48,6 +48,7 @@ const FUNDLY_I18N = (() => {
       dashPreview: {
         heading: "Your dashboard, built for clarity", sub: "Real-time balance, live entries and performance stats — everything in one place, no spreadsheets.",
         overview: "Overview", liveEntries: "Live entries", performance: "Performance",
+        previewCta: "Try it yourself — Preview →",
       },
       why: {
         heading: "Why Fundly?", sub: "Up to $100,000 in simulated capital, fair rules and contractor payouts on time.",
@@ -221,6 +222,7 @@ const FUNDLY_I18N = (() => {
       dashPreview: {
         heading: "Váš dashboard, postavený pro přehlednost", sub: "Zůstatek v reálném čase, živé tikety a výkonnostní statistiky — vše na jednom místě, žádné tabulky.",
         overview: "Přehled", liveEntries: "Živé tikety", performance: "Výkon",
+        previewCta: "Vyzkoušej to sám — Náhled →",
       },
       why: {
         heading: "Proč Fundly?", sub: "Až $100 000 simulovaného kapitálu, fair pravidla a dodavatelské odměny včas.",
@@ -394,6 +396,7 @@ const FUNDLY_I18N = (() => {
       dashPreview: {
         heading: "Tu panel, diseñado para la claridad", sub: "Saldo en tiempo real, tickets en vivo y estadísticas de rendimiento — todo en un solo lugar, sin hojas de cálculo.",
         overview: "Resumen", liveEntries: "Tickets en vivo", performance: "Rendimiento",
+        previewCta: "Pruébalo tú mismo — Vista previa →",
       },
       why: {
         heading: "¿Por qué Fundly?", sub: "Hasta $100,000 de capital simulado, reglas justas y pagos a contratistas puntuales.",
@@ -567,6 +570,7 @@ const FUNDLY_I18N = (() => {
       dashPreview: {
         heading: "Twój panel, zbudowany dla przejrzystości", sub: "Saldo w czasie rzeczywistym, aktywne zlecenia i statystyki wyników — wszystko w jednym miejscu, bez arkuszy kalkulacyjnych.",
         overview: "Przegląd", liveEntries: "Aktywne zlecenia", performance: "Wyniki",
+        previewCta: "Wypróbuj sam — Podgląd →",
       },
       why: {
         heading: "Dlaczego Fundly?", sub: "Do $100 000 symulowanego kapitału, uczciwe zasady i terminowe wypłaty dla kontrahentów.",
@@ -740,6 +744,7 @@ const FUNDLY_I18N = (() => {
       dashPreview: {
         heading: "Váš dashboard, postavený pre prehľadnosť", sub: "Zostatok v reálnom čase, živé tikety a výkonnostné štatistiky — všetko na jednom mieste, žiadne tabuľky.",
         overview: "Prehľad", liveEntries: "Živé tikety", performance: "Výkon",
+        previewCta: "Vyskúšaj si to sám — Náhľad →",
       },
       why: {
         heading: "Prečo Fundly?", sub: "Až $100 000 simulovaného kapitálu, fair pravidlá a včasné odmeny pre dodávateľov.",
@@ -913,6 +918,7 @@ const FUNDLY_I18N = (() => {
       dashPreview: {
         heading: "A műszerfalad, az áttekinthetőségért", sub: "Valós idejű egyenleg, élő tételek és teljesítménystatisztikák — minden egy helyen, táblázatok nélkül.",
         overview: "Áttekintés", liveEntries: "Élő tételek", performance: "Teljesítmény",
+        previewCta: "Próbáld ki magad — Előnézet →",
       },
       why: {
         heading: "Miért a Fundly?", sub: "Akár $100 000 szimulált tőke, korrekt szabályok és időben teljesített kifizetések a vállalkozóknak.",

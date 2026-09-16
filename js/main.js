@@ -533,6 +533,8 @@ if (heroEl) heroSentinel.observe(heroEl);
 
   document.getElementById("navPreviewBtn")?.addEventListener("click", openPreview);
   document.getElementById("navPreviewBtnMobile")?.addEventListener("click", openPreview);
+  document.getElementById("heroPreviewBtn")?.addEventListener("click", openPreview);
+  document.getElementById("dashPreviewBtn")?.addEventListener("click", openPreview);
   document.getElementById("previewClose").addEventListener("click", closePreview);
   modal.addEventListener("click", (e) => { if (e.target === modal) closePreview(); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !modal.hidden) closePreview(); });
