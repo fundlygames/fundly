@@ -637,6 +637,7 @@ scheduleAccountSync();
 function showLimitedDashboard(accounts) {
   document.body.classList.add("limited");
   window.__noRealAccount = true;
+  document.querySelectorAll(".buy-challenge-cta").forEach((btn) => { btn.hidden = false; });
   document.querySelectorAll(".dash-view").forEach((v) => { v.hidden = true; });
   const view = document.getElementById("view-noaccount");
   if (view) view.hidden = false;

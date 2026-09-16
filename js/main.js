@@ -497,7 +497,7 @@ function esc(s) {
   const form = document.getElementById("discountForm");
   if (!modal || !form) return;
   const SEEN_KEY = "fundly:discountPopupSeen";
-  const MIN_DELAY_MS = 8000;
+  const MIN_DELAY_MS = 5000;
   let readyAt = Date.now() + MIN_DELAY_MS;
 
   function showDiscountModal() {
