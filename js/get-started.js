@@ -151,3 +151,9 @@
   );
   document.querySelectorAll("[data-count]").forEach((el) => countIo.observe(el));
 })();
+
+// Below-video preview CTA: same real preview-signup flow as the nav link,
+// just a <button> here (not <a>) so it matches the visual weight of a CTA.
+document.getElementById("gsPreviewBtn2")?.addEventListener("click", () => {
+  window.location.href = "./#preview";
+});
