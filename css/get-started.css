@@ -20,6 +20,15 @@ body::before {
 .gs-top {
   display: flex; align-items: center; justify-content: space-between;
   padding: 18px 0; border-bottom: 1px solid var(--line);
+  flex-wrap: wrap; row-gap: 10px;
+}
+.gs-top-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+/* language select + Preview + Back-to-home don't all fit next to the logo
+   on a phone — without wrapping they overflowed the viewport width and
+   pushed the whole page into horizontal scroll. */
+@media (max-width: 480px) {
+  .gs-top-actions { gap: 8px; }
+  .gs-top-actions .btn { padding: 0 14px; font-size: .8125rem; }
 }
 
 .gs-banner {
