@@ -110,6 +110,7 @@ const FUNDLY_I18N = (() => {
       shared: { companyLine: "Operated by Grindit LLC · Company Reg. 2541536, UAE" },
       gs: {
         backToHome: "Back to home",
+        previewCta: "Not ready to pay? Look inside your dashboard first →",
         accountSize: "Account size",
         bannerHtml: "<b>90 people</b> claimed a spot this week — first 20 buyers get priority KYC review",
         heroH: "The first sports prop firm. Prove your analytical discipline, earn a real share of the profit.",
@@ -282,6 +283,7 @@ const FUNDLY_I18N = (() => {
       shared: { companyLine: "Provozuje Grindit LLC · Firemní reg. 2541536, SAE" },
       gs: {
         backToHome: "Zpět na hlavní stránku",
+        previewCta: "Ještě nejsi připravený platit? Podívej se nejdřív dovnitř →",
         accountSize: "Velikost účtu",
         bannerHtml: "<b>90 lidí</b> si tento týden zajistilo místo — prvních 20 kupujících má prioritní KYC kontrolu",
         heroH: "První sportovní prop firma. Prokaž analytickou disciplínu, získej skutečný podíl ze zisku.",
@@ -454,6 +456,7 @@ const FUNDLY_I18N = (() => {
       shared: { companyLine: "Operado por Grindit LLC · Reg. de empresa 2541536, EAU" },
       gs: {
         backToHome: "Volver al inicio",
+        previewCta: "¿Aún no listo para pagar? Echa un vistazo a tu panel primero →",
         accountSize: "Tamaño de cuenta",
         bannerHtml: "<b>90 personas</b> reservaron su plaza esta semana — los primeros 20 compradores tienen revisión KYC prioritaria",
         heroH: "La primera prop firm deportiva. Demuestra tu disciplina analítica, gana una parte real del beneficio.",
@@ -626,6 +629,7 @@ const FUNDLY_I18N = (() => {
       shared: { companyLine: "Prowadzone przez Grindit LLC · Nr rej. 2541536, ZEA" },
       gs: {
         backToHome: "Powrót do strony głównej",
+        previewCta: "Jeszcze nie gotowy do płatności? Najpierw zajrzyj do panelu →",
         accountSize: "Wielkość konta",
         bannerHtml: "<b>90 osób</b> zarezerwowało miejsce w tym tygodniu — pierwszych 20 kupujących ma priorytetową weryfikację KYC",
         heroH: "Pierwsza sportowa prop firma. Udowodnij dyscyplinę analityczną, zdobądź realny udział w zysku.",
@@ -798,6 +802,7 @@ const FUNDLY_I18N = (() => {
       shared: { companyLine: "Prevádzkuje Grindit LLC · Firemná reg. 2541536, SAE" },
       gs: {
         backToHome: "Späť na hlavnú stránku",
+        previewCta: "Ešte nie si pripravený platiť? Pozri sa najprv dovnútra →",
         accountSize: "Veľkosť účtu",
         bannerHtml: "<b>90 ľudí</b> si tento týždeň zabezpečilo miesto — prvých 20 kupujúcich má prioritnú KYC kontrolu",
         heroH: "Prvá športová prop firma. Preukáž analytickú disciplínu, získaj skutočný podiel zo zisku.",
@@ -970,6 +975,7 @@ const FUNDLY_I18N = (() => {
       shared: { companyLine: "Üzemeltető: Grindit LLC · Cégjegyzékszám 2541536, EAE" },
       gs: {
         backToHome: "Vissza a főoldalra",
+        previewCta: "Még nem állsz készen a fizetésre? Nézz be előbb az irányítópultba →",
         accountSize: "Számla mérete",
         bannerHtml: "<b>90 ember</b> foglalt helyet ezen a héten — az első 20 vásárló elsőbbségi KYC-ellenőrzést kap",
         heroH: "Az első sport prop firma. Bizonyítsd az analitikai fegyelmedet, szerezz valódi részesedést a nyereségből.",
