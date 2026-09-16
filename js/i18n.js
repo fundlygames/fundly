@@ -135,6 +135,7 @@ const FUNDLY_I18N = (() => {
         chipOdds: "Odds 1.00–8.00, all sports", chipDays: "30 days per phase",
         chipSplitSuffix: "performance split", chipRewards: "Rewards in 7 days",
         previewExplain: "Every sport, one account — football, hockey, tennis, esports and more, with simulation coefficients from 1.00 to 8.00. Pick a match, submit a simulated entry within your risk limit, and watch it settle live in the dashboard below.",
+        previewCta: "Already have an account? Log in and look inside →",
       },
       co: {
         heroTitleHtml: "Start your <span class=\"acc\">journey</span>", heroSub: "Pick a package and create an account",
@@ -306,6 +307,7 @@ const FUNDLY_I18N = (() => {
         chipOdds: "Kurzy 1,00–8,00, všechny sporty", chipDays: "30 dní na fázi",
         chipSplitSuffix: "podíl na zisku", chipRewards: "Výplaty do 7 dnů",
         previewExplain: "Každý sport, jeden účet — fotbal, hokej, tenis, esporty a další, se simulačními koeficienty od 1.00 do 8.00. Vyberte zápas, zadejte simulační tiket v rámci svého rizikového limitu a sledujte jeho vyhodnocení živě v dashboardu níže.",
+        previewCta: "Už máš účet? Přihlas se a podívej se dovnitř →",
       },
       co: {
         heroTitleHtml: "Začněte svou <span class=\"acc\">cestu</span>", heroSub: "Vyberte si balíček a založte účet",
@@ -477,6 +479,7 @@ const FUNDLY_I18N = (() => {
         chipOdds: "Cuotas 1.00–8.00, todos los deportes", chipDays: "30 días por fase",
         chipSplitSuffix: "de reparto de beneficios", chipRewards: "Pagos en 7 días",
         previewExplain: "Cada deporte, una cuenta — fútbol, hockey, tenis, esports y más, con coeficientes de simulación de 1.00 a 8.00. Elige un partido, envía una entrada simulada dentro de tu límite de riesgo y observa cómo se resuelve en vivo en el panel de abajo.",
+        previewCta: "¿Ya tienes cuenta? Inicia sesión y échale un vistazo →",
       },
       co: {
         heroTitleHtml: "Comienza tu <span class=\"acc\">viaje</span>", heroSub: "Elige un paquete y crea una cuenta",
@@ -648,6 +651,7 @@ const FUNDLY_I18N = (() => {
         chipOdds: "Kursy 1,00–8,00, wszystkie sporty", chipDays: "30 dni na fazę",
         chipSplitSuffix: "podziału zysku", chipRewards: "Wypłaty w 7 dni",
         previewExplain: "Każdy sport, jedno konto — piłka nożna, hokej, tenis, esport i więcej, z symulacyjnymi kursami od 1.00 do 8.00. Wybierz mecz, złóż symulowany tiket w ramach swojego limitu ryzyka i śledź jego rozliczenie na żywo w panelu poniżej.",
+        previewCta: "Masz już konto? Zaloguj się i zajrzyj do środka →",
       },
       co: {
         heroTitleHtml: "Rozpocznij swoją <span class=\"acc\">podróż</span>", heroSub: "Wybierz pakiet i załóż konto",
@@ -819,6 +823,7 @@ const FUNDLY_I18N = (() => {
         chipOdds: "Kurzy 1,00–8,00, všetky športy", chipDays: "30 dní na fázu",
         chipSplitSuffix: "podiel na zisku", chipRewards: "Výplaty do 7 dní",
         previewExplain: "Každý šport, jeden účet — futbal, hokej, tenis, esporty a ďalšie, so simulačnými koeficientmi od 1.00 do 8.00. Vyber si zápas, zadaj simulačný tiket v rámci svojho rizikového limitu a sleduj jeho vyhodnotenie naživo v dashboarde nižšie.",
+        previewCta: "Už máš účet? Prihlás sa a pozri sa dovnútra →",
       },
       co: {
         heroTitleHtml: "Začnite svoju <span class=\"acc\">cestu</span>", heroSub: "Vyberte si balíček a založte účet",
@@ -990,6 +995,7 @@ const FUNDLY_I18N = (() => {
         chipOdds: "1,00–8,00 közötti odds, minden sport", chipDays: "30 nap fázisonként",
         chipSplitSuffix: "teljesítmény-megosztás", chipRewards: "Kifizetés 7 napon belül",
         previewExplain: "Minden sport, egy fiók — foci, jégkorong, tenisz, esport és még sok más, 1.00 és 8.00 közötti szimulációs együtthatókkal. Válassz meccset, adj le egy szimulált tippet a kockázati limiteden belül, és kövesd élőben az elszámolását az alábbi irányítópulton.",
+        previewCta: "Már van fiókod? Jelentkezz be, és nézz körül →",
       },
       co: {
         heroTitleHtml: "Kezdd el az <span class=\"acc\">utad</span>", heroSub: "Válassz csomagot, és hozz létre fiókot",

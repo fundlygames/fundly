@@ -205,6 +205,9 @@ body::before {
 .gs-preview h2 { text-align: center; font-size: 1.875rem; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 8px; }
 .gs-preview-sub { text-align: center; color: var(--text-muted); font-size: .9375rem; margin: 0 0 12px; }
 .gs-preview-explain { text-align: center; color: var(--text-secondary); font-size: .9375rem; line-height: 1.6; margin: 0 auto 32px; max-width: 62ch; }
+.gs-preview-cta { text-align: center; margin: 28px 0 0; }
+.gs-preview-cta .lnk { color: var(--accent); font-weight: 600; text-decoration: none; }
+.gs-preview-cta .lnk:hover { text-decoration: underline; }
 
 /* ---------- FAQ ---------- */
 .gs-faq2 { position: relative; padding: 64px 0 72px; overflow: hidden; }
