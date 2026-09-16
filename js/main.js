@@ -440,49 +440,6 @@ const heroSentinel = new IntersectionObserver(
 const heroEl = document.querySelector(".hero");
 if (heroEl) heroSentinel.observe(heroEl);
 
-// ---------- public leaderboard (homepage, no login required) ----------
-// leaderboard-get is a public endpoint (only rows with leaderboard_opt_in)
-// — shown here as social proof, same data the logged-in dashboard uses.
-// Runs on DOMContentLoaded, not immediately: main.js isn't deferred but
-// config.js (which defines fundlyBackendEnabled/FUNDLY_SUPABASE_URL) is, so
-// at the moment this script tag itself runs those globals don't exist yet.
-document.addEventListener("DOMContentLoaded", async () => {
-  const list = document.getElementById("publicLbList");
-  if (!list || typeof fundlyBackendEnabled !== "function" || !fundlyBackendEnabled()) return;
-  try {
-    const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/leaderboard-get`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: "{}",
-    });
-    const data = await res.json().catch(() => ({}));
-    const rows = Array.isArray(data.rows) ? data.rows.slice(0, 8) : [];
-    if (!rows.length) {
-      list.innerHTML = `<p class="lb-empty">No shared results yet — be the first on the board.</p>`;
-      return;
-    }
-    list.innerHTML = rows.map((r, i) => {
-      const profit = Number(r.profit) || 0;
-      const roi = Number(r.roi) || 0;
-      return `
-      <div class="lb-row">
-        <span class="lb-rank">${i + 1}</span>
-        <span class="lb-name">${esc(r.name)}<span class="lb-pkg">${esc(r.packageKey || "")}</span></span>
-        <span class="lb-stats">
-          <span class="lb-roi">${roi >= 0 ? "+" : ""}${roi}% ROI</span>
-          <span class="lb-profit ${profit >= 0 ? "pos" : "neg"}">${usdSigned(profit)}</span>
-        </span>
-      </div>`;
-    }).join("");
-  } catch (e) {
-    list.innerHTML = `<p class="lb-empty">Leaderboard is temporarily unavailable.</p>`;
-  }
-});
-function esc(s) {
-  return String(s ?? "").replace(/[&<>"']/g, (c) =>
-    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-}
-
 // ---------- discount pop-up (40% off, e-mail capture) ----------
 // Shows once ever per browser (localStorage flag, set the moment it's
 // shown — not just on submit, so a closed/ignored popup doesn't nag again
@@ -543,6 +500,67 @@ function esc(s) {
       note.hidden = false;
     } catch (err) {
       note.textContent = err.message || "Could not send the code.";
+      note.className = "auth-note warn";
+      note.hidden = false;
+      btn.disabled = false;
+    }
+  });
+})();
+
+// ---------- preview signup (free account, no purchase) ----------
+// The single entry point for "look inside the dashboard before you buy" —
+// creates a real auth account via preview-signup (server-side, so it can
+// also log the signup and send the welcome/discount e-mail atomically),
+// then signs in client-side (admin.createUser doesn't hand back a session)
+// and sends the visitor straight into the dashboard.
+(() => {
+  const modal = document.getElementById("previewModal");
+  const form = document.getElementById("previewForm");
+  if (!modal || !form) return;
+
+  function openPreview() {
+    if (typeof fundlyBackendEnabled !== "function" || !fundlyBackendEnabled()) return;
+    form.hidden = false;
+    document.getElementById("previewNote").hidden = true;
+    document.getElementById("previewSubmit").disabled = false;
+    modal.hidden = false;
+    document.body.style.overflow = "hidden";
+  }
+  function closePreview() {
+    modal.hidden = true;
+    document.body.style.overflow = "";
+  }
+
+  document.getElementById("navPreviewBtn")?.addEventListener("click", openPreview);
+  document.getElementById("navPreviewBtnMobile")?.addEventListener("click", openPreview);
+  document.getElementById("previewClose").addEventListener("click", closePreview);
+  modal.addEventListener("click", (e) => { if (e.target === modal) closePreview(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !modal.hidden) closePreview(); });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const note = document.getElementById("previewNote");
+    const btn = document.getElementById("previewSubmit");
+    const email = document.getElementById("previewEmail").value.trim();
+    const password = document.getElementById("previewPass").value;
+    btn.disabled = true;
+    note.hidden = true;
+    try {
+      const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/preview-signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Could not create the account.");
+
+      const client = await FundlyBackend.getClient();
+      const { error: signInError } = await client.auth.signInWithPassword({ email, password });
+      if (signInError) throw new Error(signInError.message);
+
+      window.location.href = "dashboard";
+    } catch (err) {
+      note.textContent = err.message || "Could not create the account.";
       note.className = "auth-note warn";
       note.hidden = false;
       btn.disabled = false;

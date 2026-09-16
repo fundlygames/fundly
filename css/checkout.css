@@ -348,7 +348,6 @@ body::before {
 .co-switch { margin-top: 18px; text-align: center; font-size: .875rem; color: var(--text-muted); }
 .lnk { color: var(--accent); font-weight: 600; }
 .lnk:hover { text-decoration: underline; }
-.co-preview-note { margin: -6px 0 16px; font-size: .8125rem; color: var(--text-muted); }
 
 /* ---------- Formulář ---------- */
 .field-err {

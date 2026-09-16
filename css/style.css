@@ -476,43 +476,6 @@ section.cta-block { padding: 128px 0; }
 }
 .wf-stat .lbl { position: relative; }
 
-/* ---------- public leaderboard (homepage) ---------- */
-.lb-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  background: var(--line);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-}
-.lb-row {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px 22px;
-  background: var(--surface-1);
-}
-.lb-rank {
-  font-family: var(--mono);
-  font-weight: 700;
-  color: var(--text-muted);
-  width: 28px;
-  flex-shrink: 0;
-  font-variant-numeric: tabular-nums;
-}
-.lb-name { flex: 1; font-weight: 600; min-width: 0; }
-.lb-pkg { display: block; font-size: .75rem; color: var(--text-muted); font-weight: 400; text-transform: capitalize; }
-.lb-stats { display: flex; align-items: baseline; gap: 14px; flex-shrink: 0; }
-.lb-profit { font-family: var(--mono); font-weight: 700; font-variant-numeric: tabular-nums; }
-.lb-profit.pos { color: var(--accent); }
-.lb-profit.neg { color: var(--danger); }
-.lb-roi { font-size: .78rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
-.lb-loading, .lb-empty { color: var(--text-muted); padding: 28px; text-align: center; }
-@media (max-width: 560px) {
-  .lb-row { padding: 12px 16px; gap: 10px; }
-  .lb-roi { display: none; }
-}
 .wf-stat.big {
   flex: 1;
   display: flex;
@@ -1174,6 +1137,9 @@ footer {
 }
 .discount-code-preview b { font-family: var(--mono); color: var(--accent); letter-spacing: .06em; }
 .modal-head { display: flex; flex-direction: column; gap: 4px; margin-bottom: 20px; }
+.preview-legal { margin-top: 14px; text-align: center; font-size: .75rem; color: var(--text-muted); line-height: 1.5; }
+.preview-legal .lnk { color: var(--accent); font-weight: 600; text-decoration: none; }
+.preview-legal .lnk:hover { text-decoration: underline; }
 .modal-head img { margin-bottom: 8px; }
 .modal-head h2 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.01em; }
 .modal-head p { font-size: .875rem; color: var(--text-muted); }

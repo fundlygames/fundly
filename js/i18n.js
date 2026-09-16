@@ -13,7 +13,7 @@ const FUNDLY_I18N = (() => {
     en: {
       nav: {
         howItWorks: "How it works", packages: "Packages", whyFundly: "Why Fundly", faq: "FAQ", contact: "Contact",
-        login: "Log in", startChallenge: "Start the Challenge",
+        preview: "Preview", login: "Log in", startChallenge: "Start the Challenge",
       },
       hero: {
         titleDim: "Get Simulated Capital", titleRest: "for Your Sports Analytics.",
@@ -68,11 +68,11 @@ const FUNDLY_I18N = (() => {
         r4a: "Tilt &amp; guesswork", r4pill: "Discipline", r4b: "Clear phases &amp; rules",
         r5a: "Alone", r5pill: "Support", r5b: "Community &amp; support",
       },
-      lb: {
-        heading: "Top performers", sub: "Real, live results from Fundly analysts who opted in to share them — no account needed to look.", loading: "Loading leaderboard…",
-      },
       discount: {
         title: "Get 40% off", sub: "Enter your email and we'll send you the code right away.", cta: "Send me the code", success: "Code sent — check your inbox.", off: "OFF", codeLabel: "Code",
+      },
+      preview: {
+        title: "Preview the dashboard", sub: "Create a free account — no payment, no package. Just look around.", cta: "Create my preview account", legal: "By continuing you agree to our <a href=\"terms\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">terms</a> and <a href=\"privacy\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">privacy policy</a>.", exists: "An account with this email already exists — log in instead.",
       },
       faq: {
         heading: "Frequently asked questions",
@@ -135,7 +135,7 @@ const FUNDLY_I18N = (() => {
         chipOdds: "Odds 1.00–8.00, all sports", chipDays: "30 days per phase",
         chipSplitSuffix: "performance split", chipRewards: "Rewards in 7 days",
         previewExplain: "Every sport, one account — football, hockey, tennis, esports and more, with simulation coefficients from 1.00 to 8.00. Pick a match, submit a simulated entry within your risk limit, and watch it settle live in the dashboard below.",
-        previewCta: "Already have an account? Log in and look inside →",
+       
       },
       co: {
         heroTitleHtml: "Start your <span class=\"acc\">journey</span>", heroSub: "Pick a package and create an account",
@@ -154,7 +154,7 @@ const FUNDLY_I18N = (() => {
         gatewayError: "The payment gateway could not be loaded.", openWhop: "Open payment on Whop",
         gatewayErrorRetry: "The payment gateway could not be loaded. Please try again, or pay directly on Whop.",
         errJoinWaitlist: "Could not join the waitlist.", errInvalidGatewayResponse: "The payment gateway returned an invalid response.",
-        backToSignup: "← Back to sign up", previewDashboard: "Not ready to pay? Look inside your dashboard first →",
+        backToSignup: "← Back to sign up",
         summary: "Summary", package: "Package", capital: "Capital", oneTimeFee: "One-time fee",
         recurLine: "No subscription. No recurring charges. You will never be charged again unless you purchase another Challenge.",
         featPhases: "2 evaluation phases, 30 days each", featPartner: "Unlimited time as a Fundly Partner in Phase 3",
@@ -185,7 +185,7 @@ const FUNDLY_I18N = (() => {
     cs: {
       nav: {
         howItWorks: "Jak to funguje", packages: "Balíčky", whyFundly: "Proč Fundly", faq: "FAQ", contact: "Kontakt",
-        login: "Přihlásit se", startChallenge: "Spustit Challenge",
+        preview: "Náhled", login: "Přihlásit se", startChallenge: "Spustit Challenge",
       },
       hero: {
         titleDim: "Získejte simulovaný kapitál", titleRest: "pro vaši sportovní analytiku.",
@@ -240,11 +240,11 @@ const FUNDLY_I18N = (() => {
         r4a: "Tilt a odhady", r4pill: "Disciplína", r4b: "Jasné fáze a pravidla",
         r5a: "Sami", r5pill: "Podpora", r5b: "Komunita a podpora",
       },
-      lb: {
-        heading: "Nejlepší výkony", sub: "Reálné, živé výsledky analytiků Fundly, kteří souhlasili se sdílením — prohlížení nevyžaduje účet.", loading: "Načítání žebříčku…",
-      },
       discount: {
         title: "Získej 40% slevu", sub: "Zadej svůj e-mail a hned ti pošleme kód.", cta: "Poslat mi kód", success: "Kód odeslán — zkontroluj si schránku.", off: "SLEVA", codeLabel: "Kód",
+      },
+      preview: {
+        title: "Podívej se dovnitř", sub: "Vytvoř si účet zdarma — žádná platba, žádný balíček. Jen se podívej.", cta: "Vytvořit účet na náhled", legal: "Pokračováním souhlasíš s <a href=\"terms\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">podmínkami</a> a <a href=\"privacy\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">zásadami ochrany soukromí</a>.", exists: "Účet s tímto e-mailem už existuje — přihlas se.",
       },
       faq: {
         heading: "Často kladené otázky",
@@ -307,7 +307,7 @@ const FUNDLY_I18N = (() => {
         chipOdds: "Kurzy 1,00–8,00, všechny sporty", chipDays: "30 dní na fázi",
         chipSplitSuffix: "podíl na zisku", chipRewards: "Výplaty do 7 dnů",
         previewExplain: "Každý sport, jeden účet — fotbal, hokej, tenis, esporty a další, se simulačními koeficienty od 1.00 do 8.00. Vyberte zápas, zadejte simulační tiket v rámci svého rizikového limitu a sledujte jeho vyhodnocení živě v dashboardu níže.",
-        previewCta: "Už máš účet? Přihlas se a podívej se dovnitř →",
+       
       },
       co: {
         heroTitleHtml: "Začněte svou <span class=\"acc\">cestu</span>", heroSub: "Vyberte si balíček a založte účet",
@@ -326,7 +326,7 @@ const FUNDLY_I18N = (() => {
         gatewayError: "Platební bránu se nepodařilo načíst.", openWhop: "Otevřít platbu na Whop",
         gatewayErrorRetry: "Platební bránu se nepodařilo načíst. Zkuste to prosím znovu, nebo zaplaťte přímo na Whop.",
         errJoinWaitlist: "Na čekací listinu se nepodařilo přihlásit.", errInvalidGatewayResponse: "Platební brána vrátila neplatnou odpověď.",
-        backToSignup: "← Zpět na registraci", previewDashboard: "Ještě nechceš platit? Nejdřív se podívej dovnitř dashboardu →",
+        backToSignup: "← Zpět na registraci",
         summary: "Shrnutí", package: "Balíček", capital: "Kapitál", oneTimeFee: "Jednorázový poplatek",
         recurLine: "Žádné předplatné. Žádné opakované platby. Už vám nikdy nic nestrhneme, pokud si nekoupíte další Challenge.",
         featPhases: "2 hodnoticí fáze, 30 dní každá", featPartner: "Neomezený čas jako Fundly Partner ve fázi 3",
@@ -357,7 +357,7 @@ const FUNDLY_I18N = (() => {
     es: {
       nav: {
         howItWorks: "Cómo funciona", packages: "Paquetes", whyFundly: "Por qué Fundly", faq: "FAQ", contact: "Contacto",
-        login: "Iniciar sesión", startChallenge: "Comenzar el Challenge",
+        preview: "Vista previa", login: "Iniciar sesión", startChallenge: "Comenzar el Challenge",
       },
       hero: {
         titleDim: "Consigue capital simulado", titleRest: "para tu análisis deportivo.",
@@ -412,11 +412,11 @@ const FUNDLY_I18N = (() => {
         r4a: "Tilt e improvisación", r4pill: "Disciplina", r4b: "Fases y reglas claras",
         r5a: "Solo", r5pill: "Soporte", r5b: "Comunidad y soporte",
       },
-      lb: {
-        heading: "Mejores resultados", sub: "Resultados reales y en vivo de analistas de Fundly que decidieron compartirlos — no necesitas cuenta para verlo.", loading: "Cargando la clasificación…",
-      },
       discount: {
         title: "Obtén 40% de descuento", sub: "Ingresa tu correo y te enviaremos el código enseguida.", cta: "Enviarme el código", success: "Código enviado — revisa tu bandeja de entrada.", off: "DESCUENTO", codeLabel: "Código",
+      },
+      preview: {
+        title: "Mira el dashboard", sub: "Crea una cuenta gratis — sin pago, sin paquete. Solo échale un vistazo.", cta: "Crear mi cuenta de vista previa", legal: "Al continuar aceptas nuestros <a href=\"terms\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">términos</a> y la <a href=\"privacy\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">política de privacidad</a>.", exists: "Ya existe una cuenta con este correo — inicia sesión.",
       },
       faq: {
         heading: "Preguntas frecuentes",
@@ -479,7 +479,7 @@ const FUNDLY_I18N = (() => {
         chipOdds: "Cuotas 1.00–8.00, todos los deportes", chipDays: "30 días por fase",
         chipSplitSuffix: "de reparto de beneficios", chipRewards: "Pagos en 7 días",
         previewExplain: "Cada deporte, una cuenta — fútbol, hockey, tenis, esports y más, con coeficientes de simulación de 1.00 a 8.00. Elige un partido, envía una entrada simulada dentro de tu límite de riesgo y observa cómo se resuelve en vivo en el panel de abajo.",
-        previewCta: "¿Ya tienes cuenta? Inicia sesión y échale un vistazo →",
+       
       },
       co: {
         heroTitleHtml: "Comienza tu <span class=\"acc\">viaje</span>", heroSub: "Elige un paquete y crea una cuenta",
@@ -498,7 +498,7 @@ const FUNDLY_I18N = (() => {
         gatewayError: "No se pudo cargar la pasarela de pago.", openWhop: "Abrir pago en Whop",
         gatewayErrorRetry: "No se pudo cargar la pasarela de pago. Inténtalo de nuevo o paga directamente en Whop.",
         errJoinWaitlist: "No se pudo unir a la lista de espera.", errInvalidGatewayResponse: "La pasarela de pago devolvió una respuesta no válida.",
-        backToSignup: "← Volver al registro", previewDashboard: "¿Aún no quieres pagar? Echa un vistazo al dashboard primero →",
+        backToSignup: "← Volver al registro",
         summary: "Resumen", package: "Paquete", capital: "Capital", oneTimeFee: "Pago único",
         recurLine: "Sin suscripción. Sin pagos recurrentes. Nunca te volveremos a cobrar a menos que compres otro Challenge.",
         featPhases: "2 fases de evaluación, 30 días cada una", featPartner: "Tiempo ilimitado como Fundly Partner en la Fase 3",
@@ -529,7 +529,7 @@ const FUNDLY_I18N = (() => {
     pl: {
       nav: {
         howItWorks: "Jak to działa", packages: "Pakiety", whyFundly: "Dlaczego Fundly", faq: "FAQ", contact: "Kontakt",
-        login: "Zaloguj się", startChallenge: "Rozpocznij Challenge",
+        preview: "Podgląd", login: "Zaloguj się", startChallenge: "Rozpocznij Challenge",
       },
       hero: {
         titleDim: "Zdobądź symulowany kapitał", titleRest: "do swojej analityki sportowej.",
@@ -584,11 +584,11 @@ const FUNDLY_I18N = (() => {
         r4a: "Tilt i zgadywanie", r4pill: "Dyscyplina", r4b: "Jasne etapy i zasady",
         r5a: "Sam", r5pill: "Wsparcie", r5b: "Społeczność i wsparcie",
       },
-      lb: {
-        heading: "Najlepsi analitycy", sub: "Prawdziwe, aktualne wyniki analityków Fundly, którzy zgodzili się je udostępnić — oglądanie nie wymaga konta.", loading: "Ładowanie rankingu…",
-      },
       discount: {
         title: "Zdobądź 40% zniżki", sub: "Podaj swój e-mail, a od razu wyślemy Ci kod.", cta: "Wyślij mi kod", success: "Kod wysłany — sprawdź swoją skrzynkę.", off: "ZNIŻKI", codeLabel: "Kod",
+      },
+      preview: {
+        title: "Zajrzyj do panelu", sub: "Załóż darmowe konto — bez płatności, bez pakietu. Po prostu się rozejrzyj.", cta: "Utwórz konto podglądu", legal: "Kontynuując, akceptujesz nasze <a href=\"terms\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">warunki</a> i <a href=\"privacy\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">politykę prywatności</a>.", exists: "Konto z tym adresem e-mail już istnieje — zaloguj się.",
       },
       faq: {
         heading: "Najczęściej zadawane pytania",
@@ -651,7 +651,7 @@ const FUNDLY_I18N = (() => {
         chipOdds: "Kursy 1,00–8,00, wszystkie sporty", chipDays: "30 dni na fazę",
         chipSplitSuffix: "podziału zysku", chipRewards: "Wypłaty w 7 dni",
         previewExplain: "Każdy sport, jedno konto — piłka nożna, hokej, tenis, esport i więcej, z symulacyjnymi kursami od 1.00 do 8.00. Wybierz mecz, złóż symulowany tiket w ramach swojego limitu ryzyka i śledź jego rozliczenie na żywo w panelu poniżej.",
-        previewCta: "Masz już konto? Zaloguj się i zajrzyj do środka →",
+       
       },
       co: {
         heroTitleHtml: "Rozpocznij swoją <span class=\"acc\">podróż</span>", heroSub: "Wybierz pakiet i załóż konto",
@@ -670,7 +670,7 @@ const FUNDLY_I18N = (() => {
         gatewayError: "Nie udało się załadować bramki płatności.", openWhop: "Otwórz płatność na Whop",
         gatewayErrorRetry: "Nie udało się załadować bramki płatności. Spróbuj ponownie lub zapłać bezpośrednio na Whop.",
         errJoinWaitlist: "Nie udało się dołączyć do listy oczekujących.", errInvalidGatewayResponse: "Bramka płatności zwróciła nieprawidłową odpowiedź.",
-        backToSignup: "← Powrót do rejestracji", previewDashboard: "Nie chcesz jeszcze płacić? Najpierw zajrzyj do panelu →",
+        backToSignup: "← Powrót do rejestracji",
         summary: "Podsumowanie", package: "Pakiet", capital: "Kapitał", oneTimeFee: "Opłata jednorazowa",
         recurLine: "Bez subskrypcji. Bez opłat cyklicznych. Nigdy więcej nie pobierzemy opłaty, chyba że kupisz kolejny Challenge.",
         featPhases: "2 etapy oceny, po 30 dni każdy", featPartner: "Nieograniczony czas jako Fundly Partner w Etapie 3",
@@ -701,7 +701,7 @@ const FUNDLY_I18N = (() => {
     sk: {
       nav: {
         howItWorks: "Ako to funguje", packages: "Balíčky", whyFundly: "Prečo Fundly", faq: "FAQ", contact: "Kontakt",
-        login: "Prihlásiť sa", startChallenge: "Spustiť Challenge",
+        preview: "Náhľad", login: "Prihlásiť sa", startChallenge: "Spustiť Challenge",
       },
       hero: {
         titleDim: "Získajte simulovaný kapitál", titleRest: "pre vašu športovú analytiku.",
@@ -756,11 +756,11 @@ const FUNDLY_I18N = (() => {
         r4a: "Tilt a odhady", r4pill: "Disciplína", r4b: "Jasné fázy a pravidlá",
         r5a: "Sami", r5pill: "Podpora", r5b: "Komunita a podpora",
       },
-      lb: {
-        heading: "Najlepšie výkony", sub: "Reálne, živé výsledky analytikov Fundly, ktorí súhlasili so zdieľaním — prezeranie nevyžaduje účet.", loading: "Načítavam rebríček…",
-      },
       discount: {
         title: "Získaj 40% zľavu", sub: "Zadaj svoj e-mail a hneď ti pošleme kód.", cta: "Poslať mi kód", success: "Kód odoslaný — skontroluj si schránku.", off: "ZĽAVA", codeLabel: "Kód",
+      },
+      preview: {
+        title: "Pozri sa dovnútra", sub: "Vytvor si účet zadarmo — žiadna platba, žiadny balíček. Len sa pozri.", cta: "Vytvoriť účet na náhľad", legal: "Pokračovaním súhlasíš s <a href=\"terms\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">podmienkami</a> a <a href=\"privacy\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">zásadami ochrany súkromia</a>.", exists: "Účet s týmto e-mailom už existuje — prihlás sa.",
       },
       faq: {
         heading: "Často kladené otázky",
@@ -823,7 +823,7 @@ const FUNDLY_I18N = (() => {
         chipOdds: "Kurzy 1,00–8,00, všetky športy", chipDays: "30 dní na fázu",
         chipSplitSuffix: "podiel na zisku", chipRewards: "Výplaty do 7 dní",
         previewExplain: "Každý šport, jeden účet — futbal, hokej, tenis, esporty a ďalšie, so simulačnými koeficientmi od 1.00 do 8.00. Vyber si zápas, zadaj simulačný tiket v rámci svojho rizikového limitu a sleduj jeho vyhodnotenie naživo v dashboarde nižšie.",
-        previewCta: "Už máš účet? Prihlás sa a pozri sa dovnútra →",
+       
       },
       co: {
         heroTitleHtml: "Začnite svoju <span class=\"acc\">cestu</span>", heroSub: "Vyberte si balíček a založte účet",
@@ -842,7 +842,7 @@ const FUNDLY_I18N = (() => {
         gatewayError: "Platobnú bránu sa nepodarilo načítať.", openWhop: "Otvoriť platbu na Whop",
         gatewayErrorRetry: "Platobnú bránu sa nepodarilo načítať. Skúste to prosím znova, alebo zaplaťte priamo na Whop.",
         errJoinWaitlist: "Na čakaciu listinu sa nepodarilo prihlásiť.", errInvalidGatewayResponse: "Platobná brána vrátila neplatnú odpoveď.",
-        backToSignup: "← Späť na registráciu", previewDashboard: "Ešte nechceš platiť? Najprv sa pozri dovnútra dashboardu →",
+        backToSignup: "← Späť na registráciu",
         summary: "Zhrnutie", package: "Balíček", capital: "Kapitál", oneTimeFee: "Jednorazový poplatok",
         recurLine: "Žiadne predplatné. Žiadne opakované platby. Už vám nikdy nič nestrhneme, pokiaľ si nekúpite ďalší Challenge.",
         featPhases: "2 hodnotiace fázy, po 30 dní", featPartner: "Neobmedzený čas ako Fundly Partner vo fáze 3",
@@ -873,7 +873,7 @@ const FUNDLY_I18N = (() => {
     hu: {
       nav: {
         howItWorks: "Hogyan működik", packages: "Csomagok", whyFundly: "Miért a Fundly", faq: "GYIK", contact: "Kapcsolat",
-        login: "Bejelentkezés", startChallenge: "Challenge indítása",
+        preview: "Előnézet", login: "Bejelentkezés", startChallenge: "Challenge indítása",
       },
       hero: {
         titleDim: "Szerezz szimulált tőkét", titleRest: "a sportelemzéseidhez.",
@@ -928,11 +928,11 @@ const FUNDLY_I18N = (() => {
         r4a: "Tilt és találgatás", r4pill: "Fegyelem", r4b: "Világos fázisok és szabályok",
         r5a: "Egyedül", r5pill: "Támogatás", r5b: "Közösség és támogatás",
       },
-      lb: {
-        heading: "Legjobb teljesítmények", sub: "A Fundly elemzőinek valós, élő eredményei, akik beleegyeztek a megosztásba — a megtekintéshez nem kell fiók.", loading: "Ranglista betöltése…",
-      },
       discount: {
         title: "Szerezz 40% kedvezményt", sub: "Add meg az e-mail címed, és azonnal elküldjük a kódot.", cta: "Küldd el a kódot", success: "Kód elküldve — nézd meg a postaládád.", off: "KEDVEZMÉNY", codeLabel: "Kód",
+      },
+      preview: {
+        title: "Nézz be az irányítópultba", sub: "Hozz létre egy ingyenes fiókot — fizetés és csomag nélkül. Csak nézz körül.", cta: "Előnézeti fiók létrehozása", legal: "A folytatással elfogadod <a href=\"terms\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">feltételeinket</a> és <a href=\"privacy\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">adatvédelmi szabályzatunkat</a>.", exists: "Ezzel az e-mail címmel már létezik fiók — jelentkezz be.",
       },
       faq: {
         heading: "Gyakran ismételt kérdések",
@@ -995,7 +995,7 @@ const FUNDLY_I18N = (() => {
         chipOdds: "1,00–8,00 közötti odds, minden sport", chipDays: "30 nap fázisonként",
         chipSplitSuffix: "teljesítmény-megosztás", chipRewards: "Kifizetés 7 napon belül",
         previewExplain: "Minden sport, egy fiók — foci, jégkorong, tenisz, esport és még sok más, 1.00 és 8.00 közötti szimulációs együtthatókkal. Válassz meccset, adj le egy szimulált tippet a kockázati limiteden belül, és kövesd élőben az elszámolását az alábbi irányítópulton.",
-        previewCta: "Már van fiókod? Jelentkezz be, és nézz körül →",
+       
       },
       co: {
         heroTitleHtml: "Kezdd el az <span class=\"acc\">utad</span>", heroSub: "Válassz csomagot, és hozz létre fiókot",
@@ -1014,7 +1014,7 @@ const FUNDLY_I18N = (() => {
         gatewayError: "A fizetési átjárót nem sikerült betölteni.", openWhop: "Fizetés megnyitása a Whopon",
         gatewayErrorRetry: "A fizetési átjárót nem sikerült betölteni. Kérjük, próbáld újra, vagy fizess közvetlenül a Whopon.",
         errJoinWaitlist: "Nem sikerült feliratkozni a várólistára.", errInvalidGatewayResponse: "A fizetési átjáró érvénytelen választ adott.",
-        backToSignup: "← Vissza a regisztrációhoz", previewDashboard: "Még nem akarsz fizetni? Nézz be előbb az irányítópultba →",
+        backToSignup: "← Vissza a regisztrációhoz",
         summary: "Összegzés", package: "Csomag", capital: "Tőke", oneTimeFee: "Egyszeri díj",
         recurLine: "Nincs előfizetés. Nincs visszatérő terhelés. Soha többé nem terhelünk, hacsak nem vásárolsz újabb Challenge-et.",
         featPhases: "2 értékelési fázis, egyenként 30 nap", featPartner: "Korlátlan idő Fundly Partnerként a 3. fázisban",
