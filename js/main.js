@@ -440,49 +440,6 @@ const heroSentinel = new IntersectionObserver(
 const heroEl = document.querySelector(".hero");
 if (heroEl) heroSentinel.observe(heroEl);
 
-// ---------- public leaderboard (homepage, no login required) ----------
-// leaderboard-get is a public endpoint (only rows with leaderboard_opt_in)
-// — shown here as social proof, same data the logged-in dashboard uses.
-// Runs on DOMContentLoaded, not immediately: main.js isn't deferred but
-// config.js (which defines fundlyBackendEnabled/FUNDLY_SUPABASE_URL) is, so
-// at the moment this script tag itself runs those globals don't exist yet.
-document.addEventListener("DOMContentLoaded", async () => {
-  const list = document.getElementById("publicLbList");
-  if (!list || typeof fundlyBackendEnabled !== "function" || !fundlyBackendEnabled()) return;
-  try {
-    const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/leaderboard-get`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: "{}",
-    });
-    const data = await res.json().catch(() => ({}));
-    const rows = Array.isArray(data.rows) ? data.rows.slice(0, 8) : [];
-    if (!rows.length) {
-      list.innerHTML = `<p class="lb-empty">No shared results yet — be the first on the board.</p>`;
-      return;
-    }
-    list.innerHTML = rows.map((r, i) => {
-      const profit = Number(r.profit) || 0;
-      const roi = Number(r.roi) || 0;
-      return `
-      <div class="lb-row">
-        <span class="lb-rank">${i + 1}</span>
-        <span class="lb-name">${esc(r.name)}<span class="lb-pkg">${esc(r.packageKey || "")}</span></span>
-        <span class="lb-stats">
-          <span class="lb-roi">${roi >= 0 ? "+" : ""}${roi}% ROI</span>
-          <span class="lb-profit ${profit >= 0 ? "pos" : "neg"}">${usdSigned(profit)}</span>
-        </span>
-      </div>`;
-    }).join("");
-  } catch (e) {
-    list.innerHTML = `<p class="lb-empty">Leaderboard is temporarily unavailable.</p>`;
-  }
-});
-function esc(s) {
-  return String(s ?? "").replace(/[&<>"']/g, (c) =>
-    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-}
-
 // ---------- discount pop-up (40% off, e-mail capture) ----------
 // Shows once ever per browser (localStorage flag, set the moment it's
 // shown — not just on submit, so a closed/ignored popup doesn't nag again
