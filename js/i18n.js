@@ -72,7 +72,7 @@ const FUNDLY_I18N = (() => {
         heading: "Top performers", sub: "Real, live results from Fundly analysts who opted in to share them — no account needed to look.", loading: "Loading leaderboard…",
       },
       discount: {
-        title: "Get 40% off", sub: "Enter your email and we'll send you the code right away.", cta: "Send me the code", success: "Code sent — check your inbox.", off: "OFF", codeLabel: "Code",
+        title: "Get 40% off", sub: "Enter your email and we'll send you the code right away.", cta: "Send me the code", success: "Code sent — check your inbox.", off: "OFF",
       },
       faq: {
         heading: "Frequently asked questions",
@@ -244,7 +244,7 @@ const FUNDLY_I18N = (() => {
         heading: "Nejlepší výkony", sub: "Reálné, živé výsledky analytiků Fundly, kteří souhlasili se sdílením — prohlížení nevyžaduje účet.", loading: "Načítání žebříčku…",
       },
       discount: {
-        title: "Získej 40% slevu", sub: "Zadej svůj e-mail a hned ti pošleme kód.", cta: "Poslat mi kód", success: "Kód odeslán — zkontroluj si schránku.", off: "SLEVA", codeLabel: "Kód",
+        title: "Získej 40% slevu", sub: "Zadej svůj e-mail a hned ti pošleme kód.", cta: "Poslat mi kód", success: "Kód odeslán — zkontroluj si schránku.", off: "SLEVA",
       },
       faq: {
         heading: "Často kladené otázky",
@@ -416,7 +416,7 @@ const FUNDLY_I18N = (() => {
         heading: "Mejores resultados", sub: "Resultados reales y en vivo de analistas de Fundly que decidieron compartirlos — no necesitas cuenta para verlo.", loading: "Cargando la clasificación…",
       },
       discount: {
-        title: "Obtén 40% de descuento", sub: "Ingresa tu correo y te enviaremos el código enseguida.", cta: "Enviarme el código", success: "Código enviado — revisa tu bandeja de entrada.", off: "DESCUENTO", codeLabel: "Código",
+        title: "Obtén 40% de descuento", sub: "Ingresa tu correo y te enviaremos el código enseguida.", cta: "Enviarme el código", success: "Código enviado — revisa tu bandeja de entrada.", off: "DESCUENTO",
       },
       faq: {
         heading: "Preguntas frecuentes",
@@ -588,7 +588,7 @@ const FUNDLY_I18N = (() => {
         heading: "Najlepsi analitycy", sub: "Prawdziwe, aktualne wyniki analityków Fundly, którzy zgodzili się je udostępnić — oglądanie nie wymaga konta.", loading: "Ładowanie rankingu…",
       },
       discount: {
-        title: "Zdobądź 40% zniżki", sub: "Podaj swój e-mail, a od razu wyślemy Ci kod.", cta: "Wyślij mi kod", success: "Kod wysłany — sprawdź swoją skrzynkę.", off: "ZNIŻKI", codeLabel: "Kod",
+        title: "Zdobądź 40% zniżki", sub: "Podaj swój e-mail, a od razu wyślemy Ci kod.", cta: "Wyślij mi kod", success: "Kod wysłany — sprawdź swoją skrzynkę.", off: "ZNIŻKI",
       },
       faq: {
         heading: "Najczęściej zadawane pytania",
@@ -760,7 +760,7 @@ const FUNDLY_I18N = (() => {
         heading: "Najlepšie výkony", sub: "Reálne, živé výsledky analytikov Fundly, ktorí súhlasili so zdieľaním — prezeranie nevyžaduje účet.", loading: "Načítavam rebríček…",
       },
       discount: {
-        title: "Získaj 40% zľavu", sub: "Zadaj svoj e-mail a hneď ti pošleme kód.", cta: "Poslať mi kód", success: "Kód odoslaný — skontroluj si schránku.", off: "ZĽAVA", codeLabel: "Kód",
+        title: "Získaj 40% zľavu", sub: "Zadaj svoj e-mail a hneď ti pošleme kód.", cta: "Poslať mi kód", success: "Kód odoslaný — skontroluj si schránku.", off: "ZĽAVA",
       },
       faq: {
         heading: "Často kladené otázky",
@@ -932,7 +932,7 @@ const FUNDLY_I18N = (() => {
         heading: "Legjobb teljesítmények", sub: "A Fundly elemzőinek valós, élő eredményei, akik beleegyeztek a megosztásba — a megtekintéshez nem kell fiók.", loading: "Ranglista betöltése…",
       },
       discount: {
-        title: "Szerezz 40% kedvezményt", sub: "Add meg az e-mail címed, és azonnal elküldjük a kódot.", cta: "Küldd el a kódot", success: "Kód elküldve — nézd meg a postaládád.", off: "KEDVEZMÉNY", codeLabel: "Kód",
+        title: "Szerezz 40% kedvezményt", sub: "Add meg az e-mail címed, és azonnal elküldjük a kódot.", cta: "Küldd el a kódot", success: "Kód elküldve — nézd meg a postaládád.", off: "KEDVEZMÉNY",
       },
       faq: {
         heading: "Gyakran ismételt kérdések",
