@@ -236,6 +236,16 @@
             </div>
           </div>
         </div>
+
+        <div class="panel">
+          <h3>Day by day, this phase</h3>
+          <div style="overflow-x:auto">
+            <table class="ticket-table">
+              <thead><tr><th>Day</th><th>Tickets</th><th>Net</th><th>Balance</th></tr></thead>
+              <tbody id="vykonDailyTable"><!-- JS: renderVykon() --></tbody>
+            </table>
+          </div>
+        </div>
       </section>
 
       <!-- ============ BETTING ============ -->
@@ -245,6 +255,12 @@
             <h1>Entries</h1>
             <p>Pick matches and build your ticket</p>
           </div>
+        </div>
+
+        <div class="panel act-panel" id="previewModePanel" hidden>
+          <h3>You're browsing in preview mode</h3>
+          <p class="t-small">You can look around and see how it works, but you'll need an account to submit an entry.</p>
+          <a class="btn btn-primary" style="margin-top:12px" href="./#packages">Get an account</a>
         </div>
 
         <div class="bank-bar">
@@ -361,7 +377,7 @@
         <div class="hero-panel wd">
           <div>
             <div class="t">Your vault opens with a Partner account</div>
-            <div class="d">80 % of every profit, payouts within 48 hours of approval.</div>
+            <div class="d">80 % of every profit, payouts within 7 days of approval.</div>
           </div>
         </div>
 
@@ -527,7 +543,7 @@
               <li>Max. entry size 1.5 % of capital per ticket.</li>
               <li>5 qualifying tickets per phase and before every payout.</li>
               <li>No arbitrage, no sure betting, no abusive strategies — flagged tickets lead to a breach.</li>
-              <li>Partner account: 80 % performance split, payouts within 48 hours of approval.</li>
+              <li>Partner account: 80 % performance split, payouts within 7 days of approval.</li>
             </ol>
           </div>
         </div>

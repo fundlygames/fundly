@@ -2,6 +2,11 @@
 
 const usd = (n) => "$" + Math.round(n).toLocaleString("en-US");
 
+// Kdy server naposledy zaznamenal vstup do pending_approval (viz
+// syncChallengeAccount) — použito jen pro "čekáš už X" text v bannerů,
+// nic to nerozhoduje.
+let pendingApprovalSince = null;
+
 // Zapomenuté heslo: Supabase po kliknutí na odkaz z e-mailu přesměruje sem
 // s "#access_token=...&type=recovery" ve fragmentu — supabase-js z toho sám
 // založí dočasnou přihlášenou session, ale nikam sama od sebe nenaviguje.
@@ -86,6 +91,10 @@ function showView(name) {
   if (name === "prehled" && typeof renderPrehled === "function") renderPrehled();
   if (name === "vykon" && typeof renderVykon === "function") renderVykon();
   if (name === "sazeni" && typeof renderBankBar === "function") renderBankBar();
+  if (name === "sazeni") {
+    const preview = document.getElementById("previewModePanel");
+    if (preview) preview.hidden = !window.__noRealAccount;
+  }
   if (name === "profil" && typeof renderBadges === "function") renderBadges(Portfolio.get());
   if (name === "vyplaty" && typeof loadPayoutHistory === "function") loadPayoutHistory();
   if (name === "affiliate" && typeof loadAffiliateStats === "function") loadAffiliateStats();
@@ -620,9 +629,14 @@ window.addEventListener("pagehide", () => {
 scheduleAccountSync();
 
 // ---------- limited dashboard: přihlášený uživatel bez aktivního účtu ----------
-// Skryje hlavní navigaci a sekce, ukáže jen CTA na novou výzvu + minulé účty.
+// Overview zůstane na CTA "koupit balíček" + historie starých účtů, ale
+// navigace zůstává funkční — hráč si může projít i zbytek dashboardu
+// (hlavně Entries: reálné zápasy a kurzy) bez placení. Skutečné podání
+// tiketu je zablokované (window.__noRealAccount, viz placeBet handler a
+// previewModePanel v Entries).
 function showLimitedDashboard(accounts) {
   document.body.classList.add("limited");
+  window.__noRealAccount = true;
   document.querySelectorAll(".dash-view").forEach((v) => { v.hidden = true; });
   const view = document.getElementById("view-noaccount");
   if (view) view.hidden = false;
@@ -679,7 +693,7 @@ async function syncChallengeAccount() {
     const fetchAccounts = async () => {
       const { data, error: fetchError } = await client
         .from("challenge_accounts")
-        .select("id, package_key, capital, phase, pending_phase, state, flags, created_at, inactivity_warned_7, inactivity_warned_13, nickname, leaderboard_opt_in")
+        .select("id, package_key, capital, phase, pending_phase, pending_requested_at, state, flags, created_at, inactivity_warned_7, inactivity_warned_13, nickname, leaderboard_opt_in")
         .order("created_at", { ascending: false });
       if (fetchError) throw fetchError;
       return data || [];
@@ -718,6 +732,8 @@ async function syncChallengeAccount() {
         account = accounts.find((a) => a.state === "active" || a.state === "funded" || a.state === "pending_approval");
       }
     }
+
+    pendingApprovalSince = account?.pending_requested_at ?? null;
 
     if (!account) {
       showLimitedDashboard(accounts);
@@ -1380,6 +1396,11 @@ function renderSlip() {
   document.getElementById("placeBet").addEventListener("click", async () => {
     const note = document.getElementById("betNote");
     const btn = document.getElementById("placeBet");
+    if (window.__noRealAccount) {
+      note.textContent = "You're browsing in preview mode — get an account to submit entries.";
+      note.hidden = false;
+      return;
+    }
     // value-bet flag (zakázaná strategie): pick je v odds-api value-bet
     // výpisu pro Betano. Endpoint je volitelný — chyba = žádný flag.
     let flags = [];
@@ -2136,6 +2157,7 @@ if (nickSave) {
       nickSave.textContent = "Saved";
     } catch (e) {
       nickSave.textContent = "Failed";
+      if (typeof showToast === "function") showToast("loss", "Couldn't save nickname", e.message || "Try a different nickname.");
     }
     setTimeout(() => { nickSave.textContent = "Save"; nickSave.disabled = false; }, 1500);
   });
@@ -2273,8 +2295,17 @@ function renderPrehled() {
     pendingPanel.hidden = !state.pendingPhase;
     if (state.pendingPhase) {
       const nextLabel = state.pendingPhase === "funded" ? "a Partner (funded) account" : `Phase ${state.pendingPhase}`;
+      let waitNote = "Reviews are usually completed within one business day.";
+      if (pendingApprovalSince) {
+        const hours = Math.floor((Date.now() - new Date(pendingApprovalSince).getTime()) / 3600000);
+        if (hours >= 1) {
+          waitNote = hours >= 24
+            ? `You've been waiting ${Math.floor(hours / 24)} day${Math.floor(hours / 24) === 1 ? "" : "s"} — if it's been longer than expected, reach out to support.`
+            : `You've been waiting ${hours} hour${hours === 1 ? "" : "s"} — reviews are usually completed within one business day.`;
+        }
+      }
       document.getElementById("pendingApprovalText").textContent =
-        `You cleared this phase's target. Betting is paused while our team reviews and approves the move to ${nextLabel} — you'll get an e-mail as soon as it's confirmed.`;
+        `You cleared this phase's target. Betting is paused while our team reviews and approves the move to ${nextLabel} — you'll get an e-mail as soon as it's confirmed. ${waitNote}`;
     }
   }
   renderMomentum(state);
@@ -2607,6 +2638,20 @@ function renderVykon() {
     }
     return `<tr><td>${label}</td><td>${tip}</td><td class="odds">${t.combinedOdds.toFixed(2)}</td><td>${usd(t.stake)}</td><td>${flagTags(t)}<span class="tag ${tag}">${tagText}</span></td></tr>`;
   }).join("") : `<tr><td colspan="5">No tickets yet.</td></tr>`;
+
+  const { days: dailyRows } = Portfolio.dailyBalanceHistory(state);
+  const dailyTable = document.getElementById("vykonDailyTable");
+  if (dailyTable) {
+    dailyTable.innerHTML = dailyRows.length
+      ? dailyRows.slice().reverse().map((d) => `
+        <tr>
+          <td>${new Date(d.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</td>
+          <td>${d.count}</td>
+          <td class="${d.net >= 0 ? "green" : ""}" style="${d.net < 0 ? "color:#ff9d9d" : ""}">${d.net >= 0 ? "+" : ""}${usd(d.net)}</td>
+          <td class="odds">${usd(d.balance)}</td>
+        </tr>`).join("")
+      : `<tr><td colspan="4">No settled tickets yet this phase.</td></tr>`;
+  }
 }
 
 document.getElementById("vykonRefresh")?.addEventListener("click", async (e) => {

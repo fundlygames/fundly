@@ -439,3 +439,107 @@ const heroSentinel = new IntersectionObserver(
 );
 const heroEl = document.querySelector(".hero");
 if (heroEl) heroSentinel.observe(heroEl);
+
+// ---------- public leaderboard (homepage, no login required) ----------
+// leaderboard-get is a public endpoint (only rows with leaderboard_opt_in)
+// — shown here as social proof, same data the logged-in dashboard uses.
+// Runs on DOMContentLoaded, not immediately: main.js isn't deferred but
+// config.js (which defines fundlyBackendEnabled/FUNDLY_SUPABASE_URL) is, so
+// at the moment this script tag itself runs those globals don't exist yet.
+document.addEventListener("DOMContentLoaded", async () => {
+  const list = document.getElementById("publicLbList");
+  if (!list || typeof fundlyBackendEnabled !== "function" || !fundlyBackendEnabled()) return;
+  try {
+    const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/leaderboard-get`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
+    });
+    const data = await res.json().catch(() => ({}));
+    const rows = Array.isArray(data.rows) ? data.rows.slice(0, 8) : [];
+    if (!rows.length) {
+      list.innerHTML = `<p class="lb-empty">No shared results yet — be the first on the board.</p>`;
+      return;
+    }
+    list.innerHTML = rows.map((r, i) => {
+      const profit = Number(r.profit) || 0;
+      const roi = Number(r.roi) || 0;
+      return `
+      <div class="lb-row">
+        <span class="lb-rank">${i + 1}</span>
+        <span class="lb-name">${esc(r.name)}<span class="lb-pkg">${esc(r.packageKey || "")}</span></span>
+        <span class="lb-stats">
+          <span class="lb-roi">${roi >= 0 ? "+" : ""}${roi}% ROI</span>
+          <span class="lb-profit ${profit >= 0 ? "pos" : "neg"}">${usdSigned(profit)}</span>
+        </span>
+      </div>`;
+    }).join("");
+  } catch (e) {
+    list.innerHTML = `<p class="lb-empty">Leaderboard is temporarily unavailable.</p>`;
+  }
+});
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+// ---------- discount pop-up (40% off, e-mail capture) ----------
+// Shows once ever per browser (localStorage flag, set the moment it's
+// shown — not just on submit, so a closed/ignored popup doesn't nag again
+// on the next visit). Triggered by exit-intent (mouse leaves toward the
+// top of the viewport) on desktop, with a timed fallback for touch devices
+// that never fire mouseout the same way.
+(() => {
+  const modal = document.getElementById("discountModal");
+  const form = document.getElementById("discountForm");
+  if (!modal || !form) return;
+  const SEEN_KEY = "fundly:discountPopupSeen";
+
+  function showDiscountModal() {
+    if (localStorage.getItem(SEEN_KEY)) return;
+    try { localStorage.setItem(SEEN_KEY, "1"); } catch (e) {}
+    if (!modal.hidden || !authModal.hidden) return; // don't stack on top of the login modal
+    modal.hidden = false;
+    document.body.style.overflow = "hidden";
+  }
+  function closeDiscountModal() {
+    modal.hidden = true;
+    document.body.style.overflow = "";
+  }
+
+  document.addEventListener("mouseout", (e) => {
+    if (!e.relatedTarget && e.clientY <= 0) showDiscountModal();
+  });
+  setTimeout(showDiscountModal, 20000);
+
+  document.getElementById("discountClose").addEventListener("click", closeDiscountModal);
+  modal.addEventListener("click", (e) => { if (e.target === modal) closeDiscountModal(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !modal.hidden) closeDiscountModal(); });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const note = document.getElementById("discountNote");
+    const btn = document.getElementById("discountSubmit");
+    const email = document.getElementById("discountEmail").value.trim();
+    btn.disabled = true;
+    note.hidden = true;
+    try {
+      const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/discount-signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Could not send the code.");
+      form.hidden = true;
+      note.textContent = (typeof t === "function" ? t("discount.success") : "Code sent — check your inbox.");
+      note.className = "auth-note";
+      note.hidden = false;
+    } catch (err) {
+      note.textContent = err.message || "Could not send the code.";
+      note.className = "auth-note warn";
+      note.hidden = false;
+      btn.disabled = false;
+    }
+  });
+})();

@@ -398,9 +398,10 @@ body::after {
 .ov-layout { display: grid; gap: 12px; align-items: start; }
 @media (min-width: 1024px) { .ov-layout { grid-template-columns: minmax(0, 1fr) 340px; } }
 
-/* limited dashboard (bez aktivního účtu): schováme navigaci a odsazení sidebaru */
-.limited .dside, .limited .dnav-mobile, .limited .dnav-more-sheet { display: none; }
-@media (min-width: 1024px) { .limited .dash-main { padding-left: 0; } }
+/* limited dashboard (bez aktivního účtu): navigace zůstává vidět, aby si
+   uživatel mohl prohlédnout Entries a zbytek dashboardu bez balíčku (viz
+   showLimitedDashboard) — sázet ale nejde, viz previewModePanel a gate v
+   placeBet handleru. */
 
 /* nápadný panel — aktivace funded účtu / CTA na novou výzvu */
 .act-panel {

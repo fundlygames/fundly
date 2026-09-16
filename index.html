@@ -232,7 +232,7 @@
               <span class="wf-num">04</span>
               <div>
                 <h3 data-i18n="why.h4">Fast support and rewards</h3>
-                <p data-i18n="why.p4">Support replies within hours and approved contractor rewards are disbursed within 48 hours.</p>
+                <p data-i18n="why.p4">Support replies within hours and approved contractor rewards are disbursed within 7 days.</p>
               </div>
             </div>
             <div class="strip-fade wf-marquee" aria-hidden="true">
@@ -251,7 +251,7 @@
                 <div class="lbl" data-i18n="why.splitLbl">performance split, fixed forever</div>
               </div>
               <div class="wf-stat reveal" style="--reveal-delay:.18s">
-                <div class="num">48 h</div>
+                <div class="num">7 days</div>
                 <div class="lbl" data-i18n="why.speedLbl">reward approval</div>
               </div>
             </div>
@@ -314,6 +314,19 @@
       </div>
     </section>
 
+    <!-- ============ LEADERBOARD (public, live) ============ -->
+    <section id="leaderboard" class="tight">
+      <div class="container">
+        <div class="section-head reveal">
+          <h2 class="t-h1" data-i18n="lb.heading">Top performers</h2>
+          <p data-i18n="lb.sub">Real, live results from Fundly analysts who opted in to share them — no account needed to look.</p>
+        </div>
+        <div class="lb-list" id="publicLbList">
+          <p class="lb-loading" data-i18n="lb.loading">Loading leaderboard…</p>
+        </div>
+      </div>
+    </section>
+
     <!-- ============ FAQ ============ -->
     <section id="faq" class="tight">
       <div class="container">
@@ -343,7 +356,7 @@
             <button class="faq-q" aria-expanded="false"><span data-i18n="faq.q4">How are performance rewards disbursed?</span>
               <svg class="chev" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 6l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
-            <div class="faq-a"><div><p data-i18n="faq.a4">Successful analysts in Phase 3 operate as independent B2B contractors. Based on verified performance data and challenge rules — a profit buffer of +5 % of capital and 5 qualifying entries, up to $4,000 per request — contractors submit invoices to Grindit LLC, which are settled via bank transfer, crypto assets, or electronic wallets within 48 hours of approval.</p></div></div>
+            <div class="faq-a"><div><p data-i18n="faq.a4">Successful analysts in Phase 3 operate as independent B2B contractors. Based on verified performance data and challenge rules — a profit buffer of +5 % of capital and 5 qualifying entries, up to $4,000 per request — contractors submit invoices to Grindit LLC, which are settled via bank transfer, crypto assets, or electronic wallets within 7 days of approval.</p></div></div>
           </div>
           <div class="faq-item">
             <button class="faq-q" aria-expanded="false"><span data-i18n="faq.q5">What if I fail the Challenge?</span>
@@ -446,6 +459,8 @@
           <a href="rules" data-i18n="footer.rules">Rules</a>
           <a href="disclaimer" data-i18n="footer.disclaimer">Disclaimer</a>
           <a href="refund" data-i18n="footer.refund">Refund</a>
+          <a href="aml" data-i18n="footer.aml">AML Policy</a>
+          <a href="restricted-countries" data-i18n="footer.restrictedCountries">Restricted Countries</a>
         </nav>
       </div>
     </div>
@@ -498,6 +513,28 @@
         <span id="authSwitchText" data-i18n="auth.noAccount">No account yet?</span>
         <button type="button" id="authSwitch" data-i18n="auth.signUp">Sign up</button>
       </p>
+    </div>
+  </div>
+
+  <!-- ============ DISCOUNT POPUP (email capture, 40% off) ============ -->
+  <div class="modal-backdrop" id="discountModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="discountTitle">
+      <button class="modal-close" id="discountClose" aria-label="Close">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <div class="modal-head">
+        <img src="assets/logo.png" alt="" width="28" height="28" />
+        <h2 id="discountTitle" data-i18n="discount.title">Get 40% off</h2>
+        <p data-i18n="discount.sub">Enter your email and we'll send you the code right away.</p>
+      </div>
+      <form id="discountForm" novalidate>
+        <div class="field">
+          <label for="discountEmail" data-i18n="auth.email">E-mail</label>
+          <input class="input" id="discountEmail" type="email" autocomplete="email" placeholder="you@example.com" required />
+        </div>
+        <p class="auth-note" id="discountNote" hidden></p>
+        <button type="submit" class="btn btn-primary" style="width:100%" id="discountSubmit" data-i18n="discount.cta">Send me the code</button>
+      </form>
     </div>
   </div>
 
