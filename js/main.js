@@ -506,3 +506,64 @@ if (heroEl) heroSentinel.observe(heroEl);
     }
   });
 })();
+
+// ---------- preview signup (free account, no purchase) ----------
+// The single entry point for "look inside the dashboard before you buy" —
+// creates a real auth account via preview-signup (server-side, so it can
+// also log the signup and send the welcome/discount e-mail atomically),
+// then signs in client-side (admin.createUser doesn't hand back a session)
+// and sends the visitor straight into the dashboard.
+(() => {
+  const modal = document.getElementById("previewModal");
+  const form = document.getElementById("previewForm");
+  if (!modal || !form) return;
+
+  function openPreview() {
+    if (typeof fundlyBackendEnabled !== "function" || !fundlyBackendEnabled()) return;
+    form.hidden = false;
+    document.getElementById("previewNote").hidden = true;
+    document.getElementById("previewSubmit").disabled = false;
+    modal.hidden = false;
+    document.body.style.overflow = "hidden";
+  }
+  function closePreview() {
+    modal.hidden = true;
+    document.body.style.overflow = "";
+  }
+
+  document.getElementById("navPreviewBtn")?.addEventListener("click", openPreview);
+  document.getElementById("navPreviewBtnMobile")?.addEventListener("click", openPreview);
+  document.getElementById("previewClose").addEventListener("click", closePreview);
+  modal.addEventListener("click", (e) => { if (e.target === modal) closePreview(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !modal.hidden) closePreview(); });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const note = document.getElementById("previewNote");
+    const btn = document.getElementById("previewSubmit");
+    const email = document.getElementById("previewEmail").value.trim();
+    const password = document.getElementById("previewPass").value;
+    btn.disabled = true;
+    note.hidden = true;
+    try {
+      const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/preview-signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Could not create the account.");
+
+      const client = await FundlyBackend.getClient();
+      const { error: signInError } = await client.auth.signInWithPassword({ email, password });
+      if (signInError) throw new Error(signInError.message);
+
+      window.location.href = "dashboard";
+    } catch (err) {
+      note.textContent = err.message || "Could not create the account.";
+      note.className = "auth-note warn";
+      note.hidden = false;
+      btn.disabled = false;
+    }
+  });
+})();

@@ -1137,6 +1137,9 @@ footer {
 }
 .discount-code-preview b { font-family: var(--mono); color: var(--accent); letter-spacing: .06em; }
 .modal-head { display: flex; flex-direction: column; gap: 4px; margin-bottom: 20px; }
+.preview-legal { margin-top: 14px; text-align: center; font-size: .75rem; color: var(--text-muted); line-height: 1.5; }
+.preview-legal .lnk { color: var(--accent); font-weight: 600; text-decoration: none; }
+.preview-legal .lnk:hover { text-decoration: underline; }
 .modal-head img { margin-bottom: 8px; }
 .modal-head h2 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.01em; }
 .modal-head p { font-size: .875rem; color: var(--text-muted); }

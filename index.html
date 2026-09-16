@@ -69,6 +69,7 @@
           <option value="hu">HU</option>
           <option value="es">ES</option>
         </select>
+        <button class="btn btn-ghost" id="navPreviewBtn" type="button" data-i18n="nav.preview">Preview</button>
         <button class="btn btn-ghost" data-auth="login" type="button" data-i18n="nav.login">Log in</button>
         <a class="btn btn-primary" href="#packages" data-quickstart="advanced" data-i18n="nav.startChallenge">Start the Challenge</a>
       </div>
@@ -94,6 +95,7 @@
         <option value="es">ES</option>
       </select>
       <div class="mobile-menu-actions">
+        <button class="btn btn-ghost" id="navPreviewBtnMobile" type="button" style="width:100%" data-i18n="nav.preview">Preview</button>
         <button class="btn btn-ghost" data-auth="login" type="button" style="width:100%" data-i18n="nav.login">Log in</button>
         <a class="btn btn-primary" href="#packages" data-quickstart="advanced" style="width:100%" data-i18n="nav.startChallenge">Start the Challenge</a>
       </div>
@@ -530,6 +532,39 @@
         <button type="submit" class="btn btn-primary" style="width:100%" id="discountSubmit" data-i18n="discount.cta">Send me the code</button>
       </form>
       <p class="discount-code-preview"><span data-i18n="discount.codeLabel">Code</span>: <b>NEWFUNDLY</b></p>
+    </div>
+  </div>
+
+  <!-- ============ PREVIEW SIGNUP (free account, no purchase) ============ -->
+  <div class="modal-backdrop" id="previewModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="previewTitle">
+      <button class="modal-close" id="previewClose" aria-label="Close">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <div class="modal-head">
+        <img src="assets/logo.png" alt="" width="28" height="28" />
+        <h2 id="previewTitle" data-i18n="preview.title">Preview the dashboard</h2>
+        <p data-i18n="preview.sub">Create a free account — no payment, no package. Just look around.</p>
+      </div>
+      <form id="previewForm" novalidate>
+        <div class="field">
+          <label for="previewEmail" data-i18n="auth.email">E-mail</label>
+          <input class="input" id="previewEmail" type="email" autocomplete="email" placeholder="you@example.com" required />
+        </div>
+        <div class="field">
+          <label for="previewPass" data-i18n="auth.password">Password</label>
+          <div class="pw-field">
+            <input class="input" id="previewPass" type="password" autocomplete="new-password" placeholder="••••••••" required minlength="8" />
+            <button type="button" class="pw-toggle" data-pw-toggle aria-label="Show password" aria-pressed="false">
+              <svg class="eye" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.3"/></svg>
+              <svg class="eye-off" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.3"/><path d="M2 2l12 12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+        </div>
+        <p class="auth-note" id="previewNote" hidden></p>
+        <button type="submit" class="btn btn-primary" style="width:100%" id="previewSubmit" data-i18n="preview.cta">Create my preview account</button>
+      </form>
+      <p class="preview-legal" data-i18n-html="preview.legal">By continuing you agree to our <a href="terms" class="lnk" target="_blank" rel="noopener">terms</a> and <a href="privacy" class="lnk" target="_blank" rel="noopener">privacy policy</a>.</p>
     </div>
   </div>
 

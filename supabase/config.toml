@@ -75,6 +75,9 @@ verify_jwt = false
 [functions.discount-signup]
 verify_jwt = false
 
+[functions.preview-signup]
+verify_jwt = false
+
 [functions.waitlist-manage]
 verify_jwt = false
 

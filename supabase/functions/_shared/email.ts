@@ -118,6 +118,27 @@ export function pendingApprovalAdminHtml(params: {
   </div>`;
 }
 
+// "Preview signup" welcome e-mail — sent once, right after someone creates
+// a free preview account from the homepage "Preview" button (no package
+// purchased yet). Combines a welcome note, a soft feedback ask, and the
+// NEWFUNDLY discount code so they have a reason to come back and buy.
+export function previewWelcomeHtml(dashboardLink: string): string {
+  return `
+  <div style="background:#020204;padding:32px;font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#e8e8ec">
+    <div style="max-width:520px;margin:0 auto;background:#0d0d12;border:1px solid #ffffff1a;border-radius:16px;padding:28px">
+      <div style="color:#14f195;font-weight:700;font-size:18px;margin-bottom:16px">fundly</div>
+      <h2 style="color:#fff;font-size:18px;margin:0 0 12px">Welcome to your Fundly preview</h2>
+      <p style="color:#a0a0ab;font-size:14px;line-height:1.6;margin:0 0 16px">Your dashboard is ready — browse real live matches and odds, and see exactly how Fundly works before you commit to anything.</p>
+      <a href="${dashboardLink}" style="display:inline-block;background:#14f195;color:#020204;font-weight:700;text-decoration:none;padding:12px 24px;border-radius:10px;margin-bottom:20px">Open my dashboard</a>
+      <p style="color:#a0a0ab;font-size:14px;line-height:1.6;margin:0 0 8px">Ready to start a real evaluation? Here's 40% off any package:</p>
+      <div style="background:#14f19522;border:1px solid #14f19555;border-radius:10px;padding:14px 20px;text-align:center;font-family:'SF Mono',ui-monospace,monospace;font-size:20px;font-weight:700;letter-spacing:.08em;color:#14f195;margin:0 0 20px">NEWFUNDLY</div>
+      <p style="color:#5a5a66;font-size:13px;line-height:1.6;margin:0 0 20px">How did the dashboard feel? Just reply to this e-mail — we read every message.</p>
+      <hr style="border:none;border-top:1px solid #ffffff1a;margin:24px 0 16px" />
+      <p style="color:#5a5a66;font-size:11px;line-height:1.6;margin:0">Grindit LLC · Sharjah Media City, Sharjah, UAE · Reg. 2541536<br />Questions? Reach us at <a href="mailto:support@fundly.games" style="color:#7a7a86">support@fundly.games</a>.</p>
+    </div>
+  </div>`;
+}
+
 export function supportReplyHtml(originalMessage: string, reply: string): string {
   return `
   <div style="background:#020204;padding:32px;font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#e8e8ec">
