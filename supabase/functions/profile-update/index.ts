@@ -6,6 +6,24 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { handleCors, jsonResponse } from "../_shared/cors.ts";
 
+// Přezdívka je veřejná (leaderboard-get) — základní filtr proti sprostým/
+// urážlivým slovům v jazycích, které web podporuje (en/cs/es/pl/sk/hu).
+// Nejde o dokonalý/leetspeak-proof filtr, jen rozumná první obrana — diakritika
+// se normalizuje, takže "kokot"/"Kokot"/"kôkot" chytí stejně.
+const NICKNAME_BLOCKLIST = [
+  "kokot", "kurva", "kurwa", "pica", "pička", "curak", "čurák", "zmrd", "debil",
+  "buzerant", "pico", "chuj", "huj",
+  "fuck", "shit", "cunt", "nigger", "nigga", "faggot", "bitch", "whore", "rape",
+  "hitler", "nazi", "puta", "mierda", "polla",
+];
+function normalizeForFilter(s: string): string {
+  return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+}
+function containsBlockedWord(s: string): boolean {
+  const norm = normalizeForFilter(s);
+  return NICKNAME_BLOCKLIST.some((w) => norm.includes(w));
+}
+
 serve(async (req) => {
   const cors = handleCors(req);
   if (cors) return cors;
@@ -30,6 +48,9 @@ serve(async (req) => {
     const patch: Record<string, unknown> = {};
     if (body.nickname !== undefined) {
       const nick = String(body.nickname ?? "").trim().slice(0, 24);
+      if (nick && containsBlockedWord(nick)) {
+        return jsonResponse({ error: "That nickname isn't allowed — please choose another." }, 400);
+      }
       patch.nickname = nick || null;
     }
     if (body.leaderboardOptIn !== undefined) {

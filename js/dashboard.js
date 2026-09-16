@@ -2136,6 +2136,7 @@ if (nickSave) {
       nickSave.textContent = "Saved";
     } catch (e) {
       nickSave.textContent = "Failed";
+      if (typeof showToast === "function") showToast("loss", "Couldn't save nickname", e.message || "Try a different nickname.");
     }
     setTimeout(() => { nickSave.textContent = "Save"; nickSave.disabled = false; }, 1500);
   });

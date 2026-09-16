@@ -68,6 +68,9 @@ const FUNDLY_I18N = (() => {
         r4a: "Tilt &amp; guesswork", r4pill: "Discipline", r4b: "Clear phases &amp; rules",
         r5a: "Alone", r5pill: "Support", r5b: "Community &amp; support",
       },
+      lb: {
+        heading: "Top performers", sub: "Real, live results from Fundly analysts who opted in to share them — no account needed to look.", loading: "Loading leaderboard…",
+      },
       faq: {
         heading: "Frequently asked questions",
         q1: "Is Fundly Games a bookmaker or gambling platform?",
@@ -232,6 +235,9 @@ const FUNDLY_I18N = (() => {
         r3a: "Omezený kapitál", r3pill: "Potenciál", r3b: "<b>80%</b> podíl na zisku",
         r4a: "Tilt a odhady", r4pill: "Disciplína", r4b: "Jasné fáze a pravidla",
         r5a: "Sami", r5pill: "Podpora", r5b: "Komunita a podpora",
+      },
+      lb: {
+        heading: "Nejlepší výkony", sub: "Reálné, živé výsledky analytiků Fundly, kteří souhlasili se sdílením — prohlížení nevyžaduje účet.", loading: "Načítání žebříčku…",
       },
       faq: {
         heading: "Často kladené otázky",
@@ -398,6 +404,9 @@ const FUNDLY_I18N = (() => {
         r4a: "Tilt e improvisación", r4pill: "Disciplina", r4b: "Fases y reglas claras",
         r5a: "Solo", r5pill: "Soporte", r5b: "Comunidad y soporte",
       },
+      lb: {
+        heading: "Mejores resultados", sub: "Resultados reales y en vivo de analistas de Fundly que decidieron compartirlos — no necesitas cuenta para verlo.", loading: "Cargando la clasificación…",
+      },
       faq: {
         heading: "Preguntas frecuentes",
         q1: "¿Es Fundly Games una casa de apuestas o una plataforma de juego?",
@@ -562,6 +571,9 @@ const FUNDLY_I18N = (() => {
         r3a: "Ograniczony kapitał", r3pill: "Potencjał", r3b: "<b>80%</b> podziału zysku",
         r4a: "Tilt i zgadywanie", r4pill: "Dyscyplina", r4b: "Jasne etapy i zasady",
         r5a: "Sam", r5pill: "Wsparcie", r5b: "Społeczność i wsparcie",
+      },
+      lb: {
+        heading: "Najlepsi analitycy", sub: "Prawdziwe, aktualne wyniki analityków Fundly, którzy zgodzili się je udostępnić — oglądanie nie wymaga konta.", loading: "Ładowanie rankingu…",
       },
       faq: {
         heading: "Najczęściej zadawane pytania",
@@ -728,6 +740,9 @@ const FUNDLY_I18N = (() => {
         r4a: "Tilt a odhady", r4pill: "Disciplína", r4b: "Jasné fázy a pravidlá",
         r5a: "Sami", r5pill: "Podpora", r5b: "Komunita a podpora",
       },
+      lb: {
+        heading: "Najlepšie výkony", sub: "Reálne, živé výsledky analytikov Fundly, ktorí súhlasili so zdieľaním — prezeranie nevyžaduje účet.", loading: "Načítavam rebríček…",
+      },
       faq: {
         heading: "Často kladené otázky",
         q1: "Je Fundly Games stávková kancelária alebo hazardná platforma?",
@@ -892,6 +907,9 @@ const FUNDLY_I18N = (() => {
         r3a: "Korlátozott tőke", r3pill: "Potenciál", r3b: "<b>80%</b> teljesítmény-megosztás",
         r4a: "Tilt és találgatás", r4pill: "Fegyelem", r4b: "Világos fázisok és szabályok",
         r5a: "Egyedül", r5pill: "Támogatás", r5b: "Közösség és támogatás",
+      },
+      lb: {
+        heading: "Legjobb teljesítmények", sub: "A Fundly elemzőinek valós, élő eredményei, akik beleegyeztek a megosztásba — a megtekintéshez nem kell fiók.", loading: "Ranglista betöltése…",
       },
       faq: {
         heading: "Gyakran ismételt kérdések",
