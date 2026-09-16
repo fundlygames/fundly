@@ -1279,6 +1279,11 @@ footer {
 /* dashboard's mobile bottom nav is always present (not scroll-triggered) — lift the button clear of it. */
 @media (max-width: 1023.5px) {
   body:has(.dnav-mobile) .tg-float { bottom: 76px; }
+  /* the "More" sheet (Leaderboard/Affiliate/Academy/Profile) pops up above
+     that same bottom nav and is taller than the 76px clearance above, so
+     the button needs lifting further while it's open or it sits on top of
+     the sheet's buttons. */
+  body:has(#dnavMoreSheet:not([hidden])) .tg-float { bottom: 156px; }
 }
 /* checkout's mobile sticky price/continue bar covers the same corner once shown. */
 @media (max-width: 1023.5px) {
