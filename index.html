@@ -516,6 +516,28 @@
     </div>
   </div>
 
+  <!-- ============ DISCOUNT POPUP (email capture, 40% off) ============ -->
+  <div class="modal-backdrop" id="discountModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="discountTitle">
+      <button class="modal-close" id="discountClose" aria-label="Close">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <div class="modal-head">
+        <img src="assets/logo.png" alt="" width="28" height="28" />
+        <h2 id="discountTitle" data-i18n="discount.title">Get 40% off</h2>
+        <p data-i18n="discount.sub">Enter your email and we'll send you the code right away.</p>
+      </div>
+      <form id="discountForm" novalidate>
+        <div class="field">
+          <label for="discountEmail" data-i18n="auth.email">E-mail</label>
+          <input class="input" id="discountEmail" type="email" autocomplete="email" placeholder="you@example.com" required />
+        </div>
+        <p class="auth-note" id="discountNote" hidden></p>
+        <button type="submit" class="btn btn-primary" style="width:100%" id="discountSubmit" data-i18n="discount.cta">Send me the code</button>
+      </form>
+    </div>
+  </div>
+
   <script src="js/packages.js"></script>
   <script src="js/portfolio.js"></script>
   <script src="js/i18n.js"></script>
