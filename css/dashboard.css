@@ -738,6 +738,30 @@ body::after {
 }
 .bf-quick[hidden] { display: none; }
 .bf-quick .filter-chip { height: 34px; }
+
+/* League chips: full league names ("International Clubs - CONCACAF...")
+   don't fit side by side on mobile — with flex-wrap that pushed each one
+   onto its own full-width row, turning a compact filter bar into a wall
+   of buttons. Scrolls horizontally instead, same masked-fade affordance
+   as .sport-tabs below it, with each chip's text capped + ellipsized. */
+#leagueChips {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(to right, black 0%, black 92%, transparent 100%);
+  mask-image: linear-gradient(to right, black 0%, black 92%, transparent 100%);
+}
+#leagueChips::-webkit-scrollbar { display: none; }
+#leagueChips .filter-chip {
+  flex: 0 0 auto;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 480px) {
+  #leagueChips .filter-chip { max-width: 150px; }
+}
 .bf-label { font-size: .75rem; color: var(--text-muted); }
 .live-dot {
   width: 7px;
