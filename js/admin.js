@@ -1466,6 +1466,15 @@ function renderAffiliate() {
     : `<p class="bet-msg">${REAL ? "Zatím žádné konverze přes promo kód." : "Odemkněte admin klíčem pro načtení konverzí."}</p>`;
 }
 
+// balíčky + ceny v selectu byly natvrdo napsané v HTML a dávno se rozešly
+// se skutečnými cenami v packages.js (např. "Advanced ($65)" místo $325) —
+// vždycky je teď vygenerovat z PACKAGES, ať se to znovu nerozejde.
+const affPlanSelect = document.getElementById("affPlan");
+if (affPlanSelect) {
+  affPlanSelect.innerHTML = `<option value="all">Všechny balíčky</option>` +
+    PACKAGES.map((p) => `<option value="${p.key}">${p.name} ($${p.price})</option>`).join("");
+}
+
 // vytvoření kódu: edge funkce affiliate-manage založí promo kód ve Whop + záznam u nás
 const affForm = document.getElementById("affForm");
 if (affForm) {

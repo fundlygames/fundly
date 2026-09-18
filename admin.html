@@ -183,14 +183,7 @@
               </div>
               <div class="field">
                 <label for="affPlan">Cílový balíček</label>
-                <select class="input" id="affPlan">
-                  <option value="all">Všechny balíčky</option>
-                  <option value="starter">Starter ($20)</option>
-                  <option value="standard">Standard ($35)</option>
-                  <option value="advanced">Advanced ($65)</option>
-                  <option value="pro">Pro ($125)</option>
-                  <option value="elite">Elite ($200)</option>
-                </select>
+                <select class="input" id="affPlan"><!-- JS: populated from PACKAGES in packages.js, always in sync with real prices --></select>
                 <span class="t-meta" id="affPlanHint">Kód se ve Whop váže na plan jen pokud je nastavené env WHOP_PLAN_&lt;KEY&gt;, jinak platí na všechny.</span>
               </div>
               <div class="field">
