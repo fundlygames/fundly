@@ -9,7 +9,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsonResponse } from "../_shared/cors.ts";
-import { isValidAdminKey } from "../_shared/admin.ts";
 import { sendEmail, last50Html } from "../_shared/email.ts";
 import { packageByKey } from "../_shared/packages.ts";
 
@@ -17,12 +16,15 @@ const SITE_URL = Deno.env.get("SITE_URL") ?? "https://fundly.games";
 const WAIT_DAYS = 3;
 
 serve(async (req) => {
-  // volá pg_cron/pg_net server-to-server, chráněno x-admin-key (stejný vzor
-  // jako account-maintenance) — nikdy se nevolá z prohlížeče.
+  // volá pg_cron/pg_net server-to-server — vlastní dedikovaný secret
+  // (CRON_SECRET), ne sdílené ADMIN_API_KEY, aby nezávisel na ničem, co už
+  // nastavili jiné cron joby dřív.
   if (req.method !== "POST") {
     return jsonResponse({ error: "Method not allowed" }, 405);
   }
-  if (!(await isValidAdminKey(req))) {
+  const expected = Deno.env.get("CRON_SECRET") ?? "";
+  const provided = req.headers.get("x-cron-secret") ?? "";
+  if (!expected || provided !== expected) {
     return jsonResponse({ error: "Unauthorized" }, 401);
   }
 
