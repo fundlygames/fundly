@@ -389,6 +389,15 @@
         } catch (err) {
           console.warn("signIn fallback failed:", err);
         }
+      } else {
+        // Genuinely new account (not the signIn fallback for a repeat
+        // customer) — best-effort welcome e-mail with the NEWFUNDLY code,
+        // fired without blocking the checkout flow on it.
+        fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/checkout-welcome-email`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: state.email }),
+        }).catch((err) => console.warn("checkout-welcome-email:", err));
       }
     } catch (err) {
       console.warn("signUp failed:", err);
