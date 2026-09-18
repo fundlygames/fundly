@@ -36,6 +36,9 @@ verify_jwt = false
 [functions.account-maintenance]
 verify_jwt = false
 
+[functions.last50-reminder]
+verify_jwt = false
+
 [functions.approve-phase]
 verify_jwt = false
 
