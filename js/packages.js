@@ -1,13 +1,14 @@
 /* Fundly — shared package config (index.html and dashboard.html). */
 
-// Site-wide launch promo. Mirrored in js/promo-banner.js (self-contained
-// banner script, runs on pages that don't load this file, e.g. legal pages)
-// — keep both copies in sync. The actual discount is applied by Whop when
-// the customer enters the code at checkout (promo code created via
-// admin.html → Affiliate program, see supabase/functions/affiliate-manage).
-const PROMO = { code: "NEWFUNDLY", percent: 40, endsAt: "2026-09-15T23:59:59+02:00" };
+// Standing promo (no end date). Mirrored in js/promo-banner.js
+// (self-contained banner script, runs on pages that don't load this file,
+// e.g. legal pages) — keep both copies in sync. The actual discount is
+// applied by Whop when the customer enters the code at checkout (promo code
+// created via admin.html → Affiliate program, see
+// supabase/functions/affiliate-manage).
+const PROMO = { code: "NEWFUNDLY", percent: 40 };
 function promoActive() {
-  return Date.now() < new Date(PROMO.endsAt).getTime();
+  return true;
 }
 function promoPrice(price) {
   return Math.round(price * (1 - PROMO.percent / 100));
