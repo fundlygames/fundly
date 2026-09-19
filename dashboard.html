@@ -7,8 +7,8 @@
   <meta name="description" content="Overview of your Fundly Partner account." />
   <meta name="theme-color" content="#020204" />
   <link rel="icon" type="image/png" href="assets/logo.png" />
-  <link rel="stylesheet" href="css/style.css?v=20260918" />
-  <link rel="stylesheet" href="css/dashboard.css?v=20260918" />
+  <link rel="stylesheet" href="css/style.css?v=20260920" />
+  <link rel="stylesheet" href="css/dashboard.css?v=20260920" />
   <!-- Meta Pixel -->
   <script>
   !function(f,b,e,v,n,t,s)
@@ -43,8 +43,8 @@
     gtag('config', 'G-C01K5JXEGQ');
   </script>
   <!-- backend (Supabase/Whop) — defer, page works without it too (demo mode) -->
-  <script defer src="js/config.js?v=20260918"></script>
-  <script defer src="js/whop.js?v=20260918"></script>
+  <script defer src="js/config.js?v=20260920"></script>
+  <script defer src="js/whop.js?v=20260920"></script>
 </head>
 <body class="with-sidebar">
 
@@ -94,7 +94,11 @@
         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 5a1.5 1.5 0 001.5-1.5h8A1.5 1.5 0 0013 5v1.6a1.9 1.9 0 000 3.8V12a1.5 1.5 0 00-1.5 1.5h-8A1.5 1.5 0 002 12V5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" transform="translate(0,-1.2)"/></svg>
         Entries
       </button>
-      <button class="dnav-link" data-view="zebricek">
+      <!-- Leaderboard temporarily hidden until there are more players (see
+           #view-zebricek + mobile More-sheet button, hidden the same way) —
+           kept in the DOM/nav markup, not deleted, so it's a one-line
+           `hidden` removal to bring back later. -->
+      <button class="dnav-link" data-view="zebricek" hidden>
         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M4.5 2h6v4a3 3 0 01-6 0V2zM4.5 3.5h-2a2 2 0 002 2.5M10.5 3.5h2a2 2 0 01-2 2.5M7.5 9v2.5M5 13h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Leaderboard
       </button>
@@ -563,7 +567,7 @@
         <div class="subtabs" role="tablist" aria-label="Profile section" id="profileTabs">
           <button class="active" data-ptab="overview" aria-pressed="true">Overview</button>
           <button data-ptab="badges" aria-pressed="false">Badges</button>
-          <button data-ptab="leaderboard" aria-pressed="false">Leaderboard &amp; referrals</button>
+          <button data-ptab="leaderboard" aria-pressed="false">Referrals</button>
           <button data-ptab="settings" aria-pressed="false">Settings</button>
           <button data-ptab="support" aria-pressed="false">Support</button>
         </div>
@@ -638,7 +642,10 @@
               </div>
               <p class="t-meta" style="margin-top:10px">Live stats are in the <a href="#" data-view-link="affiliate" style="color:var(--accent);font-weight:600">Affiliate tab</a>.</p>
             </div>
-            <div class="stack">
+            <!-- Leaderboard opt-in temporarily hidden (see dnav-link
+                 data-view="zebricek" above for the full explanation) — the
+                 rest of this tab (referral stats) stays visible. -->
+            <div class="stack" hidden>
               <div class="panel">
                 <div class="switch-row">
                   <span class="grow">
@@ -733,7 +740,8 @@
     </button>
   </nav>
   <div id="dnavMoreSheet" class="dnav-more-sheet" hidden>
-    <button data-view="zebricek">
+    <!-- Leaderboard temporarily hidden — see dnav-link with data-view="zebricek" above. -->
+    <button data-view="zebricek" hidden>
       <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M4.5 2h6v4a3 3 0 01-6 0V2zM4.5 3.5h-2a2 2 0 002 2.5M10.5 3.5h2a2 2 0 01-2 2.5M7.5 9v2.5M5 13h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Leaderboard
     </button>
@@ -753,10 +761,10 @@
 
   <div id="toastLayer" class="toast-layer" aria-live="polite"></div>
 
-  <script src="js/packages.js?v=20260918"></script>
-  <script src="js/portfolio.js?v=20260918"></script>
-  <script src="js/dashboard.js?v=20260918"></script>
-  <script src="js/promo-banner.js?v=20260918"></script>
-  <script src="js/telegram-widget.js?v=20260918"></script>
+  <script src="js/packages.js?v=20260920"></script>
+  <script src="js/portfolio.js?v=20260920"></script>
+  <script src="js/dashboard.js?v=20260920"></script>
+  <script src="js/promo-banner.js?v=20260920"></script>
+  <script src="js/telegram-widget.js?v=20260920"></script>
 </body>
 </html>
