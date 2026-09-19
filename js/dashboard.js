@@ -889,22 +889,26 @@ window.addEventListener("DOMContentLoaded", syncChallengeAccount);
 const ODDS_MIN = 1.0;
 const ODDS_MAX = 8.0;
 // /odds/multi takes max 10 events per 1 request → batches below.
-// 60 instead of 25: measured against live data — most raw events from
+// 100 instead of 60: measured against live data — most raw events from
 // /events don't actually have odds from either allowed bookmaker, so a
-// bigger initial pool roughly doubles/triples the matches that end up
-// showing up (e.g. football went from 8 to 26 usable at limit=60).
-const EVENTS_PER_SPORT = 60;
+// bigger initial pool shows meaningfully more usable matches per sport
+// (roughly +40-60% more surfaced at limit=100 vs 60 across sports tested
+// 2026-09-19), at the cost of ~4 more chunked /odds/multi calls per load.
+const EVENTS_PER_SPORT = 100;
 
 // Sporty s reálným pokrytím na současném odds-api plánu (max 2 bookmakery:
-// Bet365 + Sportsbet.com.au). MMA a volejbal se záměrně vynechávají —
-// ověřeno napříč oběma povolenými bookmakery: 0 zápasů s použitelnými kurzy
-// pro žádný z nich. Není to chyba fetchování, je to mez datového zdroje —
-// jakmile bude plán s víc bookmakery, sem se zase přidají.
+// Bet365 + Sportsbet.com.au). Volejbal se záměrně vynechává — ověřeno
+// napříč oběma povolenými bookmakery: 0 zápasů s použitelnými kurzy.
+// Není to chyba fetchování, je to mez datového zdroje — jakmile bude plán
+// s víc bookmakery, přidá se zpátky.
 // Hokej byl dřív taky vynechaný ("0 zápasů"), ale to byl bug ve slugu —
 // odds-api slug je "ice-hockey", ne "hockey" ("hockey" vrací "Invalid sport
 // slug"). Se správným slugem má reálné pokrytí (ověřeno 30.8.: 13/13
 // eventů s vrácenými kurzy mělo použitelné ML kurzy) — a homepage marketing
 // copy i sports ticker (js/main.js) hokej stejně už dávno slibovaly.
+// MMA byl vynechaný ze stejného důvodu ("mma" → "Invalid sport slug"),
+// správný slug je "mixed-martial-arts" — ověřeno 2026-09-19, reálné
+// pokrytí existuje a používá standardní "ML" trh jako ostatní sporty.
 const SPORTS = [
   ["basketball", "Basketball", "basketbal"],
   ["football", "Football", "fotbal"],
@@ -913,6 +917,7 @@ const SPORTS = [
   ["tennis", "Tennis", "tenis"],
   ["darts", "Darts", "sipky"],
   ["boxing", "Boxing", "boxing"],
+  ["mixed-martial-arts", "MMA", "mma"],
 ];
 
 let activeSport = "basketball";
