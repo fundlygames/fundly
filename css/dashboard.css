@@ -89,6 +89,7 @@ body::after {
   background: none;
   transition: color .15s var(--ease), background-color .15s var(--ease);
 }
+.dnav-link[hidden] { display: none; }
 .dnav-link:hover { color: var(--text-primary); background: #ffffff0f; }
 .dnav-link.active {
   color: var(--accent);
@@ -211,7 +212,10 @@ body::after {
 .dnav-mobile button.active { color: var(--accent); }
 .dnav-mobile button svg { flex-shrink: 0; }
 
-/* "More" sheet: zbylé sekce (Leaderboard/Affiliate/Academy/Profile) */
+/* "More" sheet: zbylé sekce (Leaderboard/Affiliate/Academy/Profile) —
+   auto-fit místo pevných 4 sloupců, ať se s Leaderboardem dočasně
+   schovaným (viz [hidden] tlačítko výše) zbylé 3 položky rozloží
+   rovnoměrně místo prázdné čtvrté mezery. */
 .dnav-more-sheet {
   position: fixed;
   left: 10px;
@@ -219,7 +223,7 @@ body::after {
   bottom: calc(66px + env(safe-area-inset-bottom));
   z-index: 51;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
   gap: 4px;
   background: rgb(10 10 14 / .98);
   backdrop-filter: blur(10px);
@@ -230,6 +234,7 @@ body::after {
 }
 .dnav-more-sheet[hidden] { display: none; }
 @media (min-width: 1024px) { .dnav-more-sheet { display: none; } }
+.dnav-more-sheet button[hidden] { display: none; }
 .dnav-more-sheet button {
   display: flex;
   flex-direction: column;
@@ -1264,6 +1269,7 @@ tr.tk-exp:hover td { background: #ffffff08; }
 .acct-head .t { font-size: 1.0625rem; font-weight: 700; }
 .acct-head .d { font-size: .8125rem; color: var(--text-muted); }
 
+.stack[hidden] { display: none; }
 .stack { display: flex; flex-direction: column; gap: 10px; }
 .mt { margin-top: 10px; }
 
