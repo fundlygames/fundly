@@ -909,6 +909,14 @@ const EVENTS_PER_SPORT = 100;
 // MMA byl vynechaný ze stejného důvodu ("mma" → "Invalid sport slug"),
 // správný slug je "mixed-martial-arts" — ověřeno 2026-09-19, reálné
 // pokrytí existuje a používá standardní "ML" trh jako ostatní sporty.
+// Boxing nahrazen baseballem (2026-09-20): box používá jinak tvarovaný
+// trh "To Win Fight" místo "ML" (viz historie tohoto souboru), takže se
+// mu všechny zápasy tiše odfiltrovaly — oprava vyžaduje i změny ve
+// vyhodnocování výsledků (settleSelection), což je risk bez dalšího
+// ověření proti reálným dokončeným zápasům. Baseball má naopak čisté
+// pokrytí se standardním "ML"/"Spread"/"Totals" tvarem (ověřeno 9/9 ve
+// vzorku), stejnou logiku jako basketbal, a ikonu i marketing slib
+// (sports ticker v js/main.js) už měl přichystané.
 const SPORTS = [
   ["basketball", "Basketball", "basketbal"],
   ["football", "Football", "fotbal"],
@@ -916,7 +924,7 @@ const SPORTS = [
   ["table-tennis", "Table tennis", "stolni-tenis"],
   ["tennis", "Tennis", "tenis"],
   ["darts", "Darts", "sipky"],
-  ["boxing", "Boxing", "boxing"],
+  ["baseball", "Baseball", "baseball"],
   ["mixed-martial-arts", "MMA", "mma"],
 ];
 
