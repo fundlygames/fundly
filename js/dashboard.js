@@ -669,6 +669,7 @@ function showActivationPanel(email) {
     } catch (err) {
       const note = document.getElementById("activationNote");
       note.textContent = err.message || "The payment gateway could not be opened.";
+      note.className = "auth-note mt error";
       note.hidden = false;
       btn.disabled = false;
     }
@@ -1454,6 +1455,7 @@ function renderSlip() {
     const btn = document.getElementById("placeBet");
     if (window.__noRealAccount) {
       note.textContent = "You're browsing in preview mode — get an account to submit entries.";
+      note.className = "auth-note mt error";
       note.hidden = false;
       return;
     }
@@ -1467,6 +1469,7 @@ function renderSlip() {
     const result = Portfolio.placeBet(slip, Number(stakeInput.value), flags);
     if (!result.ok) {
       note.textContent = result.error;
+      note.className = "auth-note mt error";
       note.hidden = false;
       return;
     }
@@ -1782,16 +1785,19 @@ if (wdForm) {
         const method = document.getElementById("wdMethod").value;
         if (!Number.isFinite(amount) || amount < 10) {
           note.textContent = "The minimum withdrawal is $10.";
+          note.className = "auth-note mt error";
           note.hidden = false;
           return;
         }
         if (amount > 4000) {
           note.textContent = "The maximum withdrawal per request is $4,000.";
+          note.className = "auth-note mt error";
           note.hidden = false;
           return;
         }
         if (!method) {
           note.textContent = "Choose a payout method.";
+          note.className = "auth-note mt error";
           note.hidden = false;
           return;
         }
@@ -1811,6 +1817,7 @@ if (wdForm) {
           note.textContent = ok
             ? "Your withdrawal request was submitted for approval."
             : data.error || "The request could not be submitted.";
+          note.className = ok ? "auth-note mt" : "auth-note mt error";
           note.hidden = false;
           if (ok) {
             wdForm.reset();
@@ -1818,12 +1825,14 @@ if (wdForm) {
           }
         } catch (err) {
           note.textContent = "The request could not be submitted.";
+          note.className = "auth-note mt error";
           note.hidden = false;
         }
         return;
       }
     }
     note.textContent = "Withdrawals unlock with a Partner account after completing both phases.";
+    note.className = "auth-note mt error";
     note.hidden = false;
   });
 }
@@ -1961,9 +1970,11 @@ if (supportForm) {
       if (!res.ok) throw new Error(data.error || "The message could not be sent.");
       supportForm.reset();
       note.textContent = "Message sent — we'll get back to you by email.";
+      note.className = "auth-note mt";
       note.hidden = false;
     } catch (err) {
       note.textContent = err.message || "The message could not be sent.";
+      note.className = "auth-note mt error";
       note.hidden = false;
     } finally {
       btn.disabled = false;
@@ -2028,9 +2039,11 @@ async function setupAccountSettings(prefix) {
         if (error) throw error;
         passForm.reset();
         note.textContent = "Password changed.";
+        note.className = "auth-note mt";
         note.hidden = false;
       } catch (err) {
         note.textContent = err.message || "Could not change the password.";
+        note.className = "auth-note mt error";
         note.hidden = false;
       } finally {
         btn.disabled = false;
@@ -2087,6 +2100,7 @@ async function setupAccountSettings(prefix) {
             disableNote.textContent = error.message.includes("AAL2")
               ? "Log out and back in (entering your 2FA code) before disabling it."
               : error.message || "Could not disable two-factor authentication.";
+            disableNote.className = "auth-note mt error";
             disableNote.hidden = false;
             disableBtn.disabled = false;
             return;
@@ -2124,6 +2138,7 @@ async function setupAccountSettings(prefix) {
                 renderMfaState();
               } catch (err) {
                 note.textContent = err.message || "Invalid code.";
+                note.className = "auth-note mt error";
                 note.hidden = false;
               }
             });

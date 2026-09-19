@@ -1203,6 +1203,10 @@ footer {
   color: #f5b942;
   background: #f5b94222;
 }
+.auth-note.error {
+  color: var(--danger);
+  background: rgb(255 77 77 / .14);
+}
 .auth-forgot { text-align: right; margin: -8px 0 16px; }
 .auth-forgot button {
   border: none;

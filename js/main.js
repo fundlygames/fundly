@@ -265,12 +265,14 @@ document.getElementById("authForgot")?.addEventListener("click", async () => {
   const email = document.getElementById("authEmail").value.trim();
   if (!email) {
     authNote.textContent = "Enter your e-mail above first, then tap \"Forgot password?\" again.";
+    authNote.className = "auth-note error";
     authNote.hidden = false;
     document.getElementById("authEmail").focus();
     return;
   }
   if (typeof fundlyBackendEnabled !== "function" || !fundlyBackendEnabled()) {
     authNote.textContent = "Password reset is unavailable in demo mode.";
+    authNote.className = "auth-note error";
     authNote.hidden = false;
     return;
   }
@@ -281,6 +283,7 @@ document.getElementById("authForgot")?.addEventListener("click", async () => {
   authNote.textContent = error
     ? "Could not send the reset e-mail. Please try again."
     : "If that e-mail has an account, we sent a password reset link to it.";
+  authNote.className = error ? "auth-note error" : "auth-note";
   authNote.hidden = false;
 });
 
@@ -313,6 +316,7 @@ authMfaForm?.addEventListener("submit", async (e) => {
   btn.textContent = "Verify";
   if (error) {
     authMfaNote.textContent = "Incorrect code. Please try again.";
+    authMfaNote.className = "auth-note error";
     authMfaNote.hidden = false;
     return;
   }
@@ -332,6 +336,7 @@ authForm.addEventListener("submit", (e) => {
     const email = document.getElementById("authEmail").value.trim();
     const fail = (msg) => {
       authNote.textContent = msg;
+      authNote.className = "auth-note error";
       authNote.hidden = false;
       authSubmit.disabled = false;
       authSubmit.textContent = AUTH_TEXTS[authMode].submit;
@@ -352,6 +357,7 @@ authForm.addEventListener("submit", (e) => {
         FundlyAuth.signInWithEmail(email).then(({ error }) => {
           if (error) { fail(error.message); return; }
           authNote.textContent = "We sent a login link to your e-mail.";
+          authNote.className = "auth-note";
           authNote.hidden = false;
           authSubmit.disabled = false;
           authSubmit.textContent = AUTH_TEXTS[authMode].submit;
@@ -398,9 +404,11 @@ if (contactForm) {
       if (!res.ok) throw new Error(data.error || "The message could not be sent.");
       contactForm.reset();
       note.textContent = "Message sent — we'll get back to you by email.";
+      note.className = "auth-note mt";
       note.hidden = false;
     } catch (err) {
       note.textContent = err.message || "The message could not be sent.";
+      note.className = "auth-note mt error";
       note.hidden = false;
     } finally {
       btn.disabled = false;
@@ -500,7 +508,7 @@ if (heroEl) heroSentinel.observe(heroEl);
       note.hidden = false;
     } catch (err) {
       note.textContent = err.message || "Could not send the code.";
-      note.className = "auth-note warn";
+      note.className = "auth-note error";
       note.hidden = false;
       btn.disabled = false;
     }
@@ -575,7 +583,7 @@ if (heroEl) heroSentinel.observe(heroEl);
       window.location.href = "dashboard";
     } catch (err) {
       note.textContent = err.message || "Could not create the account.";
-      note.className = "auth-note warn";
+      note.className = "auth-note error";
       note.hidden = false;
       btn.disabled = false;
     }
