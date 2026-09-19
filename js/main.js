@@ -320,6 +320,9 @@ authMfaForm?.addEventListener("submit", async (e) => {
     authMfaNote.hidden = false;
     return;
   }
+  // Successful code entry proves this browser — remember it for 30 days so
+  // the next login on the same device skips the code prompt.
+  FundlyAuth.trustThisDevice().catch(() => {});
   window.location.href = "dashboard";
 });
 

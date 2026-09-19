@@ -67,6 +67,23 @@ const FundlyCheckout = {
   },
 };
 
+// "Remember this device" for 2FA (see mfaStepUpNeeded below) — a random id
+// persisted per-browser, unrelated to the Supabase session itself, so it
+// survives sign-out/sign-in on the same device.
+const DEVICE_ID_KEY = "fundly:deviceId";
+function getDeviceId() {
+  try {
+    let id = localStorage.getItem(DEVICE_ID_KEY);
+    if (!id) {
+      id = crypto.randomUUID();
+      localStorage.setItem(DEVICE_ID_KEY, id);
+    }
+    return id;
+  } catch (e) {
+    return null; // localStorage unavailable (private mode etc.) — never trust, always ask for the code
+  }
+}
+
 const FundlyAuth = {
   // Magic link sign-in via e-mail (back to dashboard).
   async signInWithEmail(email) {
@@ -129,12 +146,40 @@ const FundlyAuth = {
   // zkontrolovat a domluvit ručně. Bez tohohle kroku zůstane session
   // navěky na AAL1 a všechny AAL2-vyžadující akce (změna hesla, vypnutí
   // MFA) tiše/natvrdo selžou, i když se uživatel nikdy nedozví proč.
+  //
+  // "Remember this device" (zákaznický feedback: kód se ptá při KAŽDÉM
+  // přihlášení, i ze stejného zařízení) — Supabase samo o sobě žádnou
+  // paměť zařízení nemá, takže než se vůbec zeptáme na kód, zkontrolujeme
+  // mfa_trusted_devices: pokud tohle device_id má pro tohohle usera ještě
+  // platný (nevypršelý) záznam, MFA výzvu úplně přeskočíme.
   async mfaStepUpNeeded() {
     const client = await FundlyBackend.getClient();
     if (!client) return null;
     const { data, error } = await client.auth.mfa.getAuthenticatorAssuranceLevel();
     if (error || !data) return null;
     if (data.nextLevel !== "aal2" || data.currentLevel === data.nextLevel) return null;
+
+    const deviceId = getDeviceId();
+    if (deviceId) {
+      try {
+        const { data: userData } = await client.auth.getUser();
+        const userId = userData?.user?.id;
+        if (userId) {
+          const { data: trusted } = await client
+            .from("mfa_trusted_devices")
+            .select("id, expires_at")
+            .eq("user_id", userId)
+            .eq("device_id", deviceId)
+            .gt("expires_at", new Date().toISOString())
+            .maybeSingle();
+          if (trusted) {
+            client.from("mfa_trusted_devices").update({ last_used_at: new Date().toISOString() }).eq("id", trusted.id).then(() => {});
+            return null; // trusted device — skip the code prompt
+          }
+        }
+      } catch (e) { /* lookup failed → fall through, ask for the code as usual */ }
+    }
+
     const { data: factors } = await client.auth.mfa.listFactors();
     const factor = (factors?.totp || []).find((f) => f.status === "verified");
     if (!factor) return null;
@@ -147,6 +192,25 @@ const FundlyAuth = {
     const client = await FundlyBackend.getClient();
     if (!client) return { error: { message: "Backend is not configured." } };
     return client.auth.mfa.verify({ factorId, challengeId, code });
+  },
+
+  // Volá se po úspěšném mfaVerify() — zapamatuje tohle zařízení na 30 dní,
+  // ať se příště mfaStepUpNeeded() rovnou vrátí bez výzvy na kód.
+  async trustThisDevice() {
+    const client = await FundlyBackend.getClient();
+    if (!client) return;
+    const deviceId = getDeviceId();
+    if (!deviceId) return;
+    try {
+      const { data: userData } = await client.auth.getUser();
+      const userId = userData?.user?.id;
+      if (!userId) return;
+      const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      await client.from("mfa_trusted_devices").upsert(
+        { user_id: userId, device_id: deviceId, expires_at: expiresAt, last_used_at: new Date().toISOString() },
+        { onConflict: "user_id,device_id" },
+      );
+    } catch (e) { /* best-effort — a failed save just means the code is asked for again next time */ }
   },
 
   async getUser() {
