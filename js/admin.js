@@ -366,7 +366,7 @@ function renderAdminGate(note) {
       </div>
       <button class="btn btn-primary" type="submit">Přihlásit se</button>
     </form>
-    <p class="auth-note mt" id="adminGateNote" ${note ? "" : "hidden"}>${esc(note)}</p>`;
+    <p class="auth-note mt error" id="adminGateNote" ${note ? "" : "hidden"}>${esc(note)}</p>`;
   container.prepend(gate);
   document.getElementById("adminSignIn").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -377,6 +377,7 @@ function renderAdminGate(note) {
     );
     if (error) {
       noteEl.textContent = error.message || "Přihlášení se nepodařilo.";
+      noteEl.className = "auth-note mt error";
       noteEl.hidden = false;
       return;
     }
@@ -1423,10 +1424,11 @@ const AFF_PLAN_LABELS = {
   elite: "Elite",
 };
 
-function affNoteShow(msg) {
+function affNoteShow(msg, isError) {
   const note = document.getElementById("affNote");
   if (!note) return;
   note.textContent = msg;
+  note.className = isError ? "auth-note mt error" : "auth-note mt";
   note.hidden = false;
 }
 
@@ -1487,7 +1489,7 @@ if (affForm) {
       affForm.reset();
       await loadRealStats();
     } catch (err) {
-      affNoteShow(err.message || "Kód se nepodařilo vytvořit.");
+      affNoteShow(err.message || "Kód se nepodařilo vytvořit.", true);
     } finally {
       btn.disabled = false;
     }
