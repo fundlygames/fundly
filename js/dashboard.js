@@ -926,6 +926,27 @@ const slipBody = document.getElementById("slipBody");
 
 // events + ML odds, 5 min cache (LIVE 1 min); odds fetch in batches of 10
 // upcoming window: explicit `to` = now + 20 days (RFC3339 UTC)
+// Top European football leagues get buried by volume in the generic
+// /events pull — that endpoint returns hundreds of tiny regional leagues
+// ahead of them in whatever order the API uses internally, so even
+// EVENTS_PER_SPORT=60 (or 300, tested) surfaced zero Premier League
+// matches; needed limit=1000 to see any. Fetched by exact league slug
+// (param is `league`, singular — confirmed against the real API; the
+// plural `leagues` is silently ignored) and merged into the general
+// pool, so these leagues show up regardless of the API's default order.
+// Verified slugs against /v3/leagues (2026-09-19); if a league gets
+// renamed upstream this silently just stops adding it back, no error.
+const PRIORITY_LEAGUES = {
+  football: [
+    "england-premier-league",
+    "spain-laliga",
+    "italy-serie-a",
+    "germany-bundesliga",
+    "france-ligue-1",
+    "international-clubs-uefa-champions-league",
+  ],
+};
+
 async function loadSportEvents(sport, live) {
   const key = live ? sport + ":live" : sport;
   const cached = cacheGet(key, live ? 60 * 1000 : CACHE_TTL);
@@ -939,11 +960,32 @@ async function loadSportEvents(sport, live) {
         limit: String(EVENTS_PER_SPORT),
         to: new Date(Date.now() + 20 * 864e5).toISOString(),
       });
+
+  const priorityLeagues = PRIORITY_LEAGUES[sport] || [];
+  if (priorityLeagues.length) {
+    const seenIds = new Set(events.map((e) => e.id));
+    const priorityResults = await Promise.all(priorityLeagues.map((league) =>
+      live
+        ? apiGet("/events/live", { sport, league }).catch(() => [])
+        : apiGet("/events", {
+            sport,
+            league,
+            status: "pending",
+            limit: "20",
+            to: new Date(Date.now() + 20 * 864e5).toISOString(),
+          }).catch(() => [])
+    ));
+    for (const list of priorityResults) {
+      for (const e of list) {
+        if (!seenIds.has(e.id)) { seenIds.add(e.id); events.push(e); }
+      }
+    }
+  }
   if (!events.length) { cacheSet(key, []); return []; }
 
   // základní eventy nesou live stav (clock/scores) — odds odpověď je nemá
   const baseById = Object.fromEntries(events.map((e) => [e.id, e]));
-  const ids = events.map((e) => e.id).slice(0, EVENTS_PER_SPORT);
+  const ids = events.map((e) => e.id);
   const chunks = [];
   for (let i = 0; i < ids.length; i += 10) {
     chunks.push(await apiGet("/odds/multi", { eventIds: ids.slice(i, i + 10).join(","), bookmakers: BOOKMAKERS.join(",") }));
