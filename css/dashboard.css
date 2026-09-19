@@ -748,6 +748,12 @@ body::after {
   flex-wrap: nowrap;
   overflow-x: auto;
   scrollbar-width: none;
+  /* Without this, a touch drag that isn't perfectly horizontal can get
+     claimed by the page's own vertical scroll instead of panning this
+     strip — on a phone that reads as "stuck", with the mask just making
+     the cut-off content look broken/overlapping instead of scrollable. */
+  touch-action: pan-x;
+  -webkit-overflow-scrolling: touch;
   -webkit-mask-image: linear-gradient(to right, black 0%, black 92%, transparent 100%);
   mask-image: linear-gradient(to right, black 0%, black 92%, transparent 100%);
 }
@@ -802,11 +808,15 @@ body::after {
 .sport-tabs {
   display: flex; gap: 2px; overflow-x: auto; padding: 2px; border-radius: var(--d-r);
   border: 1px solid #ffffff0f; background: #ffffff08; margin-bottom: 10px; scrollbar-width: none;
-  /* Buttons don't all fit on mobile (7 sports incl. hockey) — without this,
-     the row just hard-clips mid-button at the edge with no scrollbar visible,
+  /* Buttons don't all fit on mobile (7+ sports) — without this, the row
+     just hard-clips mid-button at the edge with no scrollbar visible,
      which reads as broken/overlapping rather than "scroll for more". */
   -webkit-mask-image: linear-gradient(to right, black 0%, black 90%, transparent 100%);
   mask-image: linear-gradient(to right, black 0%, black 90%, transparent 100%);
+  /* Same fix as #leagueChips: a not-quite-horizontal touch drag can get
+     claimed by the page's vertical scroll instead of panning this strip. */
+  touch-action: pan-x;
+  -webkit-overflow-scrolling: touch;
 }
 .sport-tabs[hidden], .bet-filters[hidden], .match-count[hidden] { display: none; }
 .sport-tabs::-webkit-scrollbar { display: none; }
