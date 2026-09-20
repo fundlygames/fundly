@@ -91,6 +91,13 @@ body::after {
 }
 .dnav-link[hidden] { display: none; }
 .dnav-link:hover { color: var(--text-primary); background: #ffffff0f; }
+
+/* .buy-challenge-cta is also .btn, which sets its own display: inline-flex —
+   without this override the [hidden] attribute (toggled from js/dashboard.js)
+   is silently beaten by that author-origin rule and the button never
+   actually disappears, regardless of what the JS sets it to. Real bug:
+   customers with an active/funded account kept seeing "Buy a Challenge". */
+.buy-challenge-cta[hidden] { display: none; }
 .dnav-link.active {
   color: var(--accent);
   background: var(--accent-tint);

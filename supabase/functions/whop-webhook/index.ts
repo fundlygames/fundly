@@ -316,6 +316,12 @@ serve(async (req) => {
         }
 
         const user = await findOrCreateUser(supabase, String(email));
+        // phase_started_at musí být přesně tenhle okamžik (skutečný nákup),
+        // ne kdykoli klient poprvé otevře dashboard a sám si spustí lokální
+        // 30denní odpočet: bez tohohle sloupec zůstával NULL, dokud
+        // nedoběhl první sync-account, takže hráč, co si dashboard otevřel
+        // až o pár dní později, dostal 30denní okno posunuté o tyhle dny
+        // navíc (reálně nahlášeno 21.9.).
         await supabase.from("challenge_accounts").insert({
           user_id: user?.id ?? null,
           email: String(email),
@@ -325,6 +331,7 @@ serve(async (req) => {
           state: "active",
           signup_ip: metadata.checkout_ip ?? null,
           payment_fingerprint: extractPaymentFingerprint(data),
+          phase_started_at: new Date().toISOString(),
         });
 
         // „Payment confirmed" e-mail s přístupem do účtu. generateLink() sama

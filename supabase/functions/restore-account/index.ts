@@ -41,9 +41,15 @@ serve(async (req) => {
       .maybeSingle();
     if (!account) return jsonResponse({ ok: true, account: null, tickets: [] });
 
-    // bez alespoň jednoho dřívějšího syncu nemá smysl obnovovat — klient
-    // ať radši založí čerstvý účet (init()) přesně podle zaplaceného balíčku
-    if (!account.synced_at) return jsonResponse({ ok: true, account: null, tickets: [] });
+    // Dřív se tu bez alespoň jednoho dřívějšího sync-account syncu vracelo
+    // "nic k obnovení" a klient si sám založil čerstvý účet přes init() —
+    // jenže ten účet už REÁLNĚ existuje (whop-webhook ho založil přesně v
+    // okamžiku nákupu) a Portfolio.restore() níž má bezpečné výchozí hodnoty
+    // pro každý ještě nesynchronizovaný sloupec (balance/hwm/den start padnou
+    // na plný kapitál, přesně jako čerstvý init()). Vracet ho vždycky navíc
+    // zachrání phase_started_at (nastavený už při nákupu) před přepsáním na
+    // "teď" — tenhle bug hráči, co si dashboard otevřel až pár dní po
+    // nákupu, posouval 30denní okno fáze o ty dny navíc (nahlášeno 21.9.).
 
     const { data: tickets } = await supabase
       .from("tickets")

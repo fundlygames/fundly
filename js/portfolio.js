@@ -115,6 +115,7 @@ const Portfolio = (() => {
       lastPayoutAt: null, // kvalifikační tikety se před každým payoutem resetují
       tickets: [],
       equityHistory: [{ t: now, balance: pkg.cap }],
+      syncedAt: null, // ještě nikdy nebyl odeslán na server (viz syncChallengeAccount)
     };
     save(state);
     return state;
@@ -156,6 +157,9 @@ const Portfolio = (() => {
       // historii equity server nedrží — graf se od obnovy dál doplňuje nanovo,
       // zůstatek/pravidla jsou ale plně přesné.
       equityHistory: [{ t: now, balance: account.phase_balance ?? pkg.cap }],
+      // umožňuje syncChallengeAccount() poznat, jestli mezitím na server
+      // nepřibyla novější verze z jiného zařízení (viz jeho serverHasNewerData)
+      syncedAt: account.synced_at ?? now,
     };
     save(state);
     return state;

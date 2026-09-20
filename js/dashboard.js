@@ -570,12 +570,25 @@ async function pushAccountSnapshot() {
     // keepalive: prohlížeč se pokusí request dokončit, i kdyby stránka
     // mezitím zavřela/navigovala pryč (přesně hlášený případ: vsadit a
     // hned zavřít kartu) — bez toho by fetch zůstal viset a odpadl.
-    await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/sync-account`, {
+    const syncRes = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/sync-account`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify(buildAccountSnapshot(state)),
       keepalive: true,
     });
+    // Zaznamenat, kdy tohle zařízení naposled úspěšně poslalo svůj stav —
+    // syncChallengeAccount() to porovnává se serverovým synced_at, aby
+    // poznalo, jestli mezitím nepřibyla novější verze z JINÉHO zařízení
+    // (viz jeho serverHasNewerData). Bez tohohle by po vlastním pushi
+    // zůstal syncedAt starý navěky a každá další kontrola by tenhle push
+    // omylem vyhodnotila jako "cizí novější data".
+    if (syncRes.ok) {
+      const fresh = Portfolio.get();
+      if (fresh && fresh.accountId === state.accountId) {
+        fresh.syncedAt = new Date().toISOString();
+        Portfolio.save(fresh);
+      }
+    }
 
     // jednotlivé tikety pro server-side risk detekci (kolize napříč účty,
     // rate/timing analýza) — posíláme celý seznam, sync-tickets to bezpečně
@@ -704,7 +717,7 @@ async function syncChallengeAccount() {
     const fetchAccounts = async () => {
       const { data, error: fetchError } = await client
         .from("challenge_accounts")
-        .select("id, package_key, capital, phase, pending_phase, pending_requested_at, state, flags, created_at, inactivity_warned_7, inactivity_warned_13, nickname, leaderboard_opt_in")
+        .select("id, package_key, capital, phase, pending_phase, pending_requested_at, state, flags, created_at, inactivity_warned_7, inactivity_warned_13, nickname, leaderboard_opt_in, synced_at")
         .order("created_at", { ascending: false });
       if (fetchError) throw fetchError;
       return data || [];
@@ -841,7 +854,20 @@ async function syncChallengeAccount() {
     const serverPendingNum = account.pending_phase ?? null;
     const wasWaitingForApproval = localPendingNum != null;
     const phaseInSync = localPhaseNum === account.phase && localPendingNum === serverPendingNum;
-    if (state && state.accountId && state.accountId === account.id && hadLocalPortfolioBeforeBoot && phaseInSync) return;
+    // Souhlasná fáze NEZNAMENÁ souhlasný stav: vsazení tiketu na jiném
+    // zařízení mění balance/tikety, ne fázi, takže samotné phaseInSync tenhle
+    // případ nikdy nezachytí — hráč, co vsadí na mobilu a otevře/obnoví
+    // dashboard na PC (stejná fáze), by tu navěky viděl starý zůstatek a
+    // chyběj­ící tiket (reálně nahlášeno 21.9.). synced_at se na serveru
+    // nastavuje na KAŽDÝ push z libovolného zařízení (viz sync-account), takže
+    // "server má novější synced_at, než jsme si naposled sami zaznamenali"
+    // je spolehlivý signál, že mezitím přibyla data z jiného zařízení.
+    // +3s rezerva pokrývá drobný rozjel mezi klientskými a serverovými hodinami
+    // kolem vlastního právě odeslaného pushe (viz pushAccountSnapshot).
+    const serverSyncedAtMs = account.synced_at ? new Date(account.synced_at).getTime() : 0;
+    const localSyncedAtMs = state && state.syncedAt ? new Date(state.syncedAt).getTime() : 0;
+    const serverHasNewerData = serverSyncedAtMs > localSyncedAtMs + 3000;
+    if (state && state.accountId && state.accountId === account.id && hadLocalPortfolioBeforeBoot && phaseInSync && !serverHasNewerData) return;
 
     // Lokální stav chybí nebo neodpovídá zaplacenému balíčku — nejdřív
     // zkusit obnovit reálný postup ze serveru (localStorage může zmizet
@@ -907,6 +933,55 @@ async function syncChallengeAccount() {
 // js/config.js and js/whop.js load with defer → we run on DOMContentLoaded,
 // when FundlyBackend/FundlyAuth are definitely available
 window.addEventListener("DOMContentLoaded", syncChallengeAccount);
+
+// Lehká verze syncChallengeAccount() pro průběžnou kontrolu, dokud hráč
+// nechá dashboard otevřený: bez toho by se cizí sázka/výsledek z jiného
+// zařízení promítly až po ručním obnovení stránky nebo novém přihlášení
+// (reálně nahlášeno: sázka na mobilu se na PC neobjevila ani po refreshi).
+// Kontroluje jen ten jeden konkrétní účet (ne celý seznam) a na rozdíl od
+// syncChallengeAccount() NEspouští jednorázové věci navázané na boot stránky
+// (nákupní pixel, aktivační panel, upozornění na neaktivitu) — ty by se tu
+// jinak opakovaly při každém pollu.
+async function pollRemoteAccountSync() {
+  if (typeof fundlyBackendEnabled !== "function" || !fundlyBackendEnabled()) return;
+  try {
+    const state = Portfolio.get();
+    if (!state || !state.accountId) return;
+    const client = await FundlyBackend.getClient();
+    if (!client) return;
+    const { data: account, error } = await client
+      .from("challenge_accounts")
+      .select("id, synced_at")
+      .eq("id", state.accountId)
+      .maybeSingle();
+    if (error || !account) return;
+    const serverSyncedAtMs = account.synced_at ? new Date(account.synced_at).getTime() : 0;
+    const localSyncedAtMs = state.syncedAt ? new Date(state.syncedAt).getTime() : 0;
+    if (serverSyncedAtMs <= localSyncedAtMs + 3000) return; // server nemá nic novějšího
+
+    const { data: sessionData } = await client.auth.getSession();
+    const token = sessionData && sessionData.session && sessionData.session.access_token;
+    if (!token) return;
+    const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/restore-account`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!data.account || data.account.id !== state.accountId) return;
+    Portfolio.restore(data.account, data.tickets);
+    if (typeof renderPrehled === "function") renderPrehled();
+    if (typeof renderVykon === "function") renderVykon();
+    if (typeof renderBankBar === "function") renderBankBar();
+    const fresh = Portfolio.get();
+    if (fresh && typeof renderBadges === "function") renderBadges(fresh);
+    showToast("win", "Synced", "Your account was updated from another device.");
+  } catch (e) { /* best-effort, zkusí se to zas při dalším pollu */ }
+}
+setInterval(pollRemoteAccountSync, 20000);
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") pollRemoteAccountSync();
+});
+window.addEventListener("focus", pollRemoteAccountSync);
 
 // ---------- betting (live data from odds-api.io) ----------
 // API_BASE/API_KEY/BOOKMAKER/CACHE_TTL/cacheGet/cacheSet/cacheDrop/apiGet: see js/portfolio.js
