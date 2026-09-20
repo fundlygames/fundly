@@ -201,6 +201,18 @@ const Portfolio = (() => {
 
   // Max. denní ztráta −4 % kapitálu. Start dne se fixuje na první přístup
   // v daném UTC dni (reset o půlnoci UTC), loss = pokles od startu dne.
+  //
+  // DŮLEŽITÉ: state.balance se sníží o vklad hned při ZADÁNÍ tiketu (viz
+  // placeBet níž), ne až při vyhodnocení — takže samotné "dayStartBalance -
+  // balance" počítá i vklady tiketů, které ještě vůbec neskončily. Nahlášený
+  // reálný incident: hráč měl víc současně otevřených tiketů, jejich součet
+  // vkladů na chvíli přesáhl -4 % limit, a účet se AUTOMATICKY (breachInfo
+  // níž) prohlásil za spálený a poslal se e-mail o uzavření — i když hráč
+  // byl reálně v mínusu jen $23 a žádný z těch tiketů ještě nebyl prohraný.
+  // Oprava: vklady dnes zadaných tiketů, které ještě čekají na vyhodnocení,
+  // se pro účely limitu/breach přičtou zpátky (nejsou to prohry, dokud
+  // nedoběhnou) — skutečné otevřené riziko dál hlásí worstCaseInfo() níž,
+  // to je jen varování, nikdy důvod k uzavření účtu.
   function dailyLossInfo(state) {
     const today = new Date().toISOString().slice(0, 10);
     if (state.dayStartDate !== today) {
@@ -210,7 +222,10 @@ const Portfolio = (() => {
     }
     const meta = ruleMeta(state);
     const limit = meta.dailyLoss;
-    const loss = Math.max(0, (state.dayStartBalance ?? state.cap) - state.balance);
+    const pendingStakesToday = state.tickets
+      .filter((t) => t.status === "pending" && t.placedAt && t.placedAt.slice(0, 10) === today)
+      .reduce((sum, t) => sum + t.stake, 0);
+    const loss = Math.max(0, (state.dayStartBalance ?? state.cap) - (state.balance + pendingStakesToday));
     return { limit, loss, remaining: Math.max(0, limit - loss) };
   }
 
