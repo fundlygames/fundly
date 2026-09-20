@@ -743,6 +743,18 @@ async function syncChallengeAccount() {
       return;
     }
 
+    // A real account was found — undo everything showLimitedDashboard() set,
+    // in case this page load transiently hit the no-account branch first
+    // (e.g. a slow initial fetch right after paying, before the justPaid
+    // retry above catches up) before finding the real one. Without this,
+    // "Buy a Challenge" would keep showing for the rest of the session even
+    // once an already-active account loads — and, worse, __noRealAccount
+    // would keep silently blocking bet placement (see the placeBet handler)
+    // for an account that's actually real and active.
+    document.querySelectorAll(".buy-challenge-cta").forEach((btn) => { btn.hidden = true; });
+    document.body.classList.remove("limited");
+    window.__noRealAccount = false;
+
     // Purchase conversion pixel — fires once, only on the actual return trip
     // from Whop (?paid=1, already stripped from the URL above so a refresh
     // can't refire it). Uses the package's list price: the client has no RLS
