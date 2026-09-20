@@ -7,6 +7,11 @@ const usd = (n) => "$" + Math.round(n).toLocaleString("en-US");
 // nic to nerozhoduje.
 let pendingApprovalSince = null;
 
+// Poslední fetch challenge_accounts z syncChallengeAccount() — renderProfile()
+// z toho staví "Your account history" panel (i pro hráče s aktivním účtem,
+// ne jen v showLimitedDashboard). Jen pro zobrazení, nic to nerozhoduje.
+let lastFetchedAccounts = [];
+
 // Zapomenuté heslo: Supabase po kliknutí na odkaz z e-mailu přesměruje sem
 // s "#access_token=...&type=recovery" ve fragmentu — supabase-js z toho sám
 // založí dočasnou přihlášenou session, ale nikam sama od sebe nenaviguje.
@@ -634,6 +639,18 @@ scheduleAccountSync();
 // (hlavně Entries: reálné zápasy a kurzy) bez placení. Skutečné podání
 // tiketu je zablokované (window.__noRealAccount, viz placeBet handler a
 // previewModePanel v Entries).
+// Sdílené mezi showLimitedDashboard (žádný aktivní účet) a renderProfile
+// (aktivní účet, "Your account history" panel) — stejný řádek pro oba.
+function accountHistoryRowsHtml(accounts) {
+  const label = (s) => s === "funded" ? "Partner" : s === "active" ? "Active" : s === "pending_approval" ? "Pending approval" : s === "breached" ? "Breached" : s;
+  const tag = (s) => s === "funded" ? "win" : (s === "active" || s === "pending_approval") ? "push" : "loss";
+  return accounts.map((a) => `
+    <div class="k-row neutral">${a.package_key || "?"} · $${Number(a.capital || 0).toLocaleString("en-US")}
+      <span class="n"><span class="tag ${tag(a.state)}">${label(a.state)}</span>
+      <span style="color:var(--text-muted);font-size:.75rem">${new Date(a.created_at).toLocaleDateString("en-US")}</span></span>
+    </div>`).join("");
+}
+
 function showLimitedDashboard(accounts) {
   document.body.classList.add("limited");
   window.__noRealAccount = true;
@@ -644,15 +661,7 @@ function showLimitedDashboard(accounts) {
   const pastPanel = document.getElementById("naPastPanel");
   if (pastPanel) pastPanel.hidden = !accounts.length;
   const list = document.getElementById("naAccounts");
-  if (list && accounts.length) {
-    const label = (s) => s === "funded" ? "Partner" : s === "active" ? "Active" : s === "breached" ? "Breached" : s;
-    const tag = (s) => s === "funded" ? "win" : s === "active" ? "push" : "loss";
-    list.innerHTML = accounts.map((a) => `
-      <div class="k-row neutral">${a.package_key || "?"} · $${Number(a.capital || 0).toLocaleString("en-US")}
-        <span class="n"><span class="tag ${tag(a.state)}">${label(a.state)}</span>
-        <span style="color:var(--text-muted);font-size:.75rem">${new Date(a.created_at).toLocaleDateString("en-US")}</span></span>
-      </div>`).join("");
-  }
+  if (list && accounts.length) list.innerHTML = accountHistoryRowsHtml(accounts);
 }
 
 // ---------- activation fee: panel pro funded účet bez zaplacené aktivace ----------
@@ -707,6 +716,7 @@ async function syncChallengeAccount() {
     } catch (e) {
       return;
     }
+    lastFetchedAccounts = accounts;
     // Přihlášený uživatel bez aktivního (active/funded) účtu — ať už nikdy
     // žádný nekoupil, nebo mu poslední spálili/skončil — vždycky dostane
     // tenhle limited dashboard (platební brána + nastavení účtu + historie
@@ -728,6 +738,7 @@ async function syncChallengeAccount() {
         await new Promise((r) => setTimeout(r, 2500));
         try {
           accounts = await fetchAccounts();
+          lastFetchedAccounts = accounts;
         } catch (e) {
           break;
         }
@@ -2652,6 +2663,13 @@ function renderProfile(state) {
     <div class="rule-tile"><div class="k">Qualifying tickets</div><div class="v">5 × ≥ +0.5 %</div></div>
     <div class="rule-tile"><div class="k">Profit withdrawal</div><div class="v">80 % of profit</div></div>
     <div class="rule-tile"><div class="k">Max. payout</div><div class="v">$4,000</div></div>`;
+
+  const history = document.getElementById("pfAccountHistory");
+  if (history) {
+    history.innerHTML = lastFetchedAccounts.length
+      ? accountHistoryRowsHtml(lastFetchedAccounts)
+      : `<p class="bet-msg">No account history yet.</p>`;
+  }
 }
 
 // ---------- performance: render from the real portfolio state ----------
