@@ -27,15 +27,36 @@ serve(async (req) => {
       return jsonResponse({ error: "Zadejte platný e-mail." }, 400);
     }
 
-    // Limit "jen prvních N kupujících" (LAUNCH_CAPACITY) — aktivační poplatek
-    // se nepočítá, to je doplatek existujícího zákazníka, ne nový nákup.
+    // Aktivační poplatek (funded účet) je doplatek existujícího účtu, ne
+    // nový nákup, proto se obě kontroly níž přeskakují jen pro něj.
     if (pkg.key !== "activation") {
+      const supabase = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      );
+
+      // Jeden e-mail = max. jeden aktivní účet zároveň. Bez tohohle nic
+      // nebránilo tomu si koupit další balíček (a zaplatit za něj) i s
+      // účtem, který je pořád active/funded/pending_approval — reálně
+      // zachyceno: jeden zákazník takhle měl čtyři souběžně aktivní
+      // Starter účty.
+      const { data: existing } = await supabase
+        .from("challenge_accounts")
+        .select("id")
+        .eq("email", String(email).trim())
+        .in("state", ["active", "funded", "pending_approval"])
+        .limit(1)
+        .maybeSingle();
+      if (existing) {
+        return jsonResponse(
+          { error: "You already have an active Challenge on this e-mail. Finish it, wait for a breach, or reset it before starting a new one.", code: "ALREADY_ACTIVE" },
+          409,
+        );
+      }
+
+      // Limit "jen prvních N kupujících" (LAUNCH_CAPACITY).
       const cap = launchCapacity();
       if (cap !== null) {
-        const supabase = createClient(
-          Deno.env.get("SUPABASE_URL")!,
-          Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-        );
         const sold = await soldCount(supabase);
         if (sold >= cap && !(await isInvited(supabase, String(email)))) {
           return jsonResponse({ error: "Launch spots are full.", code: "SOLD_OUT" }, 409);
