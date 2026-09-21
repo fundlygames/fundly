@@ -71,11 +71,28 @@ const FundlyCheckout = {
 // persisted per-browser, unrelated to the Supabase session itself, so it
 // survives sign-out/sign-in on the same device.
 const DEVICE_ID_KEY = "fundly:deviceId";
+// crypto.randomUUID() needs a fairly recent browser (Safari 15.4+/March
+// 2022) — on anything older it doesn't exist at all, so calling it threw,
+// getDeviceId() always fell into the catch below and returned null, and
+// the device was NEVER trusted no matter how many times trustThisDevice()
+// ran. Real reported symptom: customer's desktop (modern browser) stopped
+// asking for the 2FA code, but their phone kept asking every single time.
+// This isn't a security-sensitive value (just a per-browser tag, not a
+// secret), so a plain Math.random()-based fallback is fine.
+function randomId() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+  });
+}
 function getDeviceId() {
   try {
     let id = localStorage.getItem(DEVICE_ID_KEY);
     if (!id) {
-      id = crypto.randomUUID();
+      id = randomId();
       localStorage.setItem(DEVICE_ID_KEY, id);
     }
     return id;
