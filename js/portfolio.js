@@ -376,7 +376,13 @@ const Portfolio = (() => {
     return phaseTarget(state) * 0.4;
   }
 
-  function placeBet(selections, stake, extraFlags) {
+  // Čistá validace bez vedlejších účinků (nezakládá tiket, nesnižuje
+  // balance) — sdílí přesně stejná pravidla jako placeBet() níž, takže
+  // dashboard.js s ní může hráči ukázat "tohle vsazení neprojde" ještě PŘED
+  // kliknutím na Place bet (live, při psaní částky), místo aby se to
+  // dozvěděl až po kliknutí, kdy zprávu často ani nestihne přečíst, než se
+  // ticket/UI zase přerenderuje (reálně nahlášeno — chce to vidět dopředu).
+  function evaluateBet(selections, stake, extraFlags) {
     const state = get();
     if (!state) return { ok: false, error: "Please sign in first." };
     if (breachInfo(state).breached) {
@@ -439,6 +445,13 @@ const Portfolio = (() => {
       ...(extraFlags || []),
       ...(detectArbitrage(selections, state) ? ["arbitrage"] : []),
     ])];
+    return { ok: true, state, amount, combinedOdds, flags, warning: worstCaseWarning };
+  }
+
+  function placeBet(selections, stake, extraFlags) {
+    const evaluated = evaluateBet(selections, stake, extraFlags);
+    if (!evaluated.ok) return evaluated;
+    const { state, amount, combinedOdds, flags, warning } = evaluated;
     const now = new Date().toISOString();
     const ticket = {
       id: `t${Date.now()}`,
@@ -467,7 +480,7 @@ const Portfolio = (() => {
     state.tickets.unshift(ticket);
     state.equityHistory.push({ t: now, balance: state.balance });
     save(state);
-    return { ok: true, ticket, warning: worstCaseWarning };
+    return { ok: true, ticket, warning };
   }
 
   // Early cashout čekajícího tiketu: pragmaticky 90 % vkladu (bez dat
@@ -725,7 +738,7 @@ const Portfolio = (() => {
   return {
     init, get, save, ensure, restore, phaseTarget, daysRemaining, drawdownInfo, ruleMeta,
     dailyLossInfo, breachInfo, cashOut, openExposure, worstCaseInfo, consistencyLimit,
-    summary, dailyNet, dailyBalanceHistory, placeBet, checkSettlements, countQualifyingTickets,
+    summary, dailyNet, dailyBalanceHistory, placeBet, evaluateBet, checkSettlements, countQualifyingTickets,
     applyServerSettlements,
   };
 })();

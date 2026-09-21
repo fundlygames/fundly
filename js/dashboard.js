@@ -1545,8 +1545,33 @@ function renderSlip() {
     let v = Math.min(Number(stakeInput.value) || 0, maxStake);
     potWin.textContent = usd(Math.round(v * totalOdds));
   };
-  stakeInput.addEventListener("input", updateWin);
+  // Ukázat pravidla (40% consistency limit, max. entry size, zbývající
+  // balance, ...) hned při psaní částky, ne až po kliknutí na Place bet —
+  // dřív se to zobrazilo až po kliknutí a hráč to často nestihl přečíst,
+  // než se ticket/UI za chvíli přerenderovaly (reálně nahlášeno). Sdílí
+  // stejnou validaci jako samotné odeslání (Portfolio.evaluateBet()), jen
+  // bez vedlejších účinků — nezaloží tiket, jen ukáže, jestli by prošel.
+  const updateBetNote = () => {
+    const note = document.getElementById("betNote");
+    if (!note || window.__noRealAccount) return;
+    const amount = Number(stakeInput.value);
+    if (!amount || amount <= 0) { note.hidden = true; return; }
+    const preview = Portfolio.evaluateBet(slip, amount, []);
+    if (!preview.ok) {
+      note.textContent = preview.error;
+      note.className = "auth-note mt error";
+      note.hidden = false;
+    } else if (preview.warning) {
+      note.textContent = preview.warning;
+      note.className = "auth-note mt warn";
+      note.hidden = false;
+    } else {
+      note.hidden = true;
+    }
+  };
+  stakeInput.addEventListener("input", () => { updateWin(); updateBetNote(); });
   updateWin();
+  updateBetNote();
 
   document.getElementById("placeBet").addEventListener("click", async () => {
     const note = document.getElementById("betNote");
