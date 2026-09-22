@@ -6,6 +6,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { handleCors, jsonResponse } from "../_shared/cors.ts";
+import { verifyTicketOutcome, type VerifySelection } from "../_shared/settle-verify.ts";
 
 const STATUSES = ["pending", "won", "lost", "push", "cashedout"];
 const MAX_BATCH = 200;
@@ -105,8 +106,18 @@ serve(async (req) => {
       .in("client_ticket_id", ids);
     const existingByTicket = new Map((existingRows ?? []).map((r) => [r.client_ticket_id, r]));
 
+    // Klientovo tvrzení "won"/"lost"/"push" pro tiket, co server ještě jako
+    // vyřízený nezná, se NESMÍ jen tak uložit — bez nezávislého ověření proti
+    // odds-api šlo poslat libovolný vymyšlený výsledek/výplatu a server to
+    // uložil bez kontroly. Reálně takhle vznikl rozdíl mezi tím, co dokládají
+    // tikety, a uloženým zůstatkem účtu (nalezeno 22.9., viz sync-account).
+    // "cashedout" navíc kontrolujeme na čas: předčasný výběr (90 % vkladu)
+    // dává smysl JEN před začátkem zápasu — jinak jde o "počkám, jak to
+    // dopadne, a pak si vezmu 90 % zpátky", což je zaručený zisk na úkor
+    // skutečného rizika.
+    const apiKey = Deno.env.get("ODDS_API_KEY");
     const settledForClient: { id: string; status: string; payout: number | null; settledAt: string | null }[] = [];
-    const rows = draftRows.map((r) => {
+    const rows = await Promise.all(draftRows.map(async (r) => {
       const existing = existingByTicket.get(r.client_ticket_id!);
       if (existing && existing.status !== "pending") {
         if (r.status === "pending") {
@@ -115,8 +126,36 @@ serve(async (req) => {
         }
         return { ...r, account_id: account.id, status: existing.status, payout: existing.payout, settled_at: existing.settled_at };
       }
+
+      if (r.status === "cashedout") {
+        const now = Date.now();
+        const anyStarted = r.selections.some((s) => s.startTime && new Date(s.startTime).getTime() <= now);
+        if (anyStarted) {
+          console.error(`sync-tickets REJECTED_LATE_CASHOUT: account ${account.id} ticket ${r.client_ticket_id} — cashout claimed after a selection's start time`);
+          return { ...r, account_id: account.id, status: "pending", payout: null, settled_at: null };
+        }
+        return { ...r, account_id: account.id };
+      }
+
+      if (r.status !== "pending") {
+        if (!apiKey) {
+          return { ...r, account_id: account.id, status: "pending", payout: null, settled_at: null };
+        }
+        const verified = await verifyTicketOutcome(r.selections as VerifySelection[], r.placed_at, apiKey);
+        if (!verified) {
+          // podle reálných dat ještě není rozhodnuto — klientovo tvrzení se ignoruje
+          return { ...r, account_id: account.id, status: "pending", payout: null, settled_at: null };
+        }
+        const stake = r.stake ?? 0;
+        const verifiedPayout = verified.status === "lost" ? 0 : Math.round(stake * verified.payoutFactor);
+        if (verified.status !== r.status || verifiedPayout !== r.payout) {
+          console.error(`sync-tickets INTEGRITY_MISMATCH: account ${account.id} ticket ${r.client_ticket_id} claimed ${r.status}/$${r.payout}, real result is ${verified.status}/$${verifiedPayout}`);
+        }
+        return { ...r, account_id: account.id, status: verified.status, payout: verifiedPayout, settled_at: r.settled_at ?? new Date().toISOString() };
+      }
+
       return { ...r, account_id: account.id };
-    });
+    }));
 
     const { error } = await supabase
       .from("tickets")

@@ -134,13 +134,52 @@ serve(async (req) => {
     // challenge účet přihlášeného hráče (nejnovější)
     const { data: account } = await supabase
       .from("challenge_accounts")
-      .select("id, email, package_key, state, phase, pending_phase, tickets_total, created_at, phase1_completed_at, phase2_completed_at, funded_at, signup_ip, payment_fingerprint, betting_profile")
+      .select("id, email, package_key, state, phase, pending_phase, tickets_total, created_at, phase1_completed_at, phase2_completed_at, funded_at, signup_ip, payment_fingerprint, betting_profile, capital")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
     if (!account) {
       return jsonResponse({ error: "You have no challenge account." }, 400);
+    }
+
+    // Zůstatek se NESMÍ jen tak převzít od klienta — bez nezávislé kontroly
+    // proti tabulce tickets šlo poslat libovolně vysoký zůstatek bez
+    // jakéhokoli odpovídajícího tiketu (reálně nalezeno 22.9.: účet měl v
+    // tickets podklad jen pro $24,608, uložený zůstatek byl $27,665, žádný
+    // tiket ten rozdíl nevysvětloval). Skutečný strop = kapitál − všechny
+    // vklady + výplaty z už vyřízených tiketů — stejný vzorec jako lokální
+    // Portfolio.balance v js/portfolio.js. sync-tickets se volá VŽDY před
+    // touhle funkcí (viz pushAccountSnapshot v js/dashboard.js), takže
+    // nejnovější tiket už tu má být vidět.
+    const { data: ticketAgg } = await supabase
+      .from("tickets")
+      .select("stake, payout, status")
+      .eq("account_id", account.id);
+    const serverComputedBalance = (ticketAgg ?? []).reduce((bal, t) => {
+      const stakeAmt = Number(t.stake) || 0;
+      const payoutAmt = (t.status === "won" || t.status === "cashedout" || t.status === "push")
+        ? (Number(t.payout) || 0)
+        : 0;
+      return bal - stakeAmt + payoutAmt;
+    }, Number(account.capital) || 0);
+    const BALANCE_TOLERANCE = 1; // zaokrouhlovací rezerva
+    const balanceRejected = balance > serverComputedBalance + BALANCE_TOLERANCE;
+    const finalBalance = balanceRejected ? serverComputedBalance : balance;
+    const finalProfit = finalBalance - (Number(account.capital) || 0);
+
+    const requestIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+      ?? req.headers.get("cf-connecting-ip") ?? null;
+    await supabase.from("balance_sync_audit").insert({
+      account_id: account.id,
+      client_balance: balance,
+      server_computed_balance: serverComputedBalance,
+      applied_balance: finalBalance,
+      rejected: balanceRejected,
+      request_ip: requestIp,
+    });
+    if (balanceRejected) {
+      console.error(`sync-account BALANCE_REJECTED: account ${account.id} claimed $${balance}, server computed $${serverComputedBalance} from tickets — using server value`);
     }
 
     // breached je terminální — klient ho nesmí přepsat zpět na active/funded.
@@ -197,8 +236,8 @@ serve(async (req) => {
         phase: nextPhase,
         pending_phase: nextPendingPhase,
         ...(enteringPending ? { pending_requested_at: now } : {}),
-        phase_balance: balance,
-        profit,
+        phase_balance: finalBalance,
+        profit: finalProfit,
         qualifying_tickets: qualifyingTickets,
         breach_reason: nextState === "breached" ? breachReason : null,
         flags,
@@ -248,8 +287,8 @@ serve(async (req) => {
           packageName: pkg?.name ?? String(account.package_key ?? "?"),
           fromPhase: account.phase,
           toPhase: nextPendingPhase,
-          balance,
-          profit,
+          balance: finalBalance,
+          profit: finalProfit,
           adminLink: `${SITE_URL}/admin.html`,
         }),
       }).then((r) => { if (!r.sent) console.error("pending-approval admin e-mail selhal:", r.error); })

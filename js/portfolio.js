@@ -485,11 +485,21 @@ const Portfolio = (() => {
 
   // Early cashout čekajícího tiketu: pragmaticky 90 % vkladu (bez dat
   // o pohybu kurzů) — tiket se vyřadí z kvalifikačních (status "cashedout").
+  // Musí jít jen PŘED začátkem zápasu — jakmile zápas začal, hráč už může
+  // reálně vidět/tušit průběh/výsledek jinde (živý přenos, jiný web), takže
+  // "počkám a pak vyberu 90 %, jen když to vypadá na prohru" by byl
+  // garantovaný zisk bez rizika. Server-side (sync-tickets) tohle stejně
+  // znovu kontroluje a pozdní cashout odmítne — tahle kontrola je jen pro
+  // to, aby to hráč vůbec nemohl zkusit z UI.
   function cashOut(ticketId) {
     const state = get();
     if (!state) return { ok: false, error: "Please sign in first." };
     const t = state.tickets.find((x) => x.id === ticketId);
     if (!t || t.status !== "pending") return { ok: false, error: "Ticket is no longer pending." };
+    const now = Date.now();
+    if (t.selections.some((s) => s.startTime && new Date(s.startTime).getTime() <= now)) {
+      return { ok: false, error: "Cash out is only available before the match starts." };
+    }
     const amount = Math.round(t.stake * 0.9);
     t.status = "cashedout";
     t.settledAt = new Date().toISOString();
