@@ -153,6 +153,8 @@ document.addEventListener("click", (e) => {
       if (typeof renderVykon === "function") renderVykon();
       if (typeof renderBankBar === "function") renderBankBar();
       if (typeof scheduleAccountSync === "function") scheduleAccountSync();
+    } else {
+      showToast("loss", "Can't cash out", r.error || "This ticket can no longer be cashed out.");
     }
     return;
   }
@@ -567,32 +569,12 @@ async function pushAccountSnapshot() {
     if (!token) return; // demo režim / nepřihlášený
     const state = Portfolio.get();
     if (!state) return;
-    // keepalive: prohlížeč se pokusí request dokončit, i kdyby stránka
-    // mezitím zavřela/navigovala pryč (přesně hlášený případ: vsadit a
-    // hned zavřít kartu) — bez toho by fetch zůstal viset a odpadl.
-    const syncRes = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/sync-account`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify(buildAccountSnapshot(state)),
-      keepalive: true,
-    });
-    // Zaznamenat, kdy tohle zařízení naposled úspěšně poslalo svůj stav —
-    // syncChallengeAccount() to porovnává se serverovým synced_at, aby
-    // poznalo, jestli mezitím nepřibyla novější verze z JINÉHO zařízení
-    // (viz jeho serverHasNewerData). Bez tohohle by po vlastním pushi
-    // zůstal syncedAt starý navěky a každá další kontrola by tenhle push
-    // omylem vyhodnotila jako "cizí novější data".
-    if (syncRes.ok) {
-      const fresh = Portfolio.get();
-      if (fresh && fresh.accountId === state.accountId) {
-        fresh.syncedAt = new Date().toISOString();
-        Portfolio.save(fresh);
-      }
-    }
 
-    // jednotlivé tikety pro server-side risk detekci (kolize napříč účty,
-    // rate/timing analýza) — posíláme celý seznam, sync-tickets to bezpečně
-    // upsertuje (unique account_id+client_ticket_id), objem na hráče je malý.
+    // Tikety se musí zasynchronizovat PRVNÍ, teprve pak zůstatek — sync-account
+    // si zůstatek dopočítává i samo (viz jeho balanceRejected kontrola) přesně
+    // z toho, co je v tabulce tickets, takže dokud by tam nejnovější tiket
+    // ještě nebyl, vlastní čerstvá výhra/sázka by se serveru zdála podezřelá
+    // a zůstatek by se omylem odmítl.
     if (state.tickets && state.tickets.length) {
       const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/sync-tickets`, {
         method: "POST",
@@ -613,9 +595,10 @@ async function pushAccountSnapshot() {
       });
       const data = await res.json().catch(() => ({}));
 
-      // server-side pojistka (settle-tickets cron) mohla vyhodnotit tikety,
-      // zatímco tahle karta byla zavřená — promítneme to hned do zůstatku
-      // a ukážeme stejnou oslavu/toast jako u lokálního vyhodnocení.
+      // server-side pojistka (settle-tickets cron, nebo teď i sync-tickets
+      // samo) mohla vyhodnotit tikety jinak, než si klient myslel — promítne
+      // se to hned do zůstatku a ukáže stejnou oslavu/toast jako u lokálního
+      // vyhodnocení.
       if (Array.isArray(data.settled) && data.settled.length) {
         const newlySettled = Portfolio.applyServerSettlements(data.settled);
         if (newlySettled && newlySettled.length) {
@@ -629,6 +612,30 @@ async function pushAccountSnapshot() {
           if (typeof renderVykon === "function") renderVykon();
           if (typeof renderBankBar === "function") renderBankBar();
         }
+      }
+    }
+
+    // keepalive: prohlížeč se pokusí request dokončit, i kdyby stránka
+    // mezitím zavřela/navigovala pryč (přesně hlášený případ: vsadit a
+    // hned zavřít kartu) — bez toho by fetch zůstal viset a odpadl.
+    const freshState = Portfolio.get() || state;
+    const syncRes = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/sync-account`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify(buildAccountSnapshot(freshState)),
+      keepalive: true,
+    });
+    // Zaznamenat, kdy tohle zařízení naposled úspěšně poslalo svůj stav —
+    // syncChallengeAccount() to porovnává se serverovým synced_at, aby
+    // poznalo, jestli mezitím nepřibyla novější verze z JINÉHO zařízení
+    // (viz jeho serverHasNewerData). Bez tohohle by po vlastním pushi
+    // zůstal syncedAt starý navěky a každá další kontrola by tenhle push
+    // omylem vyhodnotila jako "cizí novější data".
+    if (syncRes.ok) {
+      const fresh = Portfolio.get();
+      if (fresh && fresh.accountId === freshState.accountId) {
+        fresh.syncedAt = new Date().toISOString();
+        Portfolio.save(fresh);
       }
     }
   } catch (e) { /* sync je best-effort */ }
