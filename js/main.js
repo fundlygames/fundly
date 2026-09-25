@@ -464,6 +464,9 @@ if (heroEl) heroSentinel.observe(heroEl);
   const modal = document.getElementById("discountModal");
   const form = document.getElementById("discountForm");
   if (!modal || !form) return;
+  // číslo v grafice popupu se bere z PROMO (js/packages.js), ať se s kódem nerozjede
+  const pctEl = modal.querySelector(".discount-pct");
+  if (pctEl && pctEl.firstChild && typeof PROMO !== "undefined") pctEl.firstChild.textContent = PROMO.percent;
   const SEEN_KEY = "fundly:discountPopupSeen";
   const MIN_DELAY_MS = 5000;
   let readyAt = Date.now() + MIN_DELAY_MS;
