@@ -8,6 +8,7 @@ export async function sendEmail(params: {
   to: string;
   subject: string;
   html: string;
+  headers?: Record<string, string>;
 }): Promise<{ sent: boolean; error?: string }> {
   const apiKey = Deno.env.get("RESEND_API_KEY");
   if (!apiKey) return { sent: false, error: "RESEND_API_KEY not set" };
@@ -20,7 +21,7 @@ export async function sendEmail(params: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ from, to: params.to, subject: params.subject, html: params.html }),
+      body: JSON.stringify({ from, to: params.to, subject: params.subject, html: params.html, ...(params.headers ? { headers: params.headers } : {}) }),
     });
     if (!res.ok) {
       const body = await res.text().catch(() => "");
