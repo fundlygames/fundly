@@ -1451,7 +1451,7 @@ function renderAffiliate() {
           <td class="odds">${Number(c.used) || 0}</td>
           <td style="color:var(--text-muted)">${esc(c.owner_email)}</td>
           <td><span class="tag ${c.active ? "win" : "loss"}">${c.active ? "aktivní" : "archivován"}</span></td>
-          <td>${c.active ? `<button class="btn btn-ghost" data-aff-archive="${esc(c.id)}" data-code="${esc(c.code)}">Archivovat</button>` : ""}</td>
+          <td style="white-space:nowrap">${c.active ? `<button class="btn btn-ghost" data-aff-edit="${esc(c.id)}">Upravit</button> <button class="btn btn-ghost" data-aff-archive="${esc(c.id)}" data-code="${esc(c.code)}">Archivovat</button>` : ""}</td>
         </tr>`).join("")
       : `<tr><td colspan="9">${REAL ? "Zatím žádné affiliate kódy." : "Odemkněte admin klíčem pro načtení kódů."}</td></tr>`}
     </tbody>`;
@@ -1468,6 +1468,44 @@ function renderAffiliate() {
     : `<p class="bet-msg">${REAL ? "Zatím žádné konverze přes promo kód." : "Odemkněte admin klíčem pro načtení konverzí."}</p>`;
 }
 
+// úprava kódu: formulář se přepne do edit módu (kód a balíček zůstávají zamčené,
+// Whop u promo kódu mění jen status, takže změna slevy/limitu kód ve Whop založí znovu)
+let affEditId = null;
+function affExitEditMode() {
+  affEditId = null;
+  const f = document.getElementById("affForm");
+  if (f) f.reset();
+  ["affCode", "affPlan"].forEach((id) => { const el = document.getElementById(id); if (el) el.disabled = false; });
+  const title = document.getElementById("affFormTitle");
+  if (title) title.textContent = "Nový affiliate kód";
+  const submit = document.getElementById("affSubmit");
+  if (submit) submit.textContent = "Vytvořit kód ve Whop";
+  const cancel = document.getElementById("affCancelEdit");
+  if (cancel) cancel.style.display = "none";
+}
+function affEnterEditMode(c) {
+  affEditId = c.id;
+  document.getElementById("affCode").value = c.code;
+  document.getElementById("affPlan").value = c.plan_key;
+  document.getElementById("affDiscount").value = c.discount_pct;
+  document.getElementById("affCommission").value = c.commission_pct;
+  document.getElementById("affLimit").value = c.usage_limit ?? "";
+  document.getElementById("affOwner").value = c.owner_email;
+  ["affCode", "affPlan"].forEach((id) => { document.getElementById(id).disabled = true; });
+  document.getElementById("affFormTitle").textContent = `Upravit kód ${c.code}`;
+  document.getElementById("affSubmit").textContent = "Uložit změny";
+  document.getElementById("affCancelEdit").style.display = "";
+  affNoteShow("Změna slevy nebo limitu ve Whop vypne starý kód a založí nový se stejným názvem. Provize a e-mail vlastníka se mění jen u nás.");
+  document.getElementById("affForm").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+document.addEventListener("click", (e) => {
+  if (e.target.closest("#affCancelEdit")) { affExitEditMode(); return; }
+  const btn = e.target.closest("[data-aff-edit]");
+  if (!btn) return;
+  const c = ((REAL && REAL.affiliateCodes) || []).find((x) => String(x.id) === btn.dataset.affEdit);
+  if (c) affEnterEditMode(c);
+});
+
 // vytvoření kódu: edge funkce affiliate-manage založí promo kód ve Whop + záznam u nás
 const affForm = document.getElementById("affForm");
 if (affForm) {
@@ -1476,20 +1514,35 @@ if (affForm) {
     const btn = document.getElementById("affSubmit");
     btn.disabled = true;
     try {
-      await adminFetch("affiliate-manage", {
-        action: "create",
-        code: document.getElementById("affCode").value,
-        planKey: document.getElementById("affPlan").value,
-        discountPct: document.getElementById("affDiscount").value,
-        commissionPct: document.getElementById("affCommission").value,
-        usageLimit: document.getElementById("affLimit").value,
-        ownerEmail: document.getElementById("affOwner").value,
-      });
-      affNoteShow("Kód vytvořen ve Whop i u nás.");
-      affForm.reset();
+      if (affEditId) {
+        const res = await adminFetch("affiliate-manage", {
+          action: "update",
+          id: affEditId,
+          discountPct: document.getElementById("affDiscount").value,
+          commissionPct: document.getElementById("affCommission").value,
+          usageLimit: document.getElementById("affLimit").value,
+          ownerEmail: document.getElementById("affOwner").value,
+        });
+        affNoteShow(res && res.whopRecreated
+          ? "Kód upraven — sleva/limit se ve Whop změnily (starý kód vypnut, nový založen se stejným názvem)."
+          : "Kód upraven.");
+        affExitEditMode();
+      } else {
+        await adminFetch("affiliate-manage", {
+          action: "create",
+          code: document.getElementById("affCode").value,
+          planKey: document.getElementById("affPlan").value,
+          discountPct: document.getElementById("affDiscount").value,
+          commissionPct: document.getElementById("affCommission").value,
+          usageLimit: document.getElementById("affLimit").value,
+          ownerEmail: document.getElementById("affOwner").value,
+        });
+        affNoteShow("Kód vytvořen ve Whop i u nás.");
+        affForm.reset();
+      }
       await loadRealStats();
     } catch (err) {
-      affNoteShow(err.message || "Kód se nepodařilo vytvořit.", true);
+      affNoteShow(err.message || (affEditId ? "Kód se nepodařilo upravit." : "Kód se nepodařilo vytvořit."), true);
     } finally {
       btn.disabled = false;
     }
