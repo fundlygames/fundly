@@ -334,6 +334,27 @@ serve(async (req) => {
           phase_started_at: new Date().toISOString(),
         });
 
+        // Reset po spálení: starý spálený účet dostane flag "reset_used", aby se
+        // zlevněný reset nedal použít opakovaně na ten samý účet.
+        if (metadata.reset_account_id) {
+          try {
+            const { data: old } = await supabase
+              .from("challenge_accounts")
+              .select("flags")
+              .eq("id", String(metadata.reset_account_id))
+              .maybeSingle();
+            const oldFlags = Array.isArray(old?.flags) ? old.flags : [];
+            if (!oldFlags.includes("reset_used")) {
+              await supabase
+                .from("challenge_accounts")
+                .update({ flags: [...oldFlags, "reset_used"] })
+                .eq("id", String(metadata.reset_account_id));
+            }
+          } catch (e) {
+            console.error("reset_used flag se nepodařilo zapsat:", e);
+          }
+        }
+
         // „Payment confirmed" e-mail s přístupem do účtu. generateLink() sama
         // o sobě nic neposílá (jen vygeneruje token) — proto vlastní odkaz
         // (action_link) vložíme do vlastního Resend e-mailu. Bez magic linku

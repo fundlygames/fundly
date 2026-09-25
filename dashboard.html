@@ -148,6 +148,15 @@
 
         <div class="ov-layout">
           <div class="ov-main">
+
+            <!-- účet spálen: zlevněný reset (40 % ceny), viz updateBreachPanel() -->
+            <div class="panel act-panel" id="breachPanel" hidden>
+              <h3>Your account was closed</h3>
+              <p class="t-small" id="breachPanelText"></p>
+              <button class="btn btn-primary" id="breachResetBtn" style="margin-top:12px">Reset my account</button>
+              <p class="auth-note mt" id="breachResetNote" hidden></p>
+            </div>
+
             <!-- funded účet bez zaplaceného aktivačního poplatku -->
             <div class="panel act-panel" id="activationPanel" hidden>
               <h3>Activate your Partner account</h3>
@@ -703,6 +712,13 @@
             <h1>Your accounts</h1>
             <p>You don't have an active challenge account.</p>
           </div>
+        </div>
+
+        <div class="panel act-panel" id="naResetPanel" hidden>
+          <h3>Your account was closed</h3>
+          <p class="t-small" id="naResetText"></p>
+          <button class="btn btn-primary" id="naResetBtn" style="margin-top:12px">Reset my account</button>
+          <p class="auth-note mt" id="naResetNote" hidden></p>
         </div>
 
         <div class="panel act-panel">
