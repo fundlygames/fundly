@@ -130,7 +130,7 @@ export function previewWelcomeHtml(dashboardLink: string): string {
       <h2 style="color:#fff;font-size:18px;margin:0 0 12px">Welcome to your Fundly preview</h2>
       <p style="color:#a0a0ab;font-size:14px;line-height:1.6;margin:0 0 16px">Your dashboard is ready — browse real live matches and odds, and see exactly how Fundly works before you commit to anything.</p>
       <a href="${dashboardLink}" style="display:inline-block;background:#14f195;color:#020204;font-weight:700;text-decoration:none;padding:12px 24px;border-radius:10px;margin-bottom:20px">Open my dashboard</a>
-      <p style="color:#a0a0ab;font-size:14px;line-height:1.6;margin:0 0 8px">Ready to start a real evaluation? Here's 40% off any package:</p>
+      <p style="color:#a0a0ab;font-size:14px;line-height:1.6;margin:0 0 8px">Ready to start a real evaluation? Here's 30% off any package:</p>
       <div style="background:#14f19522;border:1px solid #14f19555;border-radius:10px;padding:14px 20px;text-align:center;font-family:'SF Mono',ui-monospace,monospace;font-size:20px;font-weight:700;letter-spacing:.08em;color:#14f195;margin:0 0 20px">NEWFUNDLY</div>
       <p style="color:#5a5a66;font-size:13px;line-height:1.6;margin:0 0 20px">How did the dashboard feel? Just reply to this e-mail — we read every message.</p>
       <hr style="border:none;border-top:1px solid #ffffff1a;margin:24px 0 16px" />
@@ -153,7 +153,7 @@ export function checkoutWelcomeHtml(dashboardLink: string): string {
       <h2 style="color:#fff;font-size:18px;margin:0 0 12px">Welcome to Fundly</h2>
       <p style="color:#a0a0ab;font-size:14px;line-height:1.6;margin:0 0 16px">Your account is set up. Once your payment goes through you'll find your Challenge waiting in the dashboard.</p>
       <a href="${dashboardLink}" style="display:inline-block;background:#14f195;color:#020204;font-weight:700;text-decoration:none;padding:12px 24px;border-radius:10px;margin-bottom:20px">Open my dashboard</a>
-      <p style="color:#a0a0ab;font-size:14px;line-height:1.6;margin:0 0 8px">A welcome gift — 40% off a future Challenge (yours, or share it with a friend):</p>
+      <p style="color:#a0a0ab;font-size:14px;line-height:1.6;margin:0 0 8px">A welcome gift — 30% off a future Challenge (yours, or share it with a friend):</p>
       <div style="background:#14f19522;border:1px solid #14f19555;border-radius:10px;padding:14px 20px;text-align:center;font-family:'SF Mono',ui-monospace,monospace;font-size:20px;font-weight:700;letter-spacing:.08em;color:#14f195;margin:0 0 20px">NEWFUNDLY</div>
       <p style="color:#5a5a66;font-size:13px;line-height:1.6;margin:0 0 20px">Questions about your account or your order? Just reply to this e-mail.</p>
       <hr style="border:none;border-top:1px solid #ffffff1a;margin:24px 0 16px" />

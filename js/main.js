@@ -451,7 +451,7 @@ const heroSentinel = new IntersectionObserver(
 const heroEl = document.querySelector(".hero");
 if (heroEl) heroSentinel.observe(heroEl);
 
-// ---------- discount pop-up (40% off, e-mail capture) ----------
+// ---------- discount pop-up (30% off, e-mail capture) ----------
 // Shows once ever per browser (localStorage flag, set the moment it's
 // shown — not just on submit, so a closed/ignored popup doesn't nag again
 // on the next visit). Triggered by exit-intent (mouse leaves toward the

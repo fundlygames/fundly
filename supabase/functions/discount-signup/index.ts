@@ -1,4 +1,4 @@
-// discount-signup — e-mailový capture pop-up na homepage/get-started (40 %
+// discount-signup — e-mailový capture pop-up na homepage/get-started (30 %
 // zľava). POST { email } → uloží do discount_signups (idempotentné, jeden
 // e-mail = jeden riadok) a pošle kód NEWFUNDLY mailom. Kód samotný je pevný
 // Whop promo kód uplatniteľný priamo v checkoute — táto funkcia len eviduje
@@ -17,7 +17,7 @@ function discountHtml(): string {
   <div style="background:#020204;padding:32px;font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#e8e8ec">
     <div style="max-width:520px;margin:0 auto;background:#0d0d12;border:1px solid #ffffff1a;border-radius:16px;padding:28px">
       <div style="color:#14f195;font-weight:700;font-size:18px;margin-bottom:16px">fundly</div>
-      <h2 style="color:#fff;font-size:18px;margin:0 0 12px">Here's your 40% off code</h2>
+      <h2 style="color:#fff;font-size:18px;margin:0 0 12px">Here's your 30% off code</h2>
       <p style="color:#a0a0ab;font-size:14px;line-height:1.6;margin:0 0 20px">Enter this code at checkout on any package:</p>
       <div style="background:#14f19522;border:1px solid #14f19555;border-radius:10px;padding:14px 20px;text-align:center;font-family:'SF Mono',ui-monospace,monospace;font-size:20px;font-weight:700;letter-spacing:.08em;color:#14f195;margin:0 0 20px">${CODE}</div>
       <a href="${SITE_URL}/get-started" style="display:inline-block;background:#14f195;color:#020204;font-weight:700;text-decoration:none;padding:12px 24px;border-radius:10px">Get funded now</a>
@@ -56,7 +56,7 @@ serve(async (req) => {
 
     const result = await sendEmail({
       to: email,
-      subject: "Your 40% off Fundly code",
+      subject: "Your 30% off Fundly code",
       html: discountHtml(),
     });
     if (!result.sent) console.error("discount-signup e-mail selhal:", result.error);

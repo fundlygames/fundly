@@ -6,7 +6,7 @@
 // applied by Whop when the customer enters the code at checkout (promo code
 // created via admin.html → Affiliate program, see
 // supabase/functions/affiliate-manage).
-const PROMO = { code: "NEWFUNDLY", percent: 40 };
+const PROMO = { code: "NEWFUNDLY", percent: 30 };
 function promoActive() {
   return true;
 }
@@ -15,11 +15,11 @@ function promoPrice(price) {
 }
 
 const PACKAGES = [
-  { key: "starter",  name: "Starter",  cap: 2000,   price: 26 },
-  { key: "standard", name: "Standard", cap: 10000,  price: 130 },
-  { key: "advanced", name: "Advanced", cap: 25000,  price: 325, top: true },
-  { key: "pro",      name: "Pro",      cap: 50000,  price: 650 },
-  { key: "elite",    name: "Elite",    cap: 100000, price: 1085 },
+  { key: "starter",  name: "Starter",  cap: 2000,   price: 70 },
+  { key: "standard", name: "Standard", cap: 10000,  price: 170 },
+  { key: "advanced", name: "Advanced", cap: 25000,  price: 380, top: true },
+  { key: "pro",      name: "Pro",      cap: 50000,  price: 750 },
+  { key: "elite",    name: "Elite",    cap: 100000, price: 1300 },
 ];
 
 // Neplatný/neznámý package_key (poškozená data, testovací/admin řádek,

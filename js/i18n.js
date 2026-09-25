@@ -70,7 +70,7 @@ const FUNDLY_I18N = (() => {
         r5a: "Alone", r5pill: "Support", r5b: "Community &amp; support",
       },
       discount: {
-        title: "Get 40% off", sub: "Enter your email and we'll send you the code right away.", cta: "Send me the code", success: "Code sent — check your inbox.", off: "OFF",
+        title: "Get 30% off", sub: "Enter your email and we'll send you the code right away.", cta: "Send me the code", success: "Code sent — check your inbox.", off: "OFF",
       },
       preview: {
         title: "Preview the dashboard", sub: "Create a free account — no payment, no package. Just look around.", cta: "Create my preview account", legal: "By continuing you agree to our <a href=\"terms\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">terms</a> and <a href=\"privacy\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">privacy policy</a>.", exists: "An account with this email already exists — log in instead.",
@@ -90,7 +90,7 @@ const FUNDLY_I18N = (() => {
       },
       cta: {
         heading: "Ready to put your analytics to the test?", sub: "Put your analytical skills to the test. No personal bankroll required, only your skill.",
-        start: "Start the Challenge", from: "From $26", oneTime: "One-time fee", support: "24/7 support",
+        start: "Start the Challenge", from: "From $49", oneTime: "One-time fee", support: "24/7 support",
       },
       contact: {
         heading: "Get in touch", sub: "Questions about a package, payout, or your account? Send us a message.",
@@ -244,7 +244,7 @@ const FUNDLY_I18N = (() => {
         r5a: "Sami", r5pill: "Podpora", r5b: "Komunita a podpora",
       },
       discount: {
-        title: "Získej 40% slevu", sub: "Zadej svůj e-mail a hned ti pošleme kód.", cta: "Poslat mi kód", success: "Kód odeslán — zkontroluj si schránku.", off: "SLEVA",
+        title: "Získej 30% slevu", sub: "Zadej svůj e-mail a hned ti pošleme kód.", cta: "Poslat mi kód", success: "Kód odeslán — zkontroluj si schránku.", off: "SLEVA",
       },
       preview: {
         title: "Podívej se dovnitř", sub: "Vytvoř si účet zdarma — žádná platba, žádný balíček. Jen se podívej.", cta: "Vytvořit účet na náhled", legal: "Pokračováním souhlasíš s <a href=\"terms\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">podmínkami</a> a <a href=\"privacy\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">zásadami ochrany soukromí</a>.", exists: "Účet s tímto e-mailem už existuje — přihlas se.",
@@ -264,7 +264,7 @@ const FUNDLY_I18N = (() => {
       },
       cta: {
         heading: "Připraveni otestovat svou analytiku?", sub: "Otestujte své analytické schopnosti. Bez rizika vlastního bankrollu, jen vaše dovednosti.",
-        start: "Spustit Challenge", from: "Od $26", oneTime: "Jednorázový poplatek", support: "Podpora 24/7",
+        start: "Spustit Challenge", from: "Od $49", oneTime: "Jednorázový poplatek", support: "Podpora 24/7",
       },
       contact: {
         heading: "Ozvěte se nám", sub: "Dotaz na balíček, odměnu nebo váš účet? Napište nám.",
@@ -418,7 +418,7 @@ const FUNDLY_I18N = (() => {
         r5a: "Solo", r5pill: "Soporte", r5b: "Comunidad y soporte",
       },
       discount: {
-        title: "Obtén 40% de descuento", sub: "Ingresa tu correo y te enviaremos el código enseguida.", cta: "Enviarme el código", success: "Código enviado — revisa tu bandeja de entrada.", off: "DESCUENTO",
+        title: "Obtén 30% de descuento", sub: "Ingresa tu correo y te enviaremos el código enseguida.", cta: "Enviarme el código", success: "Código enviado — revisa tu bandeja de entrada.", off: "DESCUENTO",
       },
       preview: {
         title: "Mira el dashboard", sub: "Crea una cuenta gratis — sin pago, sin paquete. Solo échale un vistazo.", cta: "Crear mi cuenta de vista previa", legal: "Al continuar aceptas nuestros <a href=\"terms\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">términos</a> y la <a href=\"privacy\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">política de privacidad</a>.", exists: "Ya existe una cuenta con este correo — inicia sesión.",
@@ -438,7 +438,7 @@ const FUNDLY_I18N = (() => {
       },
       cta: {
         heading: "¿Listo para poner a prueba tu análisis?", sub: "Pon a prueba tus habilidades analíticas. Sin necesidad de bankroll propio, solo tu talento.",
-        start: "Comenzar el Challenge", from: "Desde $26", oneTime: "Pago único", support: "Soporte 24/7",
+        start: "Comenzar el Challenge", from: "Desde $49", oneTime: "Pago único", support: "Soporte 24/7",
       },
       contact: {
         heading: "Ponte en contacto", sub: "¿Preguntas sobre un paquete, una recompensa o tu cuenta? Envíanos un mensaje.",
@@ -592,7 +592,7 @@ const FUNDLY_I18N = (() => {
         r5a: "Sam", r5pill: "Wsparcie", r5b: "Społeczność i wsparcie",
       },
       discount: {
-        title: "Zdobądź 40% zniżki", sub: "Podaj swój e-mail, a od razu wyślemy Ci kod.", cta: "Wyślij mi kod", success: "Kod wysłany — sprawdź swoją skrzynkę.", off: "ZNIŻKI",
+        title: "Zdobądź 30% zniżki", sub: "Podaj swój e-mail, a od razu wyślemy Ci kod.", cta: "Wyślij mi kod", success: "Kod wysłany — sprawdź swoją skrzynkę.", off: "ZNIŻKI",
       },
       preview: {
         title: "Zajrzyj do panelu", sub: "Załóż darmowe konto — bez płatności, bez pakietu. Po prostu się rozejrzyj.", cta: "Utwórz konto podglądu", legal: "Kontynuując, akceptujesz nasze <a href=\"terms\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">warunki</a> i <a href=\"privacy\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">politykę prywatności</a>.", exists: "Konto z tym adresem e-mail już istnieje — zaloguj się.",
@@ -612,7 +612,7 @@ const FUNDLY_I18N = (() => {
       },
       cta: {
         heading: "Gotowy, by przetestować swoją analitykę?", sub: "Przetestuj swoje umiejętności analityczne. Bez własnego kapitału, tylko Twoje umiejętności.",
-        start: "Rozpocznij Challenge", from: "Od $26", oneTime: "Opłata jednorazowa", support: "Wsparcie 24/7",
+        start: "Rozpocznij Challenge", from: "Od $49", oneTime: "Opłata jednorazowa", support: "Wsparcie 24/7",
       },
       contact: {
         heading: "Skontaktuj się", sub: "Pytania o pakiet, nagrodę lub Twoje konto? Napisz do nas.",
@@ -766,7 +766,7 @@ const FUNDLY_I18N = (() => {
         r5a: "Sami", r5pill: "Podpora", r5b: "Komunita a podpora",
       },
       discount: {
-        title: "Získaj 40% zľavu", sub: "Zadaj svoj e-mail a hneď ti pošleme kód.", cta: "Poslať mi kód", success: "Kód odoslaný — skontroluj si schránku.", off: "ZĽAVA",
+        title: "Získaj 30% zľavu", sub: "Zadaj svoj e-mail a hneď ti pošleme kód.", cta: "Poslať mi kód", success: "Kód odoslaný — skontroluj si schránku.", off: "ZĽAVA",
       },
       preview: {
         title: "Pozri sa dovnútra", sub: "Vytvor si účet zadarmo — žiadna platba, žiadny balíček. Len sa pozri.", cta: "Vytvoriť účet na náhľad", legal: "Pokračovaním súhlasíš s <a href=\"terms\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">podmienkami</a> a <a href=\"privacy\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">zásadami ochrany súkromia</a>.", exists: "Účet s týmto e-mailom už existuje — prihlás sa.",
@@ -786,7 +786,7 @@ const FUNDLY_I18N = (() => {
       },
       cta: {
         heading: "Pripravení otestovať svoju analytiku?", sub: "Otestujte svoje analytické schopnosti. Bez rizika vlastného bankrollu, len vaše zručnosti.",
-        start: "Spustiť Challenge", from: "Od $26", oneTime: "Jednorazový poplatok", support: "Podpora 24/7",
+        start: "Spustiť Challenge", from: "Od $49", oneTime: "Jednorazový poplatok", support: "Podpora 24/7",
       },
       contact: {
         heading: "Ozvite sa nám", sub: "Otázka na balíček, odmenu alebo váš účet? Napíšte nám.",
@@ -940,7 +940,7 @@ const FUNDLY_I18N = (() => {
         r5a: "Egyedül", r5pill: "Támogatás", r5b: "Közösség és támogatás",
       },
       discount: {
-        title: "Szerezz 40% kedvezményt", sub: "Add meg az e-mail címed, és azonnal elküldjük a kódot.", cta: "Küldd el a kódot", success: "Kód elküldve — nézd meg a postaládád.", off: "KEDVEZMÉNY",
+        title: "Szerezz 30% kedvezményt", sub: "Add meg az e-mail címed, és azonnal elküldjük a kódot.", cta: "Küldd el a kódot", success: "Kód elküldve — nézd meg a postaládád.", off: "KEDVEZMÉNY",
       },
       preview: {
         title: "Nézz be az irányítópultba", sub: "Hozz létre egy ingyenes fiókot — fizetés és csomag nélkül. Csak nézz körül.", cta: "Előnézeti fiók létrehozása", legal: "A folytatással elfogadod <a href=\"terms\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">feltételeinket</a> és <a href=\"privacy\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">adatvédelmi szabályzatunkat</a>.", exists: "Ezzel az e-mail címmel már létezik fiók — jelentkezz be.",
@@ -960,7 +960,7 @@ const FUNDLY_I18N = (() => {
       },
       cta: {
         heading: "Készen állsz próbára tenni az elemzéseidet?", sub: "Tedd próbára elemzői képességeidet. Saját bankroll nélkül, csak a tudásoddal.",
-        start: "Challenge indítása", from: "$26-tól", oneTime: "Egyszeri díj", support: "0–24 támogatás",
+        start: "Challenge indítása", from: "$49-től", oneTime: "Egyszeri díj", support: "0–24 támogatás",
       },
       contact: {
         heading: "Vedd fel velünk a kapcsolatot", sub: "Kérdésed van egy csomagról, egy jutalomról vagy a fiókodról? Írj nekünk.",
