@@ -11,11 +11,11 @@ export interface PackageDef {
 }
 
 export const PACKAGES: Record<string, PackageDef> = {
-  starter: { key: "starter", name: "Starter", cap: 2000, price: 26, currency: "usd" },
-  standard: { key: "standard", name: "Standard", cap: 10000, price: 130, currency: "usd" },
-  advanced: { key: "advanced", name: "Advanced", cap: 25000, price: 325, currency: "usd" },
-  pro: { key: "pro", name: "Pro", cap: 50000, price: 650, currency: "usd" },
-  elite: { key: "elite", name: "Elite", cap: 100000, price: 1085, currency: "usd" },
+  starter: { key: "starter", name: "Starter", cap: 2000, price: 70, currency: "usd" },
+  standard: { key: "standard", name: "Standard", cap: 10000, price: 199, currency: "usd" },
+  advanced: { key: "advanced", name: "Advanced", cap: 25000, price: 400, currency: "usd" },
+  pro: { key: "pro", name: "Pro", cap: 50000, price: 700, currency: "usd" },
+  elite: { key: "elite", name: "Elite", cap: 100000, price: 1250, currency: "usd" },
   // Jednorázový aktivační poplatek funded účtu — není vidět na webu.
   activation: { key: "activation", name: "Activation Fee", cap: 0, price: 80, currency: "usd" },
   // Testovací balíček pro živý end-to-end test (1 EUR) — není vidět na webu.

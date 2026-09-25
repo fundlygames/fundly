@@ -4,7 +4,7 @@
    the language the visitor already picked from the same localStorage key
    i18n.js uses. Mirrors js/packages.js PROMO — keep both in sync. */
 (function () {
-  const PROMO = { code: "NEWFUNDLY", percent: 40 };
+  const PROMO = { code: "NEWFUNDLY", percent: 30 };
   const LANG_KEY = "fundly:lang";
   const DISMISS_KEY = "fundly:promoDismissed:" + PROMO.code;
 
