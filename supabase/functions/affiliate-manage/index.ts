@@ -1,9 +1,12 @@
 // affiliate-manage — správa affiliate promo kódů z admin.html.
-// POST { action: "create" | "list" | "archive", ... }, chráněno x-admin-key.
+// POST { action: "create" | "list" | "update" | "archive", ... }, chráněno x-admin-key.
 // create: založí promo kód ve Whop (POST /promo_codes — nativně umí procentuální
 // slevu a globální limit použití přes stock/unlimited_stock) + záznam v
 // affiliate_codes. archive: DELETE /promo_codes/{id} (Whop kód archivuje)
-// + vypne active. list: kódy s počty použití z payments.
+// + vypne active. list: kódy s počty použití z payments. update: úprava kódu
+// (Whop umí u promo kódu měnit jen status, takže změna slevy/limitu = vypnout
+// starý + založit nový se stejným názvem, s návratem zpět při selhání;
+// provize a e-mail vlastníka jsou jen u nás).
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { handleCors, jsonResponse } from "../_shared/cors.ts";
@@ -183,6 +186,120 @@ async function archiveCode(supabase: any, body: any) {
   return jsonResponse({ ok: true });
 }
 
+// ---------- update ----------
+// Whop PATCH /promo_codes/{id} umí měnit pouze status (active/inactive) —
+// sleva ani limit použití se u existujícího kódu změnit nedají. Proto změna
+// slevy/limitu = starý kód ve Whop vypnout, založit nový se stejným názvem
+// a když se nový založit nepodaří (např. Whop nedovolí znovupoužít název),
+// starý se okamžitě vrátí na active, takže se nic nerozbije.
+// deno-lint-ignore no-explicit-any
+async function updateCode(supabase: any, body: any) {
+  const id = String(body.id ?? "");
+  if (!id) return jsonResponse({ error: "Chybí id kódu." }, 400);
+
+  const { data: row } = await supabase
+    .from("affiliate_codes")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  if (!row) return jsonResponse({ error: "Kód nenalezen." }, 404);
+  if (!row.active) return jsonResponse({ error: "Archivovaný kód nejde upravit — založte nový." }, 400);
+
+  const discountPct = body.discountPct === undefined || body.discountPct === "" ? Number(row.discount_pct) : Number(body.discountPct);
+  if (!Number.isFinite(discountPct) || discountPct <= 0 || discountPct > 100) {
+    return jsonResponse({ error: "Sleva musí být 1–100 %." }, 400);
+  }
+  const commissionPct = body.commissionPct === undefined || body.commissionPct === "" ? Number(row.commission_pct) : Number(body.commissionPct);
+  if (!Number.isFinite(commissionPct) || commissionPct < 0 || commissionPct > 100) {
+    return jsonResponse({ error: "Provize musí být 0–100 %." }, 400);
+  }
+  const usageLimit = body.usageLimit === undefined
+    ? (row.usage_limit ?? null)
+    : (body.usageLimit === null || body.usageLimit === "" ? null : Number(body.usageLimit));
+  if (usageLimit !== null && (!Number.isInteger(usageLimit) || usageLimit <= 0)) {
+    return jsonResponse({ error: "Limit použití musí být kladné celé číslo (nebo prázdný = bez limitu)." }, 400);
+  }
+  const ownerEmail = body.ownerEmail === undefined || body.ownerEmail === ""
+    ? String(row.owner_email)
+    : String(body.ownerEmail).trim().toLowerCase();
+  if (!EMAIL_RE.test(ownerEmail)) {
+    return jsonResponse({ error: "Zadejte platný e-mail vlastníka." }, 400);
+  }
+
+  const whopChanged = discountPct !== Number(row.discount_pct) || usageLimit !== (row.usage_limit ?? null);
+  let whopPromoId = row.whop_promo_id;
+
+  if (whopChanged) {
+    // kolikrát už byl kód použitý — limit se ve Whop zakládá jako zbývající počet
+    const { count: used } = await supabase
+      .from("payments")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "succeeded")
+      .ilike("promo_code", row.code);
+    const remaining = usageLimit === null ? null : usageLimit - (used ?? 0);
+    if (remaining !== null && remaining <= 0) {
+      return jsonResponse({ error: `Kód už byl použit ${used}×, nový limit musí být větší.` }, 400);
+    }
+
+    if (whopPromoId) {
+      await whopFetch(`/promo_codes/${whopPromoId}`, { method: "PATCH", body: { status: "inactive" } });
+    }
+    const planId = row.plan_key === "all" ? null : whopPlanId(row.plan_key);
+    try {
+      const promo = await whopPostWithCompany("/promo_codes", {
+        code: row.code,
+        amount_off: discountPct,
+        base_currency: "usd",
+        promo_type: "percentage",
+        new_users_only: false,
+        one_per_customer: false,
+        promo_duration_months: 0,
+        stock: remaining,
+        unlimited_stock: remaining === null,
+        plan_ids: planId ? [planId] : null,
+      });
+      const newId = promo?.id ?? null;
+      if (whopPromoId && newId && newId !== whopPromoId) {
+        // starý kód už není potřeba — archivace, selhání jen zalogujeme
+        try {
+          await whopFetch(`/promo_codes/${whopPromoId}`, { method: "DELETE" });
+        } catch (err) {
+          console.error("Archivace starého promo kódu ve Whop selhala:", err);
+        }
+      }
+      whopPromoId = newId;
+    } catch (err) {
+      if (whopPromoId) {
+        try {
+          await whopFetch(`/promo_codes/${whopPromoId}`, { method: "PATCH", body: { status: "active" } });
+        } catch (rollbackErr) {
+          console.error("Návrat starého promo kódu na active selhal:", rollbackErr);
+        }
+      }
+      const msg = err instanceof Error ? err.message : String(err);
+      return jsonResponse(
+        { error: `Whop nedovolil změnit slevu/limit u kódu ${row.code} (${msg}). Starý kód zůstal aktivní beze změny.` },
+        502,
+      );
+    }
+  }
+
+  const { data: updated, error } = await supabase
+    .from("affiliate_codes")
+    .update({
+      discount_pct: discountPct,
+      commission_pct: commissionPct,
+      usage_limit: usageLimit,
+      owner_email: ownerEmail,
+      whop_promo_id: whopPromoId,
+    })
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return jsonResponse({ ok: true, code: updated, whopRecreated: whopChanged });
+}
+
 serve(async (req) => {
   const cors = handleCors(req);
   if (cors) return cors;
@@ -203,10 +320,12 @@ serve(async (req) => {
         return await createCode(supabase, body);
       case "list":
         return await listCodes(supabase);
+      case "update":
+        return await updateCode(supabase, body);
       case "archive":
         return await archiveCode(supabase, body);
       default:
-        return jsonResponse({ error: "Neznámá akce (create | list | archive)." }, 400);
+        return jsonResponse({ error: "Neznámá akce (create | list | update | archive)." }, 400);
     }
   } catch (err) {
     console.error("affiliate-manage error:", err);

@@ -175,7 +175,7 @@
 
         <div class="two-col" style="margin-top:0">
           <div class="panel">
-            <h3>Nový affiliate kód</h3>
+            <h3 id="affFormTitle">Nový affiliate kód</h3>
             <form id="affForm" novalidate>
               <div class="field">
                 <label for="affCode">Kód</label>
@@ -210,6 +210,7 @@
                 <input class="input" id="affOwner" type="email" placeholder="martin@example.com" autocomplete="off" />
               </div>
               <button type="submit" class="btn btn-primary" style="width:100%" id="affSubmit">Vytvořit kód ve Whop</button>
+              <button type="button" class="btn btn-ghost" style="width:100%;margin-top:8px;display:none" id="affCancelEdit">Zrušit úpravy</button>
               <p class="auth-note mt" id="affNote" hidden></p>
             </form>
           </div>
