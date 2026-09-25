@@ -32,6 +32,44 @@ const FundlyBackend = (() => {
   return { getClient };
 })();
 
+// Meta atribuce: fbclid z reklamy se uloží při příchodu (kliknutí z reklamy
+// otevírá jinou stránku než ta, kde se platí), _fbp je cookie pixelu. Bez
+// fbc/fbp Meta server-side Purchase nespáruje s kliknutím na reklamu, takže
+// prodej neuvidí u kampaně (reálně: kampaň měla 7 prodejů a v Ads Manageru 0).
+const FBC_KEY = "fundly:fbc";
+const PURCHASE_EVENT_KEY = "fundly:purchaseEventId";
+(function captureFbclid() {
+  try {
+    const fbclid = new URLSearchParams(window.location.search).get("fbclid");
+    if (fbclid) localStorage.setItem(FBC_KEY, `fb.1.${Date.now()}.${fbclid}`);
+  } catch (e) { /* localStorage nedostupné — jen se nespáruje přes fbc */ }
+})();
+function readCookie(name) {
+  const m = document.cookie.match(new RegExp("(?:^|; )" + name + "=([^;]*)"));
+  return m ? decodeURIComponent(m[1]) : null;
+}
+// Jedno ID na nákup: stejné ID pošle prohlížeč (fbq Purchase po návratu z
+// platby) i server (CAPI z webhooku), takže je Meta spojí do jednoho nákupu
+// místo dvou. Každá nová platební session dostane NOVÉ ID (jinak by druhý
+// nákup ze stejného prohlížeče Meta zahodila jako duplikát prvního); drží se
+// v localStorage do návratu na dashboard.
+function newPurchaseEventId() {
+  const id = randomId();
+  try { localStorage.setItem(PURCHASE_EVENT_KEY, id); } catch (e) { /* ignore */ }
+  return id;
+}
+function trackingContext() {
+  let fbc = readCookie("_fbc");
+  try { fbc = fbc || localStorage.getItem(FBC_KEY); } catch (e) { /* ignore */ }
+  return {
+    fbp: readCookie("_fbp"),
+    fbc,
+    ua: navigator.userAgent,
+    url: window.location.href.split("#")[0],
+    eventId: newPurchaseEventId(),
+  };
+}
+
 const FundlyCheckout = {
   // Creates a Whop checkout session via the edge function and returns the whole
   // response ({ checkoutUrl, sessionId, planId }) without redirecting — for embedded checkout.
@@ -41,7 +79,7 @@ const FundlyCheckout = {
       res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/whop-checkout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ packageKey, email, ...(opts && opts.reset ? { reset: true } : {}) }),
+        body: JSON.stringify({ packageKey, email, tracking: trackingContext(), ...(opts && opts.reset ? { reset: true } : {}) }),
       });
     } catch (networkErr) {
       // raw fetch() failure (offline, flaky mobile connection, tab was

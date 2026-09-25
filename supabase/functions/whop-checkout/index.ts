@@ -19,7 +19,7 @@ serve(async (req) => {
   }
 
   try {
-    const { packageKey, email, reset } = await req.json();
+    const { packageKey, email, reset, tracking } = await req.json();
 
     const pkg = packageByKey(String(packageKey ?? ""));
     if (!pkg) return jsonResponse({ error: "Neznámý balíček." }, 400);
@@ -105,6 +105,20 @@ serve(async (req) => {
       ?? req.headers.get("cf-connecting-ip")
       ?? null;
 
+    // Meta atribuce z prohlížeče (fbp/fbc/UA/URL + ID nákupu pro deduplikaci) protéká
+    // metadaty do whop-webhook, který z toho skládá server-side Purchase (CAPI).
+    const clip = (v: unknown, n: number) => (typeof v === "string" && v ? v.slice(0, n) : null);
+    const trackingMeta: Record<string, string> = {};
+    if (tracking && typeof tracking === "object") {
+      const t = tracking as Record<string, unknown>;
+      const put = (k: string, v: string | null) => { if (v) trackingMeta[k] = v; };
+      put("meta_fbp", clip(t.fbp, 120));
+      put("meta_fbc", clip(t.fbc, 200));
+      put("meta_ua", clip(t.ua, 250));
+      put("meta_url", clip(t.url, 250));
+      put("meta_event_id", clip(t.eventId, 80));
+    }
+
     // reset má vlastní (nižší) cenu, proto nikdy nepoužije pevný Whop plán balíčku
     const planId = resetAccountId ? null : whopPlanId(pkg.key);
     const body: Record<string, unknown> = {
@@ -115,6 +129,7 @@ serve(async (req) => {
         email: String(email).trim(),
         ...(resetAccountId ? { reset_account_id: resetAccountId } : {}),
         ...(checkoutIp ? { checkout_ip: checkoutIp } : {}),
+        ...trackingMeta,
       },
     };
     if (planId) {
