@@ -10,7 +10,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { handleCors, jsonResponse } from "../_shared/cors.ts";
 import { computeServerRiskSignals, watchStatusFor } from "../_shared/risk.ts";
 import { sendEmail, accountClosedHtml, pendingApprovalAdminHtml } from "../_shared/email.ts";
-import { packageByKey } from "../_shared/packages.ts";
+import { packageByKey, resetPrice } from "../_shared/packages.ts";
 
 const ALLOWED_STATES = ["active", "funded", "breached", "pending_approval"];
 const SITE_URL = Deno.env.get("SITE_URL") ?? "https://fundly.games";
@@ -267,7 +267,7 @@ serve(async (req) => {
       sendEmail({
         to: String(account.email),
         subject: "Your Fundly account was closed",
-        html: accountClosedHtml(pkg.name, breachReason ?? "Loss limit exceeded", `${SITE_URL}/get-started`),
+        html: accountClosedHtml(pkg.name, breachReason ?? "Loss limit exceeded", `${SITE_URL}/dashboard`, resetPrice(pkg)),
       }).then((r) => { if (!r.sent) console.error("account-closed e-mail selhal:", r.error); })
         .catch((e) => console.error("account-closed e-mail error:", e));
     }

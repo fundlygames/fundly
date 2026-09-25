@@ -31,3 +31,9 @@ export function packageByKey(key: string): PackageDef | null {
 export function whopPlanId(key: string): string | null {
   return Deno.env.get(`WHOP_PLAN_${key.toUpperCase()}`) ?? null;
 }
+
+// Reset po spálení účtu = 40 % z (list) ceny balíčku — stejný vzorec jako
+// packageMeta().resetFee v js/packages.js (frontend zobrazuje stejné číslo).
+export function resetPrice(pkg: PackageDef): number {
+  return Math.round(pkg.price * 0.4);
+}

@@ -3,7 +3,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders, handleCors, jsonResponse } from "../_shared/cors.ts";
-import { packageByKey, whopPlanId } from "../_shared/packages.ts";
+import { packageByKey, whopPlanId, resetPrice } from "../_shared/packages.ts";
 import { whopFetch } from "../_shared/whop.ts";
 import { launchCapacity, soldCount, isInvited } from "../_shared/capacity.ts";
 
@@ -19,13 +19,15 @@ serve(async (req) => {
   }
 
   try {
-    const { packageKey, email } = await req.json();
+    const { packageKey, email, reset } = await req.json();
 
     const pkg = packageByKey(String(packageKey ?? ""));
     if (!pkg) return jsonResponse({ error: "Neznámý balíček." }, 400);
     if (!EMAIL_RE.test(String(email ?? ""))) {
       return jsonResponse({ error: "Zadejte platný e-mail." }, 400);
     }
+
+    let resetAccountId: string | null = null;
 
     // Aktivační poplatek (funded účet) je doplatek existujícího účtu, ne
     // nový nákup, proto se obě kontroly níž přeskakují jen pro něj.
@@ -54,8 +56,33 @@ serve(async (req) => {
         );
       }
 
-      // Limit "jen prvních N kupujících" (LAUNCH_CAPACITY).
-      const cap = launchCapacity();
+      // Reset po spálení účtu (40 % z ceny balíčku, viz terms.html §4.5): jen
+      // pro e-mail, který má spálený účet STEJNÉHO balíčku, na kterém se reset
+      // ještě nepoužil (flag "reset_used" ho zapíše whop-webhook po zaplacení).
+      if (reset === true) {
+        const { data: breachedRows } = await supabase
+          .from("challenge_accounts")
+          .select("id, flags")
+          .eq("email", String(email).trim())
+          .eq("package_key", pkg.key)
+          .eq("state", "breached")
+          .order("created_at", { ascending: false })
+          .limit(10);
+        const eligible = (breachedRows ?? []).find(
+          (a: { flags: string[] | null }) => !(Array.isArray(a.flags) && a.flags.includes("reset_used")),
+        );
+        if (!eligible) {
+          return jsonResponse(
+            { error: "No breached account eligible for a reset on this e-mail (a reset can be used once per closed account, on the same package).", code: "NO_RESET" },
+            400,
+          );
+        }
+        resetAccountId = eligible.id;
+      }
+
+      // Limit "jen prvních N kupujících" (LAUNCH_CAPACITY) — reset se nepočítá,
+      // je to už existující zákazník.
+      const cap = resetAccountId ? null : launchCapacity();
       if (cap !== null) {
         const sold = await soldCount(supabase);
         if (sold >= cap && !(await isInvited(supabase, String(email)))) {
@@ -78,13 +105,15 @@ serve(async (req) => {
       ?? req.headers.get("cf-connecting-ip")
       ?? null;
 
-    const planId = whopPlanId(pkg.key);
+    // reset má vlastní (nižší) cenu, proto nikdy nepoužije pevný Whop plán balíčku
+    const planId = resetAccountId ? null : whopPlanId(pkg.key);
     const body: Record<string, unknown> = {
       // po zaplacení Whop přesměruje zpět na dashboard
       redirect_url: `${SITE_URL}/dashboard.html?paid=1`,
       metadata: {
         package_key: pkg.key,
         email: String(email).trim(),
+        ...(resetAccountId ? { reset_account_id: resetAccountId } : {}),
         ...(checkoutIp ? { checkout_ip: checkoutIp } : {}),
       },
     };
@@ -93,9 +122,9 @@ serve(async (req) => {
     } else {
       body.plan = {
         currency: pkg.currency,
-        initial_price: pkg.price,
+        initial_price: resetAccountId ? resetPrice(pkg) : pkg.price,
         plan_type: "one_time",
-        title: pkg.key === "activation" ? "Fundly Activation Fee" : `Fundly ${pkg.name}`,
+        title: pkg.key === "activation" ? "Fundly Activation Fee" : resetAccountId ? `Fundly ${pkg.name} Reset` : `Fundly ${pkg.name}`,
         product: {
           external_identifier: pkg.key === "activation" ? "fundly-activation" : "fundly-challenge",
           title: pkg.key === "activation" ? "Fundly Activation Fee" : "Fundly Challenge",
