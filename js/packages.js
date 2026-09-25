@@ -16,10 +16,10 @@ function promoPrice(price) {
 
 const PACKAGES = [
   { key: "starter",  name: "Starter",  cap: 2000,   price: 70 },
-  { key: "standard", name: "Standard", cap: 10000,  price: 170 },
-  { key: "advanced", name: "Advanced", cap: 25000,  price: 380, top: true },
-  { key: "pro",      name: "Pro",      cap: 50000,  price: 750 },
-  { key: "elite",    name: "Elite",    cap: 100000, price: 1300 },
+  { key: "standard", name: "Standard", cap: 10000,  price: 199 },
+  { key: "advanced", name: "Advanced", cap: 25000,  price: 400, top: true },
+  { key: "pro",      name: "Pro",      cap: 50000,  price: 700 },
+  { key: "elite",    name: "Elite",    cap: 100000, price: 1250 },
 ];
 
 // Neplatný/neznámý package_key (poškozená data, testovací/admin řádek,
