@@ -853,19 +853,25 @@ async function syncChallengeAccount() {
     // which is what Meta/Google were getting before this.
     if (justPaid) {
       const pkg = packageByKey(account.package_key);
+      // Hodnota = cena po slevě, kterou web ukazuje (promoPrice); skutečnou zaplacenou
+      // částku klient nezná — přesnou hodnotu posílá server-side CAPI z webhooku,
+      // které Meta spojí přes stejné eventID (deduplikace).
+      const paidValue = typeof promoActive === "function" && promoActive() ? promoPrice(pkg.price) : pkg.price;
+      let purchaseEventId = null;
+      try { purchaseEventId = localStorage.getItem("fundly:purchaseEventId"); localStorage.removeItem("fundly:purchaseEventId"); } catch (e) { /* ignore */ }
       if (typeof fbq === "function") {
         fbq("track", "Purchase", {
-          value: pkg.price,
+          value: paidValue,
           currency: "USD",
           content_ids: [account.package_key],
           content_name: pkg.name,
           content_type: "product",
-        });
+        }, purchaseEventId ? { eventID: purchaseEventId } : undefined);
       }
       if (typeof gtag === "function") {
         gtag("event", "purchase", {
           transaction_id: account.id,
-          value: pkg.price,
+          value: paidValue,
           currency: "USD",
           items: [{ item_id: account.package_key, item_name: pkg.name, price: pkg.price, quantity: 1 }],
         });

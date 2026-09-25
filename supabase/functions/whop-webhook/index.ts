@@ -272,15 +272,36 @@ serve(async (req) => {
 
         // Meta Conversions API — autoritativní Purchase event (server-side, nejde
         // obejít ad-blockerem). Best-effort, na chybu se platba nečeká.
+        // Stejné ID nákupu, které poslal prohlížeč (fbq Purchase po návratu z platby),
+        // aby je Meta spojila do jednoho; bez něj (starší checkout) ID platby.
+        const metaEventId = String(metadata.meta_event_id ?? data.id);
         sendPurchaseEvent({
           email: String(email),
           value: Number(data.total ?? data.amount_after_fees ?? data.subtotal ?? 0),
           currency: data.currency ? String(data.currency) : "USD",
-          eventId: String(data.id),
+          eventId: metaEventId,
           contentName: pkg.name,
+          contentId: pkg.key,
           clientIp: metadata.checkout_ip ?? null,
-        }).then((r) => {
+          userAgent: metadata.meta_ua ?? null,
+          fbp: metadata.meta_fbp ?? null,
+          fbc: metadata.meta_fbc ?? null,
+          sourceUrl: metadata.meta_url ?? `${SITE_URL}/checkout`,
+        }).then(async (r) => {
           if (!r.sent) console.error("Meta CAPI Purchase selhal:", r.error);
+          else console.log("Meta CAPI Purchase odeslán:", r.detail);
+          // výsledek zapsat k platbě — jde ověřit SQL dotazem, bez logů
+          try {
+            await supabase
+              .from("payments")
+              .update({
+                meta_capi_status: r.sent ? "sent" : `failed: ${String(r.error).slice(0, 200)}`,
+                meta_event_id: metaEventId,
+              })
+              .eq("whop_payment_id", data.id);
+          } catch (e) {
+            console.error("meta_capi_status se nepodařilo zapsat:", e);
+          }
         }).catch((e) => console.error("Meta CAPI Purchase error:", e));
 
         // Pokud šlo o pozvaného z waitlistu, označíme pozvánku jako vyčerpanou
