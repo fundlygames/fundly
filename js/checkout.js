@@ -390,6 +390,7 @@
           console.warn("signIn fallback failed:", err);
         }
       } else {
+        if (typeof fbq === "function") fbq("track", "CompleteRegistration", { content_name: "checkout_signup" });
         // Genuinely new account (not the signIn fallback for a repeat
         // customer) — best-effort welcome e-mail with the NEWFUNDLY code,
         // fired without blocking the checkout flow on it.

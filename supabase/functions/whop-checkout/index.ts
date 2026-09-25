@@ -117,6 +117,8 @@ serve(async (req) => {
       put("meta_ua", clip(t.ua, 250));
       put("meta_url", clip(t.url, 250));
       put("meta_event_id", clip(t.eventId, 80));
+      const at = (t.attribution && typeof t.attribution === "object" ? t.attribution : {}) as Record<string, unknown>;
+      for (const k of ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "landing"]) put(k, clip(at[k], 100));
     }
 
     // reset má vlastní (nižší) cenu, proto nikdy nepoužije pevný Whop plán balíčku

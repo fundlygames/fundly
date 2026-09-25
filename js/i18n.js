@@ -1114,8 +1114,25 @@ const FUNDLY_I18N = (() => {
   }
 
   async function detectAndApply() {
+    // Reklamní odkaz může jazyk určit natvrdo (?lang=pl) — přebije i geo-IP
+    // a zapamatuje se jako volba návštěvníka (může ho přepnout přepínačem).
+    const urlLang = new URLSearchParams(window.location.search).get("lang");
+    if (urlLang && SUPPORTED.includes(urlLang)) {
+      setLang(urlLang);
+      return;
+    }
     if (localStorage.getItem(STORAGE_KEY)) {
       applyTranslations(getLang());
+      return;
+    }
+    // Jazyk prohlížeče (pl/cs/sk/hu/es) je spolehlivější a okamžitý — geo-IP
+    // se pak vůbec nevolá (ipapi.co má nízký denní limit, při reklamním
+    // provozu by tiše selhal a Poláci by viděli angličtinu).
+    const browserLang = (navigator.languages || [navigator.language])
+      .map((l) => String(l || "").slice(0, 2).toLowerCase())
+      .find((l) => l !== "en" && SUPPORTED.includes(l));
+    if (browserLang) {
+      applyTranslations(browserLang);
       return;
     }
     const cached = localStorage.getItem(GEO_CACHE_KEY);
@@ -1125,10 +1142,17 @@ const FUNDLY_I18N = (() => {
     }
     applyTranslations("en"); // render immediately, upgrade below if geo-IP resolves
     try {
-      const res = await fetch("https://ipapi.co/json/", { signal: AbortSignal.timeout(2500) });
-      if (!res.ok) return;
-      const data = await res.json();
-      const lang = countryToLang(data.country_code) || "en";
+      let code = null;
+      try {
+        const res = await fetch("https://ipapi.co/json/", { signal: AbortSignal.timeout(2500) });
+        if (res.ok) code = (await res.json()).country_code;
+      } catch (e) { /* zkusíme záložní službu */ }
+      if (!code) {
+        const res2 = await fetch("https://api.country.is/", { signal: AbortSignal.timeout(2500) });
+        if (!res2.ok) return;
+        code = (await res2.json()).country;
+      }
+      const lang = countryToLang(code) || "en";
       localStorage.setItem(GEO_CACHE_KEY, lang);
       if (lang !== "en") applyTranslations(lang);
     } catch (e) {
