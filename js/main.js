@@ -504,10 +504,12 @@ if (heroEl) heroSentinel.observe(heroEl);
       const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/discount-signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, lang: (window.FUNDLY_I18N && FUNDLY_I18N.getLang && FUNDLY_I18N.getLang()) || null }),
+        body: JSON.stringify({ email, lang: (window.FUNDLY_I18N && FUNDLY_I18N.getLang && FUNDLY_I18N.getLang()) || null, attribution: typeof getAttribution === "function" ? getAttribution() : null }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Could not send the code.");
+      if (typeof fbq === "function") fbq("track", "Lead", { content_name: "discount_popup" });
+      if (typeof gtag === "function") gtag("event", "generate_lead", { method: "discount_popup" });
       form.hidden = true;
       note.textContent = (typeof t === "function" ? t("discount.success") : "Code sent — check your inbox.");
       note.className = "auth-note";
@@ -586,6 +588,8 @@ if (heroEl) heroSentinel.observe(heroEl);
       const { error: signInError } = await client.auth.signInWithPassword({ email, password });
       if (signInError) throw new Error(signInError.message);
 
+      if (typeof fbq === "function") fbq("track", "CompleteRegistration", { content_name: "preview" });
+      if (typeof gtag === "function") gtag("event", "sign_up", { method: "preview" });
       window.location.href = "dashboard";
     } catch (err) {
       note.textContent = err.message || "Could not create the account.";

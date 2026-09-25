@@ -38,12 +38,44 @@ const FundlyBackend = (() => {
 // prodej neuvidí u kampaně (reálně: kampaň měla 7 prodejů a v Ads Manageru 0).
 const FBC_KEY = "fundly:fbc";
 const PURCHASE_EVENT_KEY = "fundly:purchaseEventId";
-(function captureFbclid() {
+const ATTRIBUTION_KEY = "fundly:attribution";
+const ATTRIBUTION_TTL_MS = 30 * 86400000;
+// Poslední placený dotyk (UTM z reklamy) se pamatuje 30 dní a putuje s platbou
+// do Whop metadat, takže u každého prodeje jde dohledat kampaň/reklamu/ad set.
+// Reklamní URL parametry: utm_source=facebook&utm_medium=paid&utm_campaign={{campaign.name}}
+// &utm_content={{ad.name}}&utm_term={{adset.name}}&lang=pl
+(function captureAttribution() {
   try {
-    const fbclid = new URLSearchParams(window.location.search).get("fbclid");
+    const q = new URLSearchParams(window.location.search);
+    const fbclid = q.get("fbclid");
     if (fbclid) localStorage.setItem(FBC_KEY, `fb.1.${Date.now()}.${fbclid}`);
-  } catch (e) { /* localStorage nedostupné — jen se nespáruje přes fbc */ }
+
+    const keys = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"];
+    const fresh = {};
+    keys.forEach((k) => { const v = q.get(k); if (v) fresh[k] = v.slice(0, 100); });
+    let existing = null;
+    try { existing = JSON.parse(localStorage.getItem(ATTRIBUTION_KEY) || "null"); } catch (e) { /* ignore */ }
+    const expired = existing && Date.now() - (existing.at || 0) > ATTRIBUTION_TTL_MS;
+    const external = document.referrer && !document.referrer.includes(location.hostname);
+    if (Object.keys(fresh).length || fbclid) {
+      // nový placený dotyk přepíše starý
+      localStorage.setItem(ATTRIBUTION_KEY, JSON.stringify({
+        ...fresh, ...(fbclid && !fresh.utm_source ? { utm_source: "facebook" } : {}),
+        landing: location.pathname.slice(0, 60), at: Date.now(),
+      }));
+    } else if (!existing || expired) {
+      if (external) {
+        localStorage.setItem(ATTRIBUTION_KEY, JSON.stringify({
+          utm_source: new URL(document.referrer).hostname.slice(0, 60), utm_medium: "referral",
+          landing: location.pathname.slice(0, 60), at: Date.now(),
+        }));
+      }
+    }
+  } catch (e) { /* localStorage nedostupné — jen se nezaznamená zdroj */ }
 })();
+function getAttribution() {
+  try { return JSON.parse(localStorage.getItem(ATTRIBUTION_KEY) || "null"); } catch (e) { return null; }
+}
 function readCookie(name) {
   const m = document.cookie.match(new RegExp("(?:^|; )" + name + "=([^;]*)"));
   return m ? decodeURIComponent(m[1]) : null;
@@ -67,6 +99,7 @@ function trackingContext() {
     ua: navigator.userAgent,
     url: window.location.href.split("#")[0],
     eventId: newPurchaseEventId(),
+    attribution: getAttribution(),
   };
 }
 

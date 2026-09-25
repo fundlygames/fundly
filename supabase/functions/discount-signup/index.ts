@@ -50,9 +50,20 @@ serve(async (req) => {
     // e-mail může požádat o kód jen jednou — opakované odeslání tiše
     // neselže, jen se nezaloží duplicitní řádek (kód je stejně pořád stejný).
     const lang = typeof body.lang === "string" ? body.lang.slice(0, 5) : null;
+    // zdroj příchodu (UTM z reklamy) — jen krátké textové hodnoty, ať se do jsonb nedostane nic jiného
+    const attribution: Record<string, string> = {};
+    if (body.attribution && typeof body.attribution === "object") {
+      for (const k of ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "landing"]) {
+        const v = (body.attribution as Record<string, unknown>)[k];
+        if (typeof v === "string" && v) attribution[k] = v.slice(0, 100);
+      }
+    }
     const { error } = await supabase
       .from("discount_signups")
-      .upsert({ email, lang }, { onConflict: "email", ignoreDuplicates: true });
+      .upsert(
+        { email, lang, ...(Object.keys(attribution).length ? { attribution } : {}) },
+        { onConflict: "email", ignoreDuplicates: true },
+      );
     if (error) throw error;
 
     const result = await sendEmail({
