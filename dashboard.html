@@ -7,8 +7,8 @@
   <meta name="description" content="Overview of your Fundly Partner account." />
   <meta name="theme-color" content="#020204" />
   <link rel="icon" type="image/png" href="assets/logo.png" />
-  <link rel="stylesheet" href="css/style.css?v=20260923a" />
-  <link rel="stylesheet" href="css/dashboard.css?v=20260923a" />
+  <link rel="stylesheet" href="css/style.css?v=20260925a" />
+  <link rel="stylesheet" href="css/dashboard.css?v=20260925a" />
   <!-- Meta Pixel -->
   <script>
   !function(f,b,e,v,n,t,s)
@@ -43,8 +43,8 @@
     gtag('config', 'G-C01K5JXEGQ');
   </script>
   <!-- backend (Supabase/Whop) — defer, page works without it too (demo mode) -->
-  <script defer src="js/config.js?v=20260923a"></script>
-  <script defer src="js/whop.js?v=20260923a"></script>
+  <script defer src="js/config.js?v=20260925a"></script>
+  <script defer src="js/whop.js?v=20260925a"></script>
 </head>
 <body class="with-sidebar">
 
@@ -148,6 +148,15 @@
 
         <div class="ov-layout">
           <div class="ov-main">
+
+            <!-- účet spálen: zlevněný reset (40 % ceny), viz updateBreachPanel() -->
+            <div class="panel act-panel" id="breachPanel" hidden>
+              <h3>Your account was closed</h3>
+              <p class="t-small" id="breachPanelText"></p>
+              <button class="btn btn-primary" id="breachResetBtn" style="margin-top:12px">Reset my account</button>
+              <p class="auth-note mt" id="breachResetNote" hidden></p>
+            </div>
+
             <!-- funded účet bez zaplaceného aktivačního poplatku -->
             <div class="panel act-panel" id="activationPanel" hidden>
               <h3>Activate your Partner account</h3>
@@ -705,6 +714,13 @@
           </div>
         </div>
 
+        <div class="panel act-panel" id="naResetPanel" hidden>
+          <h3>Your account was closed</h3>
+          <p class="t-small" id="naResetText"></p>
+          <button class="btn btn-primary" id="naResetBtn" style="margin-top:12px">Reset my account</button>
+          <p class="auth-note mt" id="naResetNote" hidden></p>
+        </div>
+
         <div class="panel act-panel">
           <h3>Get an account</h3>
           <p class="t-small">Start a new Challenge — a one-time fee, 30 days per phase.</p>
@@ -767,10 +783,10 @@
 
   <div id="toastLayer" class="toast-layer" aria-live="polite"></div>
 
-  <script src="js/packages.js?v=20260923a"></script>
-  <script src="js/portfolio.js?v=20260923a"></script>
-  <script src="js/dashboard.js?v=20260923a"></script>
-  <script src="js/promo-banner.js?v=20260923a"></script>
-  <script src="js/telegram-widget.js?v=20260923a"></script>
+  <script src="js/packages.js?v=20260925a"></script>
+  <script src="js/portfolio.js?v=20260925a"></script>
+  <script src="js/dashboard.js?v=20260925a"></script>
+  <script src="js/promo-banner.js?v=20260925a"></script>
+  <script src="js/telegram-widget.js?v=20260925a"></script>
 </body>
 </html>

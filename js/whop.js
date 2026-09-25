@@ -35,13 +35,13 @@ const FundlyBackend = (() => {
 const FundlyCheckout = {
   // Creates a Whop checkout session via the edge function and returns the whole
   // response ({ checkoutUrl, sessionId, planId }) without redirecting — for embedded checkout.
-  async createSession(packageKey, email) {
+  async createSession(packageKey, email, opts) {
     let res;
     try {
       res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/whop-checkout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ packageKey, email }),
+        body: JSON.stringify({ packageKey, email, ...(opts && opts.reset ? { reset: true } : {}) }),
       });
     } catch (networkErr) {
       // raw fetch() failure (offline, flaky mobile connection, tab was
@@ -61,8 +61,8 @@ const FundlyCheckout = {
   },
 
   // Creates a Whop checkout via the edge function and redirects to the hosted payment page.
-  async buy(packageKey, email) {
-    const data = await this.createSession(packageKey, email);
+  async buy(packageKey, email, opts) {
+    const data = await this.createSession(packageKey, email, opts);
     window.location.href = data.checkoutUrl;
   },
 };

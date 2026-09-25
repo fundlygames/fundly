@@ -682,6 +682,64 @@ function showLimitedDashboard(accounts) {
   if (pastPanel) pastPanel.hidden = !accounts.length;
   const list = document.getElementById("naAccounts");
   if (list && accounts.length) list.innerHTML = accountHistoryRowsHtml(accounts);
+  showResetOfferFromAccounts(accounts);
+}
+
+
+// ---------- reset po spálení účtu (40 % z ceny balíčku, terms §4.5) ----------
+// Nabídka se ukáže hned po spálení: v Overview (živě, ještě než se to stihne
+// zapsat na server) i v "no account" dashboardu po dalším načtení. Server
+// (whop-checkout, reset: true) znovu ověří, že e-mail má spálený účet stejného
+// balíčku bez použitého resetu — tlačítko tu jen otevře platbu.
+function resetOfferText(pkgKey) {
+  const pkg = packageByKey(pkgKey);
+  const price = packageMeta(pkg).resetFee;
+  return { pkg, price, text: `Restart your ${pkg.name} account with a discounted reset: ${usd(price)} instead of ${usd(pkg.price)} (40 % of the standard price). A reset can be used once per closed account.` };
+}
+
+async function startAccountReset(pkgKey, btn, note) {
+  btn.disabled = true;
+  try {
+    // živě spálený účet se na server dostane až syncem — počkat, ať je "breached" už zapsané
+    if (typeof pushAccountSnapshot === "function") await pushAccountSnapshot();
+    const user = await FundlyAuth.getUser();
+    if (!user || !user.email) throw new Error("Please sign in again.");
+    const data = await FundlyCheckout.createSession(pkgKey, user.email, { reset: true });
+    window.location.href = data.checkoutUrl;
+  } catch (err) {
+    note.textContent = err.message || "The payment gateway could not be opened.";
+    note.className = "auth-note mt error";
+    note.hidden = false;
+    btn.disabled = false;
+  }
+}
+
+function wireResetPanel(panelId, textId, btnId, noteId, pkgKey) {
+  const panel = document.getElementById(panelId);
+  if (!panel) return;
+  const offer = resetOfferText(pkgKey);
+  document.getElementById(textId).textContent = offer.text;
+  const btn = document.getElementById(btnId);
+  btn.textContent = `Reset my account — ${usd(offer.price)}`;
+  btn.onclick = () => startAccountReset(pkgKey, btn, document.getElementById(noteId));
+  panel.hidden = false;
+}
+
+// živě: lokální stav je spálený (denní/celková ztráta), účet je ale na serveru ještě "active"
+function updateBreachPanel() {
+  const panel = document.getElementById("breachPanel");
+  if (!panel || window.__noRealAccount) return;
+  const state = Portfolio.get();
+  if (!state || !state.accountId || !Portfolio.breachInfo(state).breached) { panel.hidden = true; return; }
+  wireResetPanel("breachPanel", "breachPanelText", "breachResetBtn", "breachResetNote", state.packageKey);
+}
+
+// po načtení: žádný aktivní účet, ale nejnovější spálený účet má nevyužitý reset
+function showResetOfferFromAccounts(accounts) {
+  const breached = accounts.find((a) => a.state === "breached" && !(Array.isArray(a.flags) && a.flags.includes("reset_used")));
+  if (breached && packageByKey(breached.package_key).key === breached.package_key) {
+    wireResetPanel("naResetPanel", "naResetText", "naResetBtn", "naResetNote", breached.package_key);
+  }
 }
 
 // ---------- activation fee: panel pro funded účet bez zaplacené aktivace ----------
@@ -1501,6 +1559,7 @@ function renderBankBar() {
   bal.textContent = usd(state.balance);
   document.getElementById("bankMaxStake").textContent = usd(Portfolio.ruleMeta(state).maxStake);
   document.getElementById("bankOddsRange").textContent = `${ODDS_MIN.toFixed(2)} to ${ODDS_MAX.toFixed(2)}`;
+  updateBreachPanel();
 }
 
 function updateMobileSlipBar() {
