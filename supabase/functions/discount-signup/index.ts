@@ -49,9 +49,10 @@ serve(async (req) => {
 
     // e-mail může požádat o kód jen jednou — opakované odeslání tiše
     // neselže, jen se nezaloží duplicitní řádek (kód je stejně pořád stejný).
+    const lang = typeof body.lang === "string" ? body.lang.slice(0, 5) : null;
     const { error } = await supabase
       .from("discount_signups")
-      .upsert({ email }, { onConflict: "email", ignoreDuplicates: true });
+      .upsert({ email, lang }, { onConflict: "email", ignoreDuplicates: true });
     if (error) throw error;
 
     const result = await sendEmail({

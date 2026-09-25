@@ -70,7 +70,7 @@ const FUNDLY_I18N = (() => {
         r5a: "Alone", r5pill: "Support", r5b: "Community &amp; support",
       },
       discount: {
-        title: "Get 30% off", sub: "Enter your email and we'll send you the code right away.", cta: "Send me the code", success: "Code sent — check your inbox.", off: "OFF",
+        title: "Get 30% off", sub: "Enter your email and we'll send you the code right away.", cta: "Send me the code", success: "Code sent — check your inbox.", off: "OFF", consent: "By requesting the code you agree to receive a few emails with offers from Fundly. Unsubscribe anytime.",
       },
       preview: {
         title: "Preview the dashboard", sub: "Create a free account — no payment, no package. Just look around.", cta: "Create my preview account", legal: "By continuing you agree to our <a href=\"terms\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">terms</a> and <a href=\"privacy\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">privacy policy</a>.", exists: "An account with this email already exists — log in instead.",
@@ -244,7 +244,7 @@ const FUNDLY_I18N = (() => {
         r5a: "Sami", r5pill: "Podpora", r5b: "Komunita a podpora",
       },
       discount: {
-        title: "Získej 30% slevu", sub: "Zadej svůj e-mail a hned ti pošleme kód.", cta: "Poslat mi kód", success: "Kód odeslán — zkontroluj si schránku.", off: "SLEVA",
+        title: "Získej 30% slevu", sub: "Zadej svůj e-mail a hned ti pošleme kód.", cta: "Poslat mi kód", success: "Kód odeslán — zkontroluj si schránku.", off: "SLEVA", consent: "Vyžádáním kódu souhlasíš s několika e-maily s nabídkami od Fundly. Odhlásit se můžeš kdykoli.",
       },
       preview: {
         title: "Podívej se dovnitř", sub: "Vytvoř si účet zdarma — žádná platba, žádný balíček. Jen se podívej.", cta: "Vytvořit účet na náhled", legal: "Pokračováním souhlasíš s <a href=\"terms\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">podmínkami</a> a <a href=\"privacy\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">zásadami ochrany soukromí</a>.", exists: "Účet s tímto e-mailem už existuje — přihlas se.",
@@ -418,7 +418,7 @@ const FUNDLY_I18N = (() => {
         r5a: "Solo", r5pill: "Soporte", r5b: "Comunidad y soporte",
       },
       discount: {
-        title: "Obtén 30% de descuento", sub: "Ingresa tu correo y te enviaremos el código enseguida.", cta: "Enviarme el código", success: "Código enviado — revisa tu bandeja de entrada.", off: "DESCUENTO",
+        title: "Obtén 30% de descuento", sub: "Ingresa tu correo y te enviaremos el código enseguida.", cta: "Enviarme el código", success: "Código enviado — revisa tu bandeja de entrada.", off: "DESCUENTO", consent: "Al solicitar el código aceptas recibir algunos correos con ofertas de Fundly. Puedes darte de baja en cualquier momento.",
       },
       preview: {
         title: "Mira el dashboard", sub: "Crea una cuenta gratis — sin pago, sin paquete. Solo échale un vistazo.", cta: "Crear mi cuenta de vista previa", legal: "Al continuar aceptas nuestros <a href=\"terms\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">términos</a> y la <a href=\"privacy\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">política de privacidad</a>.", exists: "Ya existe una cuenta con este correo — inicia sesión.",
@@ -592,7 +592,7 @@ const FUNDLY_I18N = (() => {
         r5a: "Sam", r5pill: "Wsparcie", r5b: "Społeczność i wsparcie",
       },
       discount: {
-        title: "Zdobądź 30% zniżki", sub: "Podaj swój e-mail, a od razu wyślemy Ci kod.", cta: "Wyślij mi kod", success: "Kod wysłany — sprawdź swoją skrzynkę.", off: "ZNIŻKI",
+        title: "Zdobądź 30% zniżki", sub: "Podaj swój e-mail, a od razu wyślemy Ci kod.", cta: "Wyślij mi kod", success: "Kod wysłany — sprawdź swoją skrzynkę.", off: "ZNIŻKI", consent: "Prosząc o kod, zgadzasz się na kilka e-maili z ofertami od Fundly. Możesz wypisać się w każdej chwili.",
       },
       preview: {
         title: "Zajrzyj do panelu", sub: "Załóż darmowe konto — bez płatności, bez pakietu. Po prostu się rozejrzyj.", cta: "Utwórz konto podglądu", legal: "Kontynuując, akceptujesz nasze <a href=\"terms\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">warunki</a> i <a href=\"privacy\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">politykę prywatności</a>.", exists: "Konto z tym adresem e-mail już istnieje — zaloguj się.",
@@ -766,7 +766,7 @@ const FUNDLY_I18N = (() => {
         r5a: "Sami", r5pill: "Podpora", r5b: "Komunita a podpora",
       },
       discount: {
-        title: "Získaj 30% zľavu", sub: "Zadaj svoj e-mail a hneď ti pošleme kód.", cta: "Poslať mi kód", success: "Kód odoslaný — skontroluj si schránku.", off: "ZĽAVA",
+        title: "Získaj 30% zľavu", sub: "Zadaj svoj e-mail a hneď ti pošleme kód.", cta: "Poslať mi kód", success: "Kód odoslaný — skontroluj si schránku.", off: "ZĽAVA", consent: "Vyžiadaním kódu súhlasíš s niekoľkými e-mailmi s ponukami od Fundly. Odhlásiť sa môžeš kedykoľvek.",
       },
       preview: {
         title: "Pozri sa dovnútra", sub: "Vytvor si účet zadarmo — žiadna platba, žiadny balíček. Len sa pozri.", cta: "Vytvoriť účet na náhľad", legal: "Pokračovaním súhlasíš s <a href=\"terms\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">podmienkami</a> a <a href=\"privacy\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">zásadami ochrany súkromia</a>.", exists: "Účet s týmto e-mailom už existuje — prihlás sa.",
@@ -940,7 +940,7 @@ const FUNDLY_I18N = (() => {
         r5a: "Egyedül", r5pill: "Támogatás", r5b: "Közösség és támogatás",
       },
       discount: {
-        title: "Szerezz 30% kedvezményt", sub: "Add meg az e-mail címed, és azonnal elküldjük a kódot.", cta: "Küldd el a kódot", success: "Kód elküldve — nézd meg a postaládád.", off: "KEDVEZMÉNY",
+        title: "Szerezz 30% kedvezményt", sub: "Add meg az e-mail címed, és azonnal elküldjük a kódot.", cta: "Küldd el a kódot", success: "Kód elküldve — nézd meg a postaládád.", off: "KEDVEZMÉNY", consent: "A kód kérésével hozzájárulsz néhány ajánlatokat tartalmazó e-mailhez a Fundlytól. Bármikor leiratkozhatsz.",
       },
       preview: {
         title: "Nézz be az irányítópultba", sub: "Hozz létre egy ingyenes fiókot — fizetés és csomag nélkül. Csak nézz körül.", cta: "Előnézeti fiók létrehozása", legal: "A folytatással elfogadod <a href=\"terms\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">feltételeinket</a> és <a href=\"privacy\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">adatvédelmi szabályzatunkat</a>.", exists: "Ezzel az e-mail címmel már létezik fiók — jelentkezz be.",

@@ -92,3 +92,9 @@ verify_jwt = false
 # uvnitř funkce (service role klíč), ne na úrovni gateway JWT.
 [functions.request-password-reset]
 verify_jwt = false
+
+[functions.email-followups]
+verify_jwt = false
+
+[functions.email-unsubscribe]
+verify_jwt = false

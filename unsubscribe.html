@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Unsubscribe | Fundly</title>
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#020204" />
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+  <link rel="stylesheet" href="css/style.css?v=20260925d" />
+  <link rel="stylesheet" href="css/legal.css?v=20260925d" />
+</head>
+<body>
+  <header class="nav scrolled">
+    <div class="container nav-inner">
+      <a href="./" class="logo" aria-label="Fundly, home">
+        <img src="assets/logo.png" alt="" width="24" height="24" />
+        fundly
+      </a>
+      <div class="nav-cta"><a class="btn btn-ghost" href="./">Back to home</a></div>
+    </div>
+  </header>
+
+  <main class="legal-main">
+    <div class="container legal-wrap" style="text-align:center;max-width:520px">
+      <h1 class="t-h2" id="unsubTitle">Unsubscribe</h1>
+      <p id="unsubText" style="margin:14px 0 24px">Stop receiving Fundly promotional emails?</p>
+      <button class="btn btn-primary" id="unsubBtn" type="button">Yes, unsubscribe me</button>
+      <p class="auth-note mt" id="unsubNote" hidden></p>
+      <p style="margin-top:28px;font-size:.8125rem;color:var(--text-muted)">You'll still receive service emails about your account (payments, closed accounts, security). Changed your mind? Write to <a href="mailto:support@fundly.games">support@fundly.games</a>.</p>
+    </div>
+  </main>
+
+  <script src="js/config.js?v=20260925d"></script>
+  <script>
+    (function () {
+      var q = new URLSearchParams(location.search);
+      var email = q.get("e") || "", token = q.get("t") || "";
+      var btn = document.getElementById("unsubBtn"), note = document.getElementById("unsubNote");
+      if (!email || !token) {
+        btn.hidden = true;
+        note.textContent = "This unsubscribe link is incomplete. Please use the link from the email or write to support@fundly.games.";
+        note.className = "auth-note mt error"; note.hidden = false;
+        return;
+      }
+      document.getElementById("unsubText").textContent = "Stop sending promotional emails to " + email + "?";
+      btn.addEventListener("click", async function () {
+        btn.disabled = true;
+        try {
+          var res = await fetch(FUNDLY_SUPABASE_URL + "/functions/v1/email-unsubscribe", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: email, token: token }),
+          });
+          var data = await res.json().catch(function () { return {}; });
+          if (!res.ok) throw new Error(data.error || "Could not unsubscribe.");
+          document.getElementById("unsubTitle").textContent = "You're unsubscribed";
+          document.getElementById("unsubText").textContent = "We won't send you promotional emails anymore.";
+          btn.hidden = true; note.hidden = true;
+        } catch (e) {
+          note.textContent = e.message || "Could not unsubscribe.";
+          note.className = "auth-note mt error"; note.hidden = false; btn.disabled = false;
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

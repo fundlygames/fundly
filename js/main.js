@@ -504,7 +504,7 @@ if (heroEl) heroSentinel.observe(heroEl);
       const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/discount-signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, lang: (window.FUNDLY_I18N && FUNDLY_I18N.getLang && FUNDLY_I18N.getLang()) || null }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Could not send the code.");
