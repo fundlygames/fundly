@@ -7,8 +7,8 @@
   <meta name="description" content="Pick your simulated capital, see your targets and limits instantly, then start the Fundly Challenge. Up to $100,000, 80% performance split, no personal bankroll required." />
   <meta name="theme-color" content="#020204" />
   <link rel="icon" type="image/png" href="assets/logo.png" />
-  <link rel="stylesheet" href="css/style.css?v=20260926a" />
-  <link rel="stylesheet" href="css/get-started.css?v=20260926a" />
+  <link rel="stylesheet" href="css/style.css?v=20260926b" />
+  <link rel="stylesheet" href="css/get-started.css?v=20260926b" />
   <!-- Meta Pixel -->
   <script>
   !function(f,b,e,v,n,t,s)
@@ -43,11 +43,11 @@
     gtag('config', 'G-C01K5JXEGQ');
   </script>
   <!-- backend (Supabase/Whop) + shared package data — defer, page works without it too -->
-  <script defer src="js/config.js?v=20260926a"></script>
-  <script defer src="js/packages.js?v=20260926a"></script>
-  <script defer src="js/whop.js?v=20260926a"></script>
-  <script defer src="js/i18n.js?v=20260926a"></script>
-  <script defer src="js/get-started.js?v=20260926a"></script>
+  <script defer src="js/config.js?v=20260926b"></script>
+  <script defer src="js/packages.js?v=20260926b"></script>
+  <script defer src="js/whop.js?v=20260926b"></script>
+  <script defer src="js/i18n.js?v=20260926b"></script>
+  <script defer src="js/get-started.js?v=20260926b"></script>
 </head>
 <body>
 
@@ -292,7 +292,37 @@
     </div>
   </footer>
 
-  <script src="js/promo-banner.js?v=20260926a"></script>
-  <script src="js/telegram-widget.js?v=20260926a"></script>
+  <script src="js/promo-banner.js?v=20260926b"></script>
+  <script src="js/telegram-widget.js?v=20260926b"></script>
+  <!-- ============ DISCOUNT POPUP (email capture, 30% off) ============ -->
+  <div class="modal-backdrop" id="discountModal" hidden>
+    <div class="modal discount-modal" role="dialog" aria-modal="true" aria-labelledby="discountTitle">
+      <button class="modal-close" id="discountClose" aria-label="Close">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <div class="discount-hero" aria-hidden="true">
+        <span class="discount-glow"></span>
+        <div class="discount-badge">
+          <span class="discount-pct">30<small>%</small></span>
+          <span class="discount-off" data-i18n="discount.off">OFF</span>
+        </div>
+      </div>
+      <div class="modal-head">
+        <h2 id="discountTitle" data-i18n="discount.title">Get 30% off</h2>
+        <p data-i18n="discount.sub">Enter your email and we'll send you the code right away.</p>
+      </div>
+      <form id="discountForm" novalidate>
+        <div class="field">
+          <label for="discountEmail" data-i18n="auth.email">E-mail</label>
+          <input class="input" id="discountEmail" type="email" autocomplete="email" placeholder="you@example.com" required />
+        </div>
+        <p class="discount-consent" data-i18n="discount.consent">By requesting the code you agree to receive a few emails with offers from Fundly. Unsubscribe anytime.</p>
+        <p class="auth-note" id="discountNote" hidden></p>
+        <button type="submit" class="btn btn-primary" style="width:100%" id="discountSubmit" data-i18n="discount.cta">Send me the code</button>
+      </form>
+    </div>
+  </div>
+
+  <script defer src="js/discount-popup.js?v=20260926b"></script>
 </body>
 </html>
