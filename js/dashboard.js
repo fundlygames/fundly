@@ -1117,8 +1117,19 @@ const slipBody = document.getElementById("slipBody");
 // (param is `league`, singular — confirmed against the real API; the
 // plural `leagues` is silently ignored) and merged into the general
 // pool, so these leagues show up regardless of the API's default order.
-// Verified slugs against /v3/leagues (2026-09-19); if a league gets
-// renamed upstream this silently just stops adding it back, no error.
+// Verified slugs against /v3/leagues (2026-09-19, UEFA Nations League groups
+// re-verified 2026-09-27); if a league gets renamed upstream this silently
+// just stops adding it back, no error.
+//
+// UEFA Nations League specifically: national-team competitions have no
+// single umbrella slug — each League/Group combination (A/B/C/D × its
+// groups) is its own league in the API, and only the groups with fixtures
+// in the near term actually exist as a queryable slug at any given moment.
+// Real reported symptom: pending Nations League matches never showed up in
+// the match list at all (buried in the generic pool, same root cause as
+// the top club leagues above), but the SAME matches appeared the instant
+// they went live — /events/live returns a small enough global set that
+// burying isn't an issue there, so only the pre-match view was broken.
 const PRIORITY_LEAGUES = {
   football: [
     "england-premier-league",
@@ -1127,6 +1138,12 @@ const PRIORITY_LEAGUES = {
     "germany-bundesliga",
     "france-ligue-1",
     "international-clubs-uefa-champions-league",
+    "international-uefa-nations-league-league-a-gr-3",
+    "international-uefa-nations-league-league-b-gr-4",
+    "international-uefa-nations-league-league-c-gr-2",
+    "international-uefa-nations-league-league-c-gr-3",
+    "international-uefa-nations-league-league-c-gr-4",
+    "international-uefa-nations-league-league-d-gr-2",
   ],
 };
 
