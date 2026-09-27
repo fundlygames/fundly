@@ -1145,6 +1145,17 @@ const PRIORITY_LEAGUES = {
     "international-uefa-nations-league-league-c-gr-4",
     "international-uefa-nations-league-league-d-gr-2",
   ],
+  // Same burying problem, checked across every sport this app offers
+  // (2026-09-27) after the Nations League report: basketball and hockey
+  // both had a top-tier league at 0 matches in the generic pool despite
+  // real near-term fixtures (EuroLeague: 0/pool vs 10 real; NHL: 0/pool
+  // vs 20 real). NBA itself has no games yet (season hasn't started —
+  // not a bug). Tennis/baseball/darts/MMA/table-tennis already had
+  // reasonable representation in the generic pool, left alone; tennis in
+  // particular has no single stable league slug to pin here (its ATP/WTA
+  // events are one slug PER TOURNAMENT, changing every week).
+  basketball: ["international-euroleague"],
+  "ice-hockey": ["usa-nhl"],
 };
 
 async function loadSportEvents(sport, live) {
