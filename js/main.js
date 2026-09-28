@@ -345,7 +345,10 @@ authForm.addEventListener("submit", (e) => {
       authSubmit.textContent = AUTH_TEXTS[authMode].submit;
     };
     if (authMode === "register") {
-      FundlyCheckout.buy(activeKey, email).catch((err) => fail(err.message));
+      // Our own checkout page instead of Whop's hosted one: the embedded form
+      // applies the NEWFUNDLY discount and pre-fills nothing extra, while the
+      // hosted page charged list price (its ?d= link parameter doesn't work).
+      window.location.href = "checkout?package=" + encodeURIComponent(activeKey);
     } else {
       const password = document.getElementById("authPass").value;
       // password filled → direct sign-in; empty → magic link to the e-mail
