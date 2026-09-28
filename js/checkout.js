@@ -390,6 +390,8 @@
         termsAt: consentAt,
         rulesAt: consentAt,
         coolingOffAt: consentAt,
+        pkg: state.pkg,
+        lang: document.documentElement.lang || "en",
       });
       if (error) {
         console.warn("signUp:", error.message);

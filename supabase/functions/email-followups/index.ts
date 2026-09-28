@@ -1,6 +1,8 @@
 // email-followups — denní cron (pg_cron/pg_net), týdenní follow-up e-maily.
 //   Trasa A: nekoupili (popup s kódem, Preview, registrace bez nákupu) — den 3, 10, 17
 //   Trasa B: koupili a spálili účet — den 3, 10, 17 po uzavření, vždy se speciálním resetem
+//   Trasa R: cart recovery — registrace v checkoutu, ale nezaplatili; JEDEN e-mail 45 min až 48 h
+//            po registraci (pg_cron každých 15 min s { "only": "R" }, ostatní trasy jedou 1× denně)
 // Pravidla: max. 3 e-maily na člověka a trasu, nikdy dřív než 6 dní po předchozím,
 // nikdy po odhlášení, nikdy poté, co člověk koupil (A) / resetoval nebo znovu koupil (B).
 // Časová osa začíná nejdřív ve FEATURE_START, ať se po spuštění neodešle celý
@@ -14,7 +16,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsonResponse } from "../_shared/cors.ts";
 import { sendEmail } from "../_shared/email.ts";
-import { renderFollowup, type Lang, type Track } from "../_shared/followup-emails.ts";
+import { renderFollowup, renderRecovery, type Lang, type Track } from "../_shared/followup-emails.ts";
 import { unsubscribeUrl } from "../_shared/unsubscribe.ts";
 
 const SITE_URL = Deno.env.get("SITE_URL") ?? "https://fundly.games";
@@ -23,6 +25,8 @@ const STEP_DAYS = [3, 10, 17];
 const MIN_GAP_MS = 6 * 86400000;
 const MAX_PER_RUN = Number(Deno.env.get("FOLLOWUP_MAX_PER_RUN") ?? "150");
 const DAY = 86400000;
+const RECOVERY_MIN_MS = 45 * 60 * 1000; // dát člověku čas dokončit platbu sám
+const RECOVERY_MAX_MS = 48 * 3600 * 1000; // po dvou dnech už to není "opuštěný košík"
 
 function langFor(email: string, hint?: string | null): Lang {
   if (hint === "pl") return "pl";
@@ -63,19 +67,21 @@ serve(async (req) => {
   try {
     const body = await req.json().catch(() => ({}));
     const dryRun = body.dry_run === true;
+    const only = body.only === "R" ? "R" : null; // 15minutový cron: jen cart recovery
 
     // ---------- testovací odeslání ----------
     if (body.test_to) {
       const to = String(body.test_to);
-      const track = (body.track === "B" ? "B" : "A") as Track;
-      const step = Math.min(3, Math.max(1, Number(body.step) || 1));
+      const track = (body.track === "B" ? "B" : body.track === "R" ? "R" : "A") as Track;
+      const step = track === "R" ? 1 : Math.min(3, Math.max(1, Number(body.step) || 1));
       const lang = (body.lang === "pl" ? "pl" : "en") as Lang;
-      const { subject, html } = renderFollowup(track, step, {
+      const tctx = {
         lang, siteUrl: SITE_URL, unsubscribeUrl: await unsubscribeUrl(SITE_URL, to),
         packageKey: String(body.package_key ?? "starter"),
         closedAt: new Date(Date.now() - 3 * DAY).toISOString(),
         reason: "Max. daily loss exceeded (-4 %)",
-      });
+      };
+      const { subject, html } = track === "R" ? renderRecovery(tctx) : renderFollowup(track, step, tctx);
       const r = await sendEmail({ to, subject: `[TEST ${track}${step}] ${subject}`, html });
       return jsonResponse({ ok: r.sent, error: r.error ?? null });
     }
@@ -117,9 +123,28 @@ serve(async (req) => {
     for (const u of users as any[]) if (u.email) see(u.email, u.created_at);
 
     const candidates: Candidate[] = [];
-    for (const [email, info] of firstSeen) {
-      if (paid.has(email) || unsub.has(email)) continue;
-      candidates.push({ email, track: "A", startAt: Math.max(info.at, FEATURE_START), lang: langFor(email, info.lang) });
+    if (only !== "R") {
+      for (const [email, info] of firstSeen) {
+        if (paid.has(email) || unsub.has(email)) continue;
+        candidates.push({ email, track: "A", startAt: Math.max(info.at, FEATURE_START), lang: langFor(email, info.lang) });
+      }
+    }
+
+    // ---------- trasa R: cart recovery (registrace v checkoutu bez platby) ----------
+    // Jen účty z checkoutu: signUp tam ukládá souhlasy (consent_terms_at) do user_metadata.
+    const nowMs = Date.now();
+    // deno-lint-ignore no-explicit-any
+    for (const u of users as any[]) {
+      const e = lower(u.email);
+      const meta = u.user_metadata ?? {};
+      if (!e || !meta.consent_terms_at || paid.has(e) || unsub.has(e)) continue;
+      const age = nowMs - new Date(u.created_at).getTime();
+      if (age < RECOVERY_MIN_MS || age > RECOVERY_MAX_MS) continue;
+      candidates.push({
+        email: e, track: "R", startAt: new Date(u.created_at).getTime(),
+        lang: langFor(e, meta.checkout_lang ?? null),
+        packageKey: typeof meta.checkout_package === "string" ? meta.checkout_package : undefined,
+      });
     }
 
     // ---------- trasa B: spálený účet ----------
@@ -159,6 +184,13 @@ serve(async (req) => {
     const due: (Candidate & { step: number })[] = [];
     for (const c of candidates) {
       const step = (stepsSent.get(`${c.email}|${c.track}`) ?? 0) + 1;
+      if (c.track === "R") {
+        // jediný e-mail; nic dalšího jim mezitím neposíláme (A1 přijde nejdřív za 6 dní po R)
+        if (step > 1) continue;
+        if (now - (lastSent.get(c.email) ?? 0) < 12 * 3600 * 1000) continue;
+        due.push({ ...c, step });
+        continue;
+      }
       if (step > STEP_DAYS.length) continue;
       if (now < c.startAt + STEP_DAYS[step - 1] * DAY) continue;
       if (now - (lastSent.get(c.email) ?? 0) < MIN_GAP_MS) continue;
@@ -181,10 +213,11 @@ serve(async (req) => {
       const { error: claimErr } = await supabase.from("followup_sent").insert({ email: c.email, track: c.track, step: c.step });
       if (claimErr) continue;
       const link = await unsubscribeUrl(SITE_URL, c.email);
-      const { subject, html } = renderFollowup(c.track, c.step, {
+      const rctx = {
         lang: c.lang, siteUrl: SITE_URL, unsubscribeUrl: link,
         packageKey: c.packageKey, closedAt: c.closedAt, reason: c.reason,
-      });
+      };
+      const { subject, html } = c.track === "R" ? renderRecovery(rctx) : renderFollowup(c.track, c.step, rctx);
       const r = await sendEmail({
         to: c.email, subject, html,
         headers: { "List-Unsubscribe": `<${link}>, <mailto:support@fundly.games?subject=unsubscribe>` },

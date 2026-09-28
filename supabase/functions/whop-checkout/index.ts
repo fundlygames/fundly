@@ -10,6 +10,16 @@ import { launchCapacity, soldCount, isInvited } from "../_shared/capacity.ts";
 const SITE_URL = Deno.env.get("SITE_URL") ?? "https://fundly.games";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// Payment methods offered in the embedded checkout. The Polish traffic from the
+// ads mostly pays with BLIK / Przelewy24, not cards — and the form only showed
+// "Card" and "Pay with Crypto". Whop displays only what the account and the
+// customer's country/currency actually support, so listing more is harmless.
+// Change the list without a deploy via the WHOP_PAYMENT_METHODS secret
+// (comma-separated Whop method ids; "off" = don't send any configuration).
+const PAYMENT_METHODS = (Deno.env.get("WHOP_PAYMENT_METHODS") ?? "card,apple_pay,google_pay,przelewy24,blik,paypal,link")
+  .split(",").map((m) => m.trim()).filter(Boolean);
+let paymentMethodsRejected = PAYMENT_METHODS.length === 0 || PAYMENT_METHODS[0] === "off";
+
 serve(async (req) => {
   const cors = handleCors(req);
   if (cors) return cors;
@@ -149,10 +159,26 @@ serve(async (req) => {
       };
     }
 
-    const checkout = await whopFetch("/checkout_configurations", {
-      method: "POST",
-      body,
-    });
+    // Whop rejects unknown method ids; a bad list must never cost us a sale, so
+    // retry once without it (and stop sending it from this instance on).
+    let checkout;
+    if (!paymentMethodsRejected) {
+      try {
+        checkout = await whopFetch("/checkout_configurations", {
+          method: "POST",
+          body: { ...body, payment_method_configuration: { enabled: PAYMENT_METHODS, include_platform_defaults: true } },
+        });
+      } catch (err) {
+        console.error("whop-checkout: payment_method_configuration odmítnuta, zkouším bez ní:", err);
+        // trvale vypnout jen když to vypadá na chybu validace seznamu (ne na výpadek sítě)
+        if (/payment|method|enabled|invalid|unprocessable|validation|400|422/i.test(err instanceof Error ? err.message : String(err))) {
+          paymentMethodsRejected = true;
+        }
+      }
+    }
+    if (!checkout) {
+      checkout = await whopFetch("/checkout_configurations", { method: "POST", body });
+    }
 
     // Hosted checkout URL je v poli purchase_url odpovědi; pro embedded
     // checkout (krok 3 na naší stránce) vracíme i session id a plan id.
