@@ -197,7 +197,9 @@ const FundlyAuth = {
     const client = await FundlyBackend.getClient();
     if (!client) return { error: { message: "Backend is not configured." } };
     const data = consent
-      ? { consent_terms_at: consent.termsAt, consent_rules_at: consent.rulesAt, consent_cooling_off_waived_at: consent.coolingOffAt }
+      ? { consent_terms_at: consent.termsAt, consent_rules_at: consent.rulesAt, consent_cooling_off_waived_at: consent.coolingOffAt,
+          // which package / language they were buying in — the cart-recovery e-mail (email-followups, track R) links straight back to it
+          ...(consent.pkg ? { checkout_package: consent.pkg } : {}), ...(consent.lang ? { checkout_lang: consent.lang } : {}) }
       : undefined;
     return client.auth.signUp({ email, password, options: data ? { data } : undefined });
   },

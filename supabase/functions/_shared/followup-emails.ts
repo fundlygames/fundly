@@ -8,13 +8,13 @@
 import { PACKAGES, resetPrice } from "./packages.ts";
 
 export type Lang = "en" | "pl";
-export type Track = "A" | "B";
+export type Track = "A" | "B" | "R";
 
 export interface FollowupContext {
   lang: Lang;
   siteUrl: string;
   unsubscribeUrl: string;
-  // jen trasa B
+  // trasa B (spálený balíček) a trasa R (balíček, který si vybrali v checkoutu)
   packageKey?: string;
   closedAt?: string | null; // ISO
   reason?: string | null;
@@ -280,4 +280,47 @@ export function renderFollowup(track: Track, step: number, ctx: FollowupContext)
       secondary: { label: pl ? "Zobacz pakiety" : "See packages", url: `${site}/get-started` },
       outro: pl ? "Dziękujemy za zainteresowanie Fundly." : "Thanks for giving Fundly a try.",
     }) };
+}
+
+
+// ---------------------------------------------------------------------------
+// Trasa R — "cart recovery": registrace v checkoutu, platba nedokončena.
+// Jeden e-mail 45 min až 48 h po registraci. Sleva NEWFUNDLY se v platebním
+// formuláři uplatňuje automaticky (viz js/checkout.js), proto ji tu netřeba
+// opisovat — jen ji zmiňujeme jako už započtenou.
+// ---------------------------------------------------------------------------
+export function renderRecovery(ctx: FollowupContext): { subject: string; html: string } {
+  const pl = ctx.lang === "pl";
+  const site = ctx.siteUrl;
+  const pkg = PACKAGES[ctx.packageKey ?? ""] ?? PACKAGES.starter;
+  const price = promo(pkg.price);
+  const link = `${site}/checkout?package=${encodeURIComponent(pkg.key)}&utm_source=email&utm_medium=recovery&utm_campaign=cart${pl ? "&lang=pl" : ""}`;
+  const subject = pl
+    ? `Twoje zamówienie w Fundly czeka (zniżka -30% już naliczona)`
+    : `Your Fundly order is waiting (30% off already applied)`;
+  return { subject, html: layout({
+    ctx,
+    preheader: pl ? `Płatność nie została dokończona, nic nie zostało pobrane.` : `Your payment wasn't completed, nothing has been charged.`,
+    hero: { label: pl ? "Twoje zamówienie" : "Your order", value: usd(price), was: usd(pkg.price),
+      chip: "NEWFUNDLY", sub: pl ? `${pkg.name} · $${pkg.cap.toLocaleString("en-US")} symulowanego kapitału` : `${pkg.name} · $${pkg.cap.toLocaleString("en-US")} of simulated capital` },
+    greeting: pl ? "Cześć," : "Hi,",
+    paragraphs: pl ? [
+      `Założyłeś(-aś) konto w Fundly, ale płatność nie została dokończona. ${b("Nic nie zostało pobrane")}, a Twoja zniżka -30% jest naliczana automatycznie: nie musisz niczego wpisywać.`,
+      `Wystarczy jedno kliknięcie, żeby wrócić do płatności.`,
+    ] : [
+      `You created a Fundly account but the payment wasn't completed. ${b("Nothing has been charged")}, and your 30% discount is applied automatically: no code to type.`,
+      `One click takes you straight back to the payment.`,
+    ],
+    bullets: pl ? [
+      `${b("Jednorazowa opłata")}, bez subskrypcji i bez ukrytych kosztów. To maksimum, jakie możesz stracić.`,
+      `Płatność nie ładuje się w aplikacji Facebooka lub Instagrama? Ten link otworzy się w zwykłej przeglądarce, gdzie działa najlepiej.`,
+    ] : [
+      `${b("One-time fee")}, no subscription, no hidden costs. It's the most you can lose.`,
+      `Payment not loading inside the Facebook or Instagram app? This link opens in your normal browser, where it works best.`,
+    ],
+    cta: { label: pl ? `Dokończ zamówienie za ${usd(price)}` : `Complete my order for ${usd(price)}`, url: link },
+    outro: pl
+      ? `Coś nie działało albo masz pytanie? ${b("Odpowiedz na tę wiadomość")}: czyta ją człowiek i to naprawimy.`
+      : `Something didn't work, or have a question? ${b("Just reply to this email")}: a real person reads it and we'll sort it out.`,
+  }) };
 }
