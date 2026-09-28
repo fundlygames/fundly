@@ -161,8 +161,40 @@ const Portfolio = (() => {
       // nepřibyla novější verze z jiného zařízení (viz jeho serverHasNewerData)
       syncedAt: account.synced_at ?? now,
     };
+    reconcileWithTickets(state);
     save(state);
     return state;
+  }
+
+  // Zůstatek uložený na serveru (challenge_accounts.phase_balance) mění jen push
+  // z klienta, kdežto tikety mění i settle-tickets cron. Když cron vyhodnotí
+  // výhru v době, kdy nebyla otevřená žádná karta hráče, tiket je na serveru
+  // "won", ale výplata není v uloženém zůstatku — a obnova (nové zařízení,
+  // vymazané úložiště) pak složí "won" tiket + starý zůstatek, applyServer
+  // Settlements ho už nezpracuje (není "pending") a výplata chybí NAVŽDY
+  // (reálně nahlášeno 28.9.: tiket $375 → výhra $625, zůstatek −$1 757 místo
+  // −$1 132; zůstatek se pak dál posílal zpět a chybu udržoval).
+  // Oprava: zůstatek fáze je dokázatelný z tiketů — fáze baseline − vklady
+  // + výplaty vyřízených tiketů zadaných v aktuální fázi. Zvedáme ho jen
+  // NAHORU (nikdy nesnižujeme) a jen ve fázích 1–2 bez výplaty (funded účty
+  // mají výběry, které se v tiketech neprojeví).
+  function reconcileWithTickets(state) {
+    if (state.phase === "funded" || state.lastPayoutAt) return;
+    const start = new Date(state.phaseStartedAt).getTime();
+    if (!Number.isFinite(start)) return;
+    let proven = Number(state.phaseBaseline);
+    if (!Number.isFinite(proven)) return;
+    state.tickets.forEach((t) => {
+      if (new Date(t.placedAt).getTime() < start) return;
+      proven -= Number(t.stake) || 0;
+      if (t.status === "won" || t.status === "cashedout" || t.status === "push") proven += Number(t.payout) || 0;
+    });
+    const stored = Number(state.balance);
+    if (Number.isFinite(stored) && proven > stored + 1) {
+      state.balance = proven;
+      if (proven > Number(state.hwm)) state.hwm = proven;
+      state.equityHistory = [{ t: state.equityHistory[0].t, balance: proven }];
+    }
   }
 
   function ensure(defaultPackageKey) {
