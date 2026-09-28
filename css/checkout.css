@@ -128,11 +128,16 @@ body::before {
 /* ---------- Layout ---------- */
 .co-layout {
   display: grid;
+  /* minmax(0, ...) is essential: a bare implicit/1fr track has min-width:auto and
+     grew to the widest unbreakable content (433px on a 375px phone), so the right
+     ~58px of the package cards, the form and the payment iframe were clipped. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
   align-items: start;
 }
+.co-content, .co-summary { min-width: 0; }
 @media (min-width: 1024px) {
-  .co-layout { grid-template-columns: 7fr 5fr; }
+  .co-layout { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
 }
 
 /* ---------- Panel (povrch dashboard .panel, hranatý) ---------- */
@@ -344,7 +349,13 @@ body::before {
 /* ---------- Tlačítka ---------- */
 .co-cta { width: 100%; }
 .co-actions { display: flex; gap: 10px; margin-top: 20px; }
-.co-actions .co-grow { flex: 1; }
+.co-actions .co-grow { flex: 1; min-width: 0; }
+/* phone: the primary button ("Zakończ rejestrację →") was 28px wider than the row
+   and got cut off at the screen edge — tighter padding, and wrap instead of clip. */
+@media (max-width: 480px) {
+  .co-actions .btn { padding-left: 14px; padding-right: 14px; }
+  .co-actions .btn-lg { font-size: .9375rem; white-space: normal; text-align: center; line-height: 1.2; }
+}
 .co-switch { margin-top: 18px; text-align: center; font-size: .875rem; color: var(--text-muted); }
 .lnk { color: var(--accent); font-weight: 600; }
 .lnk:hover { text-decoration: underline; }
@@ -422,6 +433,23 @@ body::before {
   overflow: hidden;
 }
 .whop-mount iframe { width: 100%; border: none; border-radius: var(--co-r-sm); }
+/* Until the embed has really painted, keep it laid out (so it can load at full
+   width) but invisible — a blank black iframe was what people saw and tapped. */
+#step3:not(.prewarm) { position: relative; }
+.whop-mount { transition: opacity .2s ease; }
+.whop-mount.is-loading { position: absolute; left: 0; right: 0; opacity: 0; pointer-events: none; }
+/* Payment step pre-loading while the customer is still on step 2: real width
+   (so Whop lays out the mobile form correctly), just off-screen and inert. */
+.co-panel.prewarm {
+  position: absolute;
+  left: -10000px;
+  top: 0;
+  width: min(560px, calc(100vw - 32px));
+  visibility: hidden;
+  pointer-events: none;
+}
+.pay-slow { text-align: center; font-size: .875rem; color: var(--text-secondary); margin: -28px 0 24px; }
+.pay-slow[hidden] { display: none; }
 
 .pay-fallback {
   display: flex;
@@ -541,8 +569,9 @@ body::before {
 }
 .sum-badges {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  gap: 20px;
+  gap: 10px 20px;
   margin-top: 14px;
   font-size: .75rem;
   color: var(--text-muted);

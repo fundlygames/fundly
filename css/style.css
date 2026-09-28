@@ -826,7 +826,16 @@ section.cta-block { padding: 128px 0; }
   gap: 10px;
   align-items: stretch;
 }
-@media (min-width: 1024px) { .plan { grid-template-columns: 8fr 4fr; } }
+/* minmax(0, ...): a bare/implicit track grew to the capital selector's max-content
+   (~400px) so on a 375px phone the page was wider than the screen and the "$100K"
+   button was clipped. */
+.plan { grid-template-columns: minmax(0, 1fr); }
+.plan > * { min-width: 0; }
+@media (min-width: 1024px) { .plan { grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); } }
+@media (max-width: 480px) {
+  .seg { gap: 2px; }
+  .seg button { padding: 0 12px; }
+}
 .phases { display: grid; gap: 10px; }
 @media (min-width: 640px) { .phases { grid-template-columns: repeat(3, 1fr); } }
 .phase {

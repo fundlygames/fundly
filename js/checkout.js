@@ -20,14 +20,6 @@
     paymentRunning: false,
   };
 
-  // Kicked off in parallel with the step-2 sign-up call (see regForm submit
-  // handler below) instead of waiting for step 3 to even start — the Whop
-  // session and the Supabase account are independent requests, so running
-  // them back-to-back was pure wasted latency on the slowest step of the
-  // funnel. startPayment() consumes this instead of calling createSession()
-  // fresh, when it's there.
-  let pendingCheckoutSession = null;
-
   // Package preset from URL (?package=elite), fallback to Advanced.
   const urlPkg = new URLSearchParams(window.location.search).get("package");
   if (urlPkg && PACKAGES.some((p) => p.key === urlPkg)) state.pkg = urlPkg;
@@ -130,6 +122,7 @@
     const card = e.target.closest(".pkg-card");
     if (!card || card.dataset.key === state.pkg) return;
     state.pkg = card.dataset.key;
+    clearPay();
     renderPkgGrid();
     renderDetails();
     renderCheckoutRow();
@@ -255,7 +248,12 @@
   function goToStep(n) {
     state.step = n;
     [1, 2, 3].forEach((i) => {
-      $("step" + i).hidden = i !== n;
+      // While the payment embed pre-loads (see preparePayment) its panel stays
+      // in the layout, off-screen — a display:none panel would make Whop lay
+      // the form out at zero width.
+      const warm = i === 3 && n !== 3 && pay.key !== null;
+      $("step" + i).hidden = i !== n && !warm;
+      $("step" + i).classList.toggle("prewarm", warm);
       const li = document.querySelector(`.co-step[data-step-dot="${i}"]`);
       li.classList.toggle("active", i === n);
       li.classList.toggle("done", i < n);
@@ -321,10 +319,14 @@
       ok = false;
     } else setErr(regPass, $("errPass"), null);
 
-    if (regPass2.value !== regPass.value || !regPass2.value) {
-      setErr(regPass2, $("errPass2"), t("co.errPasswordMismatch"));
-      ok = false;
-    } else setErr(regPass2, $("errPass2"), null);
+    // "Confirm password" was dropped (one field less to type on a phone; the
+    // show/hide toggle covers typos) — still validated if the field returns.
+    if (regPass2) {
+      if (regPass2.value !== regPass.value || !regPass2.value) {
+        setErr(regPass2, $("errPass2"), t("co.errPasswordMismatch"));
+        ok = false;
+      } else setErr(regPass2, $("errPass2"), null);
+    }
 
     if (!consentTerms.checked || !consentRules.checked || !consentCoolingOff.checked) {
       setErr(null, $("errConsent"), t("co.errConsent"));
@@ -333,6 +335,17 @@
 
     return ok;
   }
+
+  // Start loading the payment form as soon as a valid e-mail is typed, so by
+  // the time the customer has entered a password and ticked the consents the
+  // embedded checkout is already fully rendered off-screen.
+  function preloadFromEmailField() {
+    if (!(typeof fundlyBackendEnabled === "function" && fundlyBackendEnabled())) return;
+    const email = regEmail.value.trim();
+    if (EMAIL_RE_WL.test(email)) preparePayment(state.pkg, email);
+  }
+  regEmail.addEventListener("blur", preloadFromEmailField);
+  regEmail.addEventListener("change", preloadFromEmailField);
 
   regForm.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -350,13 +363,10 @@
       return;
     }
 
-    // Fire the Whop session request now, in parallel with the Supabase
-    // sign-up below — it only needs the package + e-mail, both already
-    // known. Errors are caught here (not thrown) so a rejected promise
-    // sitting unused during the sign-up call doesn't surface as an
-    // unhandled rejection; startPayment() below checks for the marker.
-    pendingCheckoutSession = FundlyCheckout.createSession(state.pkg, state.email)
-      .catch((err) => ({ __error: err }));
+    // Make sure the payment form is loading (usually already loaded by the
+    // e-mail field's blur, see preloadFromEmailField) — in parallel with the
+    // Supabase sign-up below, which doesn't depend on it.
+    preparePayment(state.pkg, state.email);
 
     // Clear any stale session first (e.g. a leftover login from an earlier
     // browser test with a different e-mail) — otherwise, if signUp/signIn
@@ -413,16 +423,63 @@
   const payLoading = $("payLoading");
   const whopMount = $("whopMount");
   const payFallback = $("payFallback");
+  const paySlow = $("paySlow");
+
+  // The embedded checkout is the slowest thing in the funnel (session request
+  // ~0.5 s, then whop.com's own page 1.5-5 s on a phone), and it used to start
+  // only once the customer reached step 3 — on top of that the spinner was
+  // dropped as soon as the iframe *element* existed, leaving a blank black box
+  // for seconds (Clarity showed people tapping on it). Now: it starts loading
+  // as early as the e-mail is known (off-screen, see goToStep/.prewarm), the
+  // spinner stays until Whop reports its content has rendered, and a "try
+  // again" hint appears if that takes long.
+  const pay = { key: null, session: null, ready: false, startedAt: 0, timer: null, observer: null, onMsg: null };
+  const payKey = (pkgKey, email) => pkgKey + "|" + String(email).trim().toLowerCase();
 
   // Return URL after payment (the site also runs under the /fundly/ path on GitHub Pages).
   function returnUrl() {
     return location.origin + location.pathname.replace(/[^/]*$/, "") + "dashboard?paid=1";
   }
 
-  function showFallback(msg, checkoutUrl) {
-    payLoading.hidden = true;
+  function stopPayWatch() {
+    clearInterval(pay.timer);
+    if (pay.observer) { pay.observer.disconnect(); pay.observer = null; }
+    if (pay.onMsg) { window.removeEventListener("message", pay.onMsg); pay.onMsg = null; }
+  }
+
+  // Off-screen "warm" state of the payment panel while it pre-loads on steps 1-2
+  // (on step 3 the normal show/hide in goToStep applies).
+  function syncPayPanel() {
+    if (state.step === 3) return;
+    const warm = pay.key !== null;
+    $("step3").hidden = !warm;
+    $("step3").classList.toggle("prewarm", warm);
+  }
+
+  // Forget any pre-loaded/started payment (package or e-mail changed, retry).
+  function clearPay() {
+    stopPayWatch();
+    pay.key = null;
+    pay.session = null;
+    pay.ready = false;
     whopMount.innerHTML = "";
-    $("payErrMsg").textContent = msg || t("co.gatewayError");
+    whopMount.classList.remove("is-loading");
+    payLoading.hidden = false;
+    payFallback.hidden = true;
+    paySlow.hidden = true;
+    syncPayPanel();
+  }
+
+  function showFallback(msg, checkoutUrl) {
+    stopPayWatch();
+    payLoading.hidden = true;
+    paySlow.hidden = true;
+    whopMount.innerHTML = "";
+    // Whop's hosted page can't pre-apply the code, so tell the customer to enter it.
+    const hint = promoActive()
+      ? " " + t("co.fallbackCodeHint").replace("{code}", PROMO.code).replace("{pct}", PROMO.percent)
+      : "";
+    $("payErrMsg").textContent = (msg || t("co.gatewayError")) + hint;
     const link = $("payFallbackLink");
     if (checkoutUrl) {
       link.href = checkoutUrl;
@@ -433,7 +490,16 @@
     payFallback.hidden = false;
   }
 
-  function mountWhopEmbed(sessionId, planId) {
+  function markPayReady() {
+    if (pay.ready) return;
+    pay.ready = true;
+    stopPayWatch();
+    whopMount.classList.remove("is-loading");
+    payLoading.hidden = true;
+    paySlow.hidden = true;
+  }
+
+  function mountWhopEmbed(sessionId, planId, email) {
     // Mount element per the Whop docs (embedded checkout, HTML/JS variant)
     const el = document.createElement("div");
     el.setAttribute("data-whop-checkout-plan-id", planId);
@@ -444,8 +510,39 @@
     // Shows GBP/EUR/etc. pricing to non-US visitors automatically (Whop's own
     // live FX, no separate currency plans needed) — UK traffic sees £, not $.
     el.setAttribute("data-whop-checkout-adaptive-pricing", "true");
+    // The site advertises the discounted price ($49 with NEWFUNDLY, ...) but the
+    // fixed Whop plans charge list price, so without this the payment form
+    // showed $70 and the customer had to find "Add promo code" and type the code
+    // themselves. Whop's loader forwards it as `promoCode` and applies it before
+    // the buyer sees the price. (Checked live: total drops by exactly 30 %.)
+    if (typeof promoActive === "function" && promoActive()) {
+      el.setAttribute("data-whop-checkout-promo-code", PROMO.code);
+    }
+    // ...and the e-mail was already typed in step 2 — don't ask for it again.
+    if (email) el.setAttribute("data-whop-checkout-prefill-email", email);
     whopMount.innerHTML = "";
+    whopMount.classList.add("is-loading");
     whopMount.appendChild(el);
+
+    pay.startedAt = Date.now();
+    // Ready = Whop's embed reports a rendered height (its "resize" message), or
+    // — safety net — 2.5 s after the iframe's own load event.
+    pay.onMsg = (ev) => {
+      let origin = "";
+      try { origin = new URL(ev.origin).hostname; } catch (_) { return; }
+      if (!/(^|\.)whop\.com$/.test(origin)) return;
+      let d = ev.data;
+      if (typeof d === "string") { try { d = JSON.parse(d); } catch (_) { return; } }
+      if (d && d.event === "resize" && Number(d.height) > 120) setTimeout(markPayReady, 150);
+    };
+    window.addEventListener("message", pay.onMsg);
+    pay.observer = new MutationObserver(() => {
+      const iframe = whopMount.querySelector("iframe");
+      if (!iframe || iframe.dataset.watched) return;
+      iframe.dataset.watched = "1";
+      iframe.addEventListener("load", () => setTimeout(markPayReady, 2500), { once: true });
+    });
+    pay.observer.observe(whopMount, { childList: true, subtree: true });
 
     // The loader is re-inserted every time so it picks up the new mount element.
     const old = document.querySelector('script[src*="js.whop.com/static/checkout/loader.js"]');
@@ -457,47 +554,68 @@
     s.onerror = () => showFallback(t("co.gatewayError"), state.checkoutUrl);
     document.head.appendChild(s);
 
-    // Wait for the embed iframe; if it does not appear within 20 s, show the fallback.
-    // Polled at 150ms (was 500ms) so the loading spinner doesn't linger for up
-    // to half a second after the iframe is actually already there.
-    let waited = 0;
-    const timer = setInterval(() => {
-      waited += 150;
-      const iframe = whopMount.querySelector("iframe");
-      if (iframe) {
-        clearInterval(timer);
-        payLoading.hidden = true;
-      } else if (waited >= 20000) {
-        clearInterval(timer);
-        showFallback(t("co.gatewayErrorRetry"), state.checkoutUrl);
-      }
-    }, 150);
+    // Soft hint after 8 s (only once the customer is actually looking at
+    // step 3), hard fallback to the hosted Whop page after 25 s.
+    pay.timer = setInterval(() => {
+      if (pay.ready) return;
+      const elapsed = Date.now() - pay.startedAt;
+      if (elapsed >= 25000) showFallback(t("co.gatewayErrorRetry"), state.checkoutUrl);
+      else if (elapsed >= 8000 && state.step === 3) paySlow.hidden = false;
+    }, 250);
+  }
+
+  // Create the Whop session and mount the embed (idempotent per package+e-mail).
+  // Errors are stored, not thrown, so an unused rejected promise never surfaces
+  // as an unhandled rejection — startPayment() checks for the marker.
+  function preparePayment(pkgKey, email) {
+    const key = payKey(pkgKey, email);
+    if (pay.key === key) return pay.session;
+    clearPay();
+    pay.key = key;
+    payLoading.hidden = false;
+    syncPayPanel();
+    pay.session = FundlyCheckout.createSession(pkgKey, email)
+      .then((data) => {
+        if (pay.key !== key) return data; // superseded while the request was in flight
+        state.checkoutUrl = data.checkoutUrl;
+        if (!data.sessionId || !data.planId) throw new Error(t("co.errInvalidGatewayResponse"));
+        mountWhopEmbed(data.sessionId, data.planId, email);
+        return data;
+      })
+      .catch((err) => ({ __error: err }));
+    return pay.session;
   }
 
   async function startPayment() {
     if (state.paymentRunning) return;
     state.paymentRunning = true;
-    payLoading.hidden = false;
     payFallback.hidden = true;
-    whopMount.innerHTML = "";
 
     try {
-      let data = pendingCheckoutSession ? await pendingCheckoutSession : null;
-      pendingCheckoutSession = null;
-      if (!data || data.__error) {
-        // The background pre-fetch (started during step 2, see the submit
-        // handler above) can fail on its own — most commonly on mobile,
-        // when the tab gets backgrounded/throttled while the user is still
-        // filling in the registration form. By the time we're actually on
-        // the payment step the user is back in the foreground, so retry a
-        // fresh request instead of giving up on a stale failure.
-        data = await FundlyCheckout.createSession(state.pkg, state.email);
+      let res = await preparePayment(state.pkg, state.email);
+      if (res && res.__error) {
+        // A pre-load can fail on its own — most commonly on mobile, when the
+        // tab gets backgrounded/throttled while the customer is still filling
+        // in the form. They're back in the foreground now, so retry once with
+        // a clean slate instead of giving up on a stale failure.
+        clearPay();
+        res = await preparePayment(state.pkg, state.email);
       }
-      state.checkoutUrl = data.checkoutUrl;
-      if (!data.sessionId || !data.planId) {
-        throw new Error(t("co.errInvalidGatewayResponse"));
+      if (res && res.__error) throw res.__error;
+      if (pay.ready) {
+        // Pre-loaded off-screen: an iframe that has just been revealed paints one
+        // blank (black) frame first — let it settle behind the spinner instead of
+        // showing that to the customer.
+        payLoading.hidden = false;
+        whopMount.classList.add("is-loading");
+        setTimeout(() => {
+          if (!pay.ready) return;
+          whopMount.classList.remove("is-loading");
+          payLoading.hidden = true;
+        }, 450);
+      } else {
+        payLoading.hidden = false;
       }
-      mountWhopEmbed(data.sessionId, data.planId);
     } catch (err) {
       if (err.code === "SOLD_OUT") {
         payLoading.hidden = true;
@@ -510,6 +628,12 @@
       state.paymentRunning = false;
     }
   }
+
+  $("payRetry").addEventListener("click", (e) => {
+    e.preventDefault();
+    clearPay();
+    startPayment();
+  });
 
   // ---------- mobile sticky bar (step 1 only) ----------
   const mobileBar = $("coMobileBar");
