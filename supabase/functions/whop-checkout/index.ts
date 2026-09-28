@@ -16,7 +16,10 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // customer's country/currency actually support, so listing more is harmless.
 // Change the list without a deploy via the WHOP_PAYMENT_METHODS secret
 // (comma-separated Whop method ids; "off" = don't send any configuration).
-const PAYMENT_METHODS = (Deno.env.get("WHOP_PAYMENT_METHODS") ?? "card,apple_pay,google_pay,przelewy24,blik,paypal,link")
+// Ids verified against the live API: blik, p24 (= Przelewy24), apple_pay, google_pay,
+// paypal, link, revolut_pay, card, ... — "przelewy24" is NOT valid. The API also
+// requires the `disabled` array to be present.
+const PAYMENT_METHODS = (Deno.env.get("WHOP_PAYMENT_METHODS") ?? "card,apple_pay,google_pay,blik,p24,paypal,link,revolut_pay")
   .split(",").map((m) => m.trim()).filter(Boolean);
 let paymentMethodsRejected = PAYMENT_METHODS.length === 0 || PAYMENT_METHODS[0] === "off";
 
@@ -166,7 +169,7 @@ serve(async (req) => {
       try {
         checkout = await whopFetch("/checkout_configurations", {
           method: "POST",
-          body: { ...body, payment_method_configuration: { enabled: PAYMENT_METHODS, include_platform_defaults: true } },
+          body: { ...body, payment_method_configuration: { enabled: PAYMENT_METHODS, disabled: [], include_platform_defaults: true } },
         });
       } catch (err) {
         console.error("whop-checkout: payment_method_configuration odmítnuta, zkouším bez ní:", err);
