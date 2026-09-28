@@ -644,6 +644,22 @@
     mobileBar.classList.toggle("show", state.step === 1 && window.scrollY > 260);
   });
 
+  // ---------- in-app browser (Facebook / Instagram) ----------
+  // ~3/4 of the ad traffic arrives inside Meta's in-app browser, where 3-D Secure
+  // card authentication often fails (a real customer's payment was declined with
+  // "your bank could not verify your identity through 3D Secure") and Apple/Google
+  // Pay are unavailable. Tell them once, on the payment step, and tag the Clarity
+  // session so those recordings can be filtered.
+  const inApp = /FBAN|FBAV|FB_IAB|Instagram/i.test(navigator.userAgent || "");
+  if (inApp) $("payInApp").hidden = false;
+  try {
+    if (typeof window.clarity === "function") {
+      if (inApp) window.clarity("set", "in_app_browser", "1");
+      const attr = typeof getAttribution === "function" ? getAttribution() : null;
+      if (attr && attr.utm_content) window.clarity("set", "ad", String(attr.utm_content));
+    }
+  } catch (_) { /* tagging is best-effort */ }
+
   // ---------- init ----------
   function renderAll() {
     renderPkgGrid();

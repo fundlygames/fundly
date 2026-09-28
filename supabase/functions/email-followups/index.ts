@@ -90,7 +90,8 @@ serve(async (req) => {
 
     const [accountsRes, paymentsRes, unsubRes, sentRes, discountRes, previewRes, users] = await Promise.all([
       supabase.from("challenge_accounts").select("email, state, flags, package_key, breach_reason, created_at, synced_at"),
-      supabase.from("payments").select("email"),
+      // jen ÚSPĚŠNÉ platby: člověk, jehož platba zlyhala (např. 3-D Secure), pořád nekoupil a má dostat připomínku
+      supabase.from("payments").select("email").eq("status", "succeeded"),
       supabase.from("email_unsubscribes").select("email"),
       supabase.from("followup_sent").select("email, track, step, sent_at"),
       supabase.from("discount_signups").select("email, created_at, lang"),

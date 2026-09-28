@@ -7,8 +7,8 @@
   <meta name="description" content="Pick a package, create an account and pay for the Fundly Challenge." />
   <meta name="theme-color" content="#020204" />
   <link rel="icon" type="image/png" href="assets/logo.png" />
-  <link rel="stylesheet" href="css/style.css?v=20260928d" />
-  <link rel="stylesheet" href="css/checkout.css?v=20260928d" />
+  <link rel="stylesheet" href="css/style.css?v=20260928e" />
+  <link rel="stylesheet" href="css/checkout.css?v=20260928e" />
   <!-- Warm up the connection to Whop's embedded-checkout CDN and cache the
        loader script ahead of time — step 3 only actually runs it once the
        user reaches payment, but the DNS/TLS handshake and script download
@@ -50,12 +50,12 @@
     gtag('config', 'G-C01K5JXEGQ');
   </script>
   <!-- backend (Supabase/Whop) + shared package data — defer, page works in demo mode too -->
-  <script defer src="js/config.js?v=20260928d"></script>
-  <script defer src="js/packages.js?v=20260928d"></script>
-  <script defer src="js/portfolio.js?v=20260928d"></script>
-  <script defer src="js/whop.js?v=20260928d"></script>
-  <script defer src="js/i18n.js?v=20260928d"></script>
-  <script defer src="js/checkout.js?v=20260928d"></script>
+  <script defer src="js/config.js?v=20260928e"></script>
+  <script defer src="js/packages.js?v=20260928e"></script>
+  <script defer src="js/portfolio.js?v=20260928e"></script>
+  <script defer src="js/whop.js?v=20260928e"></script>
+  <script defer src="js/i18n.js?v=20260928e"></script>
+  <script defer src="js/checkout.js?v=20260928e"></script>
 </head>
 <body>
 
@@ -195,6 +195,7 @@
               <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="1.5" y="3.5" width="13" height="9" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1.5 6.5h13" stroke="currentColor" stroke-width="1.5"/></svg>
               <span data-i18n="co.payment">Payment</span>
             </h2>
+            <p class="pay-inapp" id="payInApp" hidden data-i18n="co.inAppNotice">Paying inside the Facebook or Instagram app? Card payments (3-D Secure) work best in your normal browser: tap ⋯ and choose “Open in browser”.</p>
             <div class="pay-loading" id="payLoading">
               <span class="spinner" aria-hidden="true"></span>
               <p data-i18n="co.preparingGateway">Preparing the payment gateway…</p>
@@ -232,7 +233,7 @@
     <button class="btn btn-primary" id="coMbCta" type="button" data-i18n="co.continueBtn">Continue</button>
   </div>
 
-  <script src="js/promo-banner.js?v=20260928d"></script>
-  <script src="js/telegram-widget.js?v=20260928d"></script>
+  <script src="js/promo-banner.js?v=20260928e"></script>
+  <script src="js/telegram-widget.js?v=20260928e"></script>
 </body>
 </html>
