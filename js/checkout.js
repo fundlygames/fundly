@@ -294,8 +294,6 @@
   // ---------- step 2: sign-up validation ----------
   const regForm = $("regForm");
   const regEmail = $("regEmail");
-  const regPass = $("regPass");
-  const regPass2 = $("regPass2");
   const consentTerms = $("consentTerms");
   const consentRules = $("consentRules");
   const consentCoolingOff = $("consentCoolingOff");
@@ -314,26 +312,24 @@
       ok = false;
     } else setErr(regEmail, $("errEmail"), null);
 
-    if (regPass.value.length < 8) {
-      setErr(regPass, $("errPass"), t("co.errPasswordLength"));
-      ok = false;
-    } else setErr(regPass, $("errPass"), null);
-
-    // "Confirm password" was dropped (one field less to type on a phone; the
-    // show/hide toggle covers typos) — still validated if the field returns.
-    if (regPass2) {
-      if (regPass2.value !== regPass.value || !regPass2.value) {
-        setErr(regPass2, $("errPass2"), t("co.errPasswordMismatch"));
-        ok = false;
-      } else setErr(regPass2, $("errPass2"), null);
-    }
-
     if (!consentTerms.checked || !consentRules.checked || !consentCoolingOff.checked) {
       setErr(null, $("errConsent"), t("co.errConsent"));
       ok = false;
     } else setErr(null, $("errConsent"), null);
 
     return ok;
+  }
+
+  // No password is collected here on purpose (see checkout.html) — it was the
+  // field most likely to make cold ad traffic abandon right before payment.
+  // The account still needs *some* password for Supabase's email/password
+  // auth, so one is generated and never shown to the customer; they get in
+  // via the magic-link in the "Payment confirmed" e-mail (whop-webhook) and
+  // can set a real password any time afterwards from Account settings on the
+  // dashboard (js/dashboard.js) or the "Forgot password" flow.
+  function randomAccountPassword() {
+    const bytes = crypto.getRandomValues(new Uint8Array(24));
+    return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
   }
 
   // Start loading the payment form as soon as a valid e-mail is typed, so by
@@ -386,7 +382,7 @@
     // bounces to the homepage instead of the new/updated account.
     try {
       const consentAt = new Date().toISOString();
-      const { error } = await FundlyAuth.signUpWithPassword(state.email, regPass.value, {
+      const { error } = await FundlyAuth.signUpWithPassword(state.email, randomAccountPassword(), {
         termsAt: consentAt,
         rulesAt: consentAt,
         coolingOffAt: consentAt,
@@ -394,13 +390,12 @@
         lang: document.documentElement.lang || "en",
       });
       if (error) {
+        // Most commonly: repeat customer, e-mail already has an account. Payment
+        // still goes through either way (whop-checkout only needs the e-mail) —
+        // there's just no live browser session until they use the magic-link
+        // in the "Payment confirmed" e-mail, same safety net as a first-time
+        // buyer whose signUp is slow to propagate.
         console.warn("signUp:", error.message);
-        try {
-          const signIn = await FundlyAuth.signInWithPassword(state.email, regPass.value);
-          if (signIn.error) console.warn("signIn fallback:", signIn.error.message);
-        } catch (err) {
-          console.warn("signIn fallback failed:", err);
-        }
       } else {
         if (typeof fbq === "function") fbq("track", "CompleteRegistration", { content_name: "checkout_signup" });
         // Genuinely new account (not the signIn fallback for a repeat
