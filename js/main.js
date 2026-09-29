@@ -517,6 +517,20 @@ if (heroEl) heroSentinel.observe(heroEl);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Could not create the account.");
 
+      // This e-mail already had an account (most commonly: registered at
+      // checkout, which no longer sets a password there — see checkout.js) —
+      // preview-signup sent a sign-in link instead of creating a second one.
+      // The password just typed here isn't the real account's password, so
+      // signInWithPassword below would only fail; tell them to check their
+      // inbox instead of pretending this worked.
+      if (data.existingAccount) {
+        note.textContent = "This e-mail already has an account — we've sent you a sign-in link, check your inbox.";
+        note.className = "auth-note";
+        note.hidden = false;
+        btn.disabled = false;
+        return;
+      }
+
       const client = await FundlyBackend.getClient();
       const { error: signInError } = await client.auth.signInWithPassword({ email, password });
       if (signInError) throw new Error(signInError.message);

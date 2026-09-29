@@ -146,6 +146,28 @@ export function previewWelcomeHtml(dashboardLink: string): string {
 // (they're already mid-purchase) — the code here is framed as a keepsake for
 // a future reset or a friend's first Challenge, not a discount on the order
 // they're about to place.
+// "You already have an account" e-mail — sent instead of a dead-end error
+// when someone tries the Preview signup (js/main.js) with an e-mail that
+// already has an account (most commonly: they registered at checkout —
+// js/checkout.js no longer collects a password there, see whop-webhook's
+// magic-link, so there is no password for them to "just log in" with).
+// A plain sign-in link, not a password reset: nothing about their account
+// needs changing, they just need a way in.
+export function accountExistsSignInHtml(dashboardLink: string): string {
+  return `
+  <div style="background:#020204;padding:32px;font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#e8e8ec">
+    <div style="max-width:520px;margin:0 auto;background:#0d0d12;border:1px solid #ffffff1a;border-radius:16px;padding:28px">
+      <div style="color:#14f195;font-weight:700;font-size:18px;margin-bottom:16px">fundly</div>
+      <h2 style="color:#fff;font-size:18px;margin:0 0 12px">Here\'s your sign-in link</h2>
+      <p style="color:#a0a0ab;font-size:14px;line-height:1.6;margin:0 0 16px">This e-mail already has a Fundly account, so we skipped making a new one — click below to get straight into your dashboard.</p>
+      <a href="${dashboardLink}" style="display:inline-block;background:#14f195;color:#020204;font-weight:700;text-decoration:none;padding:12px 24px;border-radius:10px;margin-bottom:20px">Open my dashboard</a>
+      <p style="color:#5a5a66;font-size:13px;line-height:1.6;margin:0 0 20px">Not you, or not expecting this? Just ignore this e-mail, or reply and we\'ll help.</p>
+      <hr style="border:none;border-top:1px solid #ffffff1a;margin:24px 0 16px" />
+      <p style="color:#5a5a66;font-size:11px;line-height:1.6;margin:0">Grindit LLC · Sharjah Media City, Sharjah, UAE · Reg. 2541536<br />Questions? Reach us at <a href="mailto:support@fundly.games" style="color:#7a7a86">support@fundly.games</a>.</p>
+    </div>
+  </div>`;
+}
+
 export function checkoutWelcomeHtml(dashboardLink: string): string {
   return `
   <div style="background:#020204;padding:32px;font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#e8e8ec">
