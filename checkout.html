@@ -7,8 +7,8 @@
   <meta name="description" content="Pick a package, create an account and pay for the Fundly Challenge." />
   <meta name="theme-color" content="#020204" />
   <link rel="icon" type="image/png" href="assets/logo.png" />
-  <link rel="stylesheet" href="css/style.css?v=20260928e" />
-  <link rel="stylesheet" href="css/checkout.css?v=20260928e" />
+  <link rel="stylesheet" href="css/style.css?v=20260929b" />
+  <link rel="stylesheet" href="css/checkout.css?v=20260929b" />
   <!-- Warm up the connection to Whop's embedded-checkout CDN and cache the
        loader script ahead of time — step 3 only actually runs it once the
        user reaches payment, but the DNS/TLS handshake and script download
@@ -50,12 +50,12 @@
     gtag('config', 'G-C01K5JXEGQ');
   </script>
   <!-- backend (Supabase/Whop) + shared package data — defer, page works in demo mode too -->
-  <script defer src="js/config.js?v=20260928e"></script>
-  <script defer src="js/packages.js?v=20260928e"></script>
-  <script defer src="js/portfolio.js?v=20260928e"></script>
-  <script defer src="js/whop.js?v=20260928e"></script>
-  <script defer src="js/i18n.js?v=20260928e"></script>
-  <script defer src="js/checkout.js?v=20260928e"></script>
+  <script defer src="js/config.js?v=20260929b"></script>
+  <script defer src="js/packages.js?v=20260929b"></script>
+  <script defer src="js/portfolio.js?v=20260929b"></script>
+  <script defer src="js/whop.js?v=20260929b"></script>
+  <script defer src="js/i18n.js?v=20260929b"></script>
+  <script defer src="js/checkout.js?v=20260929b"></script>
 </head>
 <body>
 
@@ -149,17 +149,12 @@
                 <input class="input" id="regEmail" type="email" placeholder="you@example.com" autocomplete="email" />
                 <span class="field-err" id="errEmail" hidden></span>
               </div>
-              <div class="field">
-                <label for="regPass" data-i18n="auth.password">Password</label>
-                <div class="pw-field">
-                  <input class="input" id="regPass" type="password" placeholder="••••••••" autocomplete="new-password" />
-                  <button type="button" class="pw-toggle" data-pw-toggle aria-label="Show password" aria-pressed="false">
-                    <svg class="eye" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.3"/></svg>
-                    <svg class="eye-off" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.3"/><path d="M2 2l12 12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
-                  </button>
-                </div>
-                <span class="field-err" id="errPass" hidden></span>
-              </div>
+              <!-- No password here on purpose: it's the field most likely to make cold
+                   ad traffic abandon right before payment (see checkout.js — a random
+                   password is generated for the account, and access after payment is
+                   the magic-link in the confirmation e-mail; a real password can be set
+                   any time afterwards from Account settings on the dashboard). -->
+              <p class="co-pw-note" data-i18n="co.pwNote">No password needed now — you'll get a secure sign-in link by e-mail right after payment.</p>
 
               <label class="consent">
                 <input type="checkbox" id="consentTerms" />
@@ -233,7 +228,7 @@
     <button class="btn btn-primary" id="coMbCta" type="button" data-i18n="co.continueBtn">Continue</button>
   </div>
 
-  <script src="js/promo-banner.js?v=20260928e"></script>
-  <script src="js/telegram-widget.js?v=20260928e"></script>
+  <script src="js/promo-banner.js?v=20260929b"></script>
+  <script src="js/telegram-widget.js?v=20260929b"></script>
 </body>
 </html>

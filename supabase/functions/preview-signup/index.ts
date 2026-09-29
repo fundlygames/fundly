@@ -8,7 +8,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { handleCors, jsonResponse } from "../_shared/cors.ts";
-import { sendEmail, previewWelcomeHtml } from "../_shared/email.ts";
+import { sendEmail, previewWelcomeHtml, accountExistsSignInHtml } from "../_shared/email.ts";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SITE_URL = Deno.env.get("SITE_URL") ?? "https://fundly.games";
@@ -45,7 +45,28 @@ serve(async (req) => {
     if (createError || !created?.user) {
       const msg = createError?.message ?? "";
       if (/already.*registere|already.*exist/i.test(msg)) {
-        return jsonResponse({ error: "An account with this email already exists — log in instead." }, 409);
+        // Not necessarily "their" account in the sense of a password they know —
+        // most commonly this is someone who registered at checkout (js/checkout.js
+        // no longer collects a password there) and is now trying Preview instead
+        // of finishing payment, or came back later. A 409 "log in instead" used to
+        // be a dead end for them: nothing to log in WITH. Send a magic link instead
+        // — verifies e-mail ownership (no account-takeover risk from a typed
+        // password) and gets them straight into whatever account already exists,
+        // paid or not.
+        try {
+          const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({ type: "magiclink", email });
+          if (linkError) throw linkError;
+          const accessLink = linkData?.properties?.action_link ?? `${SITE_URL}/dashboard`;
+          const result = await sendEmail({
+            to: email,
+            subject: "Your Fundly sign-in link",
+            html: accountExistsSignInHtml(accessLink),
+          });
+          if (!result.sent) console.error("preview-signup existing-account e-mail selhal:", result.error);
+        } catch (e) {
+          console.error("preview-signup magiclink pro existující účet selhal:", e);
+        }
+        return jsonResponse({ ok: true, existingAccount: true });
       }
       throw createError ?? new Error("Could not create the account.");
     }
