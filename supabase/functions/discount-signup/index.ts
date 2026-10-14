@@ -7,6 +7,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { handleCors, jsonResponse } from "../_shared/cors.ts";
 import { sendEmail } from "../_shared/email.ts";
+import { allow } from "../_shared/throttle.ts";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const CODE = "NEWFUNDLY";
@@ -66,12 +67,15 @@ serve(async (req) => {
       );
     if (error) throw error;
 
-    const result = await sendEmail({
-      to: email,
-      subject: "Your 30% off Fundly code",
-      html: discountHtml(),
-    });
-    if (!result.sent) console.error("discount-signup e-mail selhal:", result.error);
+    // kód dostane adresa nejvýš 1× za 24 h (jinak šlo cizí schránku zahltit opakovaným voláním)
+    if (await allow(supabase, `discount:${email.toLowerCase()}`, 24 * 3600_000)) {
+      const result = await sendEmail({
+        to: email,
+        subject: "Your 30% off Fundly code",
+        html: discountHtml(),
+      });
+      if (!result.sent) console.error("discount-signup e-mail selhal:", result.error);
+    }
 
     return jsonResponse({ ok: true });
   } catch (err) {

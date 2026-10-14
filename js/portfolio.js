@@ -770,11 +770,15 @@ const Portfolio = (() => {
     const newlySettled = [];
     results.forEach((r) => {
       const t = state.tickets.find((x) => x.id === r.id);
-      if (!t || t.status !== "pending") return; // už vyřízeno lokálně, nebo neznámý tiket
+      if (!t) return; // neznámý tiket
+      // už vyřízeno lokálně → server smí přepsat jen STORNO (tiket nesplnil serverovou kontrolu)
+      if (t.status !== "pending" && !r.voidReason) return;
+      const previousPayout = t.status === "pending" ? 0 : (Number(t.payout) || 0);
       t.status = r.status;
       t.payout = r.payout || 0;
       t.settledAt = r.settledAt || new Date().toISOString();
-      state.balance += t.payout;
+      if (r.voidReason) t.voidReason = r.voidReason;
+      state.balance += t.payout - previousPayout;
       if (state.balance > state.hwm) state.hwm = state.balance;
       state.equityHistory.push({ t: t.settledAt, balance: state.balance });
       newlySettled.push(t);

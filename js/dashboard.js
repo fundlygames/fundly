@@ -285,7 +285,8 @@ function celebrateTicket(ticket) {
   } else if (ticket.status === "lost") {
     showToast("loss", "Ticket lost", `${label} · −${usd(ticket.stake)}`);
   } else if (ticket.status === "push") {
-    showToast("push", "Amount refunded", label);
+    // voidReason = tiket nesplnil serverovou kontrolu při podání (skončený zápas, změněné kurzy…)
+    showToast("push", ticket.voidReason ? "Ticket voided, stake refunded" : "Amount refunded", ticket.voidReason ? `${label} · ${ticket.voidReason}` : label);
   }
 }
 
@@ -1418,6 +1419,83 @@ let detailMatch = null; // open match (master -> detail)
 let openGroups = null; // expanded markets in the detail (kept across re-renders)
 
 // row of odds buttons for one market (home/draw/away, over/under, yes/no…)
+// Čerstvá kontrola tiketu TESNĚ před potvrzením (stejná logika jako serverová kontrola
+// v supabase/functions/_shared/ticket-admission.ts). Seznam zápasů se cachuje (5 min,
+// live 1 min), takže hráč mohl sázet na kurz, který už neplatí, nebo na zápas, který mezitím
+// skončil. Tohle je přesně díra, kterou šlo zneužít ("courtsiding", terms §6.1) — kurzy se
+// teď před potvrzením vždy načtou znovu a zápas se ověří. Chyba API = nepřekážet (server
+// stejně kontroluje znovu).
+const FINISHED_STATUSES = ["settled", "finished", "ended", "completed"];
+async function refreshSlipFromApi(items) {
+  const byId = new Map();
+  const ids = [...new Set(items.map((s) => String(s.eventId)))];
+  try {
+    for (let i = 0; i < ids.length; i += 10) {
+      const od = await apiGet("/odds/multi", { eventIds: ids.slice(i, i + 10).join(","), bookmakers: BOOKMAKERS.join(",") });
+      for (const ev of (Array.isArray(od) ? od : [])) byId.set(String(ev.id), ev);
+    }
+    const missing = ids.filter((id) => !byId.has(id));
+    const statusOf = new Map();
+    await Promise.all(missing.slice(0, 15).map(async (id) => {
+      try { const ev = await apiGet(`/events/${encodeURIComponent(id)}`); statusOf.set(id, ev); } catch (e) { /* neznámé */ }
+    }));
+    const now = Date.now();
+    const changes = [];
+    for (const item of items) {
+      const id = String(item.eventId);
+      const ev = byId.get(id);
+      if (!ev) {
+        const st = statusOf.get(id);
+        if (st && FINISHED_STATUSES.includes(String(st.status).toLowerCase())) {
+          return { ok: false, error: `${item.match}: this match has already finished.`, removeId: item.id };
+        }
+        if (st && (st.status === "live" || (st.date && new Date(st.date).getTime() <= now))) {
+          return { ok: false, error: `${item.match}: odds for this match are no longer available.`, removeId: item.id };
+        }
+        continue;
+      }
+      const status = String(ev.status).toLowerCase();
+      if (FINISHED_STATUSES.includes(status)) return { ok: false, error: `${item.match}: this match has already finished.`, removeId: item.id };
+      const isLive = status === "live";
+      if (!isLive && ev.date && new Date(ev.date).getTime() <= now) {
+        return { ok: false, error: `${item.match}: this match has already started and can't be confirmed as live right now.`, removeId: item.id };
+      }
+      item.live = isLive;
+      if (ev.date) item.startTime = ev.date;
+
+      // aktuální kurz stejného výběru (první povolený bookmaker, který trh nabízí)
+      let fresh = null, marketSeen = false;
+      for (const bm of BOOKMAKERS) {
+        const market = ((ev.bookmakers && ev.bookmakers[bm]) || []).find((m) => m.name === item.marketName);
+        if (!market || !Array.isArray(market.odds)) continue;
+        marketSeen = true;
+        let row = null;
+        if (item.hdp != null) row = market.odds.find((r) => Number(r.hdp) === Number(item.hdp)) || null;
+        else if (market.odds.length === 1) row = market.odds[0];
+        if (!row) continue;
+        const v = parseFloat(row[item.field]);
+        if (Number.isFinite(v)) { fresh = v; break; }
+      }
+      if (fresh === null) {
+        if (isLive && (!marketSeen || item.hdp != null)) return { ok: false, error: `${item.match}: this market is no longer available.`, removeId: item.id };
+        continue;
+      }
+      if (fresh < ODDS_MIN || fresh > ODDS_MAX) return { ok: false, error: `${item.match}: the odds moved outside the allowed range.`, removeId: item.id };
+      if (Math.abs(fresh - item.oddValue) > 0.004) {
+        changes.push({ match: item.match, from: item.oddValue, to: fresh });
+        item.oddValue = fresh;
+        item.odds = fresh;
+      }
+    }
+    if (changes.length) {
+      return { ok: false, changed: true, error: "Odds changed: " + changes.map((c) => `${c.match} ${c.from.toFixed(2)} → ${c.to.toFixed(2)}`).join("; ") + ". Review your ticket and press Place bet again." };
+    }
+    return { ok: true };
+  } catch (e) {
+    return { ok: true, unverified: true }; // API nedostupné — rozhodne server
+  }
+}
+
 function marketRowButtons(m, marketName, row, ri) {
   const caption = row.label || (row.hdp !== undefined ? `Line ${row.hdp}` : "");
   const btns = PICK_FIELDS
@@ -1703,6 +1781,21 @@ function renderSlip() {
       note.hidden = false;
       return;
     }
+    // čerstvé kurzy + stav zápasu těsně před potvrzením (viz refreshSlipFromApi)
+    btn.disabled = true;
+    note.textContent = "Checking the latest odds…";
+    note.className = "auth-note mt";
+    note.hidden = false;
+    const fresh = await refreshSlipFromApi(slip);
+    if (!fresh.ok) {
+      btn.disabled = false;
+      if (fresh.removeId) slip = slip.filter((s) => s.id !== fresh.removeId);
+      note.textContent = fresh.error;
+      note.className = "auth-note mt " + (fresh.changed ? "warn" : "error");
+      renderMatches();
+      renderSlip();
+      return;
+    }
     // value-bet flag (zakázaná strategie): pick je v odds-api value-bet
     // výpisu pro Betano. Endpoint je volitelný — chyba = žádný flag.
     let flags = [];
@@ -1712,6 +1805,7 @@ function renderSlip() {
     } catch (e) { /* value-bets endpoint unavailable → skip silently */ }
     const result = Portfolio.placeBet(slip, Number(stakeInput.value), flags);
     if (!result.ok) {
+      btn.disabled = false;
       note.textContent = result.error;
       note.className = "auth-note mt error";
       note.hidden = false;
