@@ -168,6 +168,36 @@ export function accountExistsSignInHtml(dashboardLink: string): string {
   </div>`;
 }
 
+// Upozornění pár dní před koncem 30denní lhůty fáze (viz _shared/phase-expiry.ts,
+// account-maintenance). Posílá se jen hráči, který cíl fáze ještě nesplnil.
+export function phaseExpiryWarningHtml(p: {
+  pkgName: string; phase: number; deadlineLabel: string; daysLeft: number;
+  remainingProfit: number; targetProfit: number; resetPrice: number;
+  dashboardLink: string; rulesLink: string;
+}): string {
+  const days = p.daysLeft === 1 ? "1 day left" : `${p.daysLeft} days left`;
+  const status = p.remainingProfit > 0
+    ? `You are currently about <b style="color:#ffffff">$${p.remainingProfit.toLocaleString("en-US")}</b> short of the profit target (+$${p.targetProfit.toLocaleString("en-US")}).`
+    : `You have reached the profit target (+$${p.targetProfit.toLocaleString("en-US")}) &mdash; make sure you also have the required qualifying tickets.`;
+  return `
+  <div style="background:#020204;padding:32px;font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#e8e8ec">
+    <div style="max-width:520px;margin:0 auto;background:#0d0d12;border:1px solid #ffffff1a;border-radius:16px;padding:28px">
+      <div style="color:#14f195;font-weight:700;font-size:18px;margin-bottom:16px">fundly</div>
+      <div style="background:#1f1808;border:1px solid #f5b94255;border-radius:14px;padding:22px 18px;text-align:center;margin:0 0 20px">
+        <div style="font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#a8935a">Phase ${p.phase} time limit</div>
+        <div style="font-size:44px;line-height:1.1;font-weight:800;letter-spacing:-.02em;color:#f5b942;margin:8px 0 2px">${days}</div>
+        <div style="font-size:14px;color:#c9c9d1;margin-top:6px">ends on ${p.deadlineLabel} (UTC)</div>
+      </div>
+      <p style="color:#a0a0ab;font-size:14px;line-height:1.6;margin:0 0 14px">Your ${p.pkgName} account has a 30-day time limit per phase. To pass Phase ${p.phase} you need to reach the profit target and the required qualifying tickets before it ends. ${status}</p>
+      <p style="color:#a0a0ab;font-size:14px;line-height:1.6;margin:0 0 20px">If the time limit passes without the phase being completed, the account is closed in line with the <a href="${p.rulesLink}" style="color:#14f195">challenge rules</a>. You can then restart the same package at the discounted reset price of $${p.resetPrice.toLocaleString("en-US")}.</p>
+      <a href="${p.dashboardLink}" style="display:inline-block;background:#14f195;color:#020204;font-weight:700;text-decoration:none;padding:12px 24px;border-radius:10px;margin-bottom:20px">Open my dashboard</a>
+      <p style="color:#5a5a66;font-size:13px;line-height:1.6;margin:0 0 20px">Questions? Just reply to this e-mail &mdash; a real person reads it.</p>
+      <hr style="border:none;border-top:1px solid #ffffff1a;margin:24px 0 16px" />
+      <p style="color:#5a5a66;font-size:11px;line-height:1.6;margin:0">Grindit LLC · Sharjah Media City, Sharjah, UAE · Reg. 2541536<br />You are receiving this service notice because you have an active Fundly account. Fundly offers simulated accounts only, no real-money trading.</p>
+    </div>
+  </div>`;
+}
+
 export function checkoutWelcomeHtml(dashboardLink: string): string {
   return `
   <div style="background:#020204;padding:32px;font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#e8e8ec">

@@ -7,16 +7,18 @@
 // Pravidlo času fáze (terms §4.1/4.2): fáze 1 a 2 mají 30 kalendářních dní
 // (+ phase_bonus_days). Po uplynutí bez splněného cíle se účet zavře jako
 // breached (viz _shared/phase-expiry.ts), hráč dostane e-mail s nabídkou resetu.
-// BEZPEČNOSTNÍ PŘEPÍNAČ: zavírání se provede jen s nastaveným secretem
+// Upozornění: jakmile do konce lhůty zbývají ≤ 3 dny a hráč cíl fáze ještě nesplnil, dostane
+// e-mail (jednou na daný termín — viz phase_expiry_warned_for, migrace 028).
+// BEZPEČNOSTNÍ PŘEPÍNAČ (platí pro zavírání i pro upozornění): zavírání se provede jen s nastaveným secretem
 // PHASE_EXPIRY_ENFORCE=true; bez něj (nebo s body {"dry_run":true}) funkce jen
 // vypíše, koho by zavřela. Výjimky: PHASE_EXPIRY_EXCLUDE (e-maily oddělené čárkou).
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsonResponse } from "../_shared/cors.ts";
 import { isValidAdminKey } from "../_shared/admin.ts";
-import { sendEmail, accountClosedHtml } from "../_shared/email.ts";
+import { sendEmail, accountClosedHtml, phaseExpiryWarningHtml } from "../_shared/email.ts";
 import { packageByKey, resetPrice } from "../_shared/packages.ts";
-import { type PhaseAccount, type PhaseTicket, isPhaseExpired, reachedPhaseTarget, isExcludedFromExpiry, expiryReason, phaseDeadlineMs } from "../_shared/phase-expiry.ts";
+import { type PhaseAccount, type PhaseTicket, isPhaseExpired, reachedPhaseTarget, provenPhaseProfit, targetProfit, phaseWarningDeadline, isExcludedFromExpiry, expiryReason, phaseDeadlineMs } from "../_shared/phase-expiry.ts";
 
 const SITE_URL = Deno.env.get("SITE_URL") ?? "https://fundly.games";
 
@@ -55,7 +57,7 @@ serve(async (req) => {
     const extraExcluded = (Deno.env.get("PHASE_EXPIRY_EXCLUDE") ?? "").split(",");
     const { data: phaseAccounts, error: phaseError } = await supabase
       .from("challenge_accounts")
-      .select("id, email, package_key, capital, phase, state, phase_started_at, phase_bonus_days, phase_balance, phase_baseline")
+      .select("id, email, package_key, capital, phase, state, phase_started_at, phase_bonus_days, phase_balance, phase_baseline, phase_expiry_warned_for")
       .eq("state", "active")
       .in("phase", [1, 2])
       .not("phase_started_at", "is", null);
@@ -64,15 +66,53 @@ serve(async (req) => {
     const overdue = ((phaseAccounts ?? []) as PhaseAccount[]).filter((a) =>
       !isExcludedFromExpiry(a, extraExcluded) && isPhaseExpired(a, now)
     );
-    // ochrana: kdo cíl fáze DOKÁZANĚ splnil (z tiketů, ne z uloženého zůstatku), se pro čas nezavírá
-    const expiredAccounts: PhaseAccount[] = [];
-    for (const a of overdue) {
+    const ticketsOf = async (a: PhaseAccount): Promise<PhaseTicket[]> => {
       const { data: tix } = await supabase
         .from("tickets")
         .select("stake, payout, status, placed_at")
         .eq("account_id", a.id)
         .gte("placed_at", a.phase_started_at!);
-      if (!reachedPhaseTarget(a, (tix ?? []) as PhaseTicket[])) expiredAccounts.push(a);
+      return (tix ?? []) as PhaseTicket[];
+    };
+    // ochrana: kdo cíl fáze DOKÁZANĚ splnil (z tiketů, ne z uloženého zůstatku), se pro čas nezavírá
+    const expiredAccounts: PhaseAccount[] = [];
+    for (const a of overdue) {
+      if (!reachedPhaseTarget(a, await ticketsOf(a))) expiredAccounts.push(a);
+    }
+
+    // ---------- upozornění pár dní před koncem lhůty ----------
+    const warnings: { who: string; phase: number; deadline: string; daysLeft: number; remainingProfit: number; sent?: boolean }[] = [];
+    for (const a of (phaseAccounts ?? []) as PhaseAccount[]) {
+      if (isExcludedFromExpiry(a, extraExcluded) || !a.email) continue;
+      const deadline = phaseWarningDeadline(a, now);
+      if (deadline === null) continue;
+      const tix = await ticketsOf(a);
+      if (reachedPhaseTarget(a, tix)) continue; // cíl splněn — nemá smysl strašit termínem
+      const daysLeft = Math.max(1, Math.ceil((deadline - now) / 86400000));
+      const remainingProfit = Math.max(0, Math.round(targetProfit(a) - provenPhaseProfit(a, tix)));
+      const entry: (typeof warnings)[number] = {
+        who: mask(a.email), phase: a.phase, deadline: new Date(deadline).toISOString().slice(0, 10), daysLeft, remainingProfit,
+      };
+      warnings.push(entry);
+      if (!enforce) continue;
+      const pkg = packageByKey(String(a.package_key ?? ""));
+      const r = await sendEmail({
+        to: String(a.email),
+        subject: `Your Fundly Phase ${a.phase} time limit ends in ${daysLeft} ${daysLeft === 1 ? "day" : "days"}`,
+        html: phaseExpiryWarningHtml({
+          pkgName: pkg.name, phase: a.phase,
+          deadlineLabel: new Date(deadline).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }),
+          daysLeft, remainingProfit, targetProfit: targetProfit(a), resetPrice: resetPrice(pkg),
+          dashboardLink: `${SITE_URL}/dashboard`, rulesLink: `${SITE_URL}/rules`,
+        }),
+      });
+      entry.sent = r.sent;
+      if (r.sent) {
+        // zapsat, na který termín upozornění odešlo (další upozornění až k novému termínu)
+        await supabase.from("challenge_accounts").update({ phase_expiry_warned_for: new Date(deadline).toISOString() }).eq("id", a.id);
+      } else {
+        console.error("phase-expiry warning e-mail selhal:", a.id, r.error);
+      }
     }
     const phaseClosed: { who: string; phase: number; deadline: string; overdueDays: number }[] = [];
     for (const acc of expiredAccounts) {
@@ -140,7 +180,11 @@ serve(async (req) => {
 
     return jsonResponse({
       ok: true, checked: accounts?.length ?? 0, warned7, warned13, burned,
-      phase_expiry: { mode: enforce ? "enforced" : "dry_run", checked: phaseAccounts?.length ?? 0, count: phaseClosed.length, accounts: phaseClosed },
+      phase_expiry: {
+        mode: enforce ? "enforced" : "dry_run", checked: phaseAccounts?.length ?? 0,
+        count: phaseClosed.length, accounts: phaseClosed,
+        warnings,
+      },
     });
   } catch (err) {
     console.error("account-maintenance error:", err);

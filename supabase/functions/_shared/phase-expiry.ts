@@ -6,6 +6,9 @@
 // neaktivity (14 dní bez tiketu) v account-maintenance.
 
 export const PHASE_DAYS = 30;
+// Upozornění přijde, jakmile do konce lhůty zbývají nejvýš tolik dní. Cron běží 1× denně,
+// takže reálně přijde 2–3 dny před koncem (podle toho, kdy v den termínu fáze končí).
+export const WARN_BEFORE_DAYS = 3;
 const DAY_MS = 86400000;
 
 export interface PhaseAccount {
@@ -19,6 +22,7 @@ export interface PhaseAccount {
   phase_bonus_days: number | null;
   phase_balance: number | string | null;
   phase_baseline: number | string | null;
+  phase_expiry_warned_for?: string | null;
 }
 
 export function phaseLengthDays(acc: Pick<PhaseAccount, "phase_bonus_days">): number {
@@ -37,6 +41,24 @@ export function phaseDeadlineMs(acc: PhaseAccount): number | null {
 export function isPhaseExpired(acc: PhaseAccount, nowMs: number): boolean {
   const deadline = phaseDeadlineMs(acc);
   return deadline !== null && nowMs >= deadline;
+}
+
+// Termín (ms), na který má účet dostat upozornění, nebo null (lhůta ještě není blízko,
+// už skončila, nebo upozornění k TOMUHLE termínu už odešlo).
+export function phaseWarningDeadline(acc: PhaseAccount, nowMs: number): number | null {
+  const deadline = phaseDeadlineMs(acc);
+  if (deadline === null) return null;
+  const left = deadline - nowMs;
+  if (left <= 0 || left > WARN_BEFORE_DAYS * DAY_MS) return null;
+  const warned = acc.phase_expiry_warned_for ? new Date(acc.phase_expiry_warned_for).getTime() : NaN;
+  if (Number.isFinite(warned) && warned === deadline) return null;
+  return deadline;
+}
+
+// Kolik zisku fáze ještě chybí do cíle (z tiketů; ≤ 0 = cíl splněn) a jaký je cíl v $
+export function targetProfit(acc: PhaseAccount): number {
+  const cap = Number(acc.capital);
+  return Number.isFinite(cap) && cap > 0 ? Math.round(cap * (acc.phase === 1 ? 0.10 : 0.05)) : 0;
 }
 
 export interface PhaseTicket {
