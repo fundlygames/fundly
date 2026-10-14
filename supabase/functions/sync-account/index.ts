@@ -134,7 +134,7 @@ serve(async (req) => {
     // challenge účet přihlášeného hráče (nejnovější)
     const { data: account } = await supabase
       .from("challenge_accounts")
-      .select("id, email, package_key, state, phase, pending_phase, tickets_total, created_at, phase1_completed_at, phase2_completed_at, funded_at, signup_ip, payment_fingerprint, betting_profile, capital")
+      .select("id, email, package_key, state, phase, pending_phase, tickets_total, created_at, phase1_completed_at, phase2_completed_at, funded_at, signup_ip, payment_fingerprint, betting_profile, capital, phase_started_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -248,7 +248,11 @@ serve(async (req) => {
         // fáze/baseline/den se při čekání na schválení nesmí přepsat klientem
         // (approve-phase je nastaví na fresh hodnoty při schválení)
         ...(account.state !== "pending_approval" && phaseBaseline != null ? { phase_baseline: phaseBaseline } : {}),
-        ...(account.state !== "pending_approval" && phaseStartedAt ? { phase_started_at: phaseStartedAt } : {}),
+        // Začátek fáze je serverová pravda: nastaví ho nákup (whop-webhook) a schválení
+        // další fáze (approve-phase). Klient ho smí dodat JEN když sloupec ještě chybí —
+        // jinak by si hráč mohl 30denní lhůtu (viz _shared/phase-expiry.ts) kdykoli
+        // vynulovat posunem data v localStorage.
+        ...(account.state !== "pending_approval" && phaseStartedAt && !account.phase_started_at ? { phase_started_at: phaseStartedAt } : {}),
         ...(account.state !== "pending_approval" && dayStartDate ? { day_start_date: dayStartDate } : {}),
         ...(account.state !== "pending_approval" && dayStartBalance != null ? { day_start_balance: dayStartBalance } : {}),
         ...(lastPayoutAt ? { last_payout_at: lastPayoutAt } : {}),
