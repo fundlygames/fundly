@@ -4,12 +4,19 @@
 //   den 13 bez tiketu  → inactivity_warned_13 (poslední upozornění)
 //   den 14 bez tiketu  → účet se spálí (state → breached, funded status zrušen,
 //                         + e-mail — viz accountClosedHtml v _shared/email.ts)
+// Pravidlo času fáze (terms §4.1/4.2): fáze 1 a 2 mají 30 kalendářních dní
+// (+ phase_bonus_days). Po uplynutí bez splněného cíle se účet zavře jako
+// breached (viz _shared/phase-expiry.ts), hráč dostane e-mail s nabídkou resetu.
+// BEZPEČNOSTNÍ PŘEPÍNAČ: zavírání se provede jen s nastaveným secretem
+// PHASE_EXPIRY_ENFORCE=true; bez něj (nebo s body {"dry_run":true}) funkce jen
+// vypíše, koho by zavřela. Výjimky: PHASE_EXPIRY_EXCLUDE (e-maily oddělené čárkou).
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsonResponse } from "../_shared/cors.ts";
 import { isValidAdminKey } from "../_shared/admin.ts";
 import { sendEmail, accountClosedHtml } from "../_shared/email.ts";
 import { packageByKey, resetPrice } from "../_shared/packages.ts";
+import { type PhaseAccount, type PhaseTicket, isPhaseExpired, reachedPhaseTarget, isExcludedFromExpiry, expiryReason, phaseDeadlineMs } from "../_shared/phase-expiry.ts";
 
 const SITE_URL = Deno.env.get("SITE_URL") ?? "https://fundly.games";
 
@@ -41,6 +48,59 @@ serve(async (req) => {
 
     const now = Date.now();
     let warned7 = 0, warned13 = 0, burned = 0;
+
+    // ---------- čas fáze (fáze 1/2) ----------
+    const body = await req.json().catch(() => ({}));
+    const enforce = Deno.env.get("PHASE_EXPIRY_ENFORCE") === "true" && body.dry_run !== true;
+    const extraExcluded = (Deno.env.get("PHASE_EXPIRY_EXCLUDE") ?? "").split(",");
+    const { data: phaseAccounts, error: phaseError } = await supabase
+      .from("challenge_accounts")
+      .select("id, email, package_key, capital, phase, state, phase_started_at, phase_bonus_days, phase_balance, phase_baseline")
+      .eq("state", "active")
+      .in("phase", [1, 2])
+      .not("phase_started_at", "is", null);
+    if (phaseError) throw phaseError;
+    const mask = (e: string | null) => { const [u, d] = String(e ?? "?@?").split("@"); return `${u.slice(0, 3)}***@${d}`; };
+    const overdue = ((phaseAccounts ?? []) as PhaseAccount[]).filter((a) =>
+      !isExcludedFromExpiry(a, extraExcluded) && isPhaseExpired(a, now)
+    );
+    // ochrana: kdo cíl fáze DOKÁZANĚ splnil (z tiketů, ne z uloženého zůstatku), se pro čas nezavírá
+    const expiredAccounts: PhaseAccount[] = [];
+    for (const a of overdue) {
+      const { data: tix } = await supabase
+        .from("tickets")
+        .select("stake, payout, status, placed_at")
+        .eq("account_id", a.id)
+        .gte("placed_at", a.phase_started_at!);
+      if (!reachedPhaseTarget(a, (tix ?? []) as PhaseTicket[])) expiredAccounts.push(a);
+    }
+    const phaseClosed: { who: string; phase: number; deadline: string; overdueDays: number }[] = [];
+    for (const acc of expiredAccounts) {
+      const deadline = phaseDeadlineMs(acc)!;
+      phaseClosed.push({
+        who: mask(acc.email), phase: acc.phase,
+        deadline: new Date(deadline).toISOString().slice(0, 10),
+        overdueDays: Math.floor((now - deadline) / 86400000),
+      });
+      if (!enforce) continue;
+      const reason = expiryReason(acc);
+      const { error: closeError } = await supabase
+        .from("challenge_accounts")
+        // .eq("state","active"): hráč mezitím mohl splnit cíl (pending_approval) — to nepřepisovat
+        .update({ state: "breached", breach_reason: reason, synced_at: new Date().toISOString() })
+        .eq("id", acc.id)
+        .eq("state", "active");
+      if (closeError) { console.error("phase-expiry close selhalo:", acc.id, closeError); continue; }
+      if (acc.email) {
+        const pkg = packageByKey(String(acc.package_key ?? ""));
+        sendEmail({
+          to: String(acc.email),
+          subject: "Your Fundly account was closed",
+          html: accountClosedHtml(pkg.name, reason, `${SITE_URL}/dashboard`, resetPrice(pkg)),
+        }).then((r) => { if (!r.sent) console.error("account-closed e-mail selhal:", r.error); })
+          .catch((e) => console.error("account-closed e-mail error:", e));
+      }
+    }
 
     for (const acc of accounts ?? []) {
       const since = acc.last_ticket_at ?? acc.funded_at ?? acc.created_at;
@@ -78,7 +138,10 @@ serve(async (req) => {
       }
     }
 
-    return jsonResponse({ ok: true, checked: accounts?.length ?? 0, warned7, warned13, burned });
+    return jsonResponse({
+      ok: true, checked: accounts?.length ?? 0, warned7, warned13, burned,
+      phase_expiry: { mode: enforce ? "enforced" : "dry_run", checked: phaseAccounts?.length ?? 0, count: phaseClosed.length, accounts: phaseClosed },
+    });
   } catch (err) {
     console.error("account-maintenance error:", err);
     return jsonResponse(
