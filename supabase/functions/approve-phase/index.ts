@@ -108,6 +108,7 @@ serve(async (req) => {
         state: newState,
         phase_baseline: baseline,
         phase_started_at: now,
+        phase_bonus_days: 0, // bonusové dny patří jen fázi, ve které byly přidány
         day_start_date: now.slice(0, 10),
         day_start_balance: baseline,
         qualifying_tickets: 0,
