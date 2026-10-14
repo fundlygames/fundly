@@ -90,8 +90,12 @@ serve(async (req) => {
         const mlRow = ml?.odds?.[0];
         if (mlRow) {
           for (const field of ["home", "draw", "away"]) {
-            if (typeof mlRow[field] === "number") {
-              rows.push({ event_id: ev.id, market_name: "ML", field, hdp: null, odd_value: mlRow[field] });
+            // odds-api posílá kurzy jako TEXT ("3.100"). Dřív tu bylo typeof === "number",
+            // což nikdy nesedělo → tabulka odds_snapshots zůstala od začátku prázdná a
+            // detekce FEED_LAG_PATTERN / HIGH_CLV nikdy neměla data.
+            const v = parseFloat(mlRow[field]);
+            if (Number.isFinite(v)) {
+              rows.push({ event_id: ev.id, market_name: "ML", field, hdp: null, odd_value: v });
             }
           }
         }
@@ -104,8 +108,9 @@ serve(async (req) => {
           if (!market?.odds) continue;
           // deno-lint-ignore no-explicit-any
           const row = market.odds.find((r: any) => sel.hdp == null || Number(r.hdp) === Number(sel.hdp)) ?? market.odds[0];
-          if (row && sel.field && typeof row[sel.field] === "number") {
-            rows.push({ event_id: ev.id, market_name: sel.marketName!, field: sel.field, hdp: sel.hdp ?? null, odd_value: row[sel.field] });
+          const v = row && sel.field ? parseFloat(row[sel.field]) : NaN;
+          if (Number.isFinite(v)) {
+            rows.push({ event_id: ev.id, market_name: sel.marketName!, field: sel.field!, hdp: sel.hdp ?? null, odd_value: v });
           }
         }
       }

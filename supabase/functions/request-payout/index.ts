@@ -5,6 +5,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { handleCors, jsonResponse } from "../_shared/cors.ts";
+import { maxPayoutFor } from "../_shared/payout-cap.ts";
 
 const MIN_PAYOUT = 10; // minimální výběr v USD
 const MAX_PAYOUT = 4000; // maximální výběr na jednu žádost v USD
@@ -108,10 +109,21 @@ serve(async (req) => {
       return jsonResponse({ error: "You already have a pending withdrawal request." }, 400);
     }
 
-    // Schéma challenge_accounts zatím profit nesleduje — stav portfolia žije
-    // zatím na klientovi. Server proto validuje jen min. částku a stav účtu;
-    // skutečnou kontrolou je ruční schválení adminem (pending → whop-payout).
-    // Až přibyde profit sloupec, vrátit sem cap: amount ≤ 85 % profitu.
+    // Strop podle zisku dokázaného TIKETY (ne podle čísel z klienta) — viz _shared/payout-cap.ts.
+    // Je to jen horní pojistka (nikdy neodmítne poctivou žádost); konečné schválení dělá dál admin.
+    const { data: ticketRows } = await supabase
+      .from("tickets").select("stake, payout, status").eq("account_id", account.id);
+    const { data: paidRows } = await supabase
+      .from("payouts").select("amount").eq("account_id", account.id).in("status", ["paid", "sent"]);
+    const alreadyPaid = (paidRows ?? []).reduce((s: number, r: { amount: number | string }) => s + (Number(r.amount) || 0), 0);
+    const cap = maxPayoutFor(Number(account.capital) || 0, ticketRows ?? [], alreadyPaid);
+    if (payoutAmount > cap + 0.5) {
+      return jsonResponse({
+        error: cap > 0
+          ? `The requested amount is above your available profit share ($${Math.floor(cap).toLocaleString("en-US")}).`
+          : "There is no profit share available to withdraw yet.",
+      }, 400);
+    }
 
     const { data: payout, error: payoutError } = await supabase
       .from("payouts")

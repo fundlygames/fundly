@@ -188,16 +188,32 @@ serve(async (req) => {
     // rozehraných sázek (checkSettlements běží dál i při čekání), ale nesmí
     // se sám odemknout zpět na active/funded. Výjimka: pořád smí přejít do
     // breached (např. doběhne starý tiket a poruší denní limit ztráty).
+    //
+    // Stavový automat je serverový: klient smí účet jen "zhoršit" (→ breached) nebo
+    // požádat o schválení (active → pending_approval). Na funded ani na vyšší fázi se
+    // NIKDY nepovyšuje sám — to dělá výhradně approve-phase (admin + KYC). Dřív server
+    // věřil poslanému state/phase, takže upravený prehliadač mohl poslat
+    // {state:"funded", phase:3} a obejít schválení i KYC; stejně tak zastaralý klient
+    // (neobnovený po schválení) mohl funded účet vrátit zpátky na active.
+    const expectedNextPhase = account.phase === 1 ? 2 : account.phase === 2 ? 3 : null;
     let nextState: string;
     if (account.state === "breached") {
       nextState = "breached";
     } else if (account.state === "pending_approval") {
       nextState = state === "breached" ? "breached" : "pending_approval";
+    } else if (account.state === "funded") {
+      nextState = state === "breached" ? "breached" : "funded";
+    } else if (state === "funded") {
+      console.error(`sync-account STATE_TAMPER: account ${account.id} (${account.state}, phase ${account.phase}) reported state "funded" — ignored`);
+      nextState = account.state;
+    } else if (state === "pending_approval" && (expectedNextPhase === null || pendingPhaseIn !== expectedNextPhase)) {
+      console.error(`sync-account PENDING_TAMPER: account ${account.id} (phase ${account.phase}) asked for pending phase ${pendingPhaseIn} — ignored`);
+      nextState = account.state;
     } else {
       nextState = state;
     }
-    // fáze se při čekání na schválení nesmí posunout — tu mění jen approve-phase.
-    const nextPhase = account.state === "pending_approval" ? account.phase : phase;
+    // fáze se mění jen přes approve-phase (server), nikdy podle klienta.
+    const nextPhase = account.phase;
     const nextPendingPhase = nextState === "pending_approval"
       ? (account.state === "pending_approval" ? account.pending_phase : pendingPhaseIn)
       : null;

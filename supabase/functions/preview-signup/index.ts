@@ -9,6 +9,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { handleCors, jsonResponse } from "../_shared/cors.ts";
 import { sendEmail, previewWelcomeHtml, accountExistsSignInHtml } from "../_shared/email.ts";
+import { allow } from "../_shared/throttle.ts";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SITE_URL = Deno.env.get("SITE_URL") ?? "https://fundly.games";
@@ -54,6 +55,8 @@ serve(async (req) => {
         // password) and gets them straight into whatever account already exists,
         // paid or not.
         try {
+          // max. 1 přihlašovací odkaz za 2 minuty na adresu (nezahlcovat cizí schránku)
+          if (!(await allow(supabase, `signin:${email.toLowerCase()}`, 120_000))) return jsonResponse({ ok: true, existingAccount: true });
           const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({ type: "magiclink", email });
           if (linkError) throw linkError;
           const accessLink = linkData?.properties?.action_link ?? `${SITE_URL}/dashboard`;

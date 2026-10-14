@@ -10,6 +10,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { handleCors, jsonResponse } from "../_shared/cors.ts";
 import { sendEmail } from "../_shared/email.ts";
+import { allow } from "../_shared/throttle.ts";
 
 const SITE_URL = Deno.env.get("SITE_URL") ?? "https://fundly.games";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -48,6 +49,10 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
+
+    // Nejvýš 1 reset e-mail za minutu na adresu — jinak šlo cizí schránku zahltit.
+    // Odpověď je stejná i při omezení (viz "Same response either way").
+    if (!(await allow(supabase, `reset:${email.toLowerCase()}`, 60_000))) return jsonResponse({ ok: true });
 
     const { data, error } = await supabase.auth.admin.generateLink({
       type: "recovery",
