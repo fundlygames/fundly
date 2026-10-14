@@ -18,6 +18,7 @@
 // $$);
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { enforceLossLimits } from "../_shared/loss-enforce.ts";
 import { jsonResponse } from "../_shared/cors.ts";
 import { isValidAdminKey } from "../_shared/admin.ts";
 import { settleSelection, type Selection } from "../_shared/settle.ts";
@@ -29,6 +30,7 @@ const MAX_TICKETS_PER_RUN = 500;
 type TicketSelection = Selection & { eventId: string | null; oddValue: number | null; startTime: string | null };
 type TicketRow = {
   id: string;
+  account_id: string | null;
   selections: TicketSelection[];
   stake: number | null;
   combined_odds: number | null;
@@ -88,13 +90,14 @@ serve(async (req) => {
 
     const { data: pending } = await supabase
       .from("tickets")
-      .select("id, selections, stake, combined_odds, placed_at")
+      .select("id, account_id, selections, stake, combined_odds, placed_at")
       .eq("status", "pending")
       .order("placed_at", { ascending: true })
       .limit(MAX_TICKETS_PER_RUN);
     const tickets = (pending ?? []) as TicketRow[];
     if (!tickets.length) return jsonResponse({ ok: true, checked: 0, settled: 0 });
 
+    const lostAccounts = new Set<string>();
     const now = Date.now();
     // jen eventy, které už měly začít — u budoucích nemá smysl volat API
     const eventIds = [...new Set(
@@ -168,7 +171,12 @@ serve(async (req) => {
         .update({ status, payout, settled_at: nowIso })
         .eq("id", ticket.id)
         .eq("status", "pending"); // pojistka proti souběžnému zápisu
-      if (!error) settledCount++;
+      if (!error) { settledCount++; if (status === "lost" && ticket.account_id) lostAccounts.add(ticket.account_id); }
+    }
+
+    // prohraný tiket může přesáhnout limit ztráty, i když hráč dashboard už nikdy neotevře
+    for (const accountId of lostAccounts) {
+      await enforceLossLimits(supabase, accountId).catch((e) => console.error("enforceLossLimits:", e));
     }
 
     return jsonResponse({ ok: true, checked: tickets.length, events: eventIds.length, settled: settledCount });
