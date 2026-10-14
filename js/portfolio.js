@@ -138,6 +138,7 @@ const Portfolio = (() => {
       phase: account.phase === 3 ? "funded" : account.phase,
       phaseBaseline: account.phase_baseline ?? pkg.cap,
       phaseStartedAt: account.phase_started_at ?? now,
+      bonusDays: Number(account.phase_bonus_days) || 0, // admin-added days on top of the 30 (see migration 027)
       pendingPhase: account.pending_phase === 3 ? "funded" : (account.pending_phase ?? null),
       balance: account.phase_balance ?? pkg.cap,
       hwm: account.hwm ?? account.phase_balance ?? pkg.cap,
@@ -217,10 +218,17 @@ const Portfolio = (() => {
     return state.phase === 1 ? meta.target1 : state.phase === 2 ? meta.target2 : 0;
   }
 
+  // Celková délka lhůty aktuální fáze: 30 dní + bonusové dny přidané adminem
+  // (např. kompenzace výpadku zdroje kurzů). Bonus drží server (phase_bonus_days),
+  // klient ho jen zobrazuje.
+  function phaseLengthDays(state) {
+    return 30 + (Number(state.bonusDays) || 0);
+  }
+
   function daysRemaining(state) {
     const started = new Date(state.phaseStartedAt).getTime();
     const elapsedDays = Math.floor((Date.now() - started) / 86400000);
-    return Math.max(0, 30 - elapsedDays);
+    return Math.max(0, phaseLengthDays(state) - elapsedDays);
   }
 
   // Max. celková ztráta: ve fázích 1–2 STATICKÁ (pevný floor = kapitál − 10 %),
@@ -778,7 +786,7 @@ const Portfolio = (() => {
   }
 
   return {
-    init, get, save, ensure, restore, phaseTarget, daysRemaining, drawdownInfo, ruleMeta,
+    init, get, save, ensure, restore, phaseTarget, daysRemaining, phaseLengthDays, drawdownInfo, ruleMeta,
     dailyLossInfo, breachInfo, cashOut, openExposure, worstCaseInfo, consistencyLimit,
     summary, dailyNet, dailyBalanceHistory, placeBet, evaluateBet, checkSettlements, countQualifyingTickets,
     applyServerSettlements,

@@ -782,7 +782,7 @@ async function syncChallengeAccount() {
     const fetchAccounts = async () => {
       const { data, error: fetchError } = await client
         .from("challenge_accounts")
-        .select("id, package_key, capital, phase, pending_phase, pending_requested_at, state, flags, created_at, inactivity_warned_7, inactivity_warned_13, nickname, leaderboard_opt_in, synced_at")
+        .select("id, package_key, capital, phase, pending_phase, pending_requested_at, state, flags, created_at, inactivity_warned_7, inactivity_warned_13, nickname, leaderboard_opt_in, synced_at, phase_bonus_days")
         .order("created_at", { ascending: false });
       if (fetchError) throw fetchError;
       return data || [];
@@ -843,6 +843,27 @@ async function syncChallengeAccount() {
     document.querySelectorAll(".buy-challenge-cta").forEach((btn) => { btn.hidden = true; });
     document.body.classList.remove("limited");
     window.__noRealAccount = false;
+
+    // Bonusové dny k lhůtě fáze (kompenzace výpadku zdroje kurzů apod.) drží server
+    // — admin je přidá SQL/migrací a klient je jen zobrazuje. Zařízení s už existujícím
+    // lokálním stavem by se jinak k bonusu nikdy nedostalo (syncChallengeAccount níž se
+    // při shodné fázi a synced_at vrací dřív, než by stav obnovil ze serveru).
+    {
+      const localState = Portfolio.get();
+      const serverBonus = Number(account.phase_bonus_days) || 0;
+      if (localState && localState.accountId === account.id && (Number(localState.bonusDays) || 0) !== serverBonus) {
+        const added = serverBonus - (Number(localState.bonusDays) || 0);
+        localState.bonusDays = serverBonus;
+        Portfolio.save(localState);
+        if (typeof renderPrehled === "function") renderPrehled();
+        if (typeof renderVykon === "function") renderVykon();
+        if (typeof renderBankBar === "function") renderBankBar();
+        if (added > 0) {
+          showToast("win", `+${added} days added to your phase`,
+            "Our sports-data feed was unavailable for a few days, so no entries could be placed. Your phase time limit has been extended to make up for it.");
+        }
+      }
+    }
 
     // Purchase conversion pixel — fires once, only on the actual return trip
     // from Whop (?paid=1, already stripped from the URL above so a refresh
@@ -2664,7 +2685,8 @@ function renderPrehled() {
   const worstRemaining = Math.max(0, worst.worstCaseBalance - worstFloor);
 
   // right column: rules and limits with thin progress bars
-  const pctTime = Math.max(0, Math.min(100, Math.round((daysLeft / 30) * 100)));
+  const phaseLen = Portfolio.phaseLengthDays(state);
+  const pctTime = Math.max(0, Math.min(100, Math.round((daysLeft / phaseLen) * 100)));
   // qualifying tickets: winning ones with net profit ≥ 0.5 % of capital, in the current phase
   const qual = Portfolio.countQualifyingTickets(state, state.phaseStartedAt);
   const pctTickets = Math.max(0, Math.min(100, Math.round((qual / meta.qualifyingTickets) * 100)));
@@ -2692,7 +2714,7 @@ function renderPrehled() {
       return rrRow("Open exposure", `${usd(worst.exposure)} pending`, pctExposure, tone,
         `Worst case if everything open lost: ${usd(Math.round(worst.worstCaseBalance))} (margin to limit: ${usd(Math.round(worstRemaining))})`);
     })()}
-    ${state.phase === "funded" ? "" : rrRow("Time limit", `${daysLeft} / 30 days`, pctTime, pctTime < 25 ? "danger" : "", "")}
+    ${state.phase === "funded" ? "" : rrRow("Time limit", `${daysLeft} / ${phaseLen} days`, pctTime, pctTime < 25 ? "danger" : "", "")}
     ${rrRow("Qualifying tickets", `${Math.min(qual, meta.qualifyingTickets)} / ${meta.qualifyingTickets}`, pctTickets, "", "Winning tickets with net profit ≥ +0.5 % of capital")}
     ${rrRow("Max. entry size", usd(meta.maxStake), null, "", "Per single ticket")}
     ${rrRow("Odds", `${ODDS_MIN.toFixed(2)} – ${ODDS_MAX.toFixed(2)}`, null, "", "")}
@@ -2847,7 +2869,7 @@ function renderProfile(state) {
   const dl = Portfolio.dailyLossInfo(state);
   const daysLeft = Portfolio.daysRemaining(state);
   set("pfDaysLeft", state.phase === "funded" ? "Unlimited" : `${daysLeft} days`);
-  const deadline = new Date(new Date(state.phaseStartedAt).getTime() + 30 * 86400000);
+  const deadline = new Date(new Date(state.phaseStartedAt).getTime() + Portfolio.phaseLengthDays(state) * 86400000);
   set("pfDeadline", state.phase === "funded"
     ? "No time limit, but place at least 1 ticket every 14 days or the account closes"
     : `Left until the end of the phase · Deadline: ${deadline.toLocaleDateString("en-US")}`);

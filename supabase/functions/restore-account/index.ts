@@ -32,7 +32,7 @@ serve(async (req) => {
       .select(`
         id, package_key, phase, pending_phase, state, phase_balance, profit, capital,
         hwm, phase_baseline, phase_started_at, day_start_date, day_start_balance,
-        last_payout_at, qualifying_tickets, synced_at, created_at
+        last_payout_at, qualifying_tickets, synced_at, created_at, phase_bonus_days
       `)
       .eq("user_id", user.id)
       .in("state", ["active", "funded", "pending_approval"])
