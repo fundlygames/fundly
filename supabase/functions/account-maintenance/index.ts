@@ -18,6 +18,7 @@ import { jsonResponse } from "../_shared/cors.ts";
 import { isValidAdminKey } from "../_shared/admin.ts";
 import { sendEmail, accountClosedHtml, phaseExpiryWarningHtml } from "../_shared/email.ts";
 import { packageByKey, resetPrice } from "../_shared/packages.ts";
+import { enforceLossLimits } from "../_shared/loss-enforce.ts";
 import { type PhaseAccount, type PhaseTicket, isPhaseExpired, reachedPhaseTarget, provenPhaseProfit, targetProfit, phaseWarningDeadline, isExcludedFromExpiry, expiryReason, phaseDeadlineMs } from "../_shared/phase-expiry.ts";
 
 const SITE_URL = Deno.env.get("SITE_URL") ?? "https://fundly.games";
@@ -178,8 +179,17 @@ serve(async (req) => {
       }
     }
 
+    // ---------- limity ztráty z tiketů (pojistka pro klienta, který nesyncuje) ----------
+    const lossClosed: { who: string; reason: string }[] = [];
+    for (const a of (phaseAccounts ?? []) as PhaseAccount[]) {
+      if (phaseClosed.some((c) => c.who === mask(a.email))) continue; // už zavřený pro čas
+      const reason = await enforceLossLimits(supabase, a.id, body.dry_run === true).catch((e) => { console.error("enforceLossLimits:", e); return null; });
+      if (reason) lossClosed.push({ who: mask(a.email), reason });
+    }
+
     return jsonResponse({
       ok: true, checked: accounts?.length ?? 0, warned7, warned13, burned,
+      loss_limits: { count: lossClosed.length, accounts: lossClosed },
       phase_expiry: {
         mode: enforce ? "enforced" : "dry_run", checked: phaseAccounts?.length ?? 0,
         count: phaseClosed.length, accounts: phaseClosed,

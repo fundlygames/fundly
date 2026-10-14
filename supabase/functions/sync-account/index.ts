@@ -11,6 +11,7 @@ import { handleCors, jsonResponse } from "../_shared/cors.ts";
 import { computeServerRiskSignals, watchStatusFor } from "../_shared/risk.ts";
 import { sendEmail, accountClosedHtml, pendingApprovalAdminHtml } from "../_shared/email.ts";
 import { packageByKey, resetPrice } from "../_shared/packages.ts";
+import { enforceLossLimits } from "../_shared/loss-enforce.ts";
 
 const ALLOWED_STATES = ["active", "funded", "breached", "pending_approval"];
 const SITE_URL = Deno.env.get("SITE_URL") ?? "https://fundly.games";
@@ -134,7 +135,7 @@ serve(async (req) => {
     // challenge účet přihlášeného hráče (nejnovější)
     const { data: account } = await supabase
       .from("challenge_accounts")
-      .select("id, email, package_key, state, phase, pending_phase, tickets_total, created_at, phase1_completed_at, phase2_completed_at, funded_at, signup_ip, payment_fingerprint, betting_profile, capital, phase_started_at")
+      .select("id, email, package_key, state, phase, pending_phase, tickets_total, created_at, phase1_completed_at, phase2_completed_at, funded_at, signup_ip, payment_fingerprint, betting_profile, capital, phase_started_at, breach_reason")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -255,7 +256,8 @@ serve(async (req) => {
         phase_balance: finalBalance,
         profit: finalProfit,
         qualifying_tickets: qualifyingTickets,
-        breach_reason: nextState === "breached" ? breachReason : null,
+        // důvod uzavření se po prvním zápisu nepřepisuje (serverová kontrola limitů ho nastaví sama)
+        breach_reason: nextState === "breached" ? (account.state === "breached" ? (account.breach_reason ?? breachReason) : breachReason) : null,
         flags,
         tickets_total: ticketsTotal,
         tickets_won: ticketsWon,
@@ -348,7 +350,10 @@ serve(async (req) => {
     const edgeRuntime = (globalThis as any).EdgeRuntime;
     if (edgeRuntime?.waitUntil) edgeRuntime.waitUntil(riskWork);
 
-    return jsonResponse({ ok: true });
+    // serverová kontrola limitů ztráty z tiketů (až PO uložení snapshotu, aby ho nepřepsal)
+    const closedReason = await enforceLossLimits(supabase, account.id).catch((e) => { console.error("enforceLossLimits:", e); return null; });
+
+    return jsonResponse({ ok: true, ...(closedReason ? { closed: closedReason } : {}) });
   } catch (err) {
     console.error("sync-account error:", err);
     return jsonResponse(

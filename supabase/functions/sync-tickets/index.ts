@@ -18,6 +18,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { handleCors, jsonResponse } from "../_shared/cors.ts";
 import { verifyTicketOutcome, type VerifySelection } from "../_shared/settle-verify.ts";
 import { staticAdmission, fetchEventInfo, evaluateSelection, type DraftSelection } from "../_shared/ticket-admission.ts";
+import { enforceLossLimits } from "../_shared/loss-enforce.ts";
 
 const STATUSES = ["pending", "won", "lost", "push", "cashedout"];
 const MAX_BATCH = 200;
@@ -252,7 +253,10 @@ serve(async (req) => {
       .upsert(rows, { onConflict: "account_id,client_ticket_id" });
     if (error) throw error;
 
-    return jsonResponse({ ok: true, synced: rows.length, settled: settledForClient });
+    // limity ztráty se počítají na serveru z tiketů — klient je nemůže "nenahlásit"
+    const closedReason = await enforceLossLimits(supabase, account.id).catch((e) => { console.error("enforceLossLimits:", e); return null; });
+
+    return jsonResponse({ ok: true, synced: rows.length, settled: settledForClient, ...(closedReason ? { closed: closedReason } : {}) });
   } catch (err) {
     console.error("sync-tickets error:", err);
     return jsonResponse(
