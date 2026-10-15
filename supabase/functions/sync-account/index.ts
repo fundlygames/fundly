@@ -12,6 +12,7 @@ import { computeServerRiskSignals, watchStatusFor } from "../_shared/risk.ts";
 import { sendEmail, accountClosedHtml, pendingApprovalAdminHtml } from "../_shared/email.ts";
 import { packageByKey, resetPrice } from "../_shared/packages.ts";
 import { enforceLossLimits } from "../_shared/loss-enforce.ts";
+import { markMailboxProven } from "../_shared/mailbox.ts";
 
 const ALLOWED_STATES = ["active", "funded", "breached", "pending_approval"];
 const SITE_URL = Deno.env.get("SITE_URL") ?? "https://fundly.games";
@@ -51,6 +52,8 @@ serve(async (req) => {
     if (userError || !user) {
       return jsonResponse({ error: "Invalid access token." }, 401);
     }
+
+    await markMailboxProven(supabase, user, token); // přihlášení odkazem z e-mailu = ověřená schránka
 
     const body = await req.json().catch(() => ({}));
 

@@ -7,6 +7,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { handleCors, jsonResponse } from "../_shared/cors.ts";
+import { markMailboxProven } from "../_shared/mailbox.ts";
 
 serve(async (req) => {
   const cors = handleCors(req);
@@ -26,6 +27,7 @@ serve(async (req) => {
     const { data: userData, error: userError } = await supabase.auth.getUser(token);
     const user = userData?.user;
     if (userError || !user) return jsonResponse({ error: "Invalid access token." }, 401);
+    await markMailboxProven(supabase, user, token); // přihlášení odkazem z e-mailu = ověřená schránka
 
     const { data: account } = await supabase
       .from("challenge_accounts")

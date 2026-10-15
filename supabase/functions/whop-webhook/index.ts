@@ -8,6 +8,7 @@ import { sendPurchaseEvent } from "../_shared/meta-capi.ts";
 import { markRedeemed } from "../_shared/capacity.ts";
 import { sendEmail } from "../_shared/email.ts";
 import type { PackageDef } from "../_shared/packages.ts";
+import { secureUserForPurchase } from "../_shared/mailbox.ts";
 
 const SITE_URL = Deno.env.get("SITE_URL") ?? "https://fundly.games";
 
@@ -337,6 +338,15 @@ serve(async (req) => {
         }
 
         const user = await findOrCreateUser(supabase, String(email));
+        // Účet s touhle adresou mohl předem založit kdokoli (e-mail se při registraci neověřuje).
+        // Neověřenému, ne-čerstvému účtu změníme heslo a zahodíme relace — dovnitř se dostane jen
+        // majitel schránky přes odkaz z e-mailu níže (viz _shared/mailbox.ts).
+        if (user) {
+          const access = await secureUserForPurchase(supabase, user);
+          if (access === "reset" || access === "reset_failed") {
+            console.error(`whop-webhook MAILBOX_UNVERIFIED: ${access} pro uživatele ${user.id} (účet vznikl ${user.created_at}, nákup ${data.id})`);
+          }
+        }
         // phase_started_at musí být přesně tenhle okamžik (skutečný nákup),
         // ne kdykoli klient poprvé otevře dashboard a sám si spustí lokální
         // 30denní odpočet: bez tohohle sloupec zůstával NULL, dokud

@@ -290,6 +290,21 @@ function celebrateTicket(ticket) {
   }
 }
 
+// Po zaplacení bez přihlášení: kupující musí otevřít odkaz z e-mailu (ověření, že schránka je jeho).
+function showCheckEmailNotice() {
+  if (document.getElementById("checkEmailNotice")) return;
+  const box = document.createElement("div");
+  box.id = "checkEmailNotice";
+  box.setAttribute("role", "alert");
+  box.style.cssText = "position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(2,2,4,.94);backdrop-filter:blur(6px)";
+  box.innerHTML = '<div style="max-width:440px;text-align:center;padding:32px;border-radius:18px;background:#0b0b10;border:1px solid rgba(20,241,149,.35);font-family:Inter,Arial,sans-serif;color:#e8e8ee">' +
+    '<div style="font-size:40px;margin-bottom:8px">&#9993;</div>' +
+    '<h2 style="margin:0 0 10px;font-size:22px;color:#fff">Payment received &mdash; check your inbox</h2>' +
+    '<p style="margin:0 0 18px;line-height:1.55;color:#b9b9c6">To keep your account secure, we sent a sign-in link to the e-mail you paid with. Open it and your account will be ready. It can take up to a minute; check your spam folder too.</p>' +
+    '<a href="./" style="color:#14f195;text-decoration:none;font-weight:600">Back to home</a></div>';
+  document.body.appendChild(box);
+}
+
 // ---------- return from Whop checkout (?paid=1) ----------
 // Captured before the URL gets cleaned below — syncChallengeAccount() (runs
 // later, on DOMContentLoaded) uses this to retry instead of immediately
@@ -777,6 +792,10 @@ async function syncChallengeAccount() {
     // Gate: dashboard je jen pro platící — bez přihlášení na landing,
     // bez jakéhokoli účtu na checkout, bez aktivního účtu limited dashboard.
     if (!user) {
+      // Právě zaplaceno, ale v tomhle prohlížeči není přihlášení (účet s touto adresou už existoval
+      // a e-mail se neověřuje — přihlásit se musí odkazem z "Payment confirmed" e-mailu, viz
+      // whop-webhook / _shared/mailbox.ts). Neposílat domů, ať kupující ví, co dál.
+      if (justPaid) { showCheckEmailNotice(); return; }
       window.location.replace("./");
       return;
     }
