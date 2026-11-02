@@ -12,6 +12,7 @@ import { computeServerRiskSignals, watchStatusFor } from "../_shared/risk.ts";
 import { sendEmail, accountClosedHtml, pendingApprovalAdminHtml } from "../_shared/email.ts";
 import { packageByKey, resetPrice } from "../_shared/packages.ts";
 import { enforceLossLimits } from "../_shared/loss-enforce.ts";
+import { lossLimitBreach } from "../_shared/loss-limits.ts";
 import { markMailboxProven } from "../_shared/mailbox.ts";
 
 const ALLOWED_STATES = ["active", "funded", "breached", "pending_approval"];
@@ -138,7 +139,7 @@ serve(async (req) => {
     // challenge účet přihlášeného hráče (nejnovější)
     const { data: account } = await supabase
       .from("challenge_accounts")
-      .select("id, email, package_key, state, phase, pending_phase, tickets_total, created_at, phase1_completed_at, phase2_completed_at, funded_at, signup_ip, payment_fingerprint, betting_profile, capital, phase_started_at, breach_reason")
+      .select("id, email, package_key, state, phase, pending_phase, tickets_total, created_at, phase1_completed_at, phase2_completed_at, funded_at, signup_ip, payment_fingerprint, betting_profile, capital, phase_started_at, phase_baseline, breach_reason")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -158,7 +159,7 @@ serve(async (req) => {
     // nejnovější tiket už tu má být vidět.
     const { data: ticketAgg } = await supabase
       .from("tickets")
-      .select("stake, payout, status")
+      .select("stake, payout, status, placed_at, settled_at")
       .eq("account_id", account.id);
     const serverComputedBalance = (ticketAgg ?? []).reduce((bal, t) => {
       const stakeAmt = Number(t.stake) || 0;
@@ -200,21 +201,36 @@ serve(async (req) => {
     // {state:"funded", phase:3} a obejít schválení i KYC; stejně tak zastaralý klient
     // (neobnovený po schválení) mohl funded účet vrátit zpátky na active.
     const expectedNextPhase = account.phase === 1 ? 2 : account.phase === 2 ? 3 : null;
+    // Klient smí účet "zhoršit" na breached, ale u fází 1–2 to server ověří z tiketů (stejně jako
+    // loss-limits.ts, otevřené vklady se nepočítají jako ztráta). Chybná klientská detekce (např.
+    // starší verze počítala otevřené vklady jako prohru) tak už nezavře účet, který limit nepřekročil.
+    let clientState = state;
+    if (state === "breached" && (account.phase === 1 || account.phase === 2) && account.state !== "breached") {
+      const serverReason = lossLimitBreach(
+        { capital: account.capital, phase: account.phase, state: account.state, phase_started_at: account.phase_started_at, phase_baseline: account.phase_baseline },
+        (ticketAgg ?? []) as { stake: number; payout: number | null; status: string; placed_at: string; settled_at: string | null }[],
+        Date.now(),
+      );
+      if (!serverReason) {
+        console.error(`sync-account BREACH_IGNORED: account ${account.id} client reported breached ("${breachReason}") but server limits are intact`);
+        clientState = account.state;
+      }
+    }
     let nextState: string;
     if (account.state === "breached") {
       nextState = "breached";
     } else if (account.state === "pending_approval") {
-      nextState = state === "breached" ? "breached" : "pending_approval";
+      nextState = clientState === "breached" ? "breached" : "pending_approval";
     } else if (account.state === "funded") {
-      nextState = state === "breached" ? "breached" : "funded";
-    } else if (state === "funded") {
+      nextState = clientState === "breached" ? "breached" : "funded";
+    } else if (clientState === "funded") {
       console.error(`sync-account STATE_TAMPER: account ${account.id} (${account.state}, phase ${account.phase}) reported state "funded" — ignored`);
       nextState = account.state;
-    } else if (state === "pending_approval" && (expectedNextPhase === null || pendingPhaseIn !== expectedNextPhase)) {
+    } else if (clientState === "pending_approval" && (expectedNextPhase === null || pendingPhaseIn !== expectedNextPhase)) {
       console.error(`sync-account PENDING_TAMPER: account ${account.id} (phase ${account.phase}) asked for pending phase ${pendingPhaseIn} — ignored`);
       nextState = account.state;
     } else {
-      nextState = state;
+      nextState = clientState;
     }
     // fáze se mění jen přes approve-phase (server), nikdy podle klienta.
     const nextPhase = account.phase;

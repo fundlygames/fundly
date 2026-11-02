@@ -277,7 +277,12 @@ const Portfolio = (() => {
   // nebo denní ztráta nad limitem. Jen detekce — žádné blokování.
   function breachInfo(state) {
     const dd = drawdownInfo(state);
-    if (state.balance <= dd.floor) {
+    // Vklady čekajících tiketů už jsou z balance odečtené (viz placeBet), ale prohrou
+    // se stanou až po vyhodnocení — do limitu se proto přičtou zpět (stejně jako u denního
+    // limitu níž). Bez toho účet padl, jakmile součet otevřených vkladů stlačil balance pod
+    // floor, i když se ještě nic neprohrálo (reálně nahlášeno 25. 10.: Advanced účet
+    // s balance $23 543 byl uzavřen pro "−10 %" při floor $22 500; server počítá stejně).
+    if (state.balance + openExposure(state) <= dd.floor) {
       return {
         breached: true,
         reason: dd.trailing
