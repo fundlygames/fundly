@@ -430,7 +430,7 @@
   // as early as the e-mail is known (off-screen, see goToStep/.prewarm), the
   // spinner stays until Whop reports its content has rendered, and a "try
   // again" hint appears if that takes long.
-  const pay = { key: null, session: null, ready: false, startedAt: 0, timer: null, observer: null, onMsg: null };
+  const pay = { key: null, session: null, ready: false, startedAt: 0, timer: null, handle: null };
   const payKey = (pkgKey, email) => pkgKey + "|" + String(email).trim().toLowerCase();
 
   // Return URL after payment (the site also runs under the /fundly/ path on GitHub Pages).
@@ -440,8 +440,6 @@
 
   function stopPayWatch() {
     clearInterval(pay.timer);
-    if (pay.observer) { pay.observer.disconnect(); pay.observer = null; }
-    if (pay.onMsg) { window.removeEventListener("message", pay.onMsg); pay.onMsg = null; }
   }
 
   // Off-screen "warm" state of the payment panel while it pre-loads on steps 1-2
@@ -456,6 +454,7 @@
   // Forget any pre-loaded/started payment (package or e-mail changed, retry).
   function clearPay() {
     stopPayWatch();
+    if (pay.handle) { try { pay.handle.destroy(); } catch (_) { /* ignore */ } pay.handle = null; }
     pay.key = null;
     pay.session = null;
     pay.ready = false;
@@ -479,7 +478,7 @@
     $("payErrMsg").textContent = (msg || t("co.gatewayError")) + hint;
     const link = $("payFallbackLink");
     if (checkoutUrl) {
-      link.href = checkoutUrl;
+      link.href = hostedUrl(checkoutUrl);
       link.hidden = false;
     } else {
       link.hidden = true;
@@ -496,60 +495,79 @@
     paySlow.hidden = true;
   }
 
+  // Whop retired the old loader.js / data-whop-checkout-* embed (every session now
+  // answers "This checkout is no longer available"), so the payment form is mounted
+  // with the current Whop Elements API (docs.whop.com/payments/checkout-embed).
+  let whopElementsPromise = null;
+  function loadWhopElements() {
+    if (typeof window.WhopElements === "function") return Promise.resolve();
+    if (whopElementsPromise) return whopElementsPromise;
+    whopElementsPromise = new Promise((resolve, reject) => {
+      const s = document.createElement("script");
+      s.src = "https://cdn.whop.com/elements/amber/elements.js";
+      s.setAttribute("data-whop-elements", "");
+      s.async = true;
+      s.onload = () => {
+        // WhopElements is defined right after load; poll briefly just in case
+        let tries = 0;
+        const t = setInterval(() => {
+          if (typeof window.WhopElements === "function") { clearInterval(t); resolve(); }
+          else if (++tries > 40) { clearInterval(t); whopElementsPromise = null; reject(new Error("WhopElements missing")); }
+        }, 50);
+      };
+      s.onerror = () => { whopElementsPromise = null; reject(new Error("elements.js failed to load")); };
+      document.head.appendChild(s);
+    });
+    return whopElementsPromise;
+  }
+
+  // Hosted Whop page for the same session (always works) — carries the promo code in the URL.
+  function hostedUrl(url) {
+    if (!url) return url;
+    return typeof promoActive === "function" && promoActive()
+      ? url + (url.includes("?") ? "&" : "?") + "promoCode=" + encodeURIComponent(PROMO.code)
+      : url;
+  }
+
   function mountWhopEmbed(sessionId, planId, email) {
-    // Mount element per the Whop docs (embedded checkout, HTML/JS variant)
-    const el = document.createElement("div");
-    el.setAttribute("data-whop-checkout-plan-id", planId);
-    el.setAttribute("data-whop-checkout-session", sessionId);
-    el.setAttribute("data-whop-checkout-return-url", returnUrl());
-    el.setAttribute("data-whop-checkout-theme", "dark");
-    el.setAttribute("data-whop-checkout-theme-accent-color", "#14f195");
-    // Shows GBP/EUR/etc. pricing to non-US visitors automatically (Whop's own
-    // live FX, no separate currency plans needed) — UK traffic sees £, not $.
-    el.setAttribute("data-whop-checkout-adaptive-pricing", "true");
-    // The site advertises the discounted price ($49 with NEWFUNDLY, ...) but the
-    // fixed Whop plans charge list price, so without this the payment form
-    // showed $70 and the customer had to find "Add promo code" and type the code
-    // themselves. Whop's loader forwards it as `promoCode` and applies it before
-    // the buyer sees the price. (Checked live: total drops by exactly 30 %.)
-    if (typeof promoActive === "function" && promoActive()) {
-      el.setAttribute("data-whop-checkout-promo-code", PROMO.code);
-    }
-    // ...and the e-mail was already typed in step 2 — don't ask for it again.
-    if (email) el.setAttribute("data-whop-checkout-prefill-email", email);
     whopMount.innerHTML = "";
     whopMount.classList.add("is-loading");
-    whopMount.appendChild(el);
+    const host = document.createElement("div");
+    host.id = "whopElement";
+    whopMount.appendChild(host);
 
     pay.startedAt = Date.now();
-    // Ready = Whop's embed reports a rendered height (its "resize" message), or
-    // — safety net — 2.5 s after the iframe's own load event.
-    pay.onMsg = (ev) => {
-      let origin = "";
-      try { origin = new URL(ev.origin).hostname; } catch (_) { return; }
-      if (!/(^|\.)whop\.com$/.test(origin)) return;
-      let d = ev.data;
-      if (typeof d === "string") { try { d = JSON.parse(d); } catch (_) { return; } }
-      if (d && d.event === "resize" && Number(d.height) > 120) setTimeout(markPayReady, 150);
-    };
-    window.addEventListener("message", pay.onMsg);
-    pay.observer = new MutationObserver(() => {
-      const iframe = whopMount.querySelector("iframe");
-      if (!iframe || iframe.dataset.watched) return;
-      iframe.dataset.watched = "1";
-      iframe.addEventListener("load", () => setTimeout(markPayReady, 2500), { once: true });
-    });
-    pay.observer.observe(whopMount, { childList: true, subtree: true });
+    const myKey = pay.key;
+    const stillCurrent = () => pay.key === myKey;
 
-    // The loader is re-inserted every time so it picks up the new mount element.
-    const old = document.querySelector('script[src*="js.whop.com/static/checkout/loader.js"]');
-    if (old) old.remove();
-    const s = document.createElement("script");
-    s.async = true;
-    s.defer = true;
-    s.src = "https://js.whop.com/static/checkout/loader.js";
-    s.onerror = () => showFallback(t("co.gatewayError"), state.checkoutUrl);
-    document.head.appendChild(s);
+    loadWhopElements().then(() => {
+      if (!stillCurrent()) return;
+      const options = {
+        checkoutConfiguration: sessionId,
+        returnUrl: returnUrl(),
+        appearance: { theme: { appearance: "dark", accentColor: "green" } },
+        // The session's own redirect only covers off-site steps; a plain card payment
+        // completes in place, so send the buyer to the dashboard ourselves.
+        onComplete: () => { window.location.href = returnUrl(); },
+      };
+      // The site advertises the discounted price ($49 with NEWFUNDLY, ...) but the fixed
+      // Whop plans charge list price — apply the code before the buyer sees the total.
+      if (typeof promoActive === "function" && promoActive()) options.promoCode = PROMO.code;
+      const group = window.WhopElements().checkout.create(options);
+      pay.handle = group;
+      const element = group.create("checkout", {
+        buyerEmail: email || "",
+        onReady: () => { if (stillCurrent()) markPayReady(); },
+        onError: (e) => {
+          console.warn("whop checkout:", e && e.message);
+          if (stillCurrent()) showFallback(t("co.gatewayErrorRetry"), state.checkoutUrl);
+        },
+      });
+      element.mount(host);
+    }).catch((err) => {
+      console.warn("whop elements:", err);
+      if (stillCurrent()) showFallback(t("co.gatewayError"), state.checkoutUrl);
+    });
 
     // Soft hint after 8 s (only once the customer is actually looking at
     // step 3), hard fallback to the hosted Whop page after 25 s.
