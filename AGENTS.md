@@ -9,6 +9,8 @@ GitHub repo: `fundlygames/fundly` (migrated from the old `matejc-beep/fundly`), 
 Local dir: kept under its original working-copy name for compatibility.
 Archived React/Supabase (Lovable) version: repo `matejc-beep/betflow-react-archive` — NOT in active use.
 
+> **Aktuálna a detailná dokumentácia celého projektu: [`docs/project/README.md`](docs/project/README.md).** Tabuľka balíčkov nižšie je zastaraná — platné ceny sú v `js/packages.js`.
+
 ## Key files
 
 - `index.html` — landing / package picker
