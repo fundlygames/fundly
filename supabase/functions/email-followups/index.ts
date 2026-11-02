@@ -43,6 +43,19 @@ interface Candidate {
   reason?: string | null;
 }
 
+// Supabase (PostgREST) vrací chyby jako prosté objekty, ne instance Error — dřív se z nich
+// ztratila zpráva a cron hlásil jen "Run failed.".
+function errText(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (err && typeof err === "object") {
+    const e = err as { message?: string; code?: string; details?: string; hint?: string };
+    const parts = [e.message, e.code && `code ${e.code}`, e.details, e.hint].filter(Boolean);
+    if (parts.length) return parts.join(" | ");
+    try { return JSON.stringify(err); } catch { /* fall through */ }
+  }
+  return String(err ?? "Run failed.");
+}
+
 // deno-lint-ignore no-explicit-any
 async function allAuthUsers(supabase: any): Promise<any[]> {
   // deno-lint-ignore no-explicit-any
@@ -88,17 +101,33 @@ serve(async (req) => {
 
     const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-    const [accountsRes, paymentsRes, unsubRes, sentRes, discountRes, previewRes, users] = await Promise.all([
-      supabase.from("challenge_accounts").select("email, state, flags, package_key, breach_reason, created_at, synced_at"),
-      // jen ÚSPĚŠNÉ platby: člověk, jehož platba zlyhala (např. 3-D Secure), pořád nekoupil a má dostat připomínku
-      supabase.from("payments").select("email").eq("status", "succeeded"),
-      supabase.from("email_unsubscribes").select("email"),
-      supabase.from("followup_sent").select("email, track, step, sent_at"),
-      supabase.from("discount_signups").select("email, created_at, lang"),
-      supabase.from("preview_signups").select("email, created_at"),
-      allAuthUsers(supabase),
-    ]);
-    for (const r of [accountsRes, paymentsRes, unsubRes, sentRes, discountRes, previewRes]) if (r.error) throw r.error;
+    // Čtení tabulek občas selže přechodně (PostgREST/síť) — jednou se zopakuje, ať cron nepadá.
+    const loadAll = async () => {
+      const res = await Promise.all([
+        supabase.from("challenge_accounts").select("email, state, flags, package_key, breach_reason, created_at, synced_at"),
+        // jen ÚSPĚŠNÉ platby: člověk, jehož platba zlyhala (např. 3-D Secure), pořád nekoupil a má dostat připomínku
+        supabase.from("payments").select("email").eq("status", "succeeded"),
+        supabase.from("email_unsubscribes").select("email"),
+        supabase.from("followup_sent").select("email, track, step, sent_at"),
+        supabase.from("discount_signups").select("email, created_at, lang"),
+        supabase.from("preview_signups").select("email, created_at"),
+        allAuthUsers(supabase),
+      ]);
+      for (const r of res.slice(0, 6) as { error?: unknown }[]) if (r.error) throw r.error;
+      return res;
+    };
+    let loaded;
+    try {
+      loaded = await loadAll();
+    } catch (firstErr) {
+      console.error("email-followups: čtení dat selhalo, zkouším znovu:", errText(firstErr));
+      await new Promise((r) => setTimeout(r, 1500));
+      loaded = await loadAll();
+    }
+    const [accountsRes, paymentsRes, unsubRes, sentRes, discountRes, previewRes, users] = loaded as [
+      // deno-lint-ignore no-explicit-any
+      any, any, any, any, any, any, any[],
+    ];
 
     const lower = (s: unknown) => String(s ?? "").trim().toLowerCase();
     const unsub = new Set((unsubRes.data ?? []).map((r: { email: string }) => lower(r.email)));
@@ -232,7 +261,7 @@ serve(async (req) => {
     }
     return jsonResponse({ ok: true, candidates: candidates.length, due: due.length, sent, failed });
   } catch (err) {
-    console.error("email-followups error:", err);
-    return jsonResponse({ error: err instanceof Error ? err.message : "Run failed." }, 500);
+    console.error("email-followups error:", errText(err));
+    return jsonResponse({ error: errText(err) }, 500);
   }
 });
