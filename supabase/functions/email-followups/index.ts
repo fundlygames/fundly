@@ -101,33 +101,34 @@ serve(async (req) => {
 
     const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-    // Čtení tabulek občas selže přechodně (PostgREST/síť) — jednou se zopakuje, ať cron nepadá.
-    const loadAll = async () => {
-      const res = await Promise.all([
-        supabase.from("challenge_accounts").select("email, state, flags, package_key, breach_reason, created_at, synced_at"),
-        // jen ÚSPĚŠNÉ platby: člověk, jehož platba zlyhala (např. 3-D Secure), pořád nekoupil a má dostat připomínku
-        supabase.from("payments").select("email").eq("status", "succeeded"),
-        supabase.from("email_unsubscribes").select("email"),
-        supabase.from("followup_sent").select("email, track, step, sent_at"),
-        supabase.from("discount_signups").select("email, created_at, lang"),
-        supabase.from("preview_signups").select("email, created_at"),
-        allAuthUsers(supabase),
-      ]);
-      for (const r of res.slice(0, 6) as { error?: unknown }[]) if (r.error) throw r.error;
-      return res;
+    // Čtení tabulek občas selže přechodně (PostgREST/síť, ~0,3 % běhů) — každé čtení se samo
+    // zopakuje až 3× s rostoucí pauzou, takže jednorázový výpadek nezhodí celý běh.
+    // deno-lint-ignore no-explicit-any
+    const read = async (label: string, run: () => PromiseLike<any>): Promise<any> => {
+      let last: unknown;
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          const res = await run();
+          if (!res?.error) return res;
+          last = res.error;
+        } catch (e) {
+          last = e;
+        }
+        console.error(`email-followups: čtení "${label}" selhalo (pokus ${attempt}/3):`, errText(last));
+        if (attempt < 3) await new Promise((r) => setTimeout(r, 1000 * attempt));
+      }
+      throw last;
     };
-    let loaded;
-    try {
-      loaded = await loadAll();
-    } catch (firstErr) {
-      console.error("email-followups: čtení dat selhalo, zkouším znovu:", errText(firstErr));
-      await new Promise((r) => setTimeout(r, 1500));
-      loaded = await loadAll();
-    }
-    const [accountsRes, paymentsRes, unsubRes, sentRes, discountRes, previewRes, users] = loaded as [
-      // deno-lint-ignore no-explicit-any
-      any, any, any, any, any, any, any[],
-    ];
+    const [accountsRes, paymentsRes, unsubRes, sentRes, discountRes, previewRes, users] = await Promise.all([
+      read("challenge_accounts", () => supabase.from("challenge_accounts").select("email, state, flags, package_key, breach_reason, created_at, synced_at")),
+      // jen ÚSPĚŠNÉ platby: člověk, jehož platba zlyhala (např. 3-D Secure), pořád nekoupil a má dostat připomínku
+      read("payments", () => supabase.from("payments").select("email").eq("status", "succeeded")),
+      read("email_unsubscribes", () => supabase.from("email_unsubscribes").select("email")),
+      read("followup_sent", () => supabase.from("followup_sent").select("email, track, step, sent_at")),
+      read("discount_signups", () => supabase.from("discount_signups").select("email, created_at, lang")),
+      read("preview_signups", () => supabase.from("preview_signups").select("email, created_at")),
+      read("auth users", async () => ({ data: await allAuthUsers(supabase) })).then((r) => r.data as unknown[]),
+    ]);
 
     const lower = (s: unknown) => String(s ?? "").trim().toLowerCase();
     const unsub = new Set((unsubRes.data ?? []).map((r: { email: string }) => lower(r.email)));
