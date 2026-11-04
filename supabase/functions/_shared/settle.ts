@@ -6,6 +6,7 @@ export type Selection = {
   marketName: string | null;
   field: string | null;
   hdp?: number | null;
+  sport?: string | null;
 };
 
 export type Period = { home: number; away: number } | null | undefined;
@@ -38,7 +39,11 @@ export function settleSelection(sel: Selection, scores: Scores): "won" | "lost" 
   const total = finalHome + finalAway;
 
   if (ML_MARKETS.has(market)) {
-    if (finalHome === finalAway) return sel.field === "draw" ? "won" : "lost";
+    if (finalHome === finalAway) {
+      // esports: 2-way ML — a drawn series (e.g. BO2 1:1) is void, not a loss for either side (keep in sync with js/portfolio.js)
+      if (sel.sport === "esports" && sel.field !== "draw") return "push";
+      return sel.field === "draw" ? "won" : "lost";
+    }
     const winner = finalHome > finalAway ? "home" : "away";
     return sel.field === winner ? "won" : "lost";
   }
