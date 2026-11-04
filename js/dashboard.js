@@ -1132,6 +1132,10 @@ const SPORTS = [
   ["basketball", "Basketball", "basketbal"],
   ["football", "Football", "fotbal"],
   ["ice-hockey", "Hockey", "hokej"],
+  // Esports (odds-api slug "esports": Counter-Strike, Dota 2, LoL, Valorant, Mobile Legends…) — přidáno 2026-11-04.
+  // Skóre zápasu = vyhrané mapy (scores.home/away), takže ML/Spread/Totals se vyhodnocují stejně jako ostatní sporty;
+  // remíza (BO2 1:1) u dvouvýsledkového ML vrací vklad (viz settleSelection).
+  ["esports", "Esports", "esporty"],
   ["table-tennis", "Table tennis", "stolni-tenis"],
   ["tennis", "Tennis", "tenis"],
   ["darts", "Darts", "sipky"],

@@ -590,7 +590,11 @@ const Portfolio = (() => {
     const total = finalHome + finalAway;
 
     if (ML_MARKETS.has(market)) {
-      if (finalHome === finalAway) return sel.field === "draw" ? "won" : "lost";
+      if (finalHome === finalAway) {
+        // esports: 2-way ML — a drawn series (e.g. BO2 1:1) is void, not a loss for either side
+        if (sel.sport === "esports" && sel.field !== "draw") return "push";
+        return sel.field === "draw" ? "won" : "lost";
+      }
       const winner = finalHome > finalAway ? "home" : "away";
       return sel.field === winner ? "won" : "lost";
     }
