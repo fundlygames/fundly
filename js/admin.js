@@ -13,7 +13,7 @@ const czk = (n) => n.toLocaleString("cs-CZ") + " Kč";
 const usd = (n) => "$" + Math.round(Number(n) || 0).toLocaleString("en-US");
 
 // ---------- přepínání sekcí ----------
-const views = ["finance", "hraci", "affiliate", "support", "waitlist", "reporty", "problemy", "diagnostika"];
+const views = ["finance", "hraci", "affiliate", "support", "waitlist", "reporty", "problemy", "naklady", "investori", "diagnostika"];
 
 function showView(name) {
   views.forEach((v) => {
@@ -409,6 +409,8 @@ async function loadRealStats() {
   loadSupportTickets();
   loadWaitlist();
   loadReportHistory();
+  loadExpenses();
+  loadInvestors();
 }
 
 // ---------- E-maily zákazníků (Finance view) ----------
@@ -990,6 +992,245 @@ document.getElementById("waitlistInviteNextBtn")?.addEventListener("click", asyn
     window.alert(err.message || "Pozvání se nepodařilo.");
   } finally {
     btn.disabled = false;
+  }
+});
+
+
+// ---------- Náklady a čistý zisk (finance-manage) ----------
+// Admin sem zapisuje marketing a další výdaje; z nich + z tržeb se počítá čistý zisk,
+// který vidí investoři na stránce /investors (sdílená SQL funkce investor_stats).
+let EXPENSES = [];
+let EXP_EDIT = null;
+const KIND_LABEL = { marketing: "Marketing", software: "Software", payroll: "Mzdy", legal: "Právní/účetní", other: "Ostatní" };
+const usd2 = (n) => (Number(n) < 0 ? "−" : "") + "$" + Math.abs(Number(n) || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+function expMsg(text, isErr) {
+  const el = document.getElementById("expNoteMsg");
+  if (!el) return;
+  el.textContent = text || "";
+  el.className = "auth-note mt" + (isErr ? " error" : "");
+  el.hidden = !text;
+}
+
+async function loadExpenses() {
+  try {
+    const [list, pnl] = await Promise.all([adminFetch("finance-manage", { action: "expenses_list" }), adminFetch("finance-manage", { action: "pnl" })]);
+    EXPENSES = list.expenses || [];
+    const dstat = (label, value, cls) => `<div class="dstat"><div class="lbl">${label}</div><div class="val ${cls || ""}">${value}</div></div>`;
+    const grid = document.getElementById("pnlGrid");
+    if (grid) {
+      grid.innerHTML =
+        dstat("Hrubé tržby", usd2(pnl.gross)) +
+        dstat("Čisté tržby (po poplatcích)", usd2(pnl.net_revenue)) +
+        dstat("Marketing", usd2(pnl.marketing)) +
+        dstat("Náklady celkem", usd2(pnl.costs)) +
+        dstat("Výplaty partnerům", usd2(pnl.payouts)) +
+        dstat("Čistý zisk", usd2(pnl.net_profit), pnl.net_profit >= 0 ? "green" : "red");
+    }
+    const total = document.getElementById("expTotal");
+    if (total) total.textContent = `· ${EXPENSES.length} záznamů · ${usd2(list.total_usd)}`;
+    renderExpensesTable();
+  } catch (e) {
+    const t = document.getElementById("expTable");
+    if (t) t.innerHTML = `<tbody><tr><td class="bet-msg">Náklady se nepodařilo načíst: ${esc(e.message)}</td></tr></tbody>`;
+  }
+}
+
+function renderExpensesTable() {
+  const t = document.getElementById("expTable");
+  if (!t) return;
+  t.innerHTML = `<thead><tr><th>Datum</th><th>Kategorie</th><th>Popis</th><th>Částka</th><th>USD</th><th></th></tr></thead><tbody>` +
+    (EXPENSES.length ? EXPENSES.map((x) => `<tr>
+        <td>${esc(x.entry_date)}</td>
+        <td><span class="tag ${x.kind === "marketing" ? "pend" : "push"}">${esc(KIND_LABEL[x.kind] || x.kind)}</span></td>
+        <td>${esc(x.label || "—")}${x.note ? `<br><span style="color:var(--text-muted);font-size:.75rem">${esc(x.note)}</span>` : ""}</td>
+        <td>${Number(x.amount).toLocaleString("cs-CZ", { maximumFractionDigits: 2 })} ${esc(x.currency)}</td>
+        <td class="odds">${usd2(x.amount_usd)}</td>
+        <td style="white-space:nowrap"><button class="btn btn-ghost" data-exp-edit="${esc(x.id)}" style="height:auto;padding:4px 10px">Upravit</button>
+          <button class="btn btn-ghost" data-exp-del="${esc(x.id)}" style="height:auto;padding:4px 10px">Smazat</button></td>
+      </tr>`).join("") : `<tr><td colspan="6" class="bet-msg">Zatím žádné náklady. Přidejte první pomocí formuláře výše.</td></tr>`) + "</tbody>";
+}
+
+function resetExpForm() {
+  EXP_EDIT = null;
+  const f = document.getElementById("expForm");
+  if (!f) return;
+  f.reset();
+  document.getElementById("expDate").value = new Date().toISOString().slice(0, 10);
+  document.getElementById("expSubmit").textContent = "Přidat";
+  document.getElementById("expFormTitle").textContent = "Přidat náklad";
+  document.getElementById("expCancel").hidden = true;
+}
+
+document.getElementById("expForm")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById("expSubmit");
+  const body = {
+    action: EXP_EDIT ? "expense_update" : "expense_create",
+    id: EXP_EDIT || undefined,
+    entry_date: document.getElementById("expDate").value,
+    kind: document.getElementById("expKind").value,
+    amount: document.getElementById("expAmount").value,
+    currency: document.getElementById("expCurrency").value,
+    label: document.getElementById("expLabel").value,
+    note: document.getElementById("expNote").value,
+  };
+  if (!body.entry_date || body.amount === "") { expMsg("Vyplňte datum a částku.", true); return; }
+  btn.disabled = true;
+  try {
+    await adminFetch("finance-manage", body);
+    expMsg(EXP_EDIT ? "Změny uloženy." : "Náklad přidán.", false);
+    resetExpForm();
+    await loadExpenses();
+  } catch (err) {
+    expMsg(err.message || "Uložení se nepodařilo.", true);
+  } finally {
+    btn.disabled = false;
+  }
+});
+document.getElementById("expCancel")?.addEventListener("click", () => { resetExpForm(); expMsg("", false); });
+document.getElementById("expTable")?.addEventListener("click", async (e) => {
+  const edit = e.target.closest("[data-exp-edit]");
+  const del = e.target.closest("[data-exp-del]");
+  if (edit) {
+    const x = EXPENSES.find((r) => r.id === edit.dataset.expEdit);
+    if (!x) return;
+    EXP_EDIT = x.id;
+    document.getElementById("expDate").value = x.entry_date;
+    document.getElementById("expKind").value = x.kind;
+    document.getElementById("expAmount").value = x.amount;
+    document.getElementById("expCurrency").value = x.currency;
+    document.getElementById("expLabel").value = x.label || "";
+    document.getElementById("expNote").value = x.note || "";
+    document.getElementById("expSubmit").textContent = "Uložit změny";
+    document.getElementById("expFormTitle").textContent = "Upravit náklad";
+    document.getElementById("expCancel").hidden = false;
+    document.getElementById("expForm").scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+  if (del) {
+    if (!window.confirm("Opravdu smazat tento náklad? Čistý zisk se přepočítá.")) return;
+    del.disabled = true;
+    try {
+      await adminFetch("finance-manage", { action: "expense_delete", id: del.dataset.expDel });
+      await loadExpenses();
+    } catch (err) {
+      window.alert(err.message || "Smazání se nepodařilo.");
+      del.disabled = false;
+    }
+  }
+});
+resetExpForm();
+
+// ---------- Investoři a manažeři: přístupové odkazy ----------
+let INVESTORS = [];
+let INV_EDIT = null;
+
+function invMsg(text, isErr) {
+  const el = document.getElementById("invMsg");
+  if (!el) return;
+  el.textContent = text || "";
+  el.className = "auth-note mt" + (isErr ? " error" : "");
+  el.hidden = !text;
+}
+
+async function loadInvestors() {
+  try {
+    const data = await adminFetch("finance-manage", { action: "investors_list" });
+    INVESTORS = data.investors || [];
+    renderInvestors();
+  } catch (e) {
+    const el = document.getElementById("invList");
+    if (el) el.innerHTML = `<p class="bet-msg">Investory se nepodařilo načíst: ${esc(e.message)}</p>`;
+  }
+}
+
+function renderInvestors() {
+  const el = document.getElementById("invList");
+  if (!el) return;
+  el.innerHTML = INVESTORS.length ? INVESTORS.map((i) => {
+    const status = i.active ? '<span class="tag win">aktivní</span>' : '<span class="tag loss">zrušený</span>';
+    const seen = i.last_viewed_at ? new Date(i.last_viewed_at).toLocaleString("cs-CZ") : "zatím nikdy";
+    return `<div class="panel" style="margin-bottom:12px" data-inv="${esc(i.id)}">
+      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
+        <div><b>${esc(i.name)}</b> ${status}
+          <div style="color:var(--text-muted);font-size:.8125rem">${i.email ? esc(i.email) + " · " : ""}zobrazení: ${Number(i.views) || 0} · naposledy: ${esc(seen)}${i.note ? " · " + esc(i.note) : ""}</div></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-ghost" data-inv-copy="${esc(i.id)}" style="height:auto;padding:5px 11px">Kopírovat odkaz</button>
+          <a class="btn btn-ghost" href="${esc(i.link)}" target="_blank" rel="noopener" style="height:auto;padding:5px 11px">Otevřít</a>
+          <button class="btn btn-ghost" data-inv-edit="${esc(i.id)}" style="height:auto;padding:5px 11px">Upravit</button>
+          <button class="btn btn-ghost" data-inv-toggle="${esc(i.id)}" style="height:auto;padding:5px 11px">${i.active ? "Zrušit přístup" : "Obnovit přístup"}</button>
+          <button class="btn btn-ghost" data-inv-regen="${esc(i.id)}" style="height:auto;padding:5px 11px">Nový odkaz</button>
+          <button class="btn btn-ghost" data-inv-del="${esc(i.id)}" style="height:auto;padding:5px 11px">Smazat</button>
+        </div>
+      </div>
+      <input class="input" readonly value="${esc(i.link)}" style="margin-top:10px;font-family:var(--mono,monospace);font-size:.8125rem" onclick="this.select()" />
+    </div>`;
+  }).join("") : '<p class="bet-msg">Zatím nikdo nemá přístup. Vytvořte první odkaz formulářem výše.</p>';
+}
+
+function resetInvForm() {
+  INV_EDIT = null;
+  document.getElementById("invForm")?.reset();
+  const sub = document.getElementById("invSubmit"); if (sub) sub.textContent = "Vytvořit přístup";
+  const ttl = document.getElementById("invFormTitle"); if (ttl) ttl.textContent = "Přidat investora / člena týmu";
+  const c = document.getElementById("invCancel"); if (c) c.hidden = true;
+}
+
+document.getElementById("invForm")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const name = document.getElementById("invName").value.trim();
+  if (!name) { invMsg("Zadejte jméno.", true); return; }
+  const btn = document.getElementById("invSubmit");
+  btn.disabled = true;
+  try {
+    const body = { name, email: document.getElementById("invEmail").value, note: document.getElementById("invNote").value };
+    const res = INV_EDIT
+      ? await adminFetch("finance-manage", { action: "investor_update", id: INV_EDIT, ...body })
+      : await adminFetch("finance-manage", { action: "investor_create", ...body });
+    invMsg(INV_EDIT ? "Změny uloženy." : "Přístup vytvořen. Odkaz zkopírujte tlačítkem „Kopírovat odkaz“ a pošlete danému člověku.", false);
+    resetInvForm();
+    await loadInvestors();
+  } catch (err) {
+    invMsg(err.message || "Uložení se nepodařilo.", true);
+  } finally {
+    btn.disabled = false;
+  }
+});
+document.getElementById("invCancel")?.addEventListener("click", () => { resetInvForm(); invMsg("", false); });
+
+document.getElementById("invList")?.addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-inv-copy],[data-inv-edit],[data-inv-toggle],[data-inv-regen],[data-inv-del]");
+  if (!b) return;
+  const id = b.dataset.invCopy || b.dataset.invEdit || b.dataset.invToggle || b.dataset.invRegen || b.dataset.invDel;
+  const inv = INVESTORS.find((x) => x.id === id);
+  if (!inv) return;
+  try {
+    if (b.dataset.invCopy) {
+      try { await navigator.clipboard.writeText(inv.link); b.textContent = "Zkopírováno ✓"; setTimeout(() => { b.textContent = "Kopírovat odkaz"; }, 1500); }
+      catch (_) { window.prompt("Zkopírujte odkaz:", inv.link); }
+    } else if (b.dataset.invEdit) {
+      INV_EDIT = inv.id;
+      document.getElementById("invName").value = inv.name || "";
+      document.getElementById("invEmail").value = inv.email || "";
+      document.getElementById("invNote").value = inv.note || "";
+      document.getElementById("invSubmit").textContent = "Uložit změny";
+      document.getElementById("invFormTitle").textContent = "Upravit: " + inv.name;
+      document.getElementById("invCancel").hidden = false;
+      document.getElementById("invForm").scrollIntoView({ behavior: "smooth", block: "center" });
+    } else if (b.dataset.invToggle) {
+      await adminFetch("finance-manage", { action: "investor_update", id: inv.id, active: !inv.active });
+      await loadInvestors();
+    } else if (b.dataset.invRegen) {
+      if (!window.confirm(`Vygenerovat nový odkaz pro ${inv.name}? Starý přestane okamžitě fungovat.`)) return;
+      await adminFetch("finance-manage", { action: "investor_regenerate", id: inv.id });
+      await loadInvestors();
+    } else if (b.dataset.invDel) {
+      if (!window.confirm(`Smazat přístup pro ${inv.name}? Odkaz přestane fungovat.`)) return;
+      await adminFetch("finance-manage", { action: "investor_delete", id: inv.id });
+      await loadInvestors();
+    }
+  } catch (err) {
+    window.alert(err.message || "Akce se nepodařila.");
   }
 });
 

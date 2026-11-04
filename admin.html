@@ -49,6 +49,14 @@
           <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.8L1.8 12.7h11.4z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M7.5 6v3M7.5 10.7v.1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
           Problémy<span class="nav-badge" id="problemsBadge" hidden></span>
         </button>
+        <button class="dnav-link" data-view="naklady">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 3.5h11M2 7.5h11M2 11.5h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="11.5" cy="11.5" r="2" stroke="currentColor" stroke-width="1.3"/></svg>
+          Náklady
+        </button>
+        <button class="dnav-link" data-view="investori">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><circle cx="7.5" cy="5" r="2.5" stroke="currentColor" stroke-width="1.4"/><path d="M2.5 13c.6-2.6 2.5-4 5-4s4.4 1.4 5 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          Investoři
+        </button>
         <button class="dnav-link" data-view="diagnostika">
           <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M1.5 8h2.5l1.5-4 2 8 1.5-4H13.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
           Diagnostika
@@ -334,6 +342,80 @@
         </div>
       </section>
 
+      <!-- ============ NÁKLADY A ČISTÝ ZISK ============ -->
+      <section class="dash-view" id="view-naklady" hidden>
+        <div class="dash-head">
+          <div>
+            <h1>Náklady a čistý zisk</h1>
+            <p>Sem se zapisuje marketing a další výdaje. Z nich a z tržeb se počítá čistý zisk, který vidí investoři na své stránce.</p>
+          </div>
+        </div>
+
+        <div class="stat-grid" id="pnlGrid"><!-- JS --></div>
+
+        <div class="panel mt">
+          <h3 id="expFormTitle">Přidat náklad</h3>
+          <form id="expForm" novalidate>
+            <div class="two-col" style="gap:12px">
+              <div class="field"><label for="expDate">Datum</label><input class="input" id="expDate" type="date" required /></div>
+              <div class="field"><label for="expKind">Kategorie</label>
+                <select class="input" id="expKind">
+                  <option value="marketing">Marketing (reklama)</option>
+                  <option value="software">Software a nástroje</option>
+                  <option value="payroll">Mzdy / externisti</option>
+                  <option value="legal">Právní a účetní</option>
+                  <option value="other">Ostatní</option>
+                </select></div>
+              <div class="field"><label for="expAmount">Částka</label><input class="input" id="expAmount" type="number" min="0" step="0.01" placeholder="0" required /></div>
+              <div class="field"><label for="expCurrency">Měna</label>
+                <select class="input" id="expCurrency"><option>USD</option><option>EUR</option><option>CZK</option><option>PLN</option><option>GBP</option></select></div>
+            </div>
+            <div class="field"><label for="expLabel">Popis (např. „Meta Ads – říjen")</label><input class="input" id="expLabel" maxlength="80" /></div>
+            <div class="field"><label for="expNote">Poznámka (vidí jen admin)</label><input class="input" id="expNote" maxlength="300" /></div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+              <button class="btn btn-primary" type="submit" id="expSubmit">Přidat</button>
+              <button class="btn btn-ghost" type="button" id="expCancel" hidden>Zrušit úpravu</button>
+              <span class="t-meta">Částka se přepočte na USD kurzem ke dni zadání. Investoři vidí jen součty podle kategorií, ne popisy ani poznámky.</span>
+            </div>
+            <p class="auth-note mt" id="expNoteMsg" hidden></p>
+          </form>
+        </div>
+
+        <div class="panel mt">
+          <h3>Zapsané náklady <span id="expTotal" style="color:var(--text-muted);font-weight:500"></span></h3>
+          <div class="table-scroll"><table class="ticket-table" id="expTable"><!-- JS --></table></div>
+        </div>
+      </section>
+
+      <!-- ============ INVESTOŘI A MANAŽEŘI ============ -->
+      <section class="dash-view" id="view-investori" hidden>
+        <div class="dash-head">
+          <div>
+            <h1>Investoři a manažeři</h1>
+            <p>Každý má vlastní tajný odkaz na stránku se statistikami (bez osobních údajů a bez věcí z adminu). Odkaz kdykoli zrušíte nebo vygenerujete nový.</p>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3 id="invFormTitle">Přidat investora / člena týmu</h3>
+          <form id="invForm" novalidate>
+            <div class="two-col" style="gap:12px">
+              <div class="field"><label for="invName">Jméno</label><input class="input" id="invName" maxlength="80" required /></div>
+              <div class="field"><label for="invEmail">E-mail (nepovinné, jen pro vás)</label><input class="input" id="invEmail" type="email" maxlength="120" /></div>
+            </div>
+            <div class="field"><label for="invNote">Poznámka</label><input class="input" id="invNote" maxlength="300" /></div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+              <button class="btn btn-primary" type="submit" id="invSubmit">Vytvořit přístup</button>
+              <button class="btn btn-ghost" type="button" id="invCancel" hidden>Zrušit úpravu</button>
+            </div>
+            <p class="auth-note mt" id="invMsg" hidden></p>
+          </form>
+        </div>
+
+        <div class="k-rows mt" id="invList"><!-- JS --></div>
+        <p class="t-meta" style="margin-top:12px">Stránka investorů: <a href="investors" target="_blank" rel="noopener" style="color:var(--accent)">/investors</a> (bez platného odkazu se nic nezobrazí).</p>
+      </section>
+
       <!-- ============ DIAGNOSTIKA ============ -->
       <section class="dash-view" id="view-diagnostika" hidden>
         <div class="dash-head">
@@ -374,6 +456,8 @@
     <button data-view="support">Support</button>
     <button data-view="reporty">Reporty</button>
     <button data-view="problemy">Problémy</button>
+    <button data-view="naklady">Náklady</button>
+    <button data-view="investori">Investoři</button>
     <button data-view="diagnostika">Diagnostika</button>
   </nav>
 
