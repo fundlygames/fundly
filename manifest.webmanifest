@@ -1,0 +1,18 @@
+{
+  "id": "./",
+  "name": "Fundly",
+  "short_name": "Fundly",
+  "description": "Simulated capital for sports analysts — your Fundly dashboard on your home screen.",
+  "start_url": "./dashboard?source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#020204",
+  "theme_color": "#020204",
+  "lang": "en",
+  "icons": [
+    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
