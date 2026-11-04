@@ -98,3 +98,12 @@ verify_jwt = false
 
 [functions.email-unsubscribe]
 verify_jwt = false
+
+[functions.track-visit]
+verify_jwt = false
+
+[functions.investor-stats]
+verify_jwt = false
+
+[functions.finance-manage]
+verify_jwt = false
