@@ -1,7 +1,7 @@
 // finance-manage — admin.html: investoři (přístupové odkazy) a náklady.
 // POST (admin JWT nebo x-admin-key) { action, ... }:
-//   investors_list | investor_create {name,email?,note?} | investor_update {id,name?,email?,note?,active?}
-//   | investor_regenerate {id} | investor_delete {id}
+//   investors_list | investor_create {name,email,password,note?} | investor_update {id,name?,email?,note?,active?}
+//   | investor_set_password {id,password} | investor_delete {id}
 //   expenses_list | expense_create {entry_date,kind,label?,amount,currency,note?} | expense_update {id,…} | expense_delete {id}
 //   pnl  → čistý zisk (stejná čísla, jaká vidí investoři)
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -13,11 +13,6 @@ import { CURRENCIES, fxRates, toUsd } from "../_shared/fx.ts";
 const SITE_URL = Deno.env.get("SITE_URL") ?? "https://fundly.games";
 const KINDS = ["marketing", "software", "payroll", "legal", "other"];
 
-function newToken(): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(32));
-  return btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-const link = (token: string) => `${SITE_URL}/investors?k=${token}`;
 const clip = (v: unknown, n: number) => { const s = String(v ?? "").trim(); return s ? s.slice(0, n) : null; };
 
 // deno-lint-ignore no-explicit-any
@@ -44,40 +39,66 @@ serve(async (req) => {
     const action = String(body.action ?? "");
     const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-    // ---------- investoři ----------
+    // ---------- investoři (přihlášení e-mail + heslo) ----------
     if (action === "investors_list") {
-      const { data, error } = await supabase.from("investor_accounts").select("*").order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("investor_accounts").select("id, name, email, note, active, created_at, last_viewed_at, views, user_id").order("created_at", { ascending: false });
       if (error) throw error;
-      return jsonResponse({ ok: true, investors: (data ?? []).map((i) => ({ ...i, link: link(i.token) })) });
+      return jsonResponse({ ok: true, login_url: `${SITE_URL}/investors`, investors: (data ?? []).map((i) => ({ ...i, has_login: !!i.user_id, user_id: undefined })) });
     }
     if (action === "investor_create") {
       const name = clip(body.name, 80);
+      const email = clip(body.email, 120)?.toLowerCase() ?? null;
+      const password = String(body.password ?? "");
       if (!name) return jsonResponse({ error: "Zadejte jméno." }, 400);
-      const token = newToken();
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return jsonResponse({ error: "Zadejte platný e-mail (je to přihlašovací jméno)." }, 400);
+      if (password.length < 8) return jsonResponse({ error: "Heslo musí mít aspoň 8 znaků." }, 400);
+      const { data: created, error: createError } = await supabase.auth.admin.createUser({ email, password, email_confirm: true, app_metadata: { investor: true, mailbox_proven: true } });
+      if (createError || !created?.user) {
+        const m = createError?.message ?? "";
+        return jsonResponse({ error: /already|registered|exists/i.test(m) ? "Tento e-mail už má účet — použijte jiný e-mail." : (m || "Účet se nepodařilo vytvořit.") }, 400);
+      }
       const { data, error } = await supabase.from("investor_accounts")
-        .insert({ name, email: clip(body.email, 120), note: clip(body.note, 300), token }).select("*").single();
-      if (error) throw error;
-      return jsonResponse({ ok: true, investor: { ...data, link: link(data.token) } });
+        .insert({ name, email, note: clip(body.note, 300), token: null, user_id: created.user.id }).select("id, name, email, note, active, created_at, views").single();
+      if (error) { await supabase.auth.admin.deleteUser(created.user.id); throw error; }
+      return jsonResponse({ ok: true, login_url: `${SITE_URL}/investors`, investor: { ...data, has_login: true } });
     }
     if (action === "investor_update") {
+      const { data: cur, error: curErr } = await supabase.from("investor_accounts").select("id, user_id, email").eq("id", String(body.id ?? "")).single();
+      if (curErr) throw curErr;
       const patch: Record<string, unknown> = {};
       if (body.name !== undefined) { const n = clip(body.name, 80); if (!n) return jsonResponse({ error: "Zadejte jméno." }, 400); patch.name = n; }
-      if (body.email !== undefined) patch.email = clip(body.email, 120);
       if (body.note !== undefined) patch.note = clip(body.note, 300);
       if (body.active !== undefined) patch.active = body.active === true;
-      const { data, error } = await supabase.from("investor_accounts").update(patch).eq("id", String(body.id ?? "")).select("*").single();
+      if (body.email !== undefined) {
+        const email = clip(body.email, 120)?.toLowerCase();
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return jsonResponse({ error: "Zadejte platný e-mail." }, 400);
+        if (email !== cur.email) {
+          if (cur.user_id) {
+            const { error: ue } = await supabase.auth.admin.updateUserById(cur.user_id, { email, email_confirm: true });
+            if (ue) return jsonResponse({ error: /already|registered|exists/i.test(ue.message) ? "Tento e-mail už má jiný účet." : ue.message }, 400);
+          }
+          patch.email = email;
+        }
+      }
+      const { data, error } = await supabase.from("investor_accounts").update(patch).eq("id", cur.id).select("id, name, email, note, active, created_at, last_viewed_at, views").single();
       if (error) throw error;
-      return jsonResponse({ ok: true, investor: { ...data, link: link(data.token) } });
+      return jsonResponse({ ok: true, investor: { ...data, has_login: !!cur.user_id } });
     }
-    if (action === "investor_regenerate") {
-      const { data, error } = await supabase.from("investor_accounts").update({ token: newToken(), views: 0, last_viewed_at: null })
-        .eq("id", String(body.id ?? "")).select("*").single();
-      if (error) throw error;
-      return jsonResponse({ ok: true, investor: { ...data, link: link(data.token) } });
+    if (action === "investor_set_password") {
+      const password = String(body.password ?? "");
+      if (password.length < 8) return jsonResponse({ error: "Heslo musí mít aspoň 8 znaků." }, 400);
+      const { data: cur, error: curErr } = await supabase.from("investor_accounts").select("user_id").eq("id", String(body.id ?? "")).single();
+      if (curErr || !cur?.user_id) return jsonResponse({ error: "Investor nemá přihlašovací účet." }, 400);
+      const { error } = await supabase.auth.admin.updateUserById(cur.user_id, { password });
+      if (error) return jsonResponse({ error: error.message }, 400);
+      await supabase.rpc("kick_user_sessions", { p_user: cur.user_id }); // staré přihlášení přestane platit
+      return jsonResponse({ ok: true });
     }
     if (action === "investor_delete") {
+      const { data: cur } = await supabase.from("investor_accounts").select("user_id").eq("id", String(body.id ?? "")).maybeSingle();
       const { error } = await supabase.from("investor_accounts").delete().eq("id", String(body.id ?? ""));
       if (error) throw error;
+      if (cur?.user_id) await supabase.auth.admin.deleteUser(cur.user_id);
       return jsonResponse({ ok: true });
     }
 

@@ -9,7 +9,7 @@
   <meta name="referrer" content="no-referrer" />
   <meta name="theme-color" content="#020204" />
   <link rel="icon" type="image/png" href="assets/logo.png" />
-  <link rel="stylesheet" href="css/investors.css?v=20261105a" />
+  <link rel="stylesheet" href="css/investors.css?v=20261106a" />
 </head>
 <body>
   <header class="top">
@@ -18,7 +18,8 @@
       <div class="sp"></div>
       <span class="who" id="who"></span>
       <div class="seg" id="langSeg" role="group" aria-label="Language"><button data-l="en" class="on">EN</button><button data-l="sk">SK</button></div>
-      <button class="btn" id="refresh" type="button">Refresh</button>
+      <button class="btn" id="refresh" type="button" hidden>Refresh</button>
+      <button class="btn" id="logout" type="button" hidden>Log out</button>
     </div>
   </header>
 
@@ -26,7 +27,8 @@
     <div class="gate"><div class="box"><div class="spin"></div><p style="margin-top:14px;color:var(--t3)" id="loading">Loading…</p></div></div>
   </main>
 
-  <script src="js/config.js?v=20261105a"></script>
-  <script src="js/investors.js?v=20261105a"></script>
+  <script src="js/config.js?v=20261106a"></script>
+  <script src="js/whop.js?v=20261106a"></script>
+  <script src="js/investors.js?v=20261106a"></script>
 </body>
 </html>

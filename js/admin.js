@@ -1152,26 +1152,24 @@ function renderInvestors() {
     const seen = i.last_viewed_at ? new Date(i.last_viewed_at).toLocaleString("cs-CZ") : "zatím nikdy";
     return `<div class="panel" style="margin-bottom:12px" data-inv="${esc(i.id)}">
       <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
-        <div><b>${esc(i.name)}</b> ${status}
-          <div style="color:var(--text-muted);font-size:.8125rem">${i.email ? esc(i.email) + " · " : ""}zobrazení: ${Number(i.views) || 0} · naposledy: ${esc(seen)}${i.note ? " · " + esc(i.note) : ""}</div></div>
+        <div><b>${esc(i.name)}</b> ${status}${i.has_login ? "" : ' <span class="tag push">bez přihlášení</span>'}
+          <div style="color:var(--text-muted);font-size:.8125rem">${esc(i.email || "—")} · přihlášení: fundly.games/investors · zobrazení: ${Number(i.views) || 0} · naposledy: ${esc(seen)}${i.note ? " · " + esc(i.note) : ""}</div></div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="btn btn-ghost" data-inv-copy="${esc(i.id)}" style="height:auto;padding:5px 11px">Kopírovat odkaz</button>
-          <a class="btn btn-ghost" href="${esc(i.link)}" target="_blank" rel="noopener" style="height:auto;padding:5px 11px">Otevřít</a>
           <button class="btn btn-ghost" data-inv-edit="${esc(i.id)}" style="height:auto;padding:5px 11px">Upravit</button>
+          <button class="btn btn-ghost" data-inv-pass="${esc(i.id)}" style="height:auto;padding:5px 11px">Změnit heslo</button>
           <button class="btn btn-ghost" data-inv-toggle="${esc(i.id)}" style="height:auto;padding:5px 11px">${i.active ? "Zrušit přístup" : "Obnovit přístup"}</button>
-          <button class="btn btn-ghost" data-inv-regen="${esc(i.id)}" style="height:auto;padding:5px 11px">Nový odkaz</button>
           <button class="btn btn-ghost" data-inv-del="${esc(i.id)}" style="height:auto;padding:5px 11px">Smazat</button>
         </div>
       </div>
-      <input class="input" readonly value="${esc(i.link)}" style="margin-top:10px;font-family:var(--mono,monospace);font-size:.8125rem" onclick="this.select()" />
     </div>`;
-  }).join("") : '<p class="bet-msg">Zatím nikdo nemá přístup. Vytvořte první odkaz formulářem výše.</p>';
+  }).join("") : '<p class="bet-msg">Zatím nikdo nemá přístup. Vytvořte první účet formulářem výše.</p>';
 }
 
 function resetInvForm() {
   INV_EDIT = null;
   document.getElementById("invForm")?.reset();
   const sub = document.getElementById("invSubmit"); if (sub) sub.textContent = "Vytvořit přístup";
+  const pf = document.getElementById("invPassField"); if (pf) pf.hidden = false;
   const ttl = document.getElementById("invFormTitle"); if (ttl) ttl.textContent = "Přidat investora / člena týmu";
   const c = document.getElementById("invCancel"); if (c) c.hidden = true;
 }
@@ -1180,14 +1178,18 @@ document.getElementById("invForm")?.addEventListener("submit", async (e) => {
   e.preventDefault();
   const name = document.getElementById("invName").value.trim();
   if (!name) { invMsg("Zadejte jméno.", true); return; }
+  const email = document.getElementById("invEmail").value.trim();
+  const pass = document.getElementById("invPass").value;
+  if (!email) { invMsg("Zadejte e-mail (je to přihlašovací jméno).", true); return; }
+  if (!INV_EDIT && pass.length < 8) { invMsg("Heslo musí mít aspoň 8 znaků.", true); return; }
   const btn = document.getElementById("invSubmit");
   btn.disabled = true;
   try {
-    const body = { name, email: document.getElementById("invEmail").value, note: document.getElementById("invNote").value };
+    const body = { name, email, note: document.getElementById("invNote").value };
     const res = INV_EDIT
       ? await adminFetch("finance-manage", { action: "investor_update", id: INV_EDIT, ...body })
-      : await adminFetch("finance-manage", { action: "investor_create", ...body });
-    invMsg(INV_EDIT ? "Změny uloženy." : "Přístup vytvořen. Odkaz zkopírujte tlačítkem „Kopírovat odkaz“ a pošlete danému člověku.", false);
+      : await adminFetch("finance-manage", { action: "investor_create", ...body, password: pass });
+    invMsg(INV_EDIT ? "Změny uloženy." : "Účet vytvořen. Pošlete danému člověku adresu fundly.games/investors, e-mail a heslo (nejlépe každé jinou cestou).", false);
     resetInvForm();
     await loadInvestors();
   } catch (err) {
@@ -1199,33 +1201,33 @@ document.getElementById("invForm")?.addEventListener("submit", async (e) => {
 document.getElementById("invCancel")?.addEventListener("click", () => { resetInvForm(); invMsg("", false); });
 
 document.getElementById("invList")?.addEventListener("click", async (e) => {
-  const b = e.target.closest("[data-inv-copy],[data-inv-edit],[data-inv-toggle],[data-inv-regen],[data-inv-del]");
+  const b = e.target.closest("[data-inv-edit],[data-inv-pass],[data-inv-toggle],[data-inv-del]");
   if (!b) return;
-  const id = b.dataset.invCopy || b.dataset.invEdit || b.dataset.invToggle || b.dataset.invRegen || b.dataset.invDel;
+  const id = b.dataset.invEdit || b.dataset.invPass || b.dataset.invToggle || b.dataset.invDel;
   const inv = INVESTORS.find((x) => x.id === id);
   if (!inv) return;
   try {
-    if (b.dataset.invCopy) {
-      try { await navigator.clipboard.writeText(inv.link); b.textContent = "Zkopírováno ✓"; setTimeout(() => { b.textContent = "Kopírovat odkaz"; }, 1500); }
-      catch (_) { window.prompt("Zkopírujte odkaz:", inv.link); }
-    } else if (b.dataset.invEdit) {
+    if (b.dataset.invEdit) {
       INV_EDIT = inv.id;
       document.getElementById("invName").value = inv.name || "";
       document.getElementById("invEmail").value = inv.email || "";
       document.getElementById("invNote").value = inv.note || "";
+      document.getElementById("invPassField").hidden = true; // heslo se mění zvlášť tlačítkem "Změnit heslo"
       document.getElementById("invSubmit").textContent = "Uložit změny";
       document.getElementById("invFormTitle").textContent = "Upravit: " + inv.name;
       document.getElementById("invCancel").hidden = false;
       document.getElementById("invForm").scrollIntoView({ behavior: "smooth", block: "center" });
+    } else if (b.dataset.invPass) {
+      const pw = window.prompt(`Nové heslo pro ${inv.name} (min. 8 znaků). Stávající přihlášení přestane platit.`);
+      if (pw === null) return;
+      if (pw.length < 8) { window.alert("Heslo musí mít aspoň 8 znaků."); return; }
+      await adminFetch("finance-manage", { action: "investor_set_password", id: inv.id, password: pw });
+      invMsg(`Heslo pro ${inv.name} bylo změněno.`, false);
     } else if (b.dataset.invToggle) {
       await adminFetch("finance-manage", { action: "investor_update", id: inv.id, active: !inv.active });
       await loadInvestors();
-    } else if (b.dataset.invRegen) {
-      if (!window.confirm(`Vygenerovat nový odkaz pro ${inv.name}? Starý přestane okamžitě fungovat.`)) return;
-      await adminFetch("finance-manage", { action: "investor_regenerate", id: inv.id });
-      await loadInvestors();
     } else if (b.dataset.invDel) {
-      if (!window.confirm(`Smazat přístup pro ${inv.name}? Odkaz přestane fungovat.`)) return;
+      if (!window.confirm(`Smazat přístup a přihlašovací účet pro ${inv.name}?`)) return;
       await adminFetch("finance-manage", { action: "investor_delete", id: inv.id });
       await loadInvestors();
     }
