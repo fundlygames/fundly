@@ -7,9 +7,9 @@
   <meta name="description" content="Interní administrace Fundly — finance, hráči, diagnostika." />
   <meta name="theme-color" content="#020204" />
   <link rel="icon" type="image/png" href="assets/logo.png" />
-  <link rel="stylesheet" href="css/style.css?v=20261105a" />
-  <link rel="stylesheet" href="css/dashboard.css?v=20261105a" />
-  <link rel="stylesheet" href="css/admin.css?v=20261105a" />
+  <link rel="stylesheet" href="css/style.css?v=20261106a" />
+  <link rel="stylesheet" href="css/dashboard.css?v=20261106a" />
+  <link rel="stylesheet" href="css/admin.css?v=20261106a" />
 </head>
 <body>
 
@@ -392,7 +392,7 @@
         <div class="dash-head">
           <div>
             <h1>Investoři a manažeři</h1>
-            <p>Každý má vlastní tajný odkaz na stránku se statistikami (bez osobních údajů a bez věcí z adminu). Odkaz kdykoli zrušíte nebo vygenerujete nový.</p>
+            <p>Každý má vlastní přihlášení (e-mail + heslo) na stránku /investors se statistikami — bez osobních údajů a bez věcí z adminu. Přístup kdykoli zrušíte nebo změníte heslo.</p>
           </div>
         </div>
 
@@ -401,8 +401,9 @@
           <form id="invForm" novalidate>
             <div class="two-col" style="gap:12px">
               <div class="field"><label for="invName">Jméno</label><input class="input" id="invName" maxlength="80" required /></div>
-              <div class="field"><label for="invEmail">E-mail (nepovinné, jen pro vás)</label><input class="input" id="invEmail" type="email" maxlength="120" /></div>
+              <div class="field"><label for="invEmail">E-mail (přihlašovací jméno)</label><input class="input" id="invEmail" type="email" maxlength="120" autocomplete="off" required /></div>
             </div>
+            <div class="field" id="invPassField"><label for="invPass">Heslo (min. 8 znaků)</label><input class="input" id="invPass" type="text" minlength="8" maxlength="72" autocomplete="off" placeholder="např. vygenerované v správci hesel" /></div>
             <div class="field"><label for="invNote">Poznámka</label><input class="input" id="invNote" maxlength="300" /></div>
             <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
               <button class="btn btn-primary" type="submit" id="invSubmit">Vytvořit přístup</button>
@@ -413,7 +414,7 @@
         </div>
 
         <div class="k-rows mt" id="invList"><!-- JS --></div>
-        <p class="t-meta" style="margin-top:12px">Stránka investorů: <a href="investors" target="_blank" rel="noopener" style="color:var(--accent)">/investors</a> (bez platného odkazu se nic nezobrazí).</p>
+        <p class="t-meta" style="margin-top:12px">Přihlašovací stránka pro investory: <a href="investors" target="_blank" rel="noopener" style="color:var(--accent)">fundly.games/investors</a>. Heslo se nikde nezobrazuje ani neukládá v čitelné podobě — při zapomenutí ho tady změníte.</p>
       </section>
 
       <!-- ============ DIAGNOSTIKA ============ -->
@@ -471,9 +472,9 @@
     </div>
   </div>
 
-  <script src="js/config.js?v=20261105a"></script>
-  <script src="js/whop.js?v=20261105a"></script>
-  <script src="js/packages.js?v=20261105a"></script>
-  <script src="js/admin.js?v=20261105a"></script>
+  <script src="js/config.js?v=20261106a"></script>
+  <script src="js/whop.js?v=20261106a"></script>
+  <script src="js/packages.js?v=20261106a"></script>
+  <script src="js/admin.js?v=20261106a"></script>
 </body>
 </html>

@@ -33,6 +33,8 @@
       def4: "<b>Visitors</b> are counted cookie-free (one per device per day); bots are filtered out. Countries come from the visitor's connection.",
       def5: "Costs are entered manually by the team in the admin area and are always up to date with the latest entry.",
       invalid: "This link is not valid", invalidText: "The access link is missing, wrong or has been revoked. Please ask the Fundly team for a new one.", failed: "Could not load the statistics", failedText: "Please try again in a moment.", retry: "Try again",
+      signIn: "Sign in", loginTitle: "Investor & team login", loginText: "Sign in with the e-mail and password you received from the Fundly team.", emailLbl: "E-mail", passLbl: "Password", signingIn: "Signing in…", logout: "Log out",
+      badLogin: "Incorrect e-mail or password.", tooMany: "Too many attempts. Please wait a moment and try again.", noAccess: "No investor access", noAccessText: "You are signed in, but this account has no access to the investor dashboard (or it was switched off). Please contact the Fundly team.", backendOff: "Sign-in is not available right now.",
       other: "Other", direct: "direct", unknown: "Unknown", mobile: "Mobile", desktop: "Desktop", tablet: "Tablet",
     },
     sk: {
@@ -61,6 +63,8 @@
       def4: "<b>Návštevníci</b> sa počítajú bez cookies (jeden za zariadenie a deň); boty sú odfiltrované. Krajina vychádza z pripojenia návštevníka.",
       def5: "Náklady zadáva tím ručne v admin sekcii a vždy sú aktuálne podľa posledného záznamu.",
       invalid: "Tento odkaz nie je platný", invalidText: "Prístupový odkaz chýba, je nesprávny alebo bol zrušený. Požiadajte tím Fundly o nový.", failed: "Štatistiky sa nepodarilo načítať", failedText: "Skúste to prosím o chvíľu znova.", retry: "Skúsiť znova",
+      signIn: "Prihlásiť sa", loginTitle: "Prihlásenie pre investorov a tím", loginText: "Prihláste sa e-mailom a heslom, ktoré ste dostali od tímu Fundly.", emailLbl: "E-mail", passLbl: "Heslo", signingIn: "Prihlasujem…", logout: "Odhlásiť",
+      badLogin: "Nesprávny e-mail alebo heslo.", tooMany: "Príliš veľa pokusov. Chvíľu počkajte a skúste to znova.", noAccess: "Bez prístupu investora", noAccessText: "Ste prihlásený, ale tento účet nemá prístup na dashboard pre investorov (alebo bol vypnutý). Kontaktujte tím Fundly.", backendOff: "Prihlásenie momentálne nie je dostupné.",
       other: "Ostatné", direct: "priamo", unknown: "Neznáme", mobile: "Mobil", desktop: "Počítač", tablet: "Tablet",
     },
   };
@@ -161,6 +165,7 @@
     document.documentElement.lang = lang;
     $("tagline").textContent = t("tagline");
     $("refresh").textContent = t("refresh");
+    $("refresh").hidden = false; $("logout").hidden = false; $("logout").textContent = t("logout");
     $("who").textContent = t("hi") + ", " + d.investor.name + " · " + t("updated") + " " + new Date(s.generated_at).toLocaleString(locale(), { dateStyle: "medium", timeStyle: "short" });
     document.querySelectorAll("#langSeg button").forEach(function (b) { b.classList.toggle("on", b.dataset.l === lang); });
 
@@ -265,35 +270,92 @@
   function neg(v) { return num(v) > 0 ? "−" + usd(v, 2) : usd(0, 2); }
   function stat(l, v) { return '<div><div class="l">' + l + '</div><div class="v">' + v + "</div></div>"; }
 
-  // ---------------------------------------------------------------- load
-  function gate(title, text, retry) {
-    $("app").innerHTML = '<div class="gate"><div class="box"><div style="font-size:42px">🔒</div><h1>' + esc(title) + "</h1><p>" + esc(text) + "</p>" + (retry ? '<p style="margin-top:16px"><button class="btn" id="retryBtn">' + t("retry") + "</button></p>" : "") + "</div></div>";
-    var b = $("retryBtn"); if (b) b.addEventListener("click", load);
+  // ---------------------------------------------------------------- sign-in + load
+  function setHeader(loggedIn) {
+    $("tagline").textContent = t("tagline");
+    $("refresh").textContent = t("refresh");
+    $("refresh").hidden = !loggedIn;
+    $("logout").hidden = !loggedIn;
+    $("logout").textContent = t("logout");
+    if (!loggedIn) $("who").textContent = "";
+    document.querySelectorAll("#langSeg button").forEach(function (b) { b.classList.toggle("on", b.dataset.l === lang); });
   }
 
-  var token = new URLSearchParams(location.search).get("k") || "";
+  function gate(title, text, extraHtml) {
+    setHeader(false);
+    $("app").innerHTML = '<div class="gate"><div class="box"><div style="font-size:42px">🔒</div><h1>' + esc(title) + "</h1><p>" + esc(text) + "</p>" + (extraHtml || "") + "</div></div>";
+  }
+
+  var loginNote = "";
+  function showLogin(note) {
+    if (note !== undefined) loginNote = note;
+    gate(t("loginTitle"), t("loginText"),
+      '<form id="loginForm" style="margin-top:18px;text-align:left" novalidate>' +
+      '<label class="flab" for="liEmail">' + t("emailLbl") + '</label><input class="finp" id="liEmail" type="email" autocomplete="username" required />' +
+      '<label class="flab" for="liPass">' + t("passLbl") + '</label><input class="finp" id="liPass" type="password" autocomplete="current-password" required />' +
+      '<p class="ferr" id="liErr"' + (loginNote ? "" : " hidden") + ">" + esc(loginNote) + "</p>" +
+      '<button class="btn fbtn" id="liBtn" type="submit">' + t("signIn") + "</button></form>");
+    var f = $("loginForm");
+    f.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var btn = $("liBtn"), err = $("liErr");
+      var email = $("liEmail").value.trim(), pass = $("liPass").value;
+      if (!email || !pass) return;
+      btn.disabled = true; btn.textContent = t("signingIn"); err.hidden = true;
+      try {
+        if (typeof FundlyAuth === "undefined" || typeof fundlyBackendEnabled !== "function" || !fundlyBackendEnabled()) throw new Error("backend");
+        var r = await FundlyAuth.signInWithPassword(email, pass);
+        if (r.error) {
+          var msg = String(r.error.message || ""), code = String(r.error.code || "");
+          err.textContent = /rate|too many|security purposes/i.test(msg + code) ? t("tooMany") : t("badLogin");
+          err.hidden = false; btn.disabled = false; btn.textContent = t("signIn"); return;
+        }
+        loginNote = "";
+        await load();
+      } catch (ex) {
+        err.textContent = ex && ex.message === "backend" ? t("backendOff") : t("badLogin");
+        err.hidden = false; btn.disabled = false; btn.textContent = t("signIn");
+      }
+    });
+    $("liEmail").focus();
+  }
+
+  async function accessToken() {
+    if (typeof FundlyBackend === "undefined") return null;
+    var client = await FundlyBackend.getClient();
+    if (!client) return null;
+    var res = await client.auth.getSession();
+    return res && res.data && res.data.session ? res.data.session.access_token : null;
+  }
+
   async function load() {
-    if (!token) { gate(t("invalid"), t("invalidText")); return; }
     try {
-      // lokální náhled s ukázkovými daty (jen na localhost): investors.html?k=demo&mock=1
+      // lokální náhled s ukázkovými daty (jen na localhost, viz investors_mock testy)
       if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && window.__INVESTOR_MOCK) { DATA = window.__INVESTOR_MOCK; render(); return; }
-      var res = await fetch(FUNDLY_SUPABASE_URL + "/functions/v1/investor-stats", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ k: token }) });
-      if (res.status === 401) { gate(t("invalid"), t("invalidText")); return; }
+      var jwt = await accessToken();
+      if (!jwt) { DATA = null; showLogin(); return; }
+      var res = await fetch(FUNDLY_SUPABASE_URL + "/functions/v1/investor-stats", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + jwt }, body: "{}" });
+      if (res.status === 401) { await FundlyAuth.signOut().catch(function () {}); DATA = null; showLogin(); return; }
+      if (res.status === 403) { DATA = null; gate(t("noAccess"), t("noAccessText")); setHeader(true); $("refresh").hidden = true; return; }
       if (!res.ok) throw new Error("HTTP " + res.status);
       DATA = await res.json();
       render();
     } catch (e) {
       console.warn("investors:", e);
-      if (!DATA) gate(t("failed"), t("failedText"), true);
+      if (!DATA) { gate(t("failed"), t("failedText"), '<p style="margin-top:16px"><button class="btn" id="retryBtn">' + t("retry") + "</button></p>"); var b = $("retryBtn"); if (b) b.addEventListener("click", load); }
     }
   }
 
   document.addEventListener("click", function (e) {
     var b = e.target.closest("#langSeg button");
-    if (b) { lang = b.dataset.l; try { localStorage.setItem("fundly:invLang", lang); } catch (x) { /* ignore */ } if (DATA) render(); }
+    if (b) {
+      lang = b.dataset.l; try { localStorage.setItem("fundly:invLang", lang); } catch (x) { /* ignore */ }
+      document.documentElement.lang = lang;
+      if (DATA) render(); else if ($("loginForm")) { var em = $("liEmail").value; showLogin(); $("liEmail").value = em; } else setHeader(false);
+    }
     if (e.target.id === "refresh") load();
+    if (e.target.id === "logout") { FundlyAuth.signOut().catch(function () {}).then(function () { DATA = null; showLogin(""); }); }
   });
-  // mock a skript se uloží až po načtení config.js (viz investors.html), proto vlastní start
-  load();
-  setInterval(load, 10 * 60 * 1000);
+  window.addEventListener("load", load);
+  setInterval(function () { if (DATA) load(); }, 10 * 60 * 1000);
 })();

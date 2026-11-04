@@ -1,7 +1,7 @@
-// investor-stats — data pro stránku investorů (investors.html). Přístup má jen ten, kdo zná tajný odkaz
-// (token z tabulky investor_accounts, vytváří ho admin ve finance-manage). Vrací VÝHRADNĚ agregovaná čísla —
+// investor-stats — data pro stránku investorů (investors.html). Přístup má jen přihlášený investor (e-mail + heslo,
+// účet vytváří admin ve finance-manage a spojuje ho s investor_accounts.user_id). Vrací VÝHRADNĚ agregovaná čísla —
 // žádné e-maily, jednotlivé účty ani rizikové údaje.
-// POST { k } (nebo GET ?k=) → { investor: { name }, stats, derived }
+// POST + Authorization: Bearer <JWT> → { investor: { name }, stats, derived }
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders, handleCors, jsonResponse } from "../_shared/cors.ts";
@@ -16,25 +16,24 @@ const change = (now: number, prev: number) => (prev > 0 ? round2((100 * (now - p
 serve(async (req) => {
   const cors = handleCors(req);
   if (cors) return cors;
+  if (req.method !== "POST" && req.method !== "GET") return jsonResponse({ error: "Method not allowed" }, 405);
 
-  let token = new URL(req.url).searchParams.get("k") ?? "";
-  if (req.method === "POST") {
-    const b = await req.json().catch(() => ({}));
-    token = String(b.k ?? token);
-  } else if (req.method !== "GET") {
-    return jsonResponse({ error: "Method not allowed" }, 405);
-  }
-  token = token.trim();
-  if (token.length < 24 || token.length > 128) return jsonResponse({ error: "Invalid access link." }, 401);
+  // Přístup: přihlášený uživatel (JWT z e-mailu + hesla), který je aktivní investor. Samotný odkaz už nestačí.
+  const jwt = req.headers.get("Authorization")?.replace(/^Bearer\s+/i, "") ?? "";
+  if (!jwt) return jsonResponse({ error: "Sign in required." }, 401);
 
   try {
     const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const { data: userData, error: userError } = await supabase.auth.getUser(jwt);
+    const user = userData?.user;
+    if (userError || !user) return jsonResponse({ error: "Sign in required." }, 401);
+
     const { data: inv } = await supabase
       .from("investor_accounts")
       .select("id, name, active, views")
-      .eq("token", token)
+      .eq("user_id", user.id)
       .maybeSingle();
-    if (!inv || !inv.active) return jsonResponse({ error: "Invalid or revoked access link." }, 401);
+    if (!inv || !inv.active) return jsonResponse({ error: "This account has no investor access." }, 403);
 
     supabase.from("investor_accounts")
       .update({ last_viewed_at: new Date().toISOString(), views: (inv.views ?? 0) + 1 })
