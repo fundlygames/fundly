@@ -2,6 +2,9 @@
 
 const usd = (n) => "$" + Math.round(n).toLocaleString("en-US");
 
+// Form texts/messages come from the i18n dictionary (js/i18n.js, group "forms").
+const ft = (key) => (typeof window.t === "function" ? window.t(key) : key);
+
 // Kdy server naposledy zaznamenal vstup do pending_approval (viz
 // syncChallengeAccount) — použito jen pro "čekáš už X" text v bannerů,
 // nic to nerozhoduje.
@@ -2141,19 +2144,19 @@ if (wdForm) {
         const amount = Number(document.getElementById("wdAmount").value);
         const method = document.getElementById("wdMethod").value;
         if (!Number.isFinite(amount) || amount < 10) {
-          note.textContent = "The minimum withdrawal is $10.";
+          note.textContent = ft("forms.wdMin");
           note.className = "auth-note mt error";
           note.hidden = false;
           return;
         }
         if (amount > 4000) {
-          note.textContent = "The maximum withdrawal per request is $4,000.";
+          note.textContent = ft("forms.wdMax");
           note.className = "auth-note mt error";
           note.hidden = false;
           return;
         }
         if (!method) {
-          note.textContent = "Choose a payout method.";
+          note.textContent = ft("forms.wdPick");
           note.className = "auth-note mt error";
           note.hidden = false;
           return;
@@ -2172,8 +2175,8 @@ if (wdForm) {
           const data = await res.json().catch(() => ({}));
           const ok = res.ok && data.ok;
           note.textContent = ok
-            ? "Your withdrawal request was submitted for approval."
-            : data.error || "The request could not be submitted.";
+            ? ft("forms.wdSubmitted")
+            : data.error || ft("forms.wdFailed"); // the server explains why (KYC, cooldown, cap…) — better than a generic line
           note.className = ok ? "auth-note mt" : "auth-note mt error";
           note.hidden = false;
           if (ok) {
@@ -2181,14 +2184,14 @@ if (wdForm) {
             loadPayoutHistory();
           }
         } catch (err) {
-          note.textContent = "The request could not be submitted.";
+          note.textContent = ft("forms.wdFailed");
           note.className = "auth-note mt error";
           note.hidden = false;
         }
         return;
       }
     }
-    note.textContent = "Withdrawals unlock with a Partner account after completing both phases.";
+    note.textContent = ft("forms.wdLocked");
     note.className = "auth-note mt error";
     note.hidden = false;
   });
@@ -2305,12 +2308,12 @@ if (supportForm) {
     note.hidden = true;
     try {
       if (typeof fundlyBackendEnabled !== "function" || !fundlyBackendEnabled()) {
-        throw new Error("Support is temporarily unavailable — please email us directly.");
+        throw new Error(ft("forms.contactUnavailable"));
       }
       const client = await FundlyBackend.getClient();
       const user = client ? (await client.auth.getUser()).data.user : null;
       const session = client ? (await client.auth.getSession()).data.session : null;
-      if (!user) throw new Error("Please sign in first.");
+      if (!user) throw new Error(ft("forms.signInFirst"));
       const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/support-submit`, {
         method: "POST",
         headers: {
@@ -2324,13 +2327,13 @@ if (supportForm) {
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "The message could not be sent.");
+      if (!res.ok) throw new Error(ft("forms.contactFailed"));
       supportForm.reset();
-      note.textContent = "Message sent — we'll get back to you by email.";
+      note.textContent = ft("forms.contactSent");
       note.className = "auth-note mt";
       note.hidden = false;
     } catch (err) {
-      note.textContent = err.message || "The message could not be sent.";
+      note.textContent = err.message || ft("forms.contactFailed");
       note.className = "auth-note mt error";
       note.hidden = false;
     } finally {
@@ -2345,37 +2348,37 @@ if (supportForm) {
 function renderSettingsPanel(prefix) {
   return `
     <div class="panel mt">
-      <h3>Account settings</h3>
+      <h3>${ft("forms.setTitle")}</h3>
       <div class="two-col" style="margin-top:4px">
         <form id="${prefix}PassForm">
           <div class="field">
-            <label for="${prefix}NewPass">New password</label>
+            <label for="${prefix}NewPass">${ft("forms.newPassword")}</label>
             <div class="pw-field">
               <input class="input" id="${prefix}NewPass" type="password" autocomplete="new-password" minlength="8" placeholder="••••••••" required />
-              <button type="button" class="pw-toggle" data-pw-toggle aria-label="Show password" aria-pressed="false">
+              <button type="button" class="pw-toggle" data-pw-toggle aria-label="${ft("forms.showPassword")}" aria-pressed="false">
                 <svg class="eye" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.3"/></svg>
                 <svg class="eye-off" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.3"/><path d="M2 2l12 12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
               </button>
             </div>
           </div>
-          <button class="btn btn-ghost" type="submit" id="${prefix}PassSubmit">Change password</button>
+          <button class="btn btn-ghost" type="submit" id="${prefix}PassSubmit">${ft("forms.changePassword")}</button>
           <p class="auth-note mt" id="${prefix}PassNote" hidden></p>
         </form>
         <div>
           <div class="field" style="margin-bottom:8px">
-            <label for="${prefix}PayoutMethod">Preferred payout method</label>
+            <label for="${prefix}PayoutMethod">${ft("forms.payoutLabel")}</label>
             <div class="ref-box" style="margin-top:0">
-              <input class="input" id="${prefix}PayoutMethod" placeholder="e.g. PayPal, bank transfer, crypto wallet" />
-              <button class="btn btn-primary" style="height:auto" id="${prefix}PayoutSave">Save</button>
+              <input class="input" id="${prefix}PayoutMethod" placeholder="${ft("forms.payoutPh")}" />
+              <button class="btn btn-primary" style="height:auto" id="${prefix}PayoutSave">${ft("forms.save")}</button>
             </div>
           </div>
-          <p class="t-meta">Pre-fills your withdrawal requests — the actual payout account is verified through Whop KYC.</p>
+          <p class="t-meta">${ft("forms.payoutMeta")}</p>
         </div>
       </div>
     </div>
     <div class="panel mt">
-      <h3>Two-factor authentication</h3>
-      <div id="${prefix}MfaState"><p class="t-small">Checking status…</p></div>
+      <h3>${ft("forms.mfaHeading")}</h3>
+      <div id="${prefix}MfaState"><p class="t-small">${ft("forms.mfaChecking")}</p></div>
     </div>`;
 }
 
@@ -2395,11 +2398,11 @@ async function setupAccountSettings(prefix) {
         const { error } = await client.auth.updateUser({ password: document.getElementById(`${prefix}NewPass`).value });
         if (error) throw error;
         passForm.reset();
-        note.textContent = "Password changed.";
+        note.textContent = ft("forms.passChanged");
         note.className = "auth-note mt";
         note.hidden = false;
       } catch (err) {
-        note.textContent = err.message || "Could not change the password.";
+        note.textContent = FundlyAuth.errorText(err) || ft("forms.passFailed");
         note.className = "auth-note mt error";
         note.hidden = false;
       } finally {
@@ -2415,11 +2418,11 @@ async function setupAccountSettings(prefix) {
       payoutSave.disabled = true;
       try {
         await saveProfileSetting({ payoutMethod: document.getElementById(`${prefix}PayoutMethod`).value });
-        payoutSave.textContent = "Saved";
+        payoutSave.textContent = ft("forms.saved");
       } catch (e) {
-        payoutSave.textContent = "Failed";
+        payoutSave.textContent = ft("forms.failed");
       }
-      setTimeout(() => { payoutSave.textContent = "Save"; payoutSave.disabled = false; }, 1500);
+      setTimeout(() => { payoutSave.textContent = ft("forms.save"); payoutSave.disabled = false; }, 1500);
     });
   }
   try {
@@ -2443,7 +2446,7 @@ async function setupAccountSettings(prefix) {
       const verified = (data.totp || []).find((f) => f.status === "verified");
       if (verified) {
         mfaState.innerHTML = `
-          <div class="k-row win">Two-factor authentication is enabled<span class="n"><button class="btn btn-ghost" id="${prefix}MfaDisable">Disable</button></span></div>
+          <div class="k-row win">${ft("forms.mfaEnabled")}<span class="n"><button class="btn btn-ghost" id="${prefix}MfaDisable">${ft("forms.mfaDisable")}</button></span></div>
           <p class="auth-note mt" id="${prefix}MfaDisableNote" hidden></p>`;
         document.getElementById(`${prefix}MfaDisable`).addEventListener("click", async (e) => {
           const disableBtn = e.currentTarget;
@@ -2455,8 +2458,8 @@ async function setupAccountSettings(prefix) {
           const { error } = await client.auth.mfa.unenroll({ factorId: verified.id });
           if (error) {
             disableNote.textContent = error.message.includes("AAL2")
-              ? "Log out and back in (entering your 2FA code) before disabling it."
-              : error.message || "Could not disable two-factor authentication.";
+              ? ft("forms.mfaDisableAal")
+              : ft("forms.mfaDisableFail");
             disableNote.className = "auth-note mt error";
             disableNote.hidden = false;
             disableBtn.disabled = false;
@@ -2465,7 +2468,7 @@ async function setupAccountSettings(prefix) {
           renderMfaState();
         });
       } else {
-        mfaState.innerHTML = `<button class="btn btn-primary" id="${prefix}MfaEnroll">Enable two-factor authentication</button>`;
+        mfaState.innerHTML = `<button class="btn btn-primary" id="${prefix}MfaEnroll">${ft("forms.mfaEnable")}</button>`;
         document.getElementById(`${prefix}MfaEnroll`).addEventListener("click", async () => {
           const enrollBtn = document.getElementById(`${prefix}MfaEnroll`);
           enrollBtn.disabled = true;
@@ -2473,11 +2476,11 @@ async function setupAccountSettings(prefix) {
             const { data: enrolled, error: enrollError } = await client.auth.mfa.enroll({ factorType: "totp" });
             if (enrollError) throw enrollError;
             mfaState.innerHTML = `
-              <p class="t-small">Scan this QR code with your authenticator app, then enter the 6-digit code.</p>
-              <img src="${enrolled.totp.qr_code}" alt="TOTP QR code" style="width:160px;height:160px;margin:12px 0;border-radius:8px;background:#fff;padding:8px" />
+              <p class="t-small">${ft("forms.mfaScan")}</p>
+              <img src="${enrolled.totp.qr_code}" alt="${ft("forms.mfaQrAlt")}" style="width:160px;height:160px;margin:12px 0;border-radius:8px;background:#fff;padding:8px" />
               <form id="${prefix}MfaVerifyForm" style="max-width:220px">
                 <div class="field"><input class="input" id="${prefix}MfaCode" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="123456" required /></div>
-                <button class="btn btn-primary" type="submit">Verify & enable</button>
+                <button class="btn btn-primary" type="submit">${ft("forms.mfaVerifyEnable")}</button>
                 <p class="auth-note mt" id="${prefix}MfaNote" hidden></p>
               </form>`;
             document.getElementById(`${prefix}MfaVerifyForm`).addEventListener("submit", async (e) => {
@@ -2494,20 +2497,20 @@ async function setupAccountSettings(prefix) {
                 if (verify.error) throw verify.error;
                 renderMfaState();
               } catch (err) {
-                note.textContent = err.message || "Invalid code.";
+                note.textContent = ft("forms.mfaInvalid");
                 note.className = "auth-note mt error";
                 note.hidden = false;
               }
             });
           } catch (err) {
-            mfaState.innerHTML = `<p class="t-small">Two-factor authentication is not available on this account yet.</p>`;
+            mfaState.innerHTML = `<p class="t-small">${ft("forms.mfaNa1")}</p>`;
           } finally {
             enrollBtn.disabled = false;
           }
         });
       }
     } catch (e) {
-      mfaState.innerHTML = `<p class="t-small">Two-factor authentication is not available yet.</p>`;
+      mfaState.innerHTML = `<p class="t-small">${ft("forms.mfaNa2")}</p>`;
     }
   }
   renderMfaState();
@@ -2553,7 +2556,7 @@ document.getElementById("profileTabs")?.addEventListener("click", (e) => {
 async function saveProfileSetting(patch) {
   const client = await FundlyBackend.getClient();
   const session = client ? (await client.auth.getSession()).data.session : null;
-  if (!session) throw new Error("Please sign in first.");
+  if (!session) throw new Error(ft("forms.signInFirst"));
   const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/profile-update`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
@@ -2582,12 +2585,12 @@ if (nickSave) {
     nickSave.disabled = true;
     try {
       await saveProfileSetting({ nickname: document.getElementById("nickInput").value });
-      nickSave.textContent = "Saved";
+      nickSave.textContent = ft("forms.saved");
     } catch (e) {
-      nickSave.textContent = "Failed";
+      nickSave.textContent = ft("forms.failed");
       if (typeof showToast === "function") showToast("loss", "Couldn't save nickname", e.message || "Try a different nickname.");
     }
-    setTimeout(() => { nickSave.textContent = "Save"; nickSave.disabled = false; }, 1500);
+    setTimeout(() => { nickSave.textContent = ft("forms.save"); nickSave.disabled = false; }, 1500);
   });
 }
 
@@ -2915,7 +2918,7 @@ function renderPayoutConds(state) {
   const el = document.getElementById("wdConds");
   if (!el) return;
   if (state.phase !== "funded") {
-    el.innerHTML = `<p class="t-meta" style="margin-top:10px">Withdrawals unlock with a Partner account. Once in Phase 3, build a one-time profit buffer of +5 % of capital; before every payout you then need 5 winning tickets with a net profit of at least +0.5 % of capital (the counter resets after each payout). Payouts open every 14 days. Payout is 80 % of your profit, max. $4,000.</p>`;
+    el.innerHTML = `<p class="t-meta" style="margin-top:10px">${ft("forms.wdCondsLocked")}</p>`;
     return;
   }
   const meta = Portfolio.ruleMeta(state);
@@ -2933,10 +2936,10 @@ function renderPayoutConds(state) {
 
   el.innerHTML = `
     <div class="k-rows" style="margin-top:12px">
-      <div class="k-row neutral">Profit buffer (one-time, +${meta.payoutBufferPct} % of capital)<span class="n ${bufferMet ? "green" : ""}">${bufferMet ? "Done" : `${usd(profit)} / ${usd(bufferNeed)}`}</span></div>
-      <div class="k-row neutral">Qualifying tickets (reset each payout)<span class="n ${qual >= meta.qualifyingTickets ? "green" : ""}">${Math.min(qual, meta.qualifyingTickets)} / ${meta.qualifyingTickets}</span></div>
-      <div class="k-row neutral">Payout cooldown (14 days between payouts)<span class="n ${cooldownDone ? "green" : ""}">${cooldownDone ? "Open now" : `Opens ${nextEligible.toLocaleDateString("en-US")}`}</span></div>
-      <div class="k-row neutral">Payout<span class="n">80 % of profit · max $4,000</span></div>
+      <div class="k-row neutral">${ft("forms.wdCondBuffer").replace("{pct}", meta.payoutBufferPct)}<span class="n ${bufferMet ? "green" : ""}">${bufferMet ? ft("forms.wdDone") : `${usd(profit)} / ${usd(bufferNeed)}`}</span></div>
+      <div class="k-row neutral">${ft("forms.wdCondQual")}<span class="n ${qual >= meta.qualifyingTickets ? "green" : ""}">${Math.min(qual, meta.qualifyingTickets)} / ${meta.qualifyingTickets}</span></div>
+      <div class="k-row neutral">${ft("forms.wdCondCool")}<span class="n ${cooldownDone ? "green" : ""}">${cooldownDone ? ft("forms.wdOpenNow") : ft("forms.wdOpens").replace("{date}", nextEligible.toLocaleDateString(document.documentElement.lang || "en"))}</span></div>
+      <div class="k-row neutral">${ft("forms.wdCondPayout")}<span class="n">${ft("forms.wdCondPayoutVal")}</span></div>
     </div>`;
 }
 

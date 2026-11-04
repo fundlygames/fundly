@@ -466,13 +466,13 @@
     syncPayPanel();
   }
 
-  function showFallback(msg, checkoutUrl) {
+  function showFallback(msg, checkoutUrl, noPromoHint) {
     stopPayWatch();
     payLoading.hidden = true;
     paySlow.hidden = true;
     whopMount.innerHTML = "";
     // Whop's hosted page can't pre-apply the code, so tell the customer to enter it.
-    const hint = promoActive()
+    const hint = promoActive() && !noPromoHint
       ? " " + t("co.fallbackCodeHint").replace("{code}", PROMO.code).replace("{pct}", PROMO.percent)
       : "";
     $("payErrMsg").textContent = (msg || t("co.gatewayError")) + hint;
@@ -636,6 +636,8 @@
         payLoading.hidden = true;
         whopMount.innerHTML = "";
         showSoldOut();
+      } else if (err.code === "ALREADY_ACTIVE") {
+        showFallback(t("forms.alreadyActive"), null, true);
       } else {
         showFallback(err.message, state.checkoutUrl);
       }
