@@ -129,6 +129,7 @@ serve(async (req) => {
     console.error("finance-manage error:", err);
     // deno-lint-ignore no-explicit-any
     const msg = err instanceof Error ? err.message : (err as any)?.message;
-    return jsonResponse({ error: msg || "Požadavek se nezdařil." }, 500);
+    // chyby z parseExpense (neplatné datum/částka/kategorie/měna) jsou chyby zadání, ne serveru
+    return jsonResponse({ error: msg || "Požadavek se nezdařil." }, /^Neplatn/.test(String(msg)) ? 400 : 500);
   }
 });

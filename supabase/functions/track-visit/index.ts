@@ -36,7 +36,10 @@ serve(async (req) => {
 
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? req.headers.get("cf-connecting-ip") ?? "";
     const cc = (req.headers.get("cf-ipcountry") ?? "").toUpperCase();
-    const country = /^[A-Z]{2}$/.test(cc) && cc !== "XX" && cc !== "T1" ? cc : null;
+    // země: z hlavičky CDN, jinak orientační údaj z prohlížeče (časové pásmo/jazyk — viz js/track.js).
+    // IP se nikam dál neposílá a neukládá.
+    const hint = String(body.cc ?? "").toUpperCase();
+    const country = /^[A-Z]{2}$/.test(cc) && cc !== "XX" && cc !== "T1" ? cc : /^[A-Z]{2}$/.test(hint) ? hint : null;
 
     const w = Number(body.w) || 0;
     const device = w > 0 && w < 768 ? "mobile" : w > 0 && w < 1100 ? "tablet" : w > 0 ? "desktop" : /mobile|android|iphone/i.test(ua) ? "mobile" : "desktop";
