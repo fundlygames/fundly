@@ -204,6 +204,19 @@ const FundlyAuth = {
     return client.auth.signUp({ email, password, options: data ? { data } : undefined });
   },
 
+  // Přeloží typické chybové hlášky Supabase Auth (anglicky) do jazyka stránky; neznámé vrátí beze změny.
+  errorText(err) {
+    const tr = (k) => (typeof window.t === "function" ? window.t(k) : k);
+    const msg = String((err && err.message) || "");
+    const code = String((err && err.code) || "");
+    if (/invalid_credentials/.test(code) || /invalid login credentials/i.test(msg)) return tr("forms.badLogin");
+    if (/rate_limit/.test(code) || /rate limit|too many|security purposes|after \d+ seconds/i.test(msg)) return tr("forms.errRate");
+    if (/same_password/.test(code) || /different from the old password/i.test(msg)) return tr("forms.errSamePassword");
+    if (/weak_password/.test(code) || /at least \d+ char/i.test(msg)) return tr("forms.errWeakPassword");
+    if (/failed to fetch|networkerror|network request failed/i.test(msg)) return tr("forms.errNetwork");
+    return msg;
+  },
+
   // Zapomenuté heslo: pošle e-mail s odkazem na dashboard, kde si po
   // příchodu z odkazu (Supabase založí dočasnou "recovery" session) může
   // hráč rovnou nastavit nové heslo přes panel "Account settings" —
@@ -222,7 +235,7 @@ const FundlyAuth = {
       const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/request-password-reset`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, lang: document.documentElement.lang || "en" }),
       });
       if (!res.ok) return { error: { message: "Could not send the reset e-mail." } };
       return { error: null };
@@ -327,5 +340,5 @@ document.addEventListener("click", (e) => {
   const showing = input.type === "text";
   input.type = showing ? "password" : "text";
   btn.setAttribute("aria-pressed", String(!showing));
-  btn.setAttribute("aria-label", showing ? "Show password" : "Hide password");
+  btn.setAttribute("aria-label", (typeof window.t === "function" ? window.t(showing ? "forms.showPassword" : "forms.hidePassword") : (showing ? "Show password" : "Hide password")));
 });
