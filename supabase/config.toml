@@ -107,3 +107,6 @@ verify_jwt = false
 
 [functions.finance-manage]
 verify_jwt = false
+
+[functions.daily-health]
+verify_jwt = false
