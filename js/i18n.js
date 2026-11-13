@@ -75,6 +75,7 @@ const FUNDLY_I18N = (() => {
       preview: {
         title: "Preview the dashboard", sub: "Create a free account — no payment, no package. Just look around.", cta: "Create my preview account", legal: "By continuing you agree to our <a href=\"terms\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">terms</a> and <a href=\"privacy\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">privacy policy</a>.", exists: "An account with this email already exists — log in instead.",
       },
+      vsl: { heading: "See how Fundly works", sub: "Everything important in one short video — from the challenge to a reward of up to 80% of your performance." },
       faq: {
         heading: "Frequently asked questions",
         q1: "Is Fundly Games a bookmaker or gambling platform?",
@@ -253,6 +254,7 @@ const FUNDLY_I18N = (() => {
       preview: {
         title: "Podívej se dovnitř", sub: "Vytvoř si účet zdarma — žádná platba, žádný balíček. Jen se podívej.", cta: "Vytvořit účet na náhled", legal: "Pokračováním souhlasíš s <a href=\"terms\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">podmínkami</a> a <a href=\"privacy\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">zásadami ochrany soukromí</a>.", exists: "Účet s tímto e-mailem už existuje — přihlas se.",
       },
+      vsl: { heading: "Podívej se, jak Fundly funguje", sub: "Vše podstatné v jednom krátkém videu — od výzvy až po odměnu až 80 % z výkonu." },
       faq: {
         heading: "Často kladené otázky",
         q1: "Je Fundly Games sázková kancelář nebo hazardní platforma?",
@@ -431,6 +433,7 @@ const FUNDLY_I18N = (() => {
       preview: {
         title: "Mira el dashboard", sub: "Crea una cuenta gratis — sin pago, sin paquete. Solo échale un vistazo.", cta: "Crear mi cuenta de vista previa", legal: "Al continuar aceptas nuestros <a href=\"terms\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">términos</a> y la <a href=\"privacy\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">política de privacidad</a>.", exists: "Ya existe una cuenta con este correo — inicia sesión.",
       },
+      vsl: { heading: "Mira cómo funciona Fundly", sub: "Todo lo esencial en un vídeo corto: desde el desafío hasta una recompensa de hasta el 80 % de tu rendimiento." },
       faq: {
         heading: "Preguntas frecuentes",
         q1: "¿Es Fundly Games una casa de apuestas o una plataforma de juego?",
@@ -609,6 +612,7 @@ const FUNDLY_I18N = (() => {
       preview: {
         title: "Zajrzyj do panelu", sub: "Załóż darmowe konto — bez płatności, bez pakietu. Po prostu się rozejrzyj.", cta: "Utwórz konto podglądu", legal: "Kontynuując, akceptujesz nasze <a href=\"terms\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">warunki</a> i <a href=\"privacy\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">politykę prywatności</a>.", exists: "Konto z tym adresem e-mail już istnieje — zaloguj się.",
       },
+      vsl: { heading: "Zobacz, jak działa Fundly", sub: "Wszystko, co najważniejsze, w jednym krótkim filmie — od wyzwania po nagrodę do 80% Twojego wyniku." },
       faq: {
         heading: "Najczęściej zadawane pytania",
         q1: "Czy Fundly Games to bukmacher lub platforma hazardowa?",
@@ -787,6 +791,7 @@ const FUNDLY_I18N = (() => {
       preview: {
         title: "Pozri sa dovnútra", sub: "Vytvor si účet zadarmo — žiadna platba, žiadny balíček. Len sa pozri.", cta: "Vytvoriť účet na náhľad", legal: "Pokračovaním súhlasíš s <a href=\"terms\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">podmienkami</a> a <a href=\"privacy\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">zásadami ochrany súkromia</a>.", exists: "Účet s týmto e-mailom už existuje — prihlás sa.",
       },
+      vsl: { heading: "Pozri sa, ako Fundly funguje", sub: "Všetko podstatné v jednom krátkom videu — od výzvy až po odmenu až 80 % z výkonu." },
       faq: {
         heading: "Často kladené otázky",
         q1: "Je Fundly Games stávková kancelária alebo hazardná platforma?",
@@ -965,6 +970,7 @@ const FUNDLY_I18N = (() => {
       preview: {
         title: "Nézz be az irányítópultba", sub: "Hozz létre egy ingyenes fiókot — fizetés és csomag nélkül. Csak nézz körül.", cta: "Előnézeti fiók létrehozása", legal: "A folytatással elfogadod <a href=\"terms\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">feltételeinket</a> és <a href=\"privacy\" class=\"lnk\" target=\"_blank\" rel=\"noopener\">adatvédelmi szabályzatunkat</a>.", exists: "Ezzel az e-mail címmel már létezik fiók — jelentkezz be.",
       },
+      vsl: { heading: "Nézd meg, hogyan működik a Fundly", sub: "Minden lényeges egy rövid videóban — a kihívástól egészen a teljesítményed akár 80%-os jutalmáig." },
       faq: {
         heading: "Gyakran ismételt kérdések",
         q1: "A Fundly Games egy fogadóiroda vagy szerencsejáték-platform?",
