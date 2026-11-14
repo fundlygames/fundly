@@ -8,6 +8,8 @@
 // i v prohlížeči. Při výpadku odds-api kontrola "propustí" (fail-open), aby výpadek
 // zdroje kurzů neblokoval hráče.
 
+import { CUSTOM_BOOKMAKER, isCustomEventId, loadCustomEvents } from "./custom-events.ts";
+
 export const ODDS_MIN = 1.0;
 export const ODDS_MAX = 8.0;
 
@@ -100,7 +102,23 @@ export async function fetchEventInfo(
 ): Promise<Map<string, EventInfo | null>> {
   const base = "https://api.odds-api.io/v3";
   const out = new Map<string, EventInfo | null>();
-  const ids = [...new Set(eventIds.filter(Boolean))];
+  const allIds = [...new Set(eventIds.filter(Boolean))];
+  // vlastní zápasy (custom_events) se čtou z databáze, ne z odds-api
+  const customIds = allIds.filter(isCustomEventId);
+  if (customIds.length) {
+    try {
+      const found = await loadCustomEvents(customIds);
+      for (const id of customIds) {
+        const ev = found.get(id);
+        out.set(id, ev
+          ? { status: String(ev.status ?? ""), date: ev.date ?? null, bookmakers: ev.bookmakers ?? null, hasOdds: !!(ev.bookmakers && ev.bookmakers[CUSTOM_BOOKMAKER]?.length) }
+          : { status: "cancelled", date: null, bookmakers: null, hasOdds: false }); // skrytý / smazaný zápas
+      }
+    } catch (_) {
+      customIds.forEach((id) => out.set(id, null)); // výpadek DB → fail-open jako u odds-api
+    }
+  }
+  const ids = allIds.filter((id) => !isCustomEventId(id));
   const chunks: string[][] = [];
   for (let i = 0; i < ids.length; i += 10) chunks.push(ids.slice(i, i + 10));
 
@@ -137,7 +155,7 @@ export async function fetchEventInfo(
 // aktuální kurzy pro výběr napříč povolenými bookmakery (nejvyšší = nejpříznivější pro hráče)
 export function currentOdds(sel: DraftSelection, info: EventInfo, bookmakers: string[]): { marketFound: boolean; rowFound: boolean; best: number | null } {
   let marketFound = false, rowFound = false, best: number | null = null;
-  for (const bm of bookmakers) {
+  for (const bm of [...bookmakers, CUSTOM_BOOKMAKER]) {
     const markets = (info.bookmakers && info.bookmakers[bm]) || [];
     const market = markets.find((m: { name: string }) => m.name === sel.marketName);
     if (!market || !Array.isArray(market.odds)) continue;

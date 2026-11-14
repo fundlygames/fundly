@@ -22,6 +22,7 @@ import { enforceLossLimits } from "../_shared/loss-enforce.ts";
 import { jsonResponse } from "../_shared/cors.ts";
 import { isValidAdminKey } from "../_shared/admin.ts";
 import { settleSelection, type Selection } from "../_shared/settle.ts";
+import { customEventResult, isCustomEventId } from "../_shared/custom-events.ts";
 
 const API_BASE = "https://api.odds-api.io/v3";
 const MAX_EVENTS_PER_RUN = 300;
@@ -49,6 +50,7 @@ type EventResult = { found: true; status: string; ft: Period; p1: Period } | { f
 const STALE_AFTER_MS = 30 * 3600 * 1000;
 
 async function fetchEvent(id: string, apiKey: string): Promise<EventResult> {
+  if (isCustomEventId(id)) return await customEventResult(id); // vlastní zápas z custom_events
   try {
     const res = await fetch(`${API_BASE}/events/${id}?apiKey=${apiKey}`);
     if (res.status === 404) return { found: false };

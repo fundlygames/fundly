@@ -1251,7 +1251,7 @@ async function loadSportEvents(sport, live) {
   // fallback napříč oběma povolenými bookmakery — první, co má pro daný
   // zápas použitelné ML kurzy, vyhrává (Bet365 má přednost, viz BOOKMAKERS)
   function pickBookmaker(e) {
-    for (const bm of BOOKMAKERS) {
+    for (const bm of [...BOOKMAKERS, CUSTOM_BOOKMAKER]) {
       const markets = (e.bookmakers && e.bookmakers[bm]) || [];
       const ml = markets.find((m) => m.name === "ML");
       const row = ml && ml.odds && ml.odds[0];
@@ -1488,7 +1488,7 @@ async function refreshSlipFromApi(items) {
 
       // aktuální kurz stejného výběru (první povolený bookmaker, který trh nabízí)
       let fresh = null, marketSeen = false;
-      for (const bm of BOOKMAKERS) {
+      for (const bm of [...BOOKMAKERS, CUSTOM_BOOKMAKER]) {
         const market = ((ev.bookmakers && ev.bookmakers[bm]) || []).find((m) => m.name === item.marketName);
         if (!market || !Array.isArray(market.odds)) continue;
         marketSeen = true;
@@ -1595,7 +1595,7 @@ function renderMatchDetail(m) {
 }
 
 function renderMatches() {
-  const m = detailMatch && sportEvents.find((x) => x.id === detailMatch);
+  const m = detailMatch && sportEvents.find((x) => String(x.id) === String(detailMatch));
   if (m) { renderMatchDetail(m); return; }
   detailMatch = null;
   setBetChrome(false);
@@ -1641,7 +1641,7 @@ function renderMatches() {
 // resolves a clicked pick by id `eventId|market|rowIdx|field`
 function resolvePick(id) {
   const [eid, marketName, ri, field] = id.split("|");
-  const m = sportEvents.find((x) => x.id === Number(eid));
+  const m = sportEvents.find((x) => String(x.id) === eid);
   if (!m) return null;
   const mk = m.markets.find((x) => x.name === marketName);
   const row = mk && mk.odds[Number(ri)];
@@ -1888,7 +1888,7 @@ if (sportTabs) {
     }
     const head = e.target.closest(".match-head");
     if (head) {
-      detailMatch = Number(head.closest("[data-match]").dataset.match);
+      detailMatch = head.closest("[data-match]").dataset.match;
       openGroups = null;
       renderMatches();
       window.scrollTo({ top: document.getElementById("view-sazeni").offsetTop - 60, behavior: "instant" });
@@ -1900,7 +1900,7 @@ if (sportTabs) {
     const head = e.target.closest(".match-head");
     if (!head) return;
     e.preventDefault();
-    detailMatch = Number(head.closest("[data-match]").dataset.match);
+    detailMatch = head.closest("[data-match]").dataset.match;
     renderMatches();
   });
 
