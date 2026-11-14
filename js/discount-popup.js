@@ -57,7 +57,7 @@
         body: JSON.stringify({ email, lang: (window.FUNDLY_I18N && FUNDLY_I18N.getLang && FUNDLY_I18N.getLang()) || null, attribution: typeof getAttribution === "function" ? getAttribution() : null }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Could not send the code.");
+      if (!res.ok) throw new Error(res.status === 400 && typeof t === "function" ? t("co.errInvalidEmail") : (typeof t === "function" ? t("forms.discountFailed") : "Could not send the code."));
       if (typeof fbq === "function") fbq("track", "Lead", { content_name: "discount_popup" });
       if (typeof gtag === "function") gtag("event", "generate_lead", { method: "discount_popup" });
       form.hidden = true;
@@ -65,7 +65,7 @@
       note.className = "auth-note";
       note.hidden = false;
     } catch (err) {
-      note.textContent = err.message || "Could not send the code.";
+      note.textContent = err.message || (typeof t === "function" ? t("forms.discountFailed") : "Could not send the code.");
       note.className = "auth-note error";
       note.hidden = false;
       btn.disabled = false;

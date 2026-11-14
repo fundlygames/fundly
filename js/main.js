@@ -176,34 +176,32 @@ const authPass = document.getElementById("authPass");
 let authMode = "login";
 let lastFocus = null;
 
-const AUTH_TEXTS = {
-  login: {
-    title: "Log in",
-    sub: "Log in to your account",
-    submit: "Log in",
-    switchText: "No account yet?",
-    switchBtn: "Sign up",
-    passAutocomplete: "current-password",
-  },
-  register: {
-    title: "Sign up",
-    sub: "Create an account and start the Challenge",
-    submit: "Create account",
-    switchText: "Already have an account?",
-    switchBtn: "Log in",
-    passAutocomplete: "new-password",
-  },
-};
+// Texts come from the i18n dictionary (js/i18n.js, group "forms") so the modal follows the page language.
+const tr = (key) => (typeof window.t === "function" ? window.t(key) : key);
+function authTexts(mode) {
+  return mode === "login"
+    ? { title: tr("forms.loginTitle"), sub: tr("forms.loginSub"), submit: tr("forms.loginSubmit"), switchText: tr("forms.noAccount"), switchBtn: tr("forms.signUp"), passAutocomplete: "current-password" }
+    : { title: tr("forms.regTitle"), sub: tr("forms.regSub"), submit: tr("forms.regSubmit"), switchText: tr("forms.haveAccount"), switchBtn: tr("forms.logIn"), passAutocomplete: "new-password" };
+}
+
+function applyAuthTexts(mode) {
+  const x = authTexts(mode);
+  authTitle.textContent = x.title;
+  authSub.textContent = x.sub;
+  authSubmit.textContent = x.submit;
+  authSwitchText.textContent = x.switchText;
+  authSwitchBtn.textContent = x.switchBtn;
+  authPass.setAttribute("autocomplete", x.passAutocomplete);
+}
+
+// the page language can change (or finish geo-detecting) while the modal is open
+document.addEventListener("fundly:lang-changed", () => {
+  if (!authModal.hidden && authForm && !authForm.hidden) applyAuthTexts(authMode);
+});
 
 function setAuthMode(mode) {
   authMode = mode;
-  const t = AUTH_TEXTS[mode];
-  authTitle.textContent = t.title;
-  authSub.textContent = t.sub;
-  authSubmit.textContent = t.submit;
-  authSwitchText.textContent = t.switchText;
-  authSwitchBtn.textContent = t.switchBtn;
-  authPass.setAttribute("autocomplete", t.passAutocomplete);
+  applyAuthTexts(mode);
   authNote.hidden = true;
   const forgotRow = document.getElementById("authForgotRow");
   if (forgotRow) forgotRow.hidden = mode !== "login";
@@ -264,14 +262,14 @@ authSwitchBtn.addEventListener("click", () => setAuthMode(authMode === "login" ?
 document.getElementById("authForgot")?.addEventListener("click", async () => {
   const email = document.getElementById("authEmail").value.trim();
   if (!email) {
-    authNote.textContent = "Enter your e-mail above first, then tap \"Forgot password?\" again.";
+    authNote.textContent = tr("forms.forgotNeedEmail");
     authNote.className = "auth-note error";
     authNote.hidden = false;
     document.getElementById("authEmail").focus();
     return;
   }
   if (typeof fundlyBackendEnabled !== "function" || !fundlyBackendEnabled()) {
-    authNote.textContent = "Password reset is unavailable in demo mode.";
+    authNote.textContent = tr("forms.forgotDemo");
     authNote.className = "auth-note error";
     authNote.hidden = false;
     return;
@@ -281,8 +279,8 @@ document.getElementById("authForgot")?.addEventListener("click", async () => {
   const { error } = await FundlyAuth.resetPassword(email);
   btn.disabled = false;
   authNote.textContent = error
-    ? "Could not send the reset e-mail. Please try again."
-    : "If that e-mail has an account, we sent a password reset link to it.";
+    ? tr("forms.forgotError")
+    : tr("forms.forgotSent");
   authNote.className = error ? "auth-note error" : "auth-note";
   authNote.hidden = false;
 });
@@ -296,8 +294,8 @@ function showMfaStep(stepUp) {
   pendingMfa = stepUp;
   authForm.hidden = true;
   document.querySelector(".auth-switch").hidden = true;
-  authTitle.textContent = "Verification code";
-  authSub.textContent = "Two-factor authentication is enabled on this account";
+  authTitle.textContent = tr("forms.mfaTitle");
+  authSub.textContent = tr("forms.mfaSub");
   authMfaForm.hidden = false;
   authMfaNote.hidden = true;
   document.getElementById("authMfaCode").value = "";
@@ -309,13 +307,13 @@ authMfaForm?.addEventListener("submit", async (e) => {
   if (!pendingMfa) return;
   const btn = document.getElementById("authMfaSubmit");
   btn.disabled = true;
-  btn.textContent = "Verifying…";
+  btn.textContent = tr("forms.mfaVerifying");
   const code = document.getElementById("authMfaCode").value.trim();
   const { error } = await FundlyAuth.mfaVerify(pendingMfa.factorId, pendingMfa.challengeId, code);
   btn.disabled = false;
-  btn.textContent = "Verify";
+  btn.textContent = tr("forms.mfaVerify");
   if (error) {
-    authMfaNote.textContent = "Incorrect code. Please try again.";
+    authMfaNote.textContent = tr("forms.mfaBad");
     authMfaNote.className = "auth-note error";
     authMfaNote.hidden = false;
     return;
@@ -330,7 +328,7 @@ authForm.addEventListener("submit", (e) => {
   e.preventDefault();
   if (!authForm.reportValidity()) return;
   authSubmit.disabled = true;
-  authSubmit.textContent = authMode === "login" ? "Logging in…" : "Creating account…";
+  authSubmit.textContent = authMode === "login" ? tr("forms.loggingIn") : tr("forms.creating");
 
   // With a configured backend (js/config.js): sign-up = real payment
   // via Whop checkout, login = magic link to the e-mail. Without a backend
@@ -342,7 +340,7 @@ authForm.addEventListener("submit", (e) => {
       authNote.className = "auth-note error";
       authNote.hidden = false;
       authSubmit.disabled = false;
-      authSubmit.textContent = AUTH_TEXTS[authMode].submit;
+      authSubmit.textContent = authTexts(authMode).submit;
     };
     if (authMode === "register") {
       // Our own checkout page instead of Whop's hosted one: the embedded form
@@ -354,19 +352,19 @@ authForm.addEventListener("submit", (e) => {
       // password filled → direct sign-in; empty → magic link to the e-mail
       if (password) {
         FundlyAuth.signInWithPassword(email, password).then(async ({ error }) => {
-          if (error) { fail("Incorrect e-mail or password."); return; }
+          if (error) { fail(FundlyAuth.errorText(error) || tr("forms.badLogin")); return; }
           const stepUp = await FundlyAuth.mfaStepUpNeeded().catch(() => null);
           if (stepUp) { showMfaStep(stepUp); return; }
           window.location.href = "dashboard";
-        }).catch(() => fail("Login failed."));
+        }).catch(() => fail(tr("forms.loginFailed")));
       } else {
         FundlyAuth.signInWithEmail(email).then(({ error }) => {
-          if (error) { fail(error.message); return; }
-          authNote.textContent = "We sent a login link to your e-mail.";
+          if (error) { fail(FundlyAuth.errorText(error)); return; }
+          authNote.textContent = tr("forms.loginLinkSent");
           authNote.className = "auth-note";
           authNote.hidden = false;
           authSubmit.disabled = false;
-          authSubmit.textContent = AUTH_TEXTS[authMode].submit;
+          authSubmit.textContent = authTexts(authMode).submit;
         });
       }
     }
@@ -394,7 +392,7 @@ if (contactForm) {
     note.hidden = true;
     try {
       if (typeof fundlyBackendEnabled !== "function" || !fundlyBackendEnabled()) {
-        throw new Error("Support is temporarily unavailable — please email us directly.");
+        throw new Error(tr("forms.contactUnavailable"));
       }
       const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/support-submit`, {
         method: "POST",
@@ -407,13 +405,13 @@ if (contactForm) {
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "The message could not be sent.");
+      if (!res.ok) throw new Error(tr("forms.contactFailed"));
       contactForm.reset();
-      note.textContent = "Message sent — we'll get back to you by email.";
+      note.textContent = tr("forms.contactSent");
       note.className = "auth-note mt";
       note.hidden = false;
     } catch (err) {
-      note.textContent = err.message || "The message could not be sent.";
+      note.textContent = err.message || tr("forms.contactFailed");
       note.className = "auth-note mt error";
       note.hidden = false;
     } finally {
@@ -500,6 +498,19 @@ if (heroEl) heroSentinel.observe(heroEl);
     });
   }
 
+  // Someone who already registered (e.g. an earlier Preview) and forgot the password can request a reset link here
+  document.getElementById("previewForgot")?.addEventListener("click", async () => {
+    const note = document.getElementById("previewNote");
+    const email = document.getElementById("previewEmail").value.trim();
+    const show = (msg, isErr) => { note.textContent = msg; note.className = isErr ? "auth-note error" : "auth-note"; note.hidden = false; };
+    if (!email) { show(tr("forms.forgotNeedEmail"), true); document.getElementById("previewEmail").focus(); return; }
+    const btn = document.getElementById("previewForgot");
+    btn.disabled = true;
+    const { error } = await FundlyAuth.resetPassword(email);
+    btn.disabled = false;
+    show(error ? tr("forms.forgotError") : tr("forms.forgotSent"), !!error);
+  });
+
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const note = document.getElementById("previewNote");
@@ -515,7 +526,7 @@ if (heroEl) heroSentinel.observe(heroEl);
         body: JSON.stringify({ email, password }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Could not create the account.");
+      if (!res.ok) throw new Error(res.status === 400 && /password/i.test(String(data.error)) ? tr("forms.errWeakPassword") : res.status === 400 && /e-?mail/i.test(String(data.error)) ? tr("co.errInvalidEmail") : tr("forms.previewFailed"));
 
       // This e-mail already had an account (most commonly: registered at
       // checkout, which no longer sets a password there — see checkout.js) —
@@ -524,7 +535,7 @@ if (heroEl) heroSentinel.observe(heroEl);
       // signInWithPassword below would only fail; tell them to check their
       // inbox instead of pretending this worked.
       if (data.existingAccount) {
-        note.textContent = "This e-mail already has an account — we've sent you a sign-in link, check your inbox.";
+        note.textContent = tr("forms.previewExisting");
         note.className = "auth-note";
         note.hidden = false;
         btn.disabled = false;
@@ -533,13 +544,13 @@ if (heroEl) heroSentinel.observe(heroEl);
 
       const client = await FundlyBackend.getClient();
       const { error: signInError } = await client.auth.signInWithPassword({ email, password });
-      if (signInError) throw new Error(signInError.message);
+      if (signInError) throw new Error(FundlyAuth.errorText(signInError));
 
       if (typeof fbq === "function") fbq("track", "CompleteRegistration", { content_name: "preview" });
       if (typeof gtag === "function") gtag("event", "sign_up", { method: "preview" });
       window.location.href = "dashboard";
     } catch (err) {
-      note.textContent = err.message || "Could not create the account.";
+      note.textContent = err.message || tr("forms.previewFailed");
       note.className = "auth-note error";
       note.hidden = false;
       btn.disabled = false;
