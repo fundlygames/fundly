@@ -32,7 +32,12 @@ const PRIORITY_LEAGUES: Record<string, string[]> = {
   basketball: ["international-euroleague"],
   "ice-hockey": ["usa-nhl"],
 };
-const TTL = { bundle: 240, bundleLive: 40, event: 60, multi: 45, valueBets: 240 }; // sekundy
+// LIVE: kurzy se v živých zápasech mění zhruba každých ~25 s a odds-api je má čerstvé v mediánu ~9 s
+// (měřeno 14. 11.) → živý seznam max. LIVE_TTL_S starý. fresh=1 (kontrola tiketu těsně před
+// podáním) jde skoro přímo na odds-api (2 s jen proti souběžným duplicitám).
+const LIVE_TTL_S = Math.max(5, Number(Deno.env.get("ODDS_LIVE_TTL_S") ?? "12") || 12);
+const TTL = { bundle: 240, bundleLive: LIVE_TTL_S, event: 60, multi: 45, valueBets: 240, fresh: 2 }; // sekundy
+const LIVE_RESCAN_S = 600; // jak často znovu projít VŠECHNY živé zápasy, jestli k nim mezitím nepřibyly kurzy
 const STALE_MAX_S = 6 * 3600; // starší data už raději nevracet
 
 const apiKey = Deno.env.get("ODDS_API_KEY") ?? "";
@@ -91,7 +96,7 @@ async function readStored(key: string): Promise<Entry | null> {
 }
 
 // Vrátí { body, stale } — čerstvá data z cache, nebo nově stažená, nebo při chybě poslední uložená.
-async function cached(key: string, ttlS: number, produce: () => Promise<unknown>): Promise<{ body: string; age: number; stale: boolean }> {
+async function cached(key: string, ttlS: number, produce: () => Promise<unknown>, staleMaxS = STALE_MAX_S): Promise<{ body: string; age: number; stale: boolean }> {
   const now = Date.now();
   const stored = await readStored(key);
   if (stored && now - stored.t < ttlS * 1000) return { body: stored.body, age: Math.round((now - stored.t) / 1000), stale: false };
@@ -112,7 +117,7 @@ async function cached(key: string, ttlS: number, produce: () => Promise<unknown>
   try {
     return { body: await refresh(key, produce), age: 0, stale: false };
   } catch (err) {
-    if (stored && now - stored.t < STALE_MAX_S * 1000) {
+    if (stored && now - stored.t < staleMaxS * 1000) {
       return { body: stored.body, age: Math.round((now - stored.t) / 1000), stale: true };
     }
     throw err;
@@ -127,12 +132,34 @@ function refresh(key: string, produce: () => Promise<unknown>): Promise<string> 
       const e = { t: Date.now(), body };
       mem.set(key, e);
       if (mem.size > 400) mem.delete(mem.keys().next().value!); // jednoduchý strop paměti
-      await db.from("odds_cache").upsert({ key, body, fetched_at: new Date(e.t).toISOString() });
+      // čerstvé kontroly tiketu ("f…") do DB neukládat — žijí 2 s a jen by plnily tabulku
+      if (!key.startsWith("f")) await db.from("odds_cache").upsert({ key, body, fetched_at: new Date(e.t).toISOString() });
       return body;
     })().finally(() => inflight.delete(key));
     inflight.set(key, p);
   }
   return p;
+}
+
+// Živé zápasy: odds-api jich vrací stovky (fotbal ~400), ale kurzy od našich bookmakerů má
+// jen pár desítek. Plný průchod (40 požadavků) se proto dělá jen jednou za LIVE_RESCAN_S;
+// mezi tím se každých LIVE_TTL_S stahují kurzy jen pro zápasy, které je mají, + pro nově
+// začaté zápasy. Bez toho by jedno obnovení živého fotbalu stálo ~40 požadavků.
+type Coverage = { t: number; scanned: Set<string>; withOdds: Set<string> };
+const coverage = new Map<string, Coverage>();
+
+// deno-lint-ignore no-explicit-any
+async function fetchOddsFor(ids: string[]): Promise<any[]> {
+  const chunks: string[][] = [];
+  for (let i = 0; i < ids.length; i += 10) chunks.push(ids.slice(i, i + 10));
+  // deno-lint-ignore no-explicit-any
+  const odds: any[] = [];
+  for (let i = 0; i < chunks.length; i += 4) { // max 4 souběžně, ať nebijeme odds-api
+    const part = await Promise.all(chunks.slice(i, i + 4).map((c) =>
+      upstream("/odds/multi", { eventIds: c.join(","), bookmakers: BOOKMAKERS })));
+    for (const p of part) if (Array.isArray(p)) odds.push(...trimOdds(p));
+  }
+  return odds;
 }
 
 async function buildBundle(sport: string, live: boolean) {
@@ -141,25 +168,29 @@ async function buildBundle(sport: string, live: boolean) {
   const events: any[] = (await upstream(live ? "/events/live" : "/events", live
     ? { sport }
     : { sport, status: "pending", limit: String(EVENTS_PER_SPORT), to })) as any[];
-  const leagues = PRIORITY_LEAGUES[sport] ?? [];
+  // prioritní ligy jen pre-match: /events/live vrací celý (malý) živý výpis, nic se v něm neztrácí
+  const leagues = live ? [] : (PRIORITY_LEAGUES[sport] ?? []);
   if (leagues.length) {
     const seen = new Set(events.map((e) => e.id));
     const lists = await Promise.all(leagues.map((league) =>
-      upstream(live ? "/events/live" : "/events", live
-        ? { sport, league }
-        : { sport, league, status: "pending", limit: "20", to }).catch(() => [])));
+      upstream("/events", { sport, league, status: "pending", limit: "20", to }).catch(() => [])));
     // deno-lint-ignore no-explicit-any
     for (const list of lists as any[][]) for (const e of list) if (!seen.has(e.id)) { seen.add(e.id); events.push(e); }
   }
-  const ids = events.map((e) => e.id);
-  const chunks: string[][] = [];
-  for (let i = 0; i < ids.length; i += 10) chunks.push(ids.slice(i, i + 10).map(String));
-  const odds: unknown[] = [];
-  for (let i = 0; i < chunks.length; i += 4) { // max 4 souběžně, ať nebijeme odds-api
-    const part = await Promise.all(chunks.slice(i, i + 4).map((c) =>
-      upstream("/odds/multi", { eventIds: c.join(","), bookmakers: BOOKMAKERS })));
-    for (const p of part) if (Array.isArray(p)) odds.push(...trimOdds(p));
-  }
+  const ids = events.map((e) => String(e.id));
+  if (!live) return { events, odds: await fetchOddsFor(ids) };
+
+  const now = Date.now();
+  let cov = coverage.get(sport);
+  const full = !cov || now - cov.t > LIVE_RESCAN_S * 1000;
+  const want = full ? ids : ids.filter((id) => cov!.withOdds.has(id) || !cov!.scanned.has(id));
+  const odds = await fetchOddsFor(want);
+  // deno-lint-ignore no-explicit-any
+  const has = (e: any) => Object.values(e.bookmakers ?? {}).some((ms) => Array.isArray(ms) && ms.length);
+  if (full || !cov) cov = { t: now, scanned: new Set(), withOdds: new Set() };
+  for (const id of want) { cov.scanned.add(id); cov.withOdds.delete(id); }
+  for (const e of odds) if (has(e)) cov.withOdds.add(String(e.id));
+  coverage.set(sport, cov);
   return { events, odds };
 }
 
@@ -191,19 +222,22 @@ serve(async (req) => {
       if (!SPORTS.has(sport)) return err(400, "Unknown sport");
       const live = p.get("live") === "1";
       const ttl = live ? TTL.bundleLive : TTL.bundle;
-      return reply(await cached(`bundle2:${sport}:${live ? 1 : 0}`, ttl, () => buildBundle(sport, live)), ttl);
+      return reply(await cached(`bundle2:${sport}:${live ? 1 : 0}`, ttl, () => buildBundle(sport, live), live ? 60 : STALE_MAX_S), ttl);
     }
 
     const path = p.get("path") ?? "";
     const one = /^\/events\/(\d{1,15})$/.exec(path);
+    const fresh = p.get("fresh") === "1";
     if (one) {
-      return reply(await cached(`event:${one[1]}`, TTL.event, () => upstream(path, {})), TTL.event);
+      const ttl = fresh ? TTL.fresh : TTL.event;
+      return reply(await cached(`${fresh ? "f" : ""}event:${one[1]}`, ttl, () => upstream(path, {}), fresh ? 0 : STALE_MAX_S), ttl);
     }
     if (path === "/odds/multi") {
       const ids = (p.get("eventIds") ?? "").split(",").filter((x) => /^\d{1,15}$/.test(x)).slice(0, 10);
       if (!ids.length) return err(400, "eventIds required");
-      const key = `multi2:${[...ids].sort().join(",")}`;
-      return reply(await cached(key, TTL.multi, () => upstream("/odds/multi", { eventIds: ids.join(","), bookmakers: BOOKMAKERS }).then(trimOdds)), TTL.multi);
+      const key = `${fresh ? "f" : ""}multi2:${[...ids].sort().join(",")}`;
+      const ttl = fresh ? TTL.fresh : TTL.multi;
+      return reply(await cached(key, ttl, () => upstream("/odds/multi", { eventIds: ids.join(","), bookmakers: BOOKMAKERS }).then(trimOdds), fresh ? 0 : 120), ttl);
     }
     if (path === "/value-bets") {
       const bm = (p.get("bookmaker") ?? "Bet365").replace(/[^A-Za-z0-9 .]/g, "").slice(0, 40);

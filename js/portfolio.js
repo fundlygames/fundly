@@ -150,7 +150,8 @@ async function apiGetRaw(path, params) {
 }
 
 async function apiGetDirect(path, params) {
-  const q = new URLSearchParams({ ...params, apiKey: API_KEY });
+  const { fresh: _fresh, ...rest } = params || {}; // "fresh" zná jen odds-feed
+  const q = new URLSearchParams({ ...rest, apiKey: API_KEY });
   const res = await fetch(`${API_BASE}${path}?${q}`);
   if (!res.ok) {
     const err = new Error(`HTTP ${res.status}`);
