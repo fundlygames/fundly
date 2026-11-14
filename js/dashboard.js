@@ -1999,7 +1999,7 @@ if (sportTabs) {
 // ---------- live matches: auto-refresh so scores/clocks aren't stuck until a manual click ----------
 // odds-api.io itself doesn't push per-second updates (it's a polled aggregator,
 // not a raw live-data feed), so true to-the-second is not realistic — this
-// polls every 10s while the LIVE filter is on and the Betting tab is visible,
+// polls every 30s while the LIVE filter is on (structure/scores; odds come every ~2s from pollLiveOdds) and the Betting tab is visible,
 // which is as close to "live" as the underlying data source allows without
 // burning through the odds-api rate budget for no visible benefit.
 async function autoRefreshLiveMatches() {
@@ -2014,8 +2014,73 @@ async function autoRefreshLiveMatches() {
     renderMatches();
   } catch (e) { /* silent — next tick retries */ }
 }
-// 10 s: živé kurzy se mění zhruba každých ~25 s; server (odds-feed) je drží max. ~12 s
-setInterval(autoRefreshLiveMatches, 10 * 1000);
+// 30 s: nové/skončené zápasy, skóre a čas. Samotné KURZY se v živém režimu aktualizují
+// každé ~2 s z WebSocket relé (pollLiveOdds níže).
+setInterval(autoRefreshLiveMatches, 30 * 1000);
+
+// ---------- živé kurzy v reálném čase (WebSocket relé odds-stream → tabulka live_odds) ----------
+// odds-api posílá změnu kurzu ~1 s po bookmakerovi; relé ji zapíše do DB a tady se každé
+// ~2 s stáhnou jen změněné řádky (pro seznam jen trh ML = pár bajtů, pro otevřený detail
+// všechny trhy). Kontrola těsně před podáním tiketu jde dál přímo na odds-api (fresh=1).
+let liveOddsSince = null;      // server čas posledního aplikovaného řádku (seznam)
+let liveOddsDetailSince = null; // totéž pro otevřený detail
+let liveOddsDetailId = null;
+let liveOddsList = null;       // při novém načtení seznamu (sport, filtr, 30s obnova) znovu od plného stavu
+let liveOddsBusy = false;
+
+function applyLiveRow(m, row, withMarkets) {
+  if (!m || row.bookie !== m.bookmaker) return false;
+  let changed = false;
+  const ml = row.ml && row.ml.home && row.ml.away ? row.ml : null;
+  const next = ml
+    ? [parseFloat(ml.home), ml.draw ? parseFloat(ml.draw) : null, parseFloat(ml.away)]
+    : [null, null, null]; // trh stažený (suspendováno) → tlačítka se schovají
+  if (JSON.stringify(next) !== JSON.stringify(m.odds)) { m.odds = next; changed = true; }
+  if (withMarkets && Array.isArray(row.markets)) {
+    m.markets = row.markets.filter((mk) => Array.isArray(mk.odds) && mk.odds.length && GRADEABLE_MARKETS.has(mk.name)).slice(0, 14);
+    changed = true;
+  } else {
+    // trh ML v m.markets musí sedět s m.odds — z něj se bere kurz při kliknutí (resolvePick)
+    const i = m.markets.findIndex((mk) => mk.name === "ML");
+    if (ml && i >= 0) m.markets[i] = { ...m.markets[i], odds: [ml] };
+    else if (ml && i < 0) m.markets.unshift({ name: "ML", odds: [ml] });
+    else if (!ml && i >= 0) m.markets.splice(i, 1);
+  }
+  return changed;
+}
+
+async function pollLiveOdds() {
+  if (!filters.live || liveOddsBusy || document.hidden) return;
+  const view = document.getElementById("view-sazeni");
+  if (!view || view.hidden) return;
+  const live = sportEvents.filter((m) => m.live && /^\d+$/.test(String(m.id)));
+  if (!live.length) return;
+  // nový seznam (REST snímek může být starší než WS) → znovu plný aktuální stav řádků
+  if (sportEvents !== liveOddsList) { liveOddsList = sportEvents; liveOddsSince = null; liveOddsDetailSince = null; }
+  const openId = detailMatch ? String(detailMatch) : null;
+  if (openId !== liveOddsDetailId) { liveOddsDetailId = openId; liveOddsDetailSince = null; }
+  liveOddsBusy = true;
+  try {
+    const byId = new Map(live.map((m) => [String(m.id), m]));
+    let changed = false;
+    const rows = await fetchLiveOdds([...byId.keys()], liveOddsSince, false);
+    if (rows) for (const r of rows) {
+      if (applyLiveRow(byId.get(String(r.event_id)), r, false)) changed = true;
+      if (!liveOddsSince || r.updated_at > liveOddsSince) liveOddsSince = r.updated_at;
+    }
+    if (openId && byId.has(openId)) {
+      const det = await fetchLiveOdds([openId], liveOddsDetailSince, true);
+      if (det) for (const r of det) {
+        if (applyLiveRow(byId.get(openId), r, true)) changed = true;
+        if (!liveOddsDetailSince || r.updated_at > liveOddsDetailSince) liveOddsDetailSince = r.updated_at;
+      }
+    }
+    if (changed && filters.live) renderMatches();
+  } finally {
+    liveOddsBusy = false;
+  }
+}
+setInterval(pollLiveOdds, 2000);
 
 // ---------- leaderboard: real ranking from leaderboard-get ----------
 let lbMetric = "profit";
