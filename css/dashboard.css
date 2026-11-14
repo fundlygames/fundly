@@ -1314,3 +1314,14 @@ text.eq-lv-floor { fill: #ff9d9d; }
 .eq-legend .sw.eq-lv-hwm { border-color: #b98cff; }
 .eq-legend .sw.eq-lv-floor { border-color: #ff9d9d; }
 .eq-legend .eq-dates { margin-left: auto; font-variant-numeric: tabular-nums; }
+
+/* živé kurzy: krátké bliknutí při změně (zelená = kurz stoupl, červená = klesl) */
+@keyframes oddUp { 0% { background: rgb(20 241 149 / .32); } 100% { background: transparent; } }
+@keyframes oddDown { 0% { background: rgb(255 92 92 / .30); } 100% { background: transparent; } }
+@keyframes oddFlash { 0% { color: var(--accent); } 100% { color: inherit; } }
+.odd-btn.odd-up { animation: oddUp 1.2s ease-out; }
+.odd-btn.odd-down { animation: oddDown 1.2s ease-out; }
+.odd-btn.odd-up b::after { content: " ▲"; font-size: .6em; color: var(--accent); }
+.odd-btn.odd-down b::after { content: " ▼"; font-size: .6em; color: #ff5c5c; }
+.si-odds.odd-flash { animation: oddFlash 1.5s ease-out; }
+@media (prefers-reduced-motion: reduce) { .odd-btn.odd-up, .odd-btn.odd-down, .si-odds.odd-flash { animation: none; } }
