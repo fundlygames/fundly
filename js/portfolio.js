@@ -726,6 +726,41 @@ const Portfolio = (() => {
     return "push";
   }
 
+  // Skóre pro vyhodnocení — MUSÍ odpovídat supabase/functions/_shared/final-score.ts.
+  // odds-api: periods.ft = jen řádná doba, ot = po prodloužení, ap = po nájezdech/penaltách.
+  // Basketbal, americký fotbal, baseball a hokej se u hlavních trhů počítají VČETNĚ
+  // prodloužení (hokej i nájezdů: vítěz +1 gól); fotbal a ostatní sporty podle ft.
+  const OT_SPORTS = ["basketball", "american-football", "baseball", "ice-hockey"];
+  function finalScoreOf(ev) {
+    const isNum = (x) => x && typeof x.home === "number" && typeof x.away === "number";
+    const periods = (ev && ev.scores && ev.scores.periods) || {};
+    const reg = periods.ft || (ev && ev.scores) || null;
+    const slug = String((ev && ev.sport && (ev.sport.slug || ev.sport)) || "");
+    if (!OT_SPORTS.includes(slug)) return isNum(reg) ? { home: reg.home, away: reg.away } : null;
+    const afterOt = isNum(periods.ot) ? periods.ot : reg;
+    if (!isNum(afterOt)) return null;
+    if (slug === "ice-hockey" && isNum(periods.ap) && afterOt.home === afterOt.away && periods.ap.home !== periods.ap.away) {
+      return periods.ap.home > periods.ap.away
+        ? { home: afterOt.home + 1, away: afterOt.away }
+        : { home: afterOt.home, away: afterOt.away + 1 };
+    }
+    return { home: afterOt.home, away: afterOt.away };
+  }
+
+  // 1. poločas pro HT trhy — MUSÍ odpovídat halfScore v _shared/final-score.ts.
+  // Basketbal / americký fotbal se čtvrtinami: p1 + p2; formát s poločasy a ostatní sporty: p1.
+  function halfScoreOf(ev) {
+    const isNum = (x) => x && typeof x.home === "number" && typeof x.away === "number";
+    const periods = (ev && ev.scores && ev.scores.periods) || {};
+    const slug = String((ev && ev.sport && (ev.sport.slug || ev.sport)) || "");
+    if ((slug === "basketball" || slug === "american-football") && (isNum(periods.p3) || isNum(periods.p4))) {
+      return isNum(periods.p1) && isNum(periods.p2)
+        ? { home: periods.p1.home + periods.p2.home, away: periods.p1.away + periods.p2.away }
+        : null;
+    }
+    return isNum(periods.p1) ? { home: periods.p1.home, away: periods.p1.away } : null;
+  }
+
   const FAILED_LOOKUP = "__failed__"; // sentinel: cacheGet can't tell "no entry" apart from a cached null
   async function fetchEventStatus(id) {
     const cached = cacheGet("eventStatus:" + id, 2 * 60 * 1000);
@@ -792,9 +827,9 @@ const Portfolio = (() => {
         const stale = now - staleFrom > STALE_AFTER_MS;
         const ev = statuses[s.eventId];
         if (!ev || ev.status !== "settled") return stale ? "push" : null;
-        const ft = (ev.scores && ev.scores.periods && ev.scores.periods.ft) || ev.scores;
+        const ft = finalScoreOf(ev);
         if (!ft || typeof ft.home !== "number" || typeof ft.away !== "number") return "push";
-        const p1 = ev.scores && ev.scores.periods && ev.scores.periods.p1;
+        const p1 = halfScoreOf(ev);
         return settleSelection(s, { ft, p1: p1 || null });
       });
       if (results.some((r) => r === null)) return;
