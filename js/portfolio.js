@@ -89,7 +89,57 @@ async function apiGet(path, params) {
   return data;
 }
 
+// ---------- sdílená cache kurzů (edge funkce odds-feed, migrace 037) ----------
+// Hráči nečtou odds-api přímo: hodinová kvóta se dělí mezi všechny, takže při náporu
+// by došla. odds-feed stáhne data jednou a všichni čtou totéž. Když funkce není
+// dostupná (výpadek / síť), spadne se zpátky na přímé volání odds-api.
+function oddsFeedUrl(params) {
+  if (typeof FUNDLY_SUPABASE_URL === "undefined" || typeof fundlyBackendEnabled !== "function" || !fundlyBackendEnabled()) return null;
+  return `${FUNDLY_SUPABASE_URL}/functions/v1/odds-feed?${new URLSearchParams(params)}`;
+}
+async function oddsFeedGet(params) {
+  const url = oddsFeedUrl(params);
+  if (!url) return { ok: false };
+  try {
+    const res = await fetch(url, { headers: { apikey: FUNDLY_SUPABASE_ANON_KEY } });
+    if (res.ok) return { ok: true, data: await res.json() };
+    if (res.status === 404) {
+      // 404 od odds-api (zápas už neexistuje) vs. 404 od Supabase (funkce není nasazená → záloha)
+      const body = await res.json().catch(() => ({}));
+      return body && body.error === "odds-api HTTP 404" ? { ok: true, notFound: true } : { ok: false };
+    }
+    return { ok: false };
+  } catch (e) {
+    return { ok: false };
+  }
+}
+// celý sport najednou ({ events, odds }) — viz loadSportEvents v dashboard.js
+async function fetchOddsBundle(sport, live) {
+  const r = await oddsFeedGet({ bundle: "1", sport, live: live ? "1" : "0" });
+  if (!r.ok || !r.data || !Array.isArray(r.data.events) || !Array.isArray(r.data.odds)) return null;
+  const events = r.data.events.slice();
+  const odds = r.data.odds.slice();
+  // vlastní zápasy (custom_events) se přimíchají stejně jako v apiGet
+  const want = live ? "live" : "pending";
+  const now = Date.now();
+  const mine = (await fetchCustomEvents({ sport }))
+    .filter((e) => String(e.status) === want && (want === "live" || new Date(e.date).getTime() > now));
+  const seen = new Set(events.map((e) => String(e.id)));
+  for (const e of mine) if (!seen.has(String(e.id))) { events.push(e); odds.push(e); }
+  return { events, odds };
+}
+
+const FEED_PATHS = /^\/(events\/\d+|odds\/multi|value-bets)$/;
 async function apiGetRaw(path, params) {
+  if (FEED_PATHS.test(path)) {
+    const r = await oddsFeedGet({ path, ...params });
+    if (r.ok && r.notFound) { const err = new Error("HTTP 404"); err.status = 404; throw err; }
+    if (r.ok) return r.data;
+  }
+  return apiGetDirect(path, params);
+}
+
+async function apiGetDirect(path, params) {
   const q = new URLSearchParams({ ...params, apiKey: API_KEY });
   const res = await fetch(`${API_BASE}${path}?${q}`);
   if (!res.ok) {
