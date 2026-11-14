@@ -1564,6 +1564,128 @@ function setBetChrome(hidden) {
   });
 }
 
+// ---------- živé kurzy bez probliknutí (patch na místě místo překreslení) ----------
+// Kurzy se v živém režimu mění každé ~2 s. Překreslení celého seznamu (innerHTML) by
+// vyměnilo tlačítko hráči pod prstem → klik se ztratí, detail poskočí. Proto se mění jen
+// číslo v existujícím tlačítku; celé překreslení jen při změně struktury (stažený trh,
+// nová linie) a i to počká, než hráč dokončí klik/dotyk.
+let liveHold = false;
+let liveHoldUntil = 0;
+let liveRenderPending = false;
+function liveInteractionActive() { return liveHold || Date.now() < liveHoldUntil; }
+matchList.addEventListener("pointerdown", () => { liveHold = true; });
+["pointerup", "pointercancel", "pointerleave"].forEach((ev) => matchList.addEventListener(ev, () => {
+  if (!liveHold) return;
+  liveHold = false;
+  liveHoldUntil = Date.now() + 600;
+  setTimeout(flushLiveRender, 650);
+}));
+function flushLiveRender() {
+  if (!liveRenderPending || liveInteractionActive()) return;
+  liveRenderPending = false;
+  renderMatchesKeepScroll();
+}
+function renderMatchesKeepScroll() {
+  const y = window.scrollY;
+  renderMatches();
+  if (Math.abs(window.scrollY - y) > 1) window.scrollTo(0, y);
+}
+// překreslit hned, nebo odložit, když hráč právě kliká
+function requestLiveRender() {
+  if (liveInteractionActive()) { liveRenderPending = true; return; }
+  renderMatchesKeepScroll();
+}
+
+function detailSig(m) {
+  return m.markets.map((mk) => mk.name + ":" + mk.odds.slice(0, 8).map((row) =>
+    (row.label || row.hdp) + "/" + PICK_FIELDS.filter((f) => row[f] !== undefined && row[f] !== null && !Number.isNaN(parseFloat(row[f]))).join(",")).join(";")).join("|");
+}
+
+function patchOddBtn(btn, val) {
+  const b = btn.querySelector("b");
+  const txt = val.toFixed(2);
+  if (b && b.textContent !== txt) {
+    const old = parseFloat(b.textContent);
+    b.textContent = txt;
+    btn.classList.remove("odd-up", "odd-down");
+    void btn.offsetWidth; // restart animace
+    btn.classList.add(val > old ? "odd-up" : "odd-down");
+    clearTimeout(btn._oddT);
+    btn._oddT = setTimeout(() => btn.classList.remove("odd-up", "odd-down"), 3000); // šipka jen chvíli
+  }
+  const out = !oddPlayable(val);
+  if (btn.disabled !== out) {
+    btn.disabled = out;
+    if (out) btn.title = `Odds outside the allowed range ${ODDS_MIN.toFixed(2)} to ${ODDS_MAX.toFixed(2)}`;
+    else btn.removeAttribute("title");
+  }
+}
+
+// true = vše opraveno na místě; false = změnila se struktura → je potřeba překreslit
+function patchLiveView(changedIds) {
+  if (detailMatch) {
+    const m = sportEvents.find((x) => String(x.id) === String(detailMatch));
+    if (!m || !changedIds.has(String(m.id))) return true;
+    if (matchList.dataset.sig !== detailSig(m)) return false;
+    for (const mk of m.markets) {
+      mk.odds.slice(0, 8).forEach((row, ri) => {
+        for (const f of PICK_FIELDS) {
+          const val = parseFloat(row[f]);
+          if (Number.isNaN(val)) continue;
+          const btn = matchList.querySelector(`[data-pick="${CSS.escape(`${m.id}|${mk.name}|${ri}|${f}`)}"]`);
+          if (btn) patchOddBtn(btn, val);
+        }
+      });
+    }
+    return true;
+  }
+  for (const id of changedIds) {
+    const row = matchList.querySelector(`[data-match="${CSS.escape(id)}"]`);
+    if (!row) continue; // zápas není vidět (filtr) — nic
+    const m = sportEvents.find((x) => String(x.id) === id);
+    if (!m) continue;
+    const fields = ["home", "draw", "away"];
+    for (let i = 0; i < 3; i++) {
+      const val = m.odds[i];
+      const has = val !== null && !Number.isNaN(val);
+      const btn = row.querySelector(`[data-pick="${CSS.escape(`${m.id}|ML|0|${fields[i]}`)}"]`);
+      if (has !== !!btn) { // kurz zmizel / přibyl → překreslit jen tenhle řádek (ne celý seznam)
+        if (liveInteractionActive()) return false; // hráč právě kliká → počkat (requestLiveRender)
+        const tmp = document.createElement("div");
+        tmp.innerHTML = matchRowHtml(m).trim();
+        if (tmp.firstElementChild) row.replaceWith(tmp.firstElementChild);
+        break;
+      }
+      if (btn) patchOddBtn(btn, val);
+    }
+  }
+  return true;
+}
+
+// tiket: kurzy vybraných tipů průběžně podle živých dat — BEZ překreslení (vklad zůstane)
+function patchSlipOdds(changedIds) {
+  let any = false;
+  for (const s of slip) {
+    const [eid, mkName, ri, field] = s.id.split("|");
+    if (!changedIds.has(eid)) continue;
+    const m = sportEvents.find((x) => String(x.id) === eid);
+    const mk = m && m.markets.find((x) => x.name === mkName);
+    const row = mk && mk.odds[Number(ri)];
+    const val = row ? parseFloat(row[field]) : NaN;
+    if (Number.isNaN(val) || Math.abs(val - s.odds) < 0.0005) continue;
+    s.odds = val;
+    if ("oddValue" in s) s.oddValue = val;
+    any = true;
+    const el = slipBody.querySelector(`[data-remove="${CSS.escape(s.id)}"]`)?.closest(".slip-item")?.querySelector(".si-odds");
+    if (el) { el.textContent = val.toFixed(2); el.classList.remove("odd-up", "odd-down"); void el.offsetWidth; el.classList.add("odd-flash"); }
+  }
+  if (!any) return;
+  const total = slip.reduce((a, s) => a * s.odds, 1);
+  const totalEl = slipBody.querySelector(".slip-total b");
+  if (totalEl) totalEl.textContent = total.toFixed(2);
+  document.getElementById("stakeInput")?.dispatchEvent(new Event("input")); // přepočet výhry, vklad zůstává
+}
+
 function renderMatchDetail(m) {
   setBetChrome(true);
   if (!openGroups) openGroups = new Set(m.markets.slice(0, 3).map((mk) => mk.name));
@@ -1579,6 +1701,7 @@ function renderMatchDetail(m) {
     </details>`;
   }).join("");
 
+  matchList.dataset.sig = detailSig(m);
   matchList.innerHTML = `
     <div class="detail-bar">
       <button class="filter-chip" id="backToList">
@@ -1620,36 +1743,39 @@ function renderMatches() {
     matchList.innerHTML = `<p class="bet-msg">No matches match the filters.<br />Try another sport or clear the filters.</p>`;
     return;
   }
-  matchList.innerHTML = list.map((m) => {
+  matchList.innerHTML = list.map(matchRowHtml).join("");
+}
+
+// jeden řádek zápasu v seznamu (sdílí renderMatches a živý patch jednoho řádku)
+function matchRowHtml(m) {
     const extra = m.markets.length - 1;
-    return `
-    <div class="match" data-match="${m.id}">
-      <div class="match-head" role="button" tabindex="0" aria-label="Open match detail ${m.home} – ${m.away}">
-        <div class="m-info">
-          <div class="m-league">${m.league}</div>
-          <div class="m-teams">${m.home} – ${m.away}</div>
-          <div class="m-time">${m.live ? `<span class="live">● LIVE${liveScore(m)}</span>${liveClock(m) ? ` · ${liveClock(m)}` : ""}` : fmtTime(m.date)}${extra > 0 ? ` · +${extra} markets` : ""}</div>
-        </div>
-        <div class="m-odds">
-          ${m.odds.map((o, i) => {
-            if (o === null || Number.isNaN(o)) return "";
-            const field = ["home", "draw", "away"][i];
-            const id = `${m.id}|ML|0|${field}`;
-            const sel = slip.some((s) => s.id === id);
-            const out = !oddPlayable(o);
-            const lbl = m.odds[1] === null ? (i === 0 ? "1" : "2") : ["1", "X", "2"][i];
-            return `<button class="odd-btn ${sel ? "selected" : ""}" data-pick="${id}"
-              ${out ? `disabled title="Odds outside the allowed range ${ODDS_MIN.toFixed(2)} to ${ODDS_MAX.toFixed(2)}"` : ""}>
-              <small>${lbl}</small><b>${o.toFixed(2)}</b>
-            </button>`;
-          }).join("")}
-          <span class="m-chev" aria-hidden="true">
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </span>
-        </div>
+  return `
+  <div class="match" data-match="${m.id}">
+    <div class="match-head" role="button" tabindex="0" aria-label="Open match detail ${m.home} – ${m.away}">
+      <div class="m-info">
+        <div class="m-league">${m.league}</div>
+        <div class="m-teams">${m.home} – ${m.away}</div>
+        <div class="m-time">${m.live ? `<span class="live">● LIVE${liveScore(m)}</span>${liveClock(m) ? ` · ${liveClock(m)}` : ""}` : fmtTime(m.date)}${extra > 0 ? ` · +${extra} markets` : ""}</div>
       </div>
-    </div>`;
-  }).join("");
+      <div class="m-odds">
+        ${m.odds.map((o, i) => {
+          if (o === null || Number.isNaN(o)) return "";
+          const field = ["home", "draw", "away"][i];
+          const id = `${m.id}|ML|0|${field}`;
+          const sel = slip.some((s) => s.id === id);
+          const out = !oddPlayable(o);
+          const lbl = m.odds[1] === null ? (i === 0 ? "1" : "2") : ["1", "X", "2"][i];
+          return `<button class="odd-btn ${sel ? "selected" : ""}" data-pick="${id}"
+            ${out ? `disabled title="Odds outside the allowed range ${ODDS_MIN.toFixed(2)} to ${ODDS_MAX.toFixed(2)}"` : ""}>
+            <small>${lbl}</small><b>${o.toFixed(2)}</b>
+          </button>`;
+        }).join("")}
+        <span class="m-chev" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+      </div>
+    </div>
+  </div>`;
 }
 
 // resolves a clicked pick by id `eventId|market|rowIdx|field`
@@ -1779,7 +1905,7 @@ function renderSlip() {
   const potWin = document.getElementById("potWin");
   const updateWin = () => {
     let v = Math.min(Number(stakeInput.value) || 0, maxStake);
-    potWin.textContent = usd(Math.round(v * totalOdds));
+    potWin.textContent = usd(Math.round(v * slip.reduce((a, s) => a * s.odds, 1))); // aktuální kurzy (živé se mění)
   };
   // Ukázat pravidla (40% consistency limit, max. entry size, zbývající
   // balance, ...) hned při psaní částky, ne až po kliknutí na Place bet —
@@ -2011,7 +2137,7 @@ async function autoRefreshLiveMatches() {
     const data = await loadSportEvents(activeSport, true);
     if (!filters.live || document.getElementById("view-sazeni")?.hidden) return;
     sportEvents = data;
-    renderMatches();
+    requestLiveRender(); // počká, když hráč právě kliká; zachová pozici stránky
   } catch (e) { /* silent — next tick retries */ }
 }
 // 30 s: nové/skončené zápasy, skóre a čas. Samotné KURZY se v živém režimu aktualizují
@@ -2062,20 +2188,23 @@ async function pollLiveOdds() {
   liveOddsBusy = true;
   try {
     const byId = new Map(live.map((m) => [String(m.id), m]));
-    let changed = false;
+    const changedIds = new Set();
     const rows = await fetchLiveOdds([...byId.keys()], liveOddsSince, false);
     if (rows) for (const r of rows) {
-      if (applyLiveRow(byId.get(String(r.event_id)), r, false)) changed = true;
+      if (applyLiveRow(byId.get(String(r.event_id)), r, false)) changedIds.add(String(r.event_id));
       if (!liveOddsSince || r.updated_at > liveOddsSince) liveOddsSince = r.updated_at;
     }
     if (openId && byId.has(openId)) {
       const det = await fetchLiveOdds([openId], liveOddsDetailSince, true);
       if (det) for (const r of det) {
-        if (applyLiveRow(byId.get(openId), r, true)) changed = true;
+        if (applyLiveRow(byId.get(openId), r, true)) changedIds.add(openId);
         if (!liveOddsDetailSince || r.updated_at > liveOddsDetailSince) liveOddsDetailSince = r.updated_at;
       }
     }
-    if (changed && filters.live) renderMatches();
+    if (changedIds.size && filters.live && sportEvents === liveOddsList) {
+      patchSlipOdds(changedIds);
+      if (!patchLiveView(changedIds)) requestLiveRender();
+    }
   } finally {
     liveOddsBusy = false;
   }
