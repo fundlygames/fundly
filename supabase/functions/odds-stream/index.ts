@@ -6,15 +6,19 @@
 // tahle funkce a každou změnu zapíše do DB; dashboard si každé ~2 s stáhne jen změněné řádky.
 //
 // Spouští ji cron každou minutu (x-admin-key), funkce odpoví hned a na pozadí drží spojení
-// ~RUN_S sekund. Další běh naváže přes lastSeq (odds-api pošle zhuštěný stav všeho, co se
-// mezitím změnilo), takže mezi běhy nic nechybí.
+// ~RUN_S sekund (víc než minutu) → běhy se překrývají, stream nemá mezery.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import WebSocket from "npm:ws@8.18.0";
 import { jsonResponse } from "../_shared/cors.ts";
 import { isValidAdminKey } from "../_shared/admin.ts";
 
-const RUN_S = Math.min(110, Math.max(20, Number(Deno.env.get("ODDS_STREAM_RUN_S") ?? "56") || 56));
+// Každý běh drží spojení ~115 s a cron ho spouští každou minutu → běhy se překrývají a vždy
+// běží aspoň jedno spojení (odds-api povoluje 2 na klíč). Navazování přes lastSeq jsme
+// opustili: při připojení každou minutu odds-api střídá "snapshot" a "live" (= nic
+// zmeškaného nepošle), takže by se stav ztrácel. Překryv žádnou mezeru nemá.
+const RUN_S = Math.min(140, Math.max(20, Number(Deno.env.get("ODDS_STREAM_RUN_S") ?? "115") || 115));
+const HEARTBEAT_GAP_S = 20; // když nikdo nezapsal heartbeat déle → byla mezera → řádky můžou být zastaralé
 const SPORTS = ["basketball", "football", "ice-hockey", "esports", "table-tennis", "tennis", "darts", "baseball", "mixed-martial-arts"];
 // = GRADEABLE_MARKETS v js/dashboard.js (max. 40 trhů na spojení)
 const MARKETS = [
@@ -34,21 +38,24 @@ async function run(apiKey: string) {
   const deadline = started + RUN_S * 1000;
   const stats = { msgs: 0, updates: 0, removed: 0, settled: 0, upserted: 0, flushes: 0, errors: [] as string[], connects: 0, closes: [] as string[], replay: null as string | null };
 
-  // ochrana proti souběhu (2 spojení na klíč): když předchozí běh ještě drží spojení, končíme
-  const { data: st } = await db.from("odds_stream_state").select("last_seq, updated_at, stats").eq("id", 1).maybeSingle();
-  // deno-lint-ignore no-explicit-any
-  const runningUntil = Number((st?.stats as any)?.running_until ?? 0);
-  if (runningUntil > Date.now() + 2000) return;
-  await db.from("odds_stream_state").update({ stats: { ...(st?.stats as object ?? {}), running_until: deadline + 3000 } }).eq("id", 1);
-
-  let lastSeq: number | null = st?.last_seq != null && st?.updated_at && Date.now() - new Date(st.updated_at).getTime() < 20 * 3600 * 1000
-    ? Number(st.last_seq) : null;
+  // Mezera ve streamu (předchozí běh spadl / cron stál)? Pak řádky můžou být zastaralé
+  // (stažený trh, o kterém jsme se nedozvěděli) → smazat; dashboard do příchodu nových
+  // zpráv bere REST snímek z odds-feed.
+  const { data: st } = await db.from("odds_stream_state").select("updated_at").eq("id", 1).maybeSingle();
+  const gap = !st?.updated_at || Date.now() - new Date(st.updated_at).getTime() > HEARTBEAT_GAP_S * 1000;
+  if (gap) await db.from("live_odds").delete().lt("updated_at", new Date().toISOString());
+  let lastSeq: number | null = null; // jen pro statistiku
   const pending = new Map<string, Row>();
   const settled = new Set<string>();
   let resync = false;
-  let hadLastSeq = false;
 
+  let lastBeat = 0;
+  let connected = false;
   async function flush() {
+    if (connected && Date.now() - lastBeat > 5000) { // heartbeat jen při živém spojení
+      lastBeat = Date.now();
+      await db.from("odds_stream_state").update({ updated_at: new Date().toISOString(), last_seq: lastSeq }).eq("id", 1);
+    }
     if (resync) {
       resync = false;
       await db.from("live_odds").delete().lt("updated_at", new Date(Date.now() - 1000).toISOString());
@@ -82,7 +89,7 @@ async function run(apiKey: string) {
     // zahodit (docs: "discard the last_seq you stored", nepřebírat current_seq).
     if (t === "replay_complete") {
       stats.replay = String(d.outcome);
-      if (d.outcome === "resync_required" || (d.outcome === "live" && hadLastSeq)) { resync = true; lastSeq = null; }
+      if (d.outcome === "resync_required") { resync = true; lastSeq = null; }
       return;
     }
     if (t === "resync_required") { stats.replay = "resync_required:" + String(d.reason ?? ""); resync = true; lastSeq = null; return; }
@@ -116,15 +123,14 @@ async function run(apiKey: string) {
       apiKey, sport: SPORTS.join(","), status: "live", markets: MARKETS.join(","),
       channels: "odds,status", replayComplete: "true",
     });
-    if (lastSeq !== null) params.set("lastSeq", String(lastSeq));
-    hadLastSeq = lastSeq !== null;
     stats.connects++;
     const closed = await new Promise<string>((resolve) => {
       const ws = new WebSocket(`wss://api.odds-api.io/v3/ws?${params}`, { perMessageDeflate: true });
       const stop = setTimeout(() => { try { ws.close(1000, "run finished"); } catch { /* */ } }, Math.max(0, deadline - Date.now()));
+      ws.on("open", () => { connected = true; });
       ws.on("message", (buf: { toString(): string }) => handle(buf.toString()));
       ws.on("error", (e: Error) => stats.errors.push("ws: " + e.message));
-      ws.on("close", (code: number, reason: { toString(): string }) => { clearTimeout(stop); resolve(`${code} ${reason?.toString() ?? ""}`.trim()); });
+      ws.on("close", (code: number, reason: { toString(): string }) => { connected = false; clearTimeout(stop); resolve(`${code} ${reason?.toString() ?? ""}`.trim()); });
     });
     stats.closes.push(closed);
     if (Date.now() >= deadline - 3000) break;
@@ -138,7 +144,7 @@ async function run(apiKey: string) {
   await db.from("odds_stream_state").update({
     last_seq: lastSeq,
     updated_at: new Date().toISOString(),
-    stats: { ...stats, errors: stats.errors.slice(0, 10), ms: Date.now() - started, running_until: 0, finished_at: new Date().toISOString() },
+    stats: { ...stats, gap_at_start: gap, errors: stats.errors.slice(0, 10), ms: Date.now() - started, started_at: new Date(started).toISOString(), finished_at: new Date().toISOString() },
   }).eq("id", 1);
 }
 
