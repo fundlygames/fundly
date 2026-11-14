@@ -1206,11 +1206,8 @@ const PRIORITY_LEAGUES = {
   "ice-hockey": ["usa-nhl"],
 };
 
-async function loadSportEvents(sport, live) {
-  const key = live ? sport + ":live" : sport;
-  const cached = cacheGet(key, live ? 60 * 1000 : CACHE_TTL);
-  if (cached) return cached;
-
+// Záloha, když sdílená cache (odds-feed) není dostupná: původní přímé stahování z odds-api.
+async function fetchSportDirect(sport, live) {
   const events = live
     ? await apiGet("/events/live", { sport })
     : await apiGet("/events", {
@@ -1240,16 +1237,29 @@ async function loadSportEvents(sport, live) {
       }
     }
   }
-  if (!events.length) { cacheSet(key, []); return []; }
+  if (!events.length) return { events, odds: [] };
 
-  // základní eventy nesou live stav (clock/scores) — odds odpověď je nemá
-  const baseById = Object.fromEntries(events.map((e) => [e.id, e]));
   const ids = events.map((e) => e.id);
   const chunks = [];
   for (let i = 0; i < ids.length; i += 10) {
     chunks.push(await apiGet("/odds/multi", { eventIds: ids.slice(i, i + 10).join(","), bookmakers: BOOKMAKERS.join(",") }));
   }
-  const withOdds = chunks.flat();
+  return { events, odds: chunks.flat() };
+}
+
+async function loadSportEvents(sport, live) {
+  const key = live ? sport + ":live" : sport;
+  const cached = cacheGet(key, live ? 60 * 1000 : CACHE_TTL);
+  if (cached) return cached;
+
+  // 1 požadavek na sdílenou cache (odds-feed) místo ~13 přímo na odds-api — viz js/portfolio.js
+  const raw = (await fetchOddsBundle(sport, live)) || (await fetchSportDirect(sport, live));
+  const events = raw.events;
+  const withOdds = raw.odds;
+  if (!events.length) { cacheSet(key, []); return []; }
+
+  // základní eventy nesou live stav (clock/scores) — odds odpověď je nemá
+  const baseById = Object.fromEntries(events.map((e) => [e.id, e]));
 
   // fallback napříč oběma povolenými bookmakery — první, co má pro daný
   // zápas použitelné ML kurzy, vyhrává (Bet365 má přednost, viz BOOKMAKERS)
