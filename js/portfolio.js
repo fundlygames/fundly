@@ -37,7 +37,16 @@ function cacheDrop(key) {
 const CUSTOM_BOOKMAKER = "Fundly";
 const isCustomEventId = (id) => String(id == null ? "" : id).startsWith("fx-");
 
+// js/config.js se načítá s "defer", tedy AŽ po portfolio.js/dashboard.js — první načtení
+// dashboardu by jinak backend (cache kurzů, vlastní zápasy) nevidělo a šlo přímo na odds-api.
+// Deferred skripty doběhnou před DOMContentLoaded, takže stačí počkat na něj.
+function configReady() {
+  if (typeof FUNDLY_SUPABASE_URL !== "undefined" || document.readyState !== "loading") return Promise.resolve();
+  return new Promise((resolve) => document.addEventListener("DOMContentLoaded", resolve, { once: true }));
+}
+
 async function fetchCustomEvents(filter) {
+  await configReady();
   if (typeof FUNDLY_SUPABASE_URL === "undefined" || typeof FUNDLY_SUPABASE_ANON_KEY === "undefined") return [];
   if (typeof fundlyBackendEnabled === "function" && !fundlyBackendEnabled()) return [];
   try {
@@ -98,6 +107,7 @@ function oddsFeedUrl(params) {
   return `${FUNDLY_SUPABASE_URL}/functions/v1/odds-feed?${new URLSearchParams(params)}`;
 }
 async function oddsFeedGet(params) {
+  await configReady();
   const url = oddsFeedUrl(params);
   if (!url) return { ok: false };
   try {
