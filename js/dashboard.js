@@ -1467,13 +1467,14 @@ async function refreshSlipFromApi(items) {
   const ids = [...new Set(items.map((s) => String(s.eventId)))];
   try {
     for (let i = 0; i < ids.length; i += 10) {
-      const od = await apiGet("/odds/multi", { eventIds: ids.slice(i, i + 10).join(","), bookmakers: BOOKMAKERS.join(",") });
+      // fresh=1: kurz přímo od odds-api (ne z ~12 s staré cache) — tiket se nesmí podat za starý kurz
+      const od = await apiGet("/odds/multi", { eventIds: ids.slice(i, i + 10).join(","), bookmakers: BOOKMAKERS.join(","), fresh: "1" });
       for (const ev of (Array.isArray(od) ? od : [])) byId.set(String(ev.id), ev);
     }
     const missing = ids.filter((id) => !byId.has(id));
     const statusOf = new Map();
     await Promise.all(missing.slice(0, 15).map(async (id) => {
-      try { const ev = await apiGet(`/events/${encodeURIComponent(id)}`); statusOf.set(id, ev); } catch (e) { /* neznámé */ }
+      try { const ev = await apiGet(`/events/${encodeURIComponent(id)}`, { fresh: "1" }); statusOf.set(id, ev); } catch (e) { /* neznámé */ }
     }));
     const now = Date.now();
     const changes = [];
@@ -1998,7 +1999,7 @@ if (sportTabs) {
 // ---------- live matches: auto-refresh so scores/clocks aren't stuck until a manual click ----------
 // odds-api.io itself doesn't push per-second updates (it's a polled aggregator,
 // not a raw live-data feed), so true to-the-second is not realistic — this
-// polls every 15s while the LIVE filter is on and the Betting tab is visible,
+// polls every 10s while the LIVE filter is on and the Betting tab is visible,
 // which is as close to "live" as the underlying data source allows without
 // burning through the odds-api rate budget for no visible benefit.
 async function autoRefreshLiveMatches() {
@@ -2013,7 +2014,8 @@ async function autoRefreshLiveMatches() {
     renderMatches();
   } catch (e) { /* silent — next tick retries */ }
 }
-setInterval(autoRefreshLiveMatches, 15 * 1000);
+// 10 s: živé kurzy se mění zhruba každých ~25 s; server (odds-feed) je drží max. ~12 s
+setInterval(autoRefreshLiveMatches, 10 * 1000);
 
 // ---------- leaderboard: real ranking from leaderboard-get ----------
 let lbMetric = "profit";
