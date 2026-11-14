@@ -1662,7 +1662,7 @@ function resolvePick(id) {
   }
   return {
     id, match: `${m.home} – ${m.away}`, pick, odds,
-    eventId: Number(eid),
+    eventId: m.id, // číslo z odds-api, text "fx-…" u vlastních zápasů
     sport: activeSport,
     league: m.league,
     homeTeam: m.home,

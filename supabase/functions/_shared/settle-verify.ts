@@ -8,6 +8,7 @@
 // uložený zůstatek $27,665, bez jakéhokoli tiketu, co by ten rozdíl vysvětlil).
 import { settleSelection, type Selection } from "./settle.ts";
 import { customEventResult, isCustomEventId } from "./custom-events.ts";
+import { finalScore, halfScore } from "./final-score.ts";
 
 const API_BASE = "https://api.odds-api.io/v3";
 // stejná bezpečná rezerva jako settle-tickets/index.ts a js/portfolio.js —
@@ -32,8 +33,8 @@ async function fetchEventResult(id: string, apiKey: string): Promise<EventResult
     // deno-lint-ignore no-explicit-any
     const ev: any = await res.json();
     const periods = ev.scores && ev.scores.periods;
-    const ft = (periods && periods.ft) || ev.scores || null;
-    const p1 = periods && periods.p1;
+    const ft = finalScore(ev); // vč. prodloužení u sportů, kde to trhy tak počítají
+    const p1 = halfScore(ev); // 1. poločas (u čtvrtin p1+p2)
     const hasFt = ft && typeof ft.home === "number" && typeof ft.away === "number";
     const hasP1 = p1 && typeof p1.home === "number" && typeof p1.away === "number";
     return {

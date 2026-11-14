@@ -2,6 +2,7 @@
 // které odds-api.io nenabízí. Event je uložený ve stejném tvaru jako odds-api,
 // kurzy pod bookmakerem "Fundly". ID vždy začíná "fx-", takže se nikdy nepletou
 // s číselnými ID z odds-api.
+import { finalScore, halfScore } from "./final-score.ts";
 export const CUSTOM_BOOKMAKER = "Fundly";
 
 export function isCustomEventId(id: unknown): boolean {
@@ -35,8 +36,8 @@ export async function customEventResult(id: string): Promise<{ found: true; stat
     const ev = (await loadCustomEvents([id])).get(id);
     if (!ev) return { found: false };
     const periods = ev.scores && ev.scores.periods;
-    const ft = (periods && periods.ft) || ev.scores || null;
-    const p1 = periods && periods.p1;
+    const ft = finalScore(ev); // vč. prodloužení u sportů, kde to trhy tak počítají
+    const p1 = halfScore(ev); // 1. poločas (u čtvrtin p1+p2)
     const hasFt = ft && typeof ft.home === "number" && typeof ft.away === "number";
     const hasP1 = p1 && typeof p1.home === "number" && typeof p1.away === "number";
     return {
