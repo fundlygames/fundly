@@ -39,6 +39,32 @@ const apiKey = Deno.env.get("ODDS_API_KEY") ?? "";
 const BOOKMAKERS = (Deno.env.get("ODDS_API_BOOKMAKER") ?? "Bet365,Sportsbet.com.au").split(",").map((b) => b.trim()).join(",");
 const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
+// Trhy, které dashboard umí vyhodnotit (= GRADEABLE_MARKETS v js/dashboard.js). odds-api
+// u fotbalu posílá stovky dalších trhů (~7 MB na sport), které klient stejně zahodí —
+// ořezáním je odpověď řádově menší a na mobilu rychlá.
+const GRADEABLE = new Set([
+  "ML", "ML HT", "Half Time Result", "Totals", "Goals Over/Under", "Totals HT",
+  "Alternative Goal Line", "Alternative Total Goals", "Alternative 1st Half Goal Line",
+  "Both Teams To Score", "Spread", "Spread HT", "Alternative Asian Handicap",
+  "Alternative 1st Half Asian Handicap", "European Handicap", "Draw No Bet",
+  "Double Chance", "Double Chance HT", "Odd/Even", "Odd/Even HT", "Odd/Even 2H",
+]);
+const ALLOWED_BMS = new Set(BOOKMAKERS.split(","));
+// deno-lint-ignore no-explicit-any
+function trimOdds(list: any): any {
+  if (!Array.isArray(list)) return list;
+  return list.map((ev) => {
+    // deno-lint-ignore no-explicit-any
+    const bms: Record<string, any[]> = {};
+    for (const [bm, markets] of Object.entries(ev.bookmakers ?? {})) {
+      if (!ALLOWED_BMS.has(bm) || !Array.isArray(markets)) continue;
+      bms[bm] = markets.filter((m) => m && GRADEABLE.has(m.name));
+    }
+    const { urls: _u, ...rest } = ev;
+    return { ...rest, bookmakers: bms };
+  });
+}
+
 type Entry = { t: number; body: string };
 const mem = new Map<string, Entry>();
 const inflight = new Map<string, Promise<string>>();
@@ -70,6 +96,30 @@ async function cached(key: string, ttlS: number, produce: () => Promise<unknown>
   const stored = await readStored(key);
   if (stored && now - stored.t < ttlS * 1000) return { body: stored.body, age: Math.round((now - stored.t) / 1000), stale: false };
 
+  // stale-while-revalidate: máme data mladší než 3× TTL → vrátit je hned a obnovit na pozadí,
+  // ať žádný hráč nečeká na odds-api (u fotbalu ~7 s)
+  // (len pre-match / pomalé dáta — živé kurzy a kontrola tiketu (TTL < 60 s) vždy čerstvé)
+  if (ttlS >= 60 && stored && now - stored.t < ttlS * 3000) {
+    if (!inflight.has(key)) {
+      const bg = refresh(key, produce).catch(() => {});
+      // deno-lint-ignore no-explicit-any
+      const rt = (globalThis as any).EdgeRuntime;
+      if (rt && typeof rt.waitUntil === "function") rt.waitUntil(bg);
+    }
+    return { body: stored.body, age: Math.round((now - stored.t) / 1000), stale: false };
+  }
+
+  try {
+    return { body: await refresh(key, produce), age: 0, stale: false };
+  } catch (err) {
+    if (stored && now - stored.t < STALE_MAX_S * 1000) {
+      return { body: stored.body, age: Math.round((now - stored.t) / 1000), stale: true };
+    }
+    throw err;
+  }
+}
+
+function refresh(key: string, produce: () => Promise<unknown>): Promise<string> {
   let p = inflight.get(key);
   if (!p) {
     p = (async () => {
@@ -82,14 +132,7 @@ async function cached(key: string, ttlS: number, produce: () => Promise<unknown>
     })().finally(() => inflight.delete(key));
     inflight.set(key, p);
   }
-  try {
-    return { body: await p, age: 0, stale: false };
-  } catch (err) {
-    if (stored && now - stored.t < STALE_MAX_S * 1000) {
-      return { body: stored.body, age: Math.round((now - stored.t) / 1000), stale: true };
-    }
-    throw err;
-  }
+  return p;
 }
 
 async function buildBundle(sport: string, live: boolean) {
@@ -115,7 +158,7 @@ async function buildBundle(sport: string, live: boolean) {
   for (let i = 0; i < chunks.length; i += 4) { // max 4 souběžně, ať nebijeme odds-api
     const part = await Promise.all(chunks.slice(i, i + 4).map((c) =>
       upstream("/odds/multi", { eventIds: c.join(","), bookmakers: BOOKMAKERS })));
-    for (const p of part) if (Array.isArray(p)) odds.push(...p);
+    for (const p of part) if (Array.isArray(p)) odds.push(...trimOdds(p));
   }
   return { events, odds };
 }
@@ -148,7 +191,7 @@ serve(async (req) => {
       if (!SPORTS.has(sport)) return err(400, "Unknown sport");
       const live = p.get("live") === "1";
       const ttl = live ? TTL.bundleLive : TTL.bundle;
-      return reply(await cached(`bundle:${sport}:${live ? 1 : 0}`, ttl, () => buildBundle(sport, live)), ttl);
+      return reply(await cached(`bundle2:${sport}:${live ? 1 : 0}`, ttl, () => buildBundle(sport, live)), ttl);
     }
 
     const path = p.get("path") ?? "";
@@ -159,8 +202,8 @@ serve(async (req) => {
     if (path === "/odds/multi") {
       const ids = (p.get("eventIds") ?? "").split(",").filter((x) => /^\d{1,15}$/.test(x)).slice(0, 10);
       if (!ids.length) return err(400, "eventIds required");
-      const key = `multi:${[...ids].sort().join(",")}`;
-      return reply(await cached(key, TTL.multi, () => upstream("/odds/multi", { eventIds: ids.join(","), bookmakers: BOOKMAKERS })), TTL.multi);
+      const key = `multi2:${[...ids].sort().join(",")}`;
+      return reply(await cached(key, TTL.multi, () => upstream("/odds/multi", { eventIds: ids.join(","), bookmakers: BOOKMAKERS }).then(trimOdds)), TTL.multi);
     }
     if (path === "/value-bets") {
       const bm = (p.get("bookmaker") ?? "Bet365").replace(/[^A-Za-z0-9 .]/g, "").slice(0, 40);
