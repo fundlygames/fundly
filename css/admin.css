@@ -142,3 +142,6 @@
 .admin-locked .nav-cta { display: none !important; }
 .admin-locked .dash-main { min-height: 70vh; display: flex; align-items: flex-start; padding-top: 120px; }
 .admin-locked #adminGate { max-width: 520px; margin: 0 auto; }
+
+/* náklady / čistý zisk: záporná hodnota červeně */
+.dstat .val.red { color: var(--danger, #ff5c5c); }
