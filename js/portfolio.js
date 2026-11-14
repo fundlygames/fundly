@@ -123,6 +123,35 @@ async function oddsFeedGet(params) {
     return { ok: false };
   }
 }
+// Živé kurzy z WebSocket relé (edge funkce odds-stream → tabulka live_odds, migrace 038).
+// Vrací řádky { event_id, bookie, ml, [markets], updated_at } změněné po sinceIso
+// (bez since = aktuální stav všech zadaných zápasů). null = backend nedostupný.
+async function fetchLiveOdds(ids, sinceIso, withMarkets) {
+  await configReady();
+  if (typeof FUNDLY_SUPABASE_URL === "undefined" || typeof fundlyBackendEnabled !== "function" || !fundlyBackendEnabled()) return null;
+  const clean = ids.map(String).filter((id) => /^\d{1,15}$/.test(id));
+  if (!clean.length) return [];
+  const out = [];
+  try {
+    for (let i = 0; i < clean.length; i += 150) {
+      const q = new URLSearchParams({
+        select: withMarkets ? "event_id,bookie,ml,markets,updated_at" : "event_id,bookie,ml,updated_at",
+        event_id: "in.(" + clean.slice(i, i + 150).join(",") + ")",
+        order: "updated_at.asc",
+      });
+      if (sinceIso) q.set("updated_at", "gt." + sinceIso);
+      const res = await fetch(`${FUNDLY_SUPABASE_URL}/rest/v1/live_odds?${q}`, {
+        headers: { apikey: FUNDLY_SUPABASE_ANON_KEY, Authorization: `Bearer ${FUNDLY_SUPABASE_ANON_KEY}` },
+      });
+      if (!res.ok) return null;
+      out.push(...(await res.json()));
+    }
+    return out;
+  } catch (e) {
+    return null;
+  }
+}
+
 // celý sport najednou ({ events, odds }) — viz loadSportEvents v dashboard.js
 async function fetchOddsBundle(sport, live) {
   const r = await oddsFeedGet({ bundle: "1", sport, live: live ? "1" : "0" });
