@@ -30,7 +30,66 @@ function cacheDrop(key) {
   try { localStorage.removeItem("bf2:" + key); } catch (e) {}
 }
 
+// ---------- vlastní zápasy (tabulka custom_events, migrace 036) ----------
+// Zápasy, které odds-api nenabízí (např. RAF wrestling). V DB jsou uložené ve
+// stejném tvaru jako odds-api eventy (kurzy pod bookmakerem "Fundly", ID "fx-…"),
+// takže se do apiGet jen přimíchají a zbytek dashboardu s nimi pracuje stejně.
+const CUSTOM_BOOKMAKER = "Fundly";
+const isCustomEventId = (id) => String(id == null ? "" : id).startsWith("fx-");
+
+async function fetchCustomEvents(filter) {
+  if (typeof FUNDLY_SUPABASE_URL === "undefined" || typeof FUNDLY_SUPABASE_ANON_KEY === "undefined") return [];
+  if (typeof fundlyBackendEnabled === "function" && !fundlyBackendEnabled()) return [];
+  try {
+    const q = new URLSearchParams({ select: "id,event" });
+    if (filter.sport) q.set("sport", "eq." + filter.sport);
+    if (filter.ids) q.set("id", "in.(" + filter.ids.map((id) => `"${String(id).replace(/"/g, "")}"`).join(",") + ")");
+    const res = await fetch(`${FUNDLY_SUPABASE_URL}/rest/v1/custom_events?${q}`, {
+      headers: { apikey: FUNDLY_SUPABASE_ANON_KEY, Authorization: `Bearer ${FUNDLY_SUPABASE_ANON_KEY}` },
+    });
+    if (!res.ok) return [];
+    return (await res.json()).map((r) => ({ ...r.event, id: r.id }));
+  } catch (e) {
+    return [];
+  }
+}
+
 async function apiGet(path, params) {
+  params = params || {};
+  // jediný vlastní zápas
+  const one = /^\/events\/([^/]+)$/.exec(path);
+  if (one && isCustomEventId(decodeURIComponent(one[1]))) {
+    const [ev] = await fetchCustomEvents({ ids: [decodeURIComponent(one[1])] });
+    if (!ev) { const err = new Error("HTTP 404"); err.status = 404; throw err; }
+    return ev;
+  }
+  // kurzy: vlastní ID z DB, zbytek z odds-api
+  if (path === "/odds/multi" && params.eventIds) {
+    const ids = String(params.eventIds).split(",").filter(Boolean);
+    const custom = ids.filter(isCustomEventId);
+    if (custom.length) {
+      const rest = ids.filter((id) => !isCustomEventId(id));
+      const [mine, theirs] = await Promise.all([
+        fetchCustomEvents({ ids: custom }),
+        rest.length ? apiGetRaw(path, { ...params, eventIds: rest.join(",") }) : Promise.resolve([]),
+      ]);
+      return [...(Array.isArray(theirs) ? theirs : []), ...mine];
+    }
+  }
+  const data = await apiGetRaw(path, params);
+  // seznam zápasů sportu: přimíchat vlastní zápasy (bez filtru ligy — ty jsou jen odds-api)
+  if ((path === "/events" || path === "/events/live") && params.sport && !params.league && Array.isArray(data)) {
+    const want = path === "/events/live" ? "live" : "pending";
+    const now = Date.now();
+    const mine = (await fetchCustomEvents({ sport: params.sport }))
+      .filter((e) => String(e.status) === want && (want === "live" || new Date(e.date).getTime() > now));
+    const seen = new Set(data.map((e) => String(e.id)));
+    return [...data, ...mine.filter((e) => !seen.has(String(e.id)))];
+  }
+  return data;
+}
+
+async function apiGetRaw(path, params) {
   const q = new URLSearchParams({ ...params, apiKey: API_KEY });
   const res = await fetch(`${API_BASE}${path}?${q}`);
   if (!res.ok) {

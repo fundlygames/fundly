@@ -7,6 +7,7 @@
 // účet měl v tabulce tickets podklad jen pro $24,608, ale server měl
 // uložený zůstatek $27,665, bez jakéhokoli tiketu, co by ten rozdíl vysvětlil).
 import { settleSelection, type Selection } from "./settle.ts";
+import { customEventResult, isCustomEventId } from "./custom-events.ts";
 
 const API_BASE = "https://api.odds-api.io/v3";
 // stejná bezpečná rezerva jako settle-tickets/index.ts a js/portfolio.js —
@@ -23,6 +24,7 @@ type Period = { home: number; away: number } | null;
 type EventResult = { found: true; status: string; ft: Period; p1: Period } | { found: false };
 
 async function fetchEventResult(id: string, apiKey: string): Promise<EventResult> {
+  if (isCustomEventId(id)) return await customEventResult(id); // vlastní zápas z custom_events
   try {
     const res = await fetch(`${API_BASE}/events/${id}?apiKey=${apiKey}`);
     if (res.status === 404) return { found: false };
