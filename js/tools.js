@@ -99,7 +99,7 @@
         full: "Full Kelly", half: "Half Kelly", quarter: "Quarter Kelly",
         cap: "Fundly max. stake: {max} (1.5 % of your account capital {cap})",
         capManual: "Fundly max. stake: {max} (1.5 % of the capital entered)",
-        capped: "capped", noEdge: "With this estimate and these odds Kelly comes out at 0 — the odds give you no edge.",
+        capped: "Fundly limit", noEdge: "With this estimate and these odds Kelly comes out at 0 — the odds give you no edge.",
         explain: "The Kelly criterion works out what share of your capital to put in so it grows as fast as possible over the long run — assuming your probability estimate is accurate. It rarely is, which is why most people use half or a quarter of it. Treat the result as a guide, not a recommendation.",
       },
       combo: {
@@ -138,7 +138,7 @@
         full: "Plný Kelly", half: "Poloviční Kelly", quarter: "Čtvrtinový Kelly",
         cap: "Max. vklad na Fundly: {max} (1,5 % kapitálu účtu {cap})",
         capManual: "Max. vklad na Fundly: {max} (1,5 % zadaného kapitálu)",
-        capped: "oříznuto", noEdge: "Při tomto odhadu a kurzu vychází Kelly na 0 — kurz ti nenabízí žádnou výhodu.",
+        capped: "limit Fundly", noEdge: "Při tomto odhadu a kurzu vychází Kelly na 0 — kurz ti nenabízí žádnou výhodu.",
         explain: "Kellyho kritérium počítá, jakou část kapitálu vložit, aby kapitál dlouhodobě rostl co nejrychleji — za předpokladu, že je tvůj odhad pravděpodobnosti přesný. To málokdy platí, proto se běžně používá polovina nebo čtvrtina. Ber výsledek jako vodítko, ne jako doporučení.",
       },
       combo: {
@@ -150,6 +150,31 @@
     } });
   }
 
+  // Zjednodušený výběr: 4 otázky místo 4 kalkulaček pod sebou; vysvětlení schované v "Jak to funguje?"
+  if (I18N) {
+    I18N.extend("en", { tools: {
+      sub: "Four quick calculators. Pick a question — the answer updates as you type.",
+      howItWorks: "How does it work?", advanced: "Advanced: bookmaker margin", allVariants: "All variants",
+      pick: {
+        impl: "What chance do the odds give?", implD: "Odds → probability",
+        value: "Is the tip worth it?", valueD: "Your estimate vs. the odds",
+        kelly: "How much to enter?", kellyD: "Entry size by your edge",
+        combo: "What does a combo return?", comboD: "Total odds and return",
+      },
+      kellySafe: "Cautious variant (¼ Kelly)",
+    } });
+    I18N.extend("cs", { tools: {
+      sub: "Čtyři rychlé kalkulačky. Vyber otázku — výsledek se mění, jak píšeš.",
+      howItWorks: "Jak to funguje?", advanced: "Pro pokročilé: marže bookmakera", allVariants: "Všechny varianty",
+      pick: {
+        impl: "Jakou šanci dává kurz?", implD: "Kurz → pravděpodobnost",
+        value: "Vyplatí se tip?", valueD: "Tvůj odhad vs. kurz",
+        kelly: "Kolik vložit?", kellyD: "Vklad podle tvé výhody",
+        combo: "Kolik vrátí kombinace?", comboD: "Celkový kurz a návratnost",
+      },
+      kellySafe: "Opatrná varianta (¼ Kelly)",
+    } });
+  }
   const T = (k) => (I18N ? I18N.t(`tools.${k}`) : k);
   const TF = (k, vars) => (I18N ? I18N.tf(`tools.${k}`, vars) : k);
   const lang = () => (I18N ? I18N.getLang() : "en");
@@ -166,6 +191,7 @@
   // ---------- stav (přežije překreslení i přepnutí jazyka) ----------
   const S = {
     tab: "calc",
+    tool: "impl", // vybraná kalkulačka: impl | value | kelly | combo
     o2p: "2.00", p2o: "50",
     ways: 2, mk: ["1.90", "1.90", "3.40"],
     vProb: "55", vOdds: "2.00",
@@ -197,16 +223,12 @@
         ${field(`leg${i}`, TF("combo.legN", { n: i + 1 }), S.legs[i])}
         ${S.legCount > 1 ? `<button type="button" class="tl-leg-x" data-tl-rmleg="${i}" aria-label="${esc(T("combo.remove"))}"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>` : ""}
       </div>`).join("");
-    return `
-      <p class="t-meta tl-disclaimer">${esc(T("disclaimer"))}</p>
-      <div class="tl-grid">
-        <div class="panel tl-card">
-          <h3>${esc(T("impl.title"))}</h3>
-          <div class="tl-sub">${esc(T("impl.fromOdds"))}</div>
-          <div class="tl-row">${field("o2p", T("odds"), S.o2p)}${out("tlO2p", T("impl.implied"))}</div>
-          <div class="tl-sub">${esc(T("impl.fromProb"))}</div>
-          <div class="tl-row">${field("p2o", T("prob"), S.p2o)}${out("tlP2o", T("impl.fairOdds"))}</div>
-          <div class="tl-sub">${esc(T("impl.marginTitle"))}</div>
+    const more = (key) => `<details class="tl-more"><summary>${esc(T("howItWorks"))}</summary><p>${esc(T(key))}</p></details>`;
+    const cards = {
+      impl: `
+        <div class="tl-row">${field("o2p", T("odds"), S.o2p)}${out("tlO2p", T("impl.implied"))}</div>
+        <div class="tl-row">${field("p2o", T("prob"), S.p2o)}${out("tlP2o", T("impl.fairOdds"))}</div>
+        <details class="tl-more"><summary>${esc(T("advanced"))}</summary>
           <div class="tl-seg" role="group" aria-label="${esc(T("impl.marginTitle"))}">
             <button type="button" data-tl-ways="2" aria-pressed="${S.ways === 2}">${esc(T("impl.ways2"))}</button>
             <button type="button" data-tl-ways="3" aria-pressed="${S.ways === 3}">${esc(T("impl.ways3"))}</button>
@@ -215,48 +237,60 @@
           ${out("tlBook", T("impl.book"))}
           ${out("tlMargin", T("impl.margin"))}
           ${out("tlFair", T("impl.fair"))}
-          <p class="tl-explain">${esc(T("impl.explain"))}</p>
-        </div>
-
-        <div class="panel tl-card">
-          <h3>${esc(T("value.title"))}</h3>
-          <div class="tl-fields tl-fields-2">${field("vProb", T("value.myProb"), S.vProb)}${field("vOdds", T("odds"), S.vOdds)}</div>
-          <div class="tl-verdict" id="tlVerdict" hidden></div>
-          ${out("tlEv", T("value.ev"))}
-          ${out("tlVImpl", T("value.implied"))}
-          ${out("tlVFair", T("value.myFair"))}
-          <p class="tl-explain">${esc(T("value.explain"))}</p>
-        </div>
-
-        <div class="panel tl-card">
-          <h3>${esc(T("kelly.title"))}</h3>
-          <div class="tl-fields tl-fields-3">${field("kProb", T("value.myProb"), S.kProb)}${field("kOdds", T("odds"), S.kOdds)}${field("kCap", T("kelly.capital"), S.kCap)}</div>
-          <p class="t-meta tl-prefilled" id="tlKPrefilled" hidden>${esc(T("kelly.prefilled"))}</p>
-          <div class="tl-cap" id="tlKCap"></div>
+        </details>
+        ${more("impl.explain")}`,
+      value: `
+        <div class="tl-fields tl-fields-2">${field("vProb", T("value.myProb"), S.vProb)}${field("vOdds", T("odds"), S.vOdds)}</div>
+        <div class="tl-verdict" id="tlVerdict" hidden></div>
+        ${out("tlEv", T("value.ev"))}
+        ${out("tlVImpl", T("value.implied"))}
+        ${out("tlVFair", T("value.myFair"))}
+        ${more("value.explain")}`,
+      kelly: `
+        <div class="tl-fields tl-fields-3">${field("kProb", T("value.myProb"), S.kProb)}${field("kOdds", T("odds"), S.kOdds)}${field("kCap", T("kelly.capital"), S.kCap)}</div>
+        <p class="t-meta tl-prefilled" id="tlKPrefilled" hidden>${esc(T("kelly.prefilled"))}</p>
+        <div class="tl-big"><span>${esc(T("kellySafe"))}</span><b id="tlKSafe">—</b></div>
+        <div class="tl-cap" id="tlKCap"></div>
+        <p class="t-meta" id="tlKNoEdge" hidden>${esc(T("kelly.noEdge"))}</p>
+        <details class="tl-more"><summary>${esc(T("allVariants"))}</summary>
           <div class="tl-table-wrap">
             <table class="ticket-table tl-table">
               <thead><tr><th>${esc(T("kelly.variant"))}</th><th>${esc(T("kelly.pctCap"))}</th><th>${esc(T("kelly.stake"))}</th><th>${esc(T("kelly.afterCap"))}</th></tr></thead>
               <tbody id="tlKelly"></tbody>
             </table>
           </div>
-          <p class="t-meta" id="tlKNoEdge" hidden>${esc(T("kelly.noEdge"))}</p>
-          <p class="tl-explain">${esc(T("kelly.explain"))}</p>
+        </details>
+        ${more("kelly.explain")}`,
+      combo: `
+        <div class="tl-legs">${legs}</div>
+        <div class="tl-leg-actions">
+          ${S.legCount < 6 ? `<button type="button" class="filter-chip" data-tl-addleg>${esc(T("combo.add"))}</button>` : `<span class="t-meta">${esc(T("combo.max"))}</span>`}
         </div>
-
-        <div class="panel tl-card">
-          <h3>${esc(T("combo.title"))}</h3>
-          <div class="tl-legs">${legs}</div>
-          <div class="tl-leg-actions">
-            ${S.legCount < 6 ? `<button type="button" class="filter-chip" data-tl-addleg>${esc(T("combo.add"))}</button>` : `<span class="t-meta">${esc(T("combo.max"))}</span>`}
-          </div>
-          ${field("cStake", T("combo.stake"), S.cStake)}
-          ${out("tlCTotal", T("combo.total"))}
-          ${out("tlCImpl", T("combo.implied"))}
-          ${out("tlCRet", T("combo.ret"))}
-          ${out("tlCProfit", T("combo.profit"))}
-          <p class="tl-explain">${esc(T("combo.explain"))}</p>
-        </div>
-      </div>`;
+        ${field("cStake", T("combo.stake"), S.cStake)}
+        ${out("tlCTotal", T("combo.total"))}
+        ${out("tlCRet", T("combo.ret"))}
+        ${out("tlCProfit", T("combo.profit"))}
+        ${out("tlCImpl", T("combo.implied"))}
+        ${more("combo.explain")}`,
+    };
+    const icons = {
+      impl: '<path d="M3 13L13 3M4.5 5.5a1 1 0 100-2 1 1 0 000 2zM11.5 12.5a1 1 0 100-2 1 1 0 000 2z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+      value: '<path d="M2.5 8.5l3 3 8-8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
+      kelly: '<rect x="2" y="4" width="12" height="8.5" rx="2" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8.25" r="1.8" stroke="currentColor" stroke-width="1.5"/>',
+      combo: '<path d="M3 4h4v4H3zM9 8h4v4H9zM7 6h3v2" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>',
+    };
+    const picker = ["impl", "value", "kelly", "combo"].map((k) => `
+      <button type="button" class="tl-pick${S.tool === k ? " active" : ""}" data-tl-tool="${k}" aria-pressed="${S.tool === k}">
+        <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true">${icons[k]}</svg>
+        <span><b>${esc(T(`pick.${k}`))}</b><small>${esc(T(`pick.${k}D`))}</small></span>
+      </button>`).join("");
+    return `
+      <div class="tl-picker" role="group">${picker}</div>
+      <div class="panel tl-card tl-one">
+        <h3>${esc(T(`pick.${S.tool}`))}</h3>
+        ${cards[S.tool]}
+      </div>
+      <p class="t-meta tl-disclaimer">${esc(T("disclaimer"))}</p>`;
   }
 
   const setOut = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
@@ -309,6 +343,8 @@
         <td class="odds">${esc(usd(r.stake))}</td>
         <td class="odds"><b>${esc(usd(r.finalStake))}</b>${r.capped ? ` <span class="tl-tag-capped">${esc(T("kelly.capped"))}</span>` : ""}</td>
       </tr>`).join("") : `<tr><td colspan="4" class="t-meta">—</td></tr>`);
+    const safe = rows && rows.find((r) => r.key === "quarter");
+    setOut("tlKSafe", safe ? `${esc(usd(safe.finalStake))}${safe.capped ? ` <span class="tl-tag-capped">${esc(T("kelly.capped"))}</span>` : ""}` : "—");
     const noEdge = document.getElementById("tlKNoEdge");
     if (noEdge) noEdge.hidden = !(rows && rows[0].frac <= 0);
 
@@ -365,6 +401,8 @@
   document.addEventListener("click", (e) => {
     const tab = e.target.closest("[data-tools-tab]");
     if (tab) { setTab(tab.dataset.toolsTab); return; }
+    const tool = e.target.closest("[data-tl-tool]");
+    if (tool) { S.tool = tool.dataset.tlTool; renderCalc(); return; }
     const ways = e.target.closest("[data-tl-ways]");
     if (ways) { S.ways = Number(ways.dataset.tlWays) === 3 ? 3 : 2; renderCalc(); return; }
     if (e.target.closest("[data-tl-addleg]")) {

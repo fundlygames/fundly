@@ -199,3 +199,23 @@
   .acad-live-dot { animation: none; }
   .acad-medal { transition: none; }
 }
+
+/* ---------- jednodušší Akademie: lekce jako seznam (akordeon), otevřená vždy jen jedna ---------- */
+.acad-lessons { grid-template-columns: 1fr !important; gap: 8px; }
+.acad-lesson-head { cursor: pointer; margin-bottom: 0; border-radius: var(--d-r-sm); user-select: none; }
+.acad-lesson-head:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.acad-lesson-head::after {
+  content: ""; flex-shrink: 0; width: 8px; height: 8px; margin: 0 4px 3px 2px;
+  border-right: 2px solid var(--text-muted); border-bottom: 2px solid var(--text-muted);
+  transform: rotate(45deg); transition: transform .2s ease;
+}
+.acad-lesson.open .acad-lesson-head::after { transform: rotate(-135deg); margin-bottom: -3px; }
+.acad-lesson:not(.open) > :not(.acad-lesson-head) { display: none !important; }
+.acad-lesson.open .acad-lesson-head { margin-bottom: 14px; }
+.acad-lesson:not(.open):hover { box-shadow: inset 0 0 0 1px var(--accent-border-soft); }
+.acad-head-status { font-size: .75rem; font-weight: 600; color: var(--text-muted); white-space: nowrap; }
+.acad-lesson.done .acad-head-status { color: var(--accent); }
+@media (max-width: 480px) { .acad-head-status { display: none; } }
+.acad-continue { margin-top: 14px; max-width: 100%; white-space: normal; text-align: left; }
+.acad-hero .d { max-width: 60ch; }
+@media (prefers-reduced-motion: reduce) { .acad-lesson-head::after { transition: none; } }

@@ -21,6 +21,8 @@
     en: {
       hero_t: "Learn the rules of the game before you enter",
       hero_d: "Eight short lessons, each with a quiz — from capital management to the whole evaluation. Pass the quizzes to earn Academy badges.",
+      continue_btn: "Continue: {title}", start_btn: "Start: {title}", all_done: "All lessons completed 🎓",
+      head_new: "2 min · quiz", head_done: "Completed ✓", head_tried: "Quiz not passed yet",
       pass_rule: "Pass mark: 80 % correct",
       progress: "{n} of {total} lessons completed",
       quiz_btn: "Quiz", quiz_retry: "Retake quiz", quiz_close: "Close", quiz_hide: "Hide quiz",
@@ -130,6 +132,8 @@
     cs: {
       hero_t: "Nauč se pravidla hry, než začneš",
       hero_d: "Osm krátkých lekcí, každá s kvízem — od řízení kapitálu po celé hodnocení. Za splněné kvízy získáš odznaky Akademie.",
+      continue_btn: "Pokračovat: {title}", start_btn: "Začít: {title}", all_done: "Všechny lekce splněny 🎓",
+      head_new: "2 min · kvíz", head_done: "Splněno ✓", head_tried: "Kvíz zatím nesplněn",
       pass_rule: "Ke splnění: 80 % správně",
       progress: "Splněno {n} z {total} lekcí",
       quiz_btn: "Kvíz", quiz_retry: "Zkusit kvíz znovu", quiz_close: "Zavřít", quiz_hide: "Skrýt kvíz",
@@ -419,6 +423,21 @@
     if (label) label.textContent = trf("progress", { n: b.n, total: LESSONS.length });
     const bar = document.getElementById("acadProgressBar");
     if (bar) bar.style.width = Math.round((b.n / LESSONS.length) * 100) + "%";
+    const heroIn = document.querySelector("#view-akademie .acad-hero-in");
+    if (heroIn) {
+      let cont = heroIn.querySelector("[data-acad-continue]");
+      if (!cont) {
+        cont = document.createElement("button");
+        cont.type = "button";
+        cont.className = "btn btn-primary acad-continue";
+        cont.setAttribute("data-acad-continue", "");
+        heroIn.appendChild(cont);
+      }
+      const nx = nextLesson();
+      cont.disabled = !nx;
+      cont.textContent = !nx ? tr("all_done") : trf(b.n ? "continue_btn" : "start_btn", { title: lessonTitle(nx) });
+      cont.dataset.acadContinue = nx || "";
+    }
     const box = document.getElementById("acadBadges");
     if (!box) return;
     const items = [["start", b.start], ["four", b.four], ["all", b.all]];
@@ -431,11 +450,50 @@
       </div>`).join("");
   }
 
+  // ---------- seznam lekcí jako akordeon (otevřená vždy jen jedna) ----------
+  let openId = null;
+  function setOpen(id, scroll) {
+    openId = openId === id ? null : id;
+    LESSONS.forEach((l) => {
+      const card = document.getElementById("acad-" + l);
+      if (!card) return;
+      const on = l === openId;
+      card.classList.toggle("open", on);
+      const head = card.querySelector(".acad-lesson-head");
+      if (head) head.setAttribute("aria-expanded", String(on));
+    });
+    if (openId && scroll) {
+      const card = document.getElementById("acad-" + openId);
+      if (card) card.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+  function nextLesson() { return LESSONS.find((l) => !(progress[l] && progress[l].passed)) || null; }
+  function setupAccordion() {
+    LESSONS.forEach((l) => {
+      const head = document.querySelector(`#acad-${l} .acad-lesson-head`);
+      if (!head || head.dataset.acc) return;
+      head.dataset.acc = "1";
+      head.setAttribute("role", "button");
+      head.setAttribute("tabindex", "0");
+      head.setAttribute("aria-expanded", "false");
+      const st = document.createElement("span");
+      st.className = "acad-head-status";
+      st.setAttribute("data-head-status", "");
+      head.insertBefore(st, head.querySelector(".acad-check"));
+      head.addEventListener("click", () => setOpen(l, false));
+      head.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpen(l, false); }
+      });
+    });
+  }
+
   function renderLessonStatus(id) {
     const card = document.getElementById("acad-" + id);
     if (!card) return;
     const r = progress[id];
     card.classList.toggle("done", !!(r && r.passed));
+    const hs = card.querySelector("[data-head-status]");
+    if (hs) hs.textContent = r ? (r.passed ? tr("head_done") : tr("head_tried")) : tr("head_new");
     const st = card.querySelector("[data-status]");
     if (st) st.textContent = r ? (r.passed ? trf("status_done", { score: r.score }) : trf("status_tried", { score: r.score })) : tr("status_new");
     const btn = card.querySelector("[data-quiz-open]");
@@ -485,6 +543,7 @@
   }
 
   function openQuiz(id, focus) {
+    if (openId !== id) setOpen(id, false); // kvíz jen v otevřené lekci
     // pořadí možností se při každém pokusu zamíchá (data-opt drží původní index)
     const qs = quizFor(id);
     quizzes[id] = { answers: qs.map(() => null), order: qs.map((q) => shuffle(q.a.map((_, j) => j))) };
@@ -545,6 +604,7 @@
       }
       return;
     }
+    if (t.dataset.acadContinue) { if (openId !== t.dataset.acadContinue) setOpen(t.dataset.acadContinue, true); return; }
     if (t.dataset.liveIcs !== undefined) { downloadIcs(); }
   });
 
@@ -612,6 +672,7 @@
   }
 
   window.FundlyAcademy = { allPassed: () => countPassed(progress) >= LESSONS.length, passed: () => countPassed(progress), total: LESSONS.length };
+  setupAccordion();
   translateStatic();
   progress = mergeAll(readLocal(LS_KEY));
   renderAll();
