@@ -16,7 +16,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsonResponse } from "../_shared/cors.ts";
 import { isValidAdminKey } from "../_shared/admin.ts";
-import { sendEmail, accountClosedHtml, phaseExpiryWarningHtml } from "../_shared/email.ts";
+import { sendEmail, accountClosedHtml, phaseExpiryWarningHtml, subjects, deadlineLabel } from "../_shared/email.ts";
+import { userLang } from "../_shared/user-lang.ts";
 import { packageByKey, resetPrice } from "../_shared/packages.ts";
 import { enforceLossLimits } from "../_shared/loss-enforce.ts";
 import { type PhaseAccount, type PhaseTicket, isPhaseExpired, reachedPhaseTarget, provenPhaseProfit, targetProfit, phaseWarningDeadline, isExcludedFromExpiry, expiryReason, phaseDeadlineMs } from "../_shared/phase-expiry.ts";
@@ -45,7 +46,7 @@ serve(async (req) => {
 
     const { data: accounts, error } = await supabase
       .from("challenge_accounts")
-      .select("id, email, package_key, funded_at, last_ticket_at, inactivity_warned_7, inactivity_warned_13, created_at")
+      .select("id, user_id, email, package_key, funded_at, last_ticket_at, inactivity_warned_7, inactivity_warned_13, created_at")
       .eq("state", "funded");
     if (error) throw error;
 
@@ -58,7 +59,7 @@ serve(async (req) => {
     const extraExcluded = (Deno.env.get("PHASE_EXPIRY_EXCLUDE") ?? "").split(",");
     const { data: phaseAccounts, error: phaseError } = await supabase
       .from("challenge_accounts")
-      .select("id, email, package_key, capital, phase, state, phase_started_at, phase_bonus_days, phase_balance, phase_baseline, phase_expiry_warned_for")
+      .select("id, user_id, email, package_key, capital, phase, state, phase_started_at, phase_bonus_days, phase_balance, phase_baseline, phase_expiry_warned_for")
       .eq("state", "active")
       .in("phase", [1, 2])
       .not("phase_started_at", "is", null);
@@ -97,15 +98,16 @@ serve(async (req) => {
       warnings.push(entry);
       if (!enforce) continue;
       const pkg = packageByKey(String(a.package_key ?? ""));
+      const lang = await userLang(supabase, { userId: (a as { user_id?: string | null }).user_id, email: a.email });
       const r = await sendEmail({
         to: String(a.email),
-        subject: `Your Fundly Phase ${a.phase} time limit ends in ${daysLeft} ${daysLeft === 1 ? "day" : "days"}`,
+        subject: subjects.phaseExpiryWarning(a.phase, daysLeft, lang),
         html: phaseExpiryWarningHtml({
           pkgName: pkg.name, phase: a.phase,
-          deadlineLabel: new Date(deadline).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }),
+          deadlineLabel: deadlineLabel(deadline, lang),
           daysLeft, remainingProfit, targetProfit: targetProfit(a), resetPrice: resetPrice(pkg),
           dashboardLink: `${SITE_URL}/dashboard`, rulesLink: `${SITE_URL}/rules`,
-        }),
+        }, lang),
       });
       entry.sent = r.sent;
       if (r.sent) {
@@ -134,11 +136,13 @@ serve(async (req) => {
       if (closeError) { console.error("phase-expiry close selhalo:", acc.id, closeError); continue; }
       if (acc.email) {
         const pkg = packageByKey(String(acc.package_key ?? ""));
-        sendEmail({
-          to: String(acc.email),
-          subject: "Your Fundly account was closed",
-          html: accountClosedHtml(pkg.name, reason, `${SITE_URL}/dashboard`, resetPrice(pkg)),
-        }).then((r) => { if (!r.sent) console.error("account-closed e-mail selhal:", r.error); })
+        userLang(supabase, { userId: (acc as { user_id?: string | null }).user_id, email: acc.email })
+          .then((lang) => sendEmail({
+            to: String(acc.email),
+            subject: subjects.accountClosed(lang),
+            html: accountClosedHtml(pkg.name, reason, `${SITE_URL}/dashboard`, resetPrice(pkg), lang),
+          }))
+          .then((r) => { if (!r.sent) console.error("account-closed e-mail selhal:", r.error); })
           .catch((e) => console.error("account-closed e-mail error:", e));
       }
     }
@@ -157,11 +161,13 @@ serve(async (req) => {
         burned++;
         if (acc.email) {
           const pkg = packageByKey(String(acc.package_key ?? ""));
-          sendEmail({
-            to: String(acc.email),
-            subject: "Your Fundly account was closed",
-            html: accountClosedHtml(pkg.name, reason, `${SITE_URL}/dashboard`, resetPrice(pkg)),
-          }).then((r) => { if (!r.sent) console.error("account-closed e-mail selhal:", r.error); })
+          userLang(supabase, { userId: acc.user_id, email: acc.email })
+            .then((lang) => sendEmail({
+              to: String(acc.email),
+              subject: subjects.accountClosed(lang),
+              html: accountClosedHtml(pkg.name, reason, `${SITE_URL}/dashboard`, resetPrice(pkg), lang),
+            }))
+            .then((r) => { if (!r.sent) console.error("account-closed e-mail selhal:", r.error); })
             .catch((e) => console.error("account-closed e-mail error:", e));
         }
       } else if (idleDays >= WARN_2_DAYS && !acc.inactivity_warned_13) {

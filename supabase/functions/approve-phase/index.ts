@@ -17,7 +17,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { handleCors, jsonResponse } from "../_shared/cors.ts";
 import { isAdminRequest } from "../_shared/admin.ts";
-import { sendEmail, phase1PassedHtml, fundedHtml } from "../_shared/email.ts";
+import { sendEmail, phase1PassedHtml, fundedHtml, subjects } from "../_shared/email.ts";
+import { userLang } from "../_shared/user-lang.ts";
 import { packageByKey } from "../_shared/packages.ts";
 
 const SITE_URL = Deno.env.get("SITE_URL") ?? "https://fundly.games";
@@ -54,7 +55,7 @@ serve(async (req) => {
 
     const { data: account, error: fetchError } = await supabase
       .from("challenge_accounts")
-      .select("id, email, package_key, state, phase, pending_phase, phase_balance, phase1_completed_at, phase2_completed_at, funded_at, kyc_status")
+      .select("id, user_id, email, package_key, state, phase, pending_phase, phase_balance, phase1_completed_at, phase2_completed_at, funded_at, kyc_status")
       .eq("id", accountId)
       .maybeSingle();
     if (fetchError) throw fetchError;
@@ -121,11 +122,14 @@ serve(async (req) => {
 
     if (account.email && pkg) {
       const dashboardLink = `${SITE_URL}/dashboard`;
-      const html = newPhase === 2
-        ? phase1PassedHtml(pkg.name, dashboardLink)
-        : fundedHtml(pkg.name, PROFIT_SPLIT, dashboardLink);
-      const subject = newPhase === 2 ? "Phase 1 passed — you're on Phase 2" : "You're funded!";
-      sendEmail({ to: String(account.email), subject, html })
+      userLang(supabase, { userId: account.user_id, email: account.email })
+        .then((lang) => {
+          const html = newPhase === 2
+            ? phase1PassedHtml(pkg.name, dashboardLink, lang)
+            : fundedHtml(pkg.name, PROFIT_SPLIT, dashboardLink, lang);
+          const subject = newPhase === 2 ? subjects.phase1Passed(lang) : subjects.funded(lang);
+          return sendEmail({ to: String(account.email), subject, html });
+        })
         .then((r) => { if (!r.sent) console.error("phase-passed e-mail selhal:", r.error); })
         .catch((e) => console.error("phase-passed e-mail error:", e));
     }

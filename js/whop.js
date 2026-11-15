@@ -342,3 +342,36 @@ document.addEventListener("click", (e) => {
   btn.setAttribute("aria-pressed", String(!showing));
   btn.setAttribute("aria-label", (typeof window.t === "function" ? window.t(showing ? "forms.showPassword" : "forms.hidePassword") : (showing ? "Show password" : "Hide password")));
 });
+
+// ---------- jazyk hráče k účtu (user_metadata.lang) ----------
+// E-maily (potvrzení, fáze, uzavření účtu, pozvánky…) posílá server v jazyce uloženém u účtu.
+// Tady se po přihlášení / změně jazyka uloží aktuální jazyk webu. Jen pro přihlášené
+// (session v localStorage) — návštěvníkům se kvůli tomu nenačítá supabase-js.
+(function () {
+  const hasSession = () => {
+    try { return Object.keys(localStorage).some((k) => /^sb-.*-auth-token$/.test(k)); } catch (e) { return false; }
+  };
+  const currentLang = () =>
+    (typeof FUNDLY_I18N !== "undefined" && FUNDLY_I18N.getLang && FUNDLY_I18N.getLang()) || document.documentElement.lang || "en";
+  let busy = false;
+  async function syncUserLang() {
+    if (busy || !hasSession() || typeof fundlyBackendEnabled !== "function" || !fundlyBackendEnabled()) return;
+    busy = true;
+    try {
+      const client = await FundlyBackend.getClient();
+      if (!client) return;
+      const { data } = await client.auth.getSession();
+      const user = data && data.session && data.session.user;
+      if (!user) return;
+      const lang = String(currentLang()).slice(0, 2).toLowerCase();
+      if ((user.user_metadata || {}).lang === lang) return;
+      await client.auth.updateUser({ data: { lang } });
+    } catch (e) {
+      /* nevadí — e-mail pak půjde podle jazyka z registrace / domény e-mailu */
+    } finally {
+      busy = false;
+    }
+  }
+  window.addEventListener("load", () => setTimeout(syncUserLang, 2000));
+  document.addEventListener("fundly:lang-changed", () => setTimeout(syncUserLang, 800));
+})();

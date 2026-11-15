@@ -40,7 +40,7 @@
     const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/waitlist-join`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, packageKey: state.pkg }),
+      body: JSON.stringify({ email, packageKey: state.pkg, lang: (document.documentElement.lang || "en") }),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || t("co.errJoinWaitlist"));
@@ -404,7 +404,7 @@
         fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/checkout-welcome-email`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: state.email }),
+          body: JSON.stringify({ email: state.email, lang: (document.documentElement.lang || "en") }),
         }).catch((err) => console.warn("checkout-welcome-email:", err));
       }
     } catch (err) {

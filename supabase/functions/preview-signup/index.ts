@@ -8,7 +8,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { handleCors, jsonResponse } from "../_shared/cors.ts";
-import { sendEmail, previewWelcomeHtml, accountExistsSignInHtml } from "../_shared/email.ts";
+import { sendEmail, previewWelcomeHtml, accountExistsSignInHtml, subjects } from "../_shared/email.ts";
+import { userLang } from "../_shared/user-lang.ts";
 import { allow } from "../_shared/throttle.ts";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -26,6 +27,8 @@ serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const email = String(body.email ?? "").trim();
     const password = String(body.password ?? "");
+    // volitelný jazyk webu z klienta (js/main.js ho zatím neposílá — pak jazyk účtu / doména e-mailu)
+    const langHint = typeof body.lang === "string" ? body.lang : null;
     if (!EMAIL_RE.test(email)) {
       return jsonResponse({ error: "Enter a valid email address." }, 400);
     }
@@ -60,10 +63,11 @@ serve(async (req) => {
           const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({ type: "magiclink", email });
           if (linkError) throw linkError;
           const accessLink = linkData?.properties?.action_link ?? `${SITE_URL}/dashboard`;
+          const lang = await userLang(supabase, { user: linkData?.user ?? null, email, hint: langHint });
           const result = await sendEmail({
             to: email,
-            subject: "Your Fundly sign-in link",
-            html: accountExistsSignInHtml(accessLink),
+            subject: subjects.accountExistsSignIn(lang),
+            html: accountExistsSignInHtml(accessLink, lang),
           });
           if (!result.sent) console.error("preview-signup existing-account e-mail selhal:", result.error);
         } catch (e) {
@@ -76,10 +80,11 @@ serve(async (req) => {
 
     await supabase.from("preview_signups").insert({ user_id: created.user.id, email });
 
+    const lang = await userLang(supabase, { user: created.user, email, hint: langHint });
     const result = await sendEmail({
       to: email,
-      subject: "Welcome to your Fundly preview",
-      html: previewWelcomeHtml(`${SITE_URL}/dashboard`),
+      subject: subjects.previewWelcome(lang),
+      html: previewWelcomeHtml(`${SITE_URL}/dashboard`, lang),
     });
     if (result.sent) {
       await supabase

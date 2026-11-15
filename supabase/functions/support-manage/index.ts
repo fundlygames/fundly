@@ -5,7 +5,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { handleCors, jsonResponse } from "../_shared/cors.ts";
 import { isAdminRequest } from "../_shared/admin.ts";
-import { sendEmail, supportReplyHtml } from "../_shared/email.ts";
+import { sendEmail, supportReplyHtml, subjects } from "../_shared/email.ts";
+import { userLang } from "../_shared/user-lang.ts";
 
 serve(async (req) => {
   const cors = handleCors(req);
@@ -35,7 +36,7 @@ serve(async (req) => {
       }
       const { data: ticket, error: fetchError } = await supabase
         .from("support_tickets")
-        .select("id, email, message")
+        .select("id, user_id, email, message")
         .eq("id", ticketId)
         .maybeSingle();
       if (fetchError) throw fetchError;
@@ -47,10 +48,11 @@ serve(async (req) => {
         .eq("id", ticketId);
       if (updateError) throw updateError;
 
+      const lang = await userLang(supabase, { userId: ticket.user_id, email: ticket.email });
       const emailResult = await sendEmail({
         to: ticket.email,
-        subject: "Reply from Fundly support",
-        html: supportReplyHtml(ticket.message, reply),
+        subject: subjects.supportReply(lang),
+        html: supportReplyHtml(ticket.message, reply, lang),
       });
 
       return jsonResponse({ ok: true, emailSent: emailResult.sent, emailError: emailResult.error });

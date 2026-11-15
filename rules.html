@@ -7,8 +7,9 @@
   <meta name="description" content="Challenge, Verification and Partner Account rules for the Fundly Games evaluation platform." />
   <meta name="theme-color" content="#020204" />
   <link rel="icon" type="image/png" href="assets/logo.png" />
-  <link rel="stylesheet" href="css/style.css?v=20261115b" />
-  <link rel="stylesheet" href="css/legal.css?v=20261115b" />
+  <link rel="stylesheet" href="css/style.css?v=20261115h" />
+  <link rel="stylesheet" href="css/legal.css?v=20261115h" />
+  <script src="js/consent.js?v=20261115h"></script>
 </head>
 <body>
 
@@ -20,79 +21,179 @@
         fundly
       </a>
       <div class="nav-cta">
-        <a class="btn btn-ghost" href="./">Back to home</a>
+        <a class="btn btn-ghost" href="./" data-legal="back">Back to home</a>
       </div>
     </div>
   </header>
 
   <main class="legal-main">
-    <div class="container legal-wrap">
+    <div class="container legal-wrap" data-lang="en">
       <h1 class="t-h2">Challenge Rules</h1>
-      <p class="legal-updated">Document Version: 3.2 · Last Updated: August 20, 2026<br />Operator: Grindit LLC, Sharjah Media City, Sharjah, UAE (Reg. No: 2541536)<br />Platform: <a href="https://fundly.games/">https://fundly.games/</a></p>
+      <p class="legal-updated">Document Version: 3.3 · Last Updated: November 15, 2026<br />Operator: Grindit LLC, Sharjah Media City, Sharjah, UAE (Reg. No: 2541536)<br />Platform: <a href="https://fundly.games/">https://fundly.games/</a></p>
 
       <section>
         <h2>1. Relationship to Terms and Conditions</h2>
-        <p>These Challenge Rules form an integral part of, and must be read in conjunction with, our <a href="terms">Terms and Conditions of Service and Simulation (v3.2)</a>. In the event of any conflict or inconsistency between these Rules and the Terms and Conditions, the Terms and Conditions shall prevail as the authoritative legal document.</p>
+        <p>These Challenge Rules form an integral part of, and must be read in conjunction with, our <a href="terms">Terms and Conditions of Service and Simulation (v3.3)</a>. In the event of any conflict or inconsistency between these Rules and the Terms and Conditions, the Terms and Conditions shall prevail as the authoritative legal document.</p>
+        <p>All tips under these Rules are simulated tips made exclusively with virtual credits that have no monetary value. Capital, balances, profit targets and loss limits are expressed in virtual credits.</p>
       </section>
 
       <section>
         <h2>2. Phase 1 — Challenge</h2>
         <ul>
-          <li>Time limit: 30 days</li>
+          <li>Time limit: 30 calendar days (may be extended by the operator with bonus days as compensation); the phase closes if the limit expires before the target is met</li>
           <li>Profit target: +10 % of capital</li>
           <li>Max. overall loss: −10 % of capital (static — the floor never moves)</li>
           <li>Max. daily loss: −4 % of capital, resets at midnight UTC</li>
-          <li>Minimum 5 qualifying winning entries, each with a net profit of at least +0.5 % of capital</li>
-          <li>Permissible odds range: 1.00 to 8.00</li>
+          <li>Minimum 5 qualifying successful tips (settled in profit), each with a net profit of at least +0.5 % of capital</li>
+          <li>Permissible odds range: 1.00 to 8.00 per selection</li>
+          <li>Consistency rule: a single tip's potential profit may not exceed 40 % of the phase profit target (4 % of capital in Phase 1)</li>
+          <li>Advancing to the next phase requires reaching the profit target and the qualifying-tip rule, and is confirmed by the operator after review</li>
         </ul>
       </section>
 
       <section>
         <h2>3. Phase 2 — Verification</h2>
         <ul>
-          <li>Time limit: 30 days</li>
+          <li>Time limit: 30 calendar days (may be extended by the operator with bonus days as compensation); the phase closes if the limit expires before the target is met</li>
           <li>Profit target: +5 % of capital</li>
-          <li>Same max. overall loss, max. daily loss, qualifying-entry and permissible-odds rules as Phase 1</li>
+          <li>Same max. overall loss, max. daily loss, qualifying-tip, permissible-odds, consistency (40 % of the +5 % target, i.e. 2 % of capital) and phase-advancement rules as Phase 1</li>
         </ul>
       </section>
 
       <section>
         <h2>4. Phase 3 — Fundly Partner (Partner Account)</h2>
         <ul>
-          <li>Performance split: you keep 80 % of the performance reward</li>
+          <li>Performance Reward share: 80 % (you) / 20 % (operator)</li>
           <li>No time limit</li>
           <li>Max. overall loss: −10 % (trailing from your highest recorded balance)</li>
           <li>Max. daily loss: −4 % of capital, resets at midnight UTC</li>
+          <li>Consistency rule: a single tip's potential profit may not exceed 40 % of the +5 % reward buffer (2 % of capital)</li>
+          <li>Inactivity: an account with no simulated tip for 14 days is closed (warnings on day 7 and day 13)</li>
         </ul>
-        <h3>4.1 Maximum Entry Risk Limit</h3>
-        <p>The maximum simulated risk per single entry is 1.5 % of account capital in every phase. This applies regardless of odds or sport, and is enforced automatically by the platform.</p>
+        <h3>4.1 Maximum Tip Risk Limit</h3>
+        <p>The maximum simulated risk per single tip is 1.5 % of account capital in every phase. This applies regardless of odds or sport, and is enforced automatically by the platform.</p>
+        <h3>4.2 One Open Tip per Match</h3>
+        <p>Only one open (pending) tip per match is allowed at a time.</p>
+        <h3>4.3 Breaches &amp; Reset</h3>
+        <p>Exceeding the max. overall loss or max. daily loss, or failing to reach a phase target within its time limit, closes the account. A reset is offered for 40 % of the package price (once per closed account, for the same package).</p>
       </section>
 
       <section>
-        <h2>5. Contractor Payouts</h2>
+        <h2>5. Performance Rewards</h2>
         <ul>
-          <li>A profit buffer of at least +5 % of capital is required before your first contractor payout request</li>
-          <li>Minimum 5 qualifying winning entries (≥ +0.5 % of capital each) required before contractor payout</li>
-          <li>Maximum $4,000 per contractor payout request; you receive your 80 % performance share</li>
-          <li>Identity verification (KYC) via Whop is required before the first contractor payout</li>
-          <li>Approved contractor payouts are settled within 7 days</li>
+          <li>A one-time activation fee of $80 unlocks reward requests on a Fundly Partner account</li>
+          <li>A profit buffer of at least +5 % of capital is required before your first reward request</li>
+          <li>Minimum 5 qualifying successful tips (≥ +0.5 % of capital each) required before every reward request (the counter resets after each reward)</li>
+          <li>Minimum $10 and maximum $4,000 per reward request; your Performance Reward share is 80 %</li>
+          <li>At least 14 days between rewards (counted from your last reward, or from becoming a Fundly Partner)</li>
+          <li>After a reward, your balance must remain above the trailing max. overall loss floor</li>
+          <li>Identity verification (KYC) via Whop is required before the first Performance Reward</li>
+          <li>Reward requests are reviewed within 24 hours; approved Performance Rewards are sent within 7 days of approval — bank transfer (1–3 business days) or crypto (within 24 hours)</li>
         </ul>
+        <p>Performance Rewards are remuneration for analytical services and for the licence to use your simulated tips, analytical data and performance records under the separate written Independent Contractor Agreement; they are not prizes or winnings, and no Performance Reward is guaranteed (see Section 2 of our Terms and Conditions).</p>
       </section>
 
       <section>
         <h2>6. Forbidden Strategies</h2>
         <ul>
-          <li>Arbitrage &amp; mispricing exploitation across outcomes or platforms</li>
-          <li>Latency exploitation of stale data feeds</li>
-          <li>Multi-accounting or collusion between accounts (shared device, IP, or payment method used to coordinate opposing entries)</li>
+          <li>Arbitrage / guaranteed-outcome ("sure") strategies &amp; mispricing exploitation across outcomes or platforms</li>
+          <li>Value-tip exploitation flagged by the system</li>
+          <li>Latency exploitation of stale data feeds, tips on matches that have already finished, or pre-match tips on matches that have already started (courtsiding)</li>
+          <li>Multi-accounting or collusion between accounts (shared device, IP, or payment method used to coordinate opposing tips)</li>
+          <li>Account sharing or passing a challenge on someone else's behalf</li>
           <li>Any exploitation of technical errors, bugs, or mispriced simulation data</li>
         </ul>
-        <p>Accounts found in breach of these rules are terminated without contractor payout, in accordance with Section 6 of our <a href="terms">Terms and Conditions</a>.</p>
+        <p>Flagged tips are reviewed, and accounts found in breach of these rules may be terminated without a Performance Reward, in accordance with Section 6 of our <a href="terms">Terms and Conditions</a>.</p>
       </section>
 
       <section>
         <h2>Contact Information</h2>
         <p>Grindit LLC<br />Sharjah Media City, Sharjah<br />United Arab Emirates<br />Company Registration No: 2541536<br />Email Support: <a href="mailto:support@fundly.games">support@fundly.games</a><br />Website: <a href="https://fundly.games/">https://fundly.games/</a></p>
+      </section>
+    </div>
+    <div class="container legal-wrap" data-lang="cs" lang="cs" hidden data-title="Pravidla výzvy | Fundly">
+      <h1 class="t-h2">Pravidla výzvy</h1>
+      <p class="legal-updated">Verze dokumentu: 3.3 · Poslední aktualizace: 15. listopadu 2026<br />Provozovatel: Grindit LLC, Sharjah Media City, Sharjah, SAE (reg. č.: 2541536)<br />Platforma: <a href="https://fundly.games/">https://fundly.games/</a></p>
+      <p class="legal-note">Tento dokument je k dispozici v anglickém a českém jazyce. Pro spotřebitele s bydlištěm v České republice je rozhodující česká verze.</p>
+
+      <section>
+        <h2>1. Vztah k Obchodním podmínkám</h2>
+        <p>Tato Pravidla výzvy tvoří nedílnou součást našich <a href="terms">Obchodních podmínek služby a simulace (v3.3)</a> a musí být vykládána ve spojení s nimi. V případě jakéhokoli rozporu nebo nesouladu mezi těmito Pravidly a Obchodními podmínkami mají přednost Obchodní podmínky jakožto rozhodující právní dokument.</p>
+        <p>Veškeré tipy podle těchto Pravidel jsou simulační tipy zadávané výhradně za virtuální kredity, které nemají žádnou peněžní hodnotu. Kapitál, zůstatky, cíle zisku a limity ztrát jsou vyjádřeny ve virtuálních kreditech.</p>
+      </section>
+
+      <section>
+        <h2>2. Fáze 1 — Challenge</h2>
+        <ul>
+          <li>Časový limit: 30 kalendářních dní (provozovatel jej může prodloužit o bonusové dny jako kompenzaci); pokud lhůta uplyne před dosažením cíle zisku, fáze se uzavře</li>
+          <li>Cíl zisku: +10 % kapitálu</li>
+          <li>Max. celková ztráta: −10 % kapitálu (statická — spodní hranice se nikdy neposouvá)</li>
+          <li>Max. denní ztráta: −4 % kapitálu, resetuje se o půlnoci UTC</li>
+          <li>Minimálně 5 kvalifikačních úspěšných tipů (vyhodnocených v zisku), každý s čistým ziskem alespoň +0.5 % kapitálu</li>
+          <li>Povolené rozpětí kurzů: 1.00 až 8.00 na každou volbu v tipu</li>
+          <li>Pravidlo konzistence: potenciální zisk jednoho tipu nesmí přesáhnout 40 % cíle zisku fáze (ve Fázi 1 tj. 4 % kapitálu)</li>
+          <li>Postup do další fáze vyžaduje dosažení cíle zisku i splnění podmínky kvalifikačních tipů a potvrzuje jej provozovatel po kontrole</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>3. Fáze 2 — Verifikace</h2>
+        <ul>
+          <li>Časový limit: 30 kalendářních dní (provozovatel jej může prodloužit o bonusové dny jako kompenzaci); pokud lhůta uplyne před dosažením cíle zisku, fáze se uzavře</li>
+          <li>Cíl zisku: +5 % kapitálu</li>
+          <li>Stejná pravidla pro max. celkovou ztrátu, max. denní ztrátu, kvalifikační tipy, povolené kurzy, konzistenci (40 % z cíle +5 %, tj. 2 % kapitálu) a postup do další fáze jako ve Fázi 1</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>4. Fáze 3 — Fundly Partner (partnerský účet)</h2>
+        <ul>
+          <li>Podíl na odměně za výkon: 80 % (vy) / 20 % (provozovatel)</li>
+          <li>Bez časového limitu</li>
+          <li>Max. celková ztráta: −10 % (klouzavá od vašeho nejvyššího zaznamenaného zůstatku)</li>
+          <li>Max. denní ztráta: −4 % kapitálu, resetuje se o půlnoci UTC</li>
+          <li>Pravidlo konzistence: potenciální zisk jednoho tipu nesmí přesáhnout 40 % rezervy zisku +5 % potřebné pro odměnu (tj. 2 % kapitálu)</li>
+          <li>Neaktivita: účet bez simulačního tipu po dobu 14 dní se uzavírá (upozornění 7. a 13. den)</li>
+        </ul>
+        <h3>4.1 Maximální limit rizika na jeden tip</h3>
+        <p>Maximální simulované riziko na jeden tip činí ve všech fázích 1.5 % kapitálu účtu. Tento limit platí bez ohledu na kurz nebo sport a platforma jej vynucuje automaticky.</p>
+        <h3>4.2 Jeden otevřený tip na zápas</h3>
+        <p>Na jeden zápas můžete mít v jednu chvíli otevřený (nevyhodnocený) pouze jeden tip.</p>
+        <h3>4.3 Porušení pravidel a reset</h3>
+        <p>Překročení max. celkové ztráty nebo max. denní ztráty, případně nedosažení cíle fáze v jejím časovém limitu, vede k uzavření účtu. Nabízíme reset za 40 % ceny balíčku (jednou pro každý uzavřený účet, pro stejný balíček).</p>
+      </section>
+
+      <section>
+        <h2>5. Odměny za výkon</h2>
+        <ul>
+          <li>Jednorázový aktivační poplatek $80 odemyká žádosti o odměnu na účtu Fundly Partner</li>
+          <li>Před první žádostí o odměnu je vyžadována rezerva zisku ve výši alespoň +5 % kapitálu</li>
+          <li>Před každou žádostí o odměnu je vyžadováno minimálně 5 kvalifikačních úspěšných tipů (každý ≥ +0.5 % kapitálu); počítadlo se po každé odměně nuluje</li>
+          <li>Minimálně $10 a maximálně $4,000 na jednu žádost o odměnu; váš podíl na odměně za výkon činí 80 %</li>
+          <li>Mezi odměnami musí uplynout alespoň 14 dní (počítáno od poslední odměny, nebo ode dne, kdy jste se stali Fundly Partnerem)</li>
+          <li>Po poskytnutí odměny musí váš zůstatek zůstat nad klouzavou hranicí max. celkové ztráty</li>
+          <li>Před první odměnou za výkon je vyžadováno ověření totožnosti (KYC) prostřednictvím Whop</li>
+          <li>Žádosti o odměnu posuzujeme do 24 hodin; schválené odměny za výkon odesíláme do 7 dnů od schválení — bankovním převodem (1–3 pracovní dny) nebo v kryptoměně (do 24 hodin)</li>
+        </ul>
+        <p>Odměny za výkon jsou úplatou za analytické služby a za licenci k užívání vašich simulačních tipů, analytických dat a záznamů o výkonnosti podle samostatné písemné Smlouvy s nezávislým dodavatelem; nejedná se o ceny ani výhry a žádná odměna za výkon není zaručena (viz článek 2 našich Obchodních podmínek).</p>
+      </section>
+
+      <section>
+        <h2>6. Zakázané strategie</h2>
+        <ul>
+          <li>Arbitráž / strategie se zaručeným výsledkem („sure“) a zneužívání chybně stanovených kurzů napříč výsledky nebo platformami</li>
+          <li>Zneužívání value tipů označených systémem</li>
+          <li>Zneužívání latence zastaralých datových zdrojů, tipy na již skončené zápasy nebo předzápasové tipy na zápasy, které již začaly (courtsiding)</li>
+          <li>Používání více účtů nebo koluze mezi účty (sdílené zařízení, IP adresa nebo platební metoda použité ke koordinaci protichůdných tipů)</li>
+          <li>Sdílení účtu nebo plnění výzvy za jinou osobu</li>
+          <li>Jakékoli zneužívání technických chyb, chyb softwaru (bugů) nebo chybně oceněných simulačních dat</li>
+        </ul>
+        <p>Označené tipy jsou přezkoumány a účty, u nichž bude zjištěno porušení těchto pravidel, mohou být ukončeny bez poskytnutí odměny za výkon v souladu s oddílem 6 našich <a href="terms">Obchodních podmínek</a>.</p>
+      </section>
+
+      <section>
+        <h2>Kontaktní údaje</h2>
+        <p>Grindit LLC<br />Sharjah Media City, Sharjah<br />Spojené arabské emiráty<br />Registrační číslo společnosti: 2541536<br />E-mailová podpora: <a href="mailto:support@fundly.games">support@fundly.games</a><br />Web: <a href="https://fundly.games/">https://fundly.games/</a></p>
       </section>
     </div>
   </main>
@@ -106,10 +207,10 @@
             <img src="assets/logo.png" alt="" width="20" height="20" />
             fundly
           </a>
-          <p>A professional evaluation platform for sports analysts. Up to $100,000 in simulated capital and an 80 % performance split.</p>
+          <p data-legal="brand">A professional evaluation platform for sports analysts. Up to $100,000 in simulated capital and an 80 % performance split.</p>
         </div>
         <div class="foot-col">
-          <h4>Packages</h4>
+          <h4 data-legal="packages">Packages</h4>
           <ul>
             <li><a href="./#packages">Starter</a></li>
             <li><a href="./#packages">Standard</a></li>
@@ -119,41 +220,43 @@
           </ul>
         </div>
         <div class="foot-col">
-          <h4>Information</h4>
+          <h4 data-legal="info">Information</h4>
           <ul>
-            <li><a href="./#how-it-works">How it works</a></li>
-            <li><a href="./#why-fundly">Why Fundly</a></li>
-            <li><a href="./#faq">FAQ</a></li>
+            <li><a href="./#how-it-works" data-legal="how">How it works</a></li>
+            <li><a href="./#why-fundly" data-legal="why">Why Fundly</a></li>
+            <li><a href="./#faq" data-legal="faq">FAQ</a></li>
           </ul>
         </div>
         <div class="foot-col">
-          <h4>Support</h4>
+          <h4 data-legal="support">Support</h4>
           <ul>
-            <li><a href="./#contact">Contact us</a></li>
-            <li><a href="https://t.me/+420608187811" target="_blank" rel="noopener">Chat on Telegram</a></li>
-            <li><a href="#">Service status</a></li>
+            <li><a href="./#contact" data-legal="contact">Contact us</a></li>
+            <li><a href="https://t.me/+420608187811" target="_blank" rel="noopener" data-legal="telegram">Chat on Telegram</a></li>
+            <li><a href="#" data-legal="status">Service status</a></li>
           </ul>
         </div>
       </div>
       <div class="foot-legal">
-        <p>Legal Disclaimer: Fundly.games is operated by Grindit LLC (Sharjah Media City, Sharjah, UAE, Reg: 2541536). Fundly Games is not a bookmaker, gambling operator, or financial institution. All services, evaluation challenges, and metrics provided on this platform are strictly for educational and analytical simulation purposes, utilizing virtual credits with zero monetary value. Challenge fees cover software licensing, data evaluation, and analytical platform access.</p>
+        <p data-legal="disclaimer">Legal Disclaimer: Fundly.games is operated by Grindit LLC (Sharjah Media City, Sharjah, UAE, Reg: 2541536). Fundly Games is not a bookmaker, gambling operator, or financial institution. All services, evaluation challenges, and metrics provided on this platform are strictly for educational and analytical simulation purposes, utilizing virtual credits with zero monetary value. Challenge fees cover software licensing, data evaluation, and analytical platform access.</p>
       </div>
       <div class="foot-bottom">
-        <span>© 2026 Fundly. All rights reserved.</span>
+        <span data-legal="rights">© 2026 Fundly. All rights reserved.</span>
         <nav aria-label="Legal links">
-          <a href="privacy">Privacy</a>
-          <a href="terms">Terms</a>
-          <a href="rules" aria-current="page">Rules</a>
-          <a href="disclaimer">Disclaimer</a>
-          <a href="refund">Refund</a>
-          <a href="aml">AML Policy</a>
-          <a href="restricted-countries">Restricted Countries</a>
+          <a href="privacy" data-legal="privacy">Privacy</a>
+          <a href="terms" data-legal="terms">Terms</a>
+          <a href="rules" aria-current="page" data-legal="rules">Rules</a>
+          <a href="disclaimer" data-legal="disc">Disclaimer</a>
+          <a href="refund" data-legal="refund">Refund</a>
+          <a href="aml" data-legal="aml">AML Policy</a>
+          <a href="restricted-countries" data-legal="restricted">Restricted Countries</a>
+          <a href="#" data-cookie-settings data-legal="cookies">Cookies</a>
         </nav>
       </div>
     </div>
   </footer>
+  <script src="js/legal-lang.js?v=20261115h"></script>
 
-  <script src="js/promo-banner.js?v=20261115b"></script>
-  <script src="js/telegram-widget.js?v=20261115b"></script>
+  <script src="js/promo-banner.js?v=20261115h"></script>
+  <script src="js/telegram-widget.js?v=20261115h"></script>
 </body>
 </html>

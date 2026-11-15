@@ -21,5 +21,18 @@
     <p>Fundly needs an internet connection to show live odds and your account. Check your connection and try again.</p>
     <button onclick="location.reload()">Try again</button>
   </main>
+  <script>
+    // bez sítě: překlad přímo tady (externí skripty offline nejsou k dispozici)
+    (function () {
+      var l = "en";
+      try { l = localStorage.getItem("fundly:lang") || (navigator.language || "en").slice(0, 2); } catch (e) { /* */ }
+      if (l !== "cs" && l !== "sk") return;
+      document.documentElement.lang = "cs";
+      document.title = "Offline | Fundly";
+      document.querySelector("h1").textContent = "Jsi offline";
+      document.querySelector("p").textContent = "Fundly potřebuje připojení k internetu, aby ukázalo živé kurzy a tvůj účet. Zkontroluj připojení a zkus to znovu.";
+      document.querySelector("button").textContent = "Zkusit znovu";
+    })();
+  </script>
 </body>
 </html>

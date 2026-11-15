@@ -68,7 +68,7 @@ function renderPlan(animate) {
           <div class="ph-row"><span class="k">${t("packages.maxLossTrailing")}</span><span class="v red">${usdSigned(-dd)}</span></div>
           <div class="ph-row"><span class="k">${t("packages.maxDailyLoss")}</span><span class="v red">${usdSigned(-daily)}</span></div>
           <div class="ph-row"><span class="k">${t("packages.timeLimit")}</span><span class="v">${t("packages.unlimited")}</span></div>
-          <div class="ph-row"><span class="k">${t("packages.permissibleOdds")}</span><span class="v">1.00 to 8.00</span></div>
+          <div class="ph-row"><span class="k">${t("packages.permissibleOdds")}</span><span class="v">${t("packages.oddsRange")}</span></div>
         </div>
       </div>
     </article>`;
@@ -524,7 +524,7 @@ if (heroEl) heroSentinel.observe(heroEl);
       const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/preview-signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, lang: (document.documentElement.lang || "en") }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(res.status === 400 && /password/i.test(String(data.error)) ? tr("forms.errWeakPassword") : res.status === 400 && /e-?mail/i.test(String(data.error)) ? tr("co.errInvalidEmail") : tr("forms.previewFailed"));

@@ -10,7 +10,7 @@
 //
 // POST, hlavička x-cron-secret (CRON_SECRET). Tělo (vše volitelné):
 //   { dry_run: true }                      → jen vypíše, komu by co odešlo
-//   { test_to: "a@b.cz", track: "A", step: 1, lang: "pl", package_key: "starter" }
+//   { test_to: "a@b.cz", track: "A", step: 1, lang: "pl" | "cs", package_key: "starter" }
 //                                          → pošle jeden testovací e-mail sem
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -18,6 +18,7 @@ import { jsonResponse } from "../_shared/cors.ts";
 import { sendEmail } from "../_shared/email.ts";
 import { renderFollowup, renderRecovery, type Lang, type Track } from "../_shared/followup-emails.ts";
 import { unsubscribeUrl } from "../_shared/unsubscribe.ts";
+import { langFromEmail, langFromMeta, normalizeLang } from "../_shared/user-lang.ts";
 
 const SITE_URL = Deno.env.get("SITE_URL") ?? "https://fundly.games";
 const FEATURE_START = new Date(Deno.env.get("FOLLOWUP_START") ?? "2026-09-26T00:00:00Z").getTime();
@@ -28,9 +29,12 @@ const DAY = 86400000;
 const RECOVERY_MIN_MS = 45 * 60 * 1000; // dát člověku čas dokončit platbu sám
 const RECOVERY_MAX_MS = 48 * 3600 * 1000; // po dvou dnech už to není "opuštěný košík"
 
-function langFor(email: string, hint?: string | null): Lang {
-  if (hint === "pl") return "pl";
-  return email.toLowerCase().endsWith(".pl") ? "pl" : "en";
+// Jazyk follow-upu: 1) jazyk uložený u auth účtu (user_metadata.lang = aktuální jazyk webu
+// při posledním přihlášení, pak checkout_lang), 2) jazyk z pop-upu se slevou (discount_signups.lang),
+// 3) doména e-mailu (.cz/.sk → cs, .pl → pl), 4) en. Viz _shared/user-lang.ts (cs i sk → "cs").
+// deno-lint-ignore no-explicit-any
+function langFor(email: string, hint?: string | null, meta?: Record<string, any> | null): Lang {
+  return langFromMeta(meta) ?? normalizeLang(hint) ?? langFromEmail(email);
 }
 
 interface Candidate {
@@ -87,7 +91,7 @@ serve(async (req) => {
       const to = String(body.test_to);
       const track = (body.track === "B" ? "B" : body.track === "R" ? "R" : "A") as Track;
       const step = track === "R" ? 1 : Math.min(3, Math.max(1, Number(body.step) || 1));
-      const lang = (body.lang === "pl" ? "pl" : "en") as Lang;
+      const lang: Lang = normalizeLang(body.lang) ?? "en";
       const tctx = {
         lang, siteUrl: SITE_URL, unsubscribeUrl: await unsubscribeUrl(SITE_URL, to),
         packageKey: String(body.package_key ?? "starter"),
@@ -133,6 +137,11 @@ serve(async (req) => {
     const lower = (s: unknown) => String(s ?? "").trim().toLowerCase();
     const unsub = new Set((unsubRes.data ?? []).map((r: { email: string }) => lower(r.email)));
     const accounts = accountsRes.data ?? [];
+    // e-mail → user_metadata (jazyk účtu pro všechny trasy)
+    // deno-lint-ignore no-explicit-any
+    const metaByEmail = new Map<string, Record<string, any>>();
+    // deno-lint-ignore no-explicit-any
+    for (const u of users as any[]) if (u.email) metaByEmail.set(lower(u.email), u.user_metadata ?? {});
     const paid = new Set([
       ...accounts.map((a: { email: string }) => lower(a.email)),
       ...(paymentsRes.data ?? []).map((p: { email: string }) => lower(p.email)),
@@ -157,7 +166,7 @@ serve(async (req) => {
     if (only !== "R") {
       for (const [email, info] of firstSeen) {
         if (paid.has(email) || unsub.has(email)) continue;
-        candidates.push({ email, track: "A", startAt: Math.max(info.at, FEATURE_START), lang: langFor(email, info.lang) });
+        candidates.push({ email, track: "A", startAt: Math.max(info.at, FEATURE_START), lang: langFor(email, info.lang, metaByEmail.get(email)) });
       }
     }
 
@@ -173,7 +182,7 @@ serve(async (req) => {
       if (age < RECOVERY_MIN_MS || age > RECOVERY_MAX_MS) continue;
       candidates.push({
         email: e, track: "R", startAt: new Date(u.created_at).getTime(),
-        lang: langFor(e, meta.checkout_lang ?? null),
+        lang: langFor(e, null, meta),
         packageKey: typeof meta.checkout_package === "string" ? meta.checkout_package : undefined,
       });
     }
@@ -196,7 +205,7 @@ serve(async (req) => {
       if (!acc || !acc.package_key) continue;
       const closedAt = acc.synced_at ?? acc.created_at;
       candidates.push({
-        email, track: "B", startAt: Math.max(new Date(closedAt).getTime(), FEATURE_START), lang: langFor(email),
+        email, track: "B", startAt: Math.max(new Date(closedAt).getTime(), FEATURE_START), lang: langFor(email, null, metaByEmail.get(email)),
         packageKey: acc.package_key, closedAt, reason: acc.breach_reason,
       });
     }

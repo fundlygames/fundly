@@ -4,6 +4,60 @@ const usd = (n) => "$" + Math.round(n).toLocaleString("en-US");
 
 // Form texts/messages come from the i18n dictionary (js/i18n.js, group "forms").
 const ft = (key) => (typeof window.t === "function" ? window.t(key) : key);
+// Texty generované v JS: klíče dashjs.* v js/i18n-dash-js.js. ftf = s proměnnými ({amount} …),
+// ftp = množné číslo (podklíče one/few/other — čeština 1 / 2–4 / ostatní).
+const ftf = (key, vars) => (typeof window.tf === "function" ? window.tf(key, vars) : key);
+const ftp = (key, n, vars) => ftf(`${key}.${n === 1 ? "one" : n >= 2 && n <= 4 ? "few" : "other"}`, { n, ...(vars || {}) });
+// Locale pro data/časy podle zvoleného jazyka (cs → cs-CZ = 24h čas, sk → sk-SK, jinak en-US).
+// Peníze zůstávají ve formátu USD ($1,234) přes usd().
+function uiLocale() {
+  const lang = window.FUNDLY_I18N && typeof window.FUNDLY_I18N.getLang === "function" ? window.FUNDLY_I18N.getLang() : "en";
+  return lang === "cs" ? "cs-CZ" : lang === "sk" ? "sk-SK" : "en-US";
+}
+// Anglické hlášky ze serveru (důvody storna tiketu — supabase/functions/_shared/ticket-admission.ts VOID,
+// request-payout, profile-update, affiliate-stats) → překlad podle přesného textu; neznámé beze změny.
+const SERVER_MSG_KEYS = {
+  "The entry was above the maximum entry size for your package.": "stake",
+  "One of the odds was outside the allowed range (1.00–8.00).": "oddsRange",
+  "A single ticket can't account for more than 40 % of the phase profit target.": "profitLimit",
+  "You already had a pending bet on one of these matches.": "duplicateEvent",
+  "The match had already finished when the ticket was received.": "finished",
+  "The match was no longer available for betting.": "unavailable",
+  "That market was no longer available when the ticket was received.": "noMarket",
+  "The odds had changed by the time the ticket was received.": "oddsChanged",
+  "The match had already started and could not be confirmed as live.": "notLive",
+  "Please sign in to make a withdrawal.": "signInWd",
+  "Choose a payout method.": "chooseMethod",
+  "You have no challenge account.": "noAccount",
+  "Withdrawals are only available on a funded account.": "fundedOnly",
+  "Pay the activation fee first.": "activationFirst",
+  "You already have a pending withdrawal request.": "pendingWd",
+  "There is no profit share available to withdraw yet.": "noShare",
+  "The request could not be submitted.": "wdFailed",
+  "Please sign in first.": "signIn",
+  "Please sign in.": "signInShort",
+  "Invalid access token.": "invalidToken",
+  "That nickname isn't allowed — please choose another.": "nickBad",
+  "Nothing to update.": "nothing",
+  "Update failed.": "updateFailed",
+  "Affiliate stats could not be loaded.": "affFail",
+};
+const SERVER_MSG_PATTERNS = [
+  [/^The minimum withdrawal is (\$[\d,.]+)\.$/, "minWd", "amount"],
+  [/^The maximum withdrawal per request is (\$[\d,.]+)\.$/, "maxWd", "amount"],
+  [/^You can request your next payout starting (\S+) \(14-day cooldown between payouts\)\.$/, "cooldown", "date"],
+  [/^The requested amount is above your available profit share \((\$[\d,.]+)\)\.$/, "aboveShare", "amount"],
+];
+function srvMsg(msg) {
+  if (!msg) return msg;
+  const s = String(msg).trim();
+  if (SERVER_MSG_KEYS[s]) return ft(`dashjs.srv.${SERVER_MSG_KEYS[s]}`);
+  for (const [re, key, name] of SERVER_MSG_PATTERNS) {
+    const m = re.exec(s);
+    if (m) return ftf(`dashjs.srv.${key}`, { [name]: m[1] });
+  }
+  return msg;
+}
 
 // Kdy server naposledy zaznamenal vstup do pending_approval (viz
 // syncChallengeAccount) — použito jen pro "čekáš už X" text v bannerů,
@@ -35,7 +89,7 @@ function jumpToPasswordSettings(prefix) {
     input.focus();
   }, 50);
   if (typeof showToast === "function") {
-    showToast("win", "Set your new password", "You're signed in from your password reset link — enter a new password below and save.");
+    showToast("win", ft("dashjs.toast.setPassTitle"), ft("dashjs.toast.setPassBody"));
   }
 }
 
@@ -69,11 +123,11 @@ document.addEventListener("click", (e) => {
 });
 
 // ---------- section switching ----------
-const views = ["prehled", "vykon", "sazeni", "zebricek", "vyplaty", "affiliate", "akademie", "profil"];
+const views = ["prehled", "vykon", "sazeni", "zebricek", "vyplaty", "affiliate", "novinky", "akademie", "profil"];
 
 // "More" sheet na mobilu: sekce, co se nevejdou do spodní lišty
 // (Leaderboard/Affiliate/Academy/Profile) — otevře se přes #dnavMoreBtn.
-const MORE_SHEET_VIEWS = ["zebricek", "affiliate", "akademie", "profil"];
+const MORE_SHEET_VIEWS = ["zebricek", "affiliate", "novinky", "akademie", "profil"];
 
 function closeMoreSheet() {
   const sheet = document.getElementById("dnavMoreSheet");
@@ -86,6 +140,9 @@ function showView(name) {
   views.forEach((v) => {
     document.getElementById(`view-${v}`).hidden = v !== name;
   });
+  // omezený režim (bez aktivního účtu): přehled účtů ↔ Akademie / Novinky (přístup 30 dní po nákupu)
+  const naView = document.getElementById("view-noaccount");
+  if (naView && document.body.classList.contains("limited")) naView.hidden = name !== "noaccount";
   document.querySelectorAll("[data-view]").forEach((b) => {
     b.classList.toggle("active", b.dataset.view === name);
   });
@@ -108,7 +165,70 @@ function showView(name) {
   if (name === "vyplaty" && typeof loadPayoutHistory === "function") loadPayoutHistory();
   if (name === "affiliate" && typeof loadAffiliateStats === "function") loadAffiliateStats();
   if (name === "zebricek" && typeof loadLeaderboard === "function") loadLeaderboard();
+  if (name === "novinky") loadNews();
 }
+
+// ---------- Novinky: sportovní zprávy (edge funkce sports-news, cache 15 min) ----------
+// Jen titulek, zdroj, čas a odkaz na web zdroje — text článků nepřebíráme (autorská práva).
+let newsData = { lang: null, at: 0, items: [] };
+let newsSource = "";
+function newsLang() {
+  const l = (typeof FUNDLY_I18N !== "undefined" && FUNDLY_I18N.getLang()) || "en";
+  return l === "cs" || l === "sk" ? "cs" : "en";
+}
+function timeAgo(iso) {
+  if (!iso) return "";
+  const min = Math.max(1, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+  if (min < 60) return ftf("dashjs.news.minAgo", { n: min });
+  const h = Math.round(min / 60);
+  if (h < 24) return ftf("dashjs.news.hAgo", { n: h });
+  return new Date(iso).toLocaleDateString(newsLang() === "cs" ? "cs-CZ" : "en-GB", { day: "numeric", month: "short" });
+}
+const newsEsc = (v) => String(v ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function renderNews() {
+  const list = document.getElementById("newsList");
+  const filters = document.getElementById("newsFilters");
+  if (!list) return;
+  const sources = [...new Set(newsData.items.map((i) => i.source))];
+  if (filters) {
+    filters.innerHTML = [`<button type="button" data-news-src="" aria-pressed="${!newsSource}">${newsEsc(ft("dashjs.news.all"))}</button>`]
+      .concat(sources.map((src) => `<button type="button" data-news-src="${newsEsc(src)}" aria-pressed="${newsSource === src}">${newsEsc(src)}</button>`)).join("");
+  }
+  const items = newsData.items.filter((i) => !newsSource || i.source === newsSource);
+  if (!items.length) { list.innerHTML = `<p class="bet-msg">${newsEsc(ft("dashjs.news.empty"))}</p>`; return; }
+  list.innerHTML = items.map((i) => `
+    <a class="news-item" href="${newsEsc(i.link)}" target="_blank" rel="noopener noreferrer">
+      <div class="news-meta"><span class="news-src">${newsEsc(i.source)}</span><span>${newsEsc(timeAgo(i.published))}</span></div>
+      <div class="news-title">${newsEsc(i.title)}</div>
+    </a>`).join("");
+}
+async function loadNews(force) {
+  const lang = newsLang();
+  if (!force && newsData.lang === lang && Date.now() - newsData.at < 5 * 60 * 1000 && newsData.items.length) { renderNews(); return; }
+  const list = document.getElementById("newsList");
+  if (list && !newsData.items.length) list.innerHTML = `<p class="bet-msg">${newsEsc(ft("dashjs.news.loading"))}</p>`;
+  try {
+    if (typeof FUNDLY_SUPABASE_URL === "undefined") throw new Error("no backend");
+    const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/sports-news?lang=${lang}`);
+    const data = await res.json();
+    if (!Array.isArray(data.items) || !data.items.length) throw new Error("empty");
+    newsData = { lang, at: Date.now(), items: data.items };
+    if (newsSource && !data.items.some((i) => i.source === newsSource)) newsSource = "";
+    renderNews();
+  } catch (e) {
+    if (list && !newsData.items.length) list.innerHTML = `<p class="bet-msg">${newsEsc(ft("dashjs.news.error"))}</p>`;
+  }
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-news-src]");
+  if (!b) return;
+  newsSource = b.dataset.newsSrc;
+  renderNews();
+});
+document.addEventListener("fundly:lang-changed", () => {
+  const v = document.getElementById("view-novinky");
+  if (v && !v.hidden) loadNews(true);
+});
 
 document.addEventListener("click", (e) => {
   const moreBtn = e.target.closest("#dnavMoreBtn");
@@ -149,16 +269,16 @@ document.addEventListener("click", (e) => {
     const t = state && state.tickets.find((x) => x.id === co.dataset.cashout);
     if (!t) return;
     const amount = Math.round(t.stake * 0.9);
-    if (!window.confirm(`Cash out now for $${amount.toLocaleString("en-US")} (early settlement −10 %)?`)) return;
+    if (!window.confirm(ftf("dashjs.toast.cashoutConfirm", { amount: usd(amount) }))) return;
     const r = Portfolio.cashOut(co.dataset.cashout);
     if (r.ok) {
-      showToast("push", "Ticket cashed out", `+${usd(r.cashout)}`);
+      showToast("push", ft("dashjs.toast.cashedOut"), `+${usd(r.cashout)}`);
       if (typeof renderPrehled === "function") renderPrehled();
       if (typeof renderVykon === "function") renderVykon();
       if (typeof renderBankBar === "function") renderBankBar();
       if (typeof scheduleAccountSync === "function") scheduleAccountSync();
     } else {
-      showToast("loss", "Can't cash out", r.error || "This ticket can no longer be cashed out.");
+      showToast("loss", ft("dashjs.toast.cantCashOut"), r.error || ft("dashjs.toast.cantCashOutBody"));
     }
     return;
   }
@@ -233,10 +353,10 @@ function renderNotifications() {
         <div class="notif-body">
           <div class="notif-title">${n.title}</div>
           ${n.detail ? `<div class="notif-detail">${n.detail}</div>` : ""}
-          <div class="notif-time">${new Date(n.t).toLocaleString("en-US")}</div>
+          <div class="notif-time">${new Date(n.t).toLocaleString(uiLocale())}</div>
         </div>
       </div>`).join("")
-    : `<div class="notif-empty">No notifications yet.</div>`;
+    : `<div class="notif-empty">${ft("dashjs.notif.empty")}</div>`;
 }
 renderNotifications();
 
@@ -281,16 +401,16 @@ function fireConfetti() {
 function celebrateTicket(ticket) {
   const cSel0 = ticket.selections[0];
   const label = ticket.selections.length > 1
-    ? `${ticket.selections.length}× accumulator`
-    : (cSel0.homeTeam && cSel0.awayTeam ? `${cSel0.homeTeam} – ${cSel0.awayTeam}` : (cSel0.league || "Ticket"));
+    ? ftf("dashjs.common.accumulator", { n: ticket.selections.length })
+    : (cSel0.homeTeam && cSel0.awayTeam ? `${cSel0.homeTeam} – ${cSel0.awayTeam}` : (cSel0.league || ft("dashjs.common.ticket")));
   if (ticket.status === "won") {
-    showToast("win", "Ticket won! 🎉", `${label} · +${usd(ticket.payout - ticket.stake)}`);
+    showToast("win", ft("dashjs.toast.won"), `${label} · +${usd(ticket.payout - ticket.stake)}`);
     fireConfetti();
   } else if (ticket.status === "lost") {
-    showToast("loss", "Ticket lost", `${label} · −${usd(ticket.stake)}`);
+    showToast("loss", ft("dashjs.toast.lost"), `${label} · −${usd(ticket.stake)}`);
   } else if (ticket.status === "push") {
     // voidReason = tiket nesplnil serverovou kontrolu při podání (skončený zápas, změněné kurzy…)
-    showToast("push", ticket.voidReason ? "Ticket voided, stake refunded" : "Amount refunded", ticket.voidReason ? `${label} · ${ticket.voidReason}` : label);
+    showToast("push", ticket.voidReason ? ft("dashjs.toast.voided") : ft("dashjs.toast.refunded"), ticket.voidReason ? `${label} · ${srvMsg(ticket.voidReason)}` : label);
   }
 }
 
@@ -303,9 +423,9 @@ function showCheckEmailNotice() {
   box.style.cssText = "position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(2,2,4,.94);backdrop-filter:blur(6px)";
   box.innerHTML = '<div style="max-width:440px;text-align:center;padding:32px;border-radius:18px;background:#0b0b10;border:1px solid rgba(20,241,149,.35);font-family:Inter,Arial,sans-serif;color:#e8e8ee">' +
     '<div style="font-size:40px;margin-bottom:8px">&#9993;</div>' +
-    '<h2 style="margin:0 0 10px;font-size:22px;color:#fff">Payment received &mdash; check your inbox</h2>' +
-    '<p style="margin:0 0 18px;line-height:1.55;color:#b9b9c6">To keep your account secure, we sent a sign-in link to the e-mail you paid with. Open it and your account will be ready. It can take up to a minute; check your spam folder too.</p>' +
-    '<a href="./" style="color:#14f195;text-decoration:none;font-weight:600">Back to home</a></div>';
+    '<h2 style="margin:0 0 10px;font-size:22px;color:#fff">' + ft("dashjs.checkEmail.title") + '</h2>' +
+    '<p style="margin:0 0 18px;line-height:1.55;color:#b9b9c6">' + ft("dashjs.checkEmail.body") + '</p>' +
+    '<a href="./" style="color:#14f195;text-decoration:none;font-weight:600">' + ft("dashjs.checkEmail.back") + '</a></div>';
   document.body.appendChild(box);
 }
 
@@ -318,27 +438,28 @@ function showCheckEmailNotice() {
 // yet even though the payment succeeded.
 const justPaid = new URLSearchParams(window.location.search).get("paid") === "1";
 if (justPaid) {
-  showToast("win", "Payment received! 🎉", "We're setting up your account — everything will be ready in a moment.");
+  showToast("win", ft("dashjs.toast.paidTitle"), ft("dashjs.toast.paidBody"));
   // clean the parameter from the address so the toast does not pop up on refresh
   window.history.replaceState({}, "", "dashboard");
 }
 
 // ---------- badges: real conditions computed from portfolio data ----------
 const BADGES = [
-  ["First win", "b-prvni-vitezstvi", "b-prvni-vitezstvi"],
-  ["5 in a row", "b-5-v-rade", "b-5-v-rade"],
-  ["10 in a row", "b-10-v-rade", "b-10-v-rade"],
-  ["Accumulator expert", "b-akumulator", "b-akumulator"],
-  ["Phase 1 complete", "b-faze-1", "b-faze-1"],
-  ["Phase 2 complete", "b-faze-2", "b-faze-2"],
-  ["Partner player", "b-funded", "b-funded"],
-  ["100 bets", "b-100-sazek", "b-100-sazek"],
-  ["Hunter instinct", "b-lovecky", "b-lovecky"],
-  ["Iron hand", "b-zelezna-ruka", "b-zelezna-ruka"],
-  ["First payout", "b-prvni-vyber", "b-prvni-vyber"],
+  // název = i18n klíč (dashjs.badge.*), překládá se až při vykreslení
+  ["dashjs.badge.firstWin", "b-prvni-vitezstvi", "b-prvni-vitezstvi"],
+  ["dashjs.badge.row5", "b-5-v-rade", "b-5-v-rade"],
+  ["dashjs.badge.row10", "b-10-v-rade", "b-10-v-rade"],
+  ["dashjs.badge.accExpert", "b-akumulator", "b-akumulator"],
+  ["dashjs.badge.phase1", "b-faze-1", "b-faze-1"],
+  ["dashjs.badge.phase2", "b-faze-2", "b-faze-2"],
+  ["dashjs.badge.partner", "b-funded", "b-funded"],
+  ["dashjs.badge.bets100", "b-100-sazek", "b-100-sazek"],
+  ["dashjs.badge.hunter", "b-lovecky", "b-lovecky"],
+  ["dashjs.badge.ironHand", "b-zelezna-ruka", "b-zelezna-ruka"],
+  ["dashjs.badge.firstPayout", "b-prvni-vyber", "b-prvni-vyber"],
   // Ambassador vyžaduje systém doporučení hráčů, který zatím neexistuje
   // (affiliate systém dnes slouží jen content creatorům/promo kódům) — zůstává uzamčený.
-  ["Ambassador", "b-ambasador", null],
+  ["dashjs.badge.ambassador", "b-ambasador", null],
 ];
 
 function computeStreaks(state) {
@@ -389,7 +510,8 @@ function renderBadges(state) {
   const unlockedCount = BADGES.filter(([, , key]) => key && unlocks[key]).length;
   const countEl = document.getElementById("badgeCount");
   if (countEl) countEl.textContent = `${unlockedCount} / ${BADGES.length}`;
-  badgeGrid.innerHTML = BADGES.map(([name, img, key]) => {
+  badgeGrid.innerHTML = BADGES.map(([nameKey, img, key]) => {
+    const name = ft(nameKey);
     const unlocked = key ? !!unlocks[key] : false;
     return `<div class="badge-tile ${unlocked ? "unlocked" : ""}" title="${name}">
       <img src="assets/badges/${img}.png" alt="" />${name}
@@ -408,10 +530,10 @@ function renderMomentum(state) {
   }
   el.hidden = false;
   if (streaks.type === "won") {
-    el.textContent = `🔥 ${streaks.current}× wins in a row`;
+    el.textContent = ftf("dashjs.momentum.wins", { n: streaks.current });
     el.classList.remove("chip-momentum-cold");
   } else {
-    el.textContent = `${streaks.current}× losses in a row`;
+    el.textContent = ftf("dashjs.momentum.losses", { n: streaks.current });
     el.classList.add("chip-momentum-cold");
   }
 }
@@ -443,14 +565,14 @@ async function refreshAfterSettlement() {
     const afterUnlocks = computeBadgeUnlocks(afterState);
     BADGES.forEach(([name, , key]) => {
       if (key && afterUnlocks[key] && !beforeUnlocks[key]) {
-        showToast("badge", "New badge! 🏅", name);
+        showToast("badge", ft("dashjs.toast.newBadge"), ft(name));
       }
     });
     renderBadges(afterState);
     renderMomentum(afterState);
     // právě teď splnil cíl fáze — betting se pozastaví, dokud to neschválí admin
     if (!beforeState?.pendingPhase && afterState.pendingPhase) {
-      showToast("pend", "Phase target reached! 🎯", "Betting is paused while our team reviews and approves the move to the next phase.");
+      showToast("pend", ft("dashjs.toast.phaseReached"), ft("dashjs.toast.phaseReachedBody"));
     }
   }
 
@@ -682,12 +804,12 @@ scheduleAccountSync();
 // Sdílené mezi showLimitedDashboard (žádný aktivní účet) a renderProfile
 // (aktivní účet, "Your account history" panel) — stejný řádek pro oba.
 function accountHistoryRowsHtml(accounts) {
-  const label = (s) => s === "funded" ? "Partner" : s === "active" ? "Active" : s === "pending_approval" ? "Pending approval" : s === "breached" ? "Breached" : s;
+  const label = (s) => (["funded", "active", "pending_approval", "breached"].includes(s) ? ft(`dashjs.accState.${s}`) : s);
   const tag = (s) => s === "funded" ? "win" : (s === "active" || s === "pending_approval") ? "push" : "loss";
   return accounts.map((a) => `
     <div class="k-row neutral">${a.package_key || "?"} · $${Number(a.capital || 0).toLocaleString("en-US")}
       <span class="n"><span class="tag ${tag(a.state)}">${label(a.state)}</span>
-      <span style="color:var(--text-muted);font-size:.75rem">${new Date(a.created_at).toLocaleDateString("en-US")}</span></span>
+      <span style="color:var(--text-muted);font-size:.75rem">${new Date(a.created_at).toLocaleDateString(uiLocale())}</span></span>
     </div>`).join("");
 }
 
@@ -701,6 +823,21 @@ function showLimitedDashboard(accounts) {
   if (view) view.hidden = false;
   const pastPanel = document.getElementById("naPastPanel");
   if (pastPanel) pastPanel.hidden = !accounts.length;
+  // Hodnota i po neúspěchu: poplatek kupuje přístup k platformě na 30 dní (Akademie, novinky) —
+  // po spálení účtu zůstává přístup do konce těch 30 dní od začátku poslední výzvy.
+  const accessPanel = document.getElementById("naAccessPanel");
+  if (accessPanel) {
+    const until = accounts.reduce((m, a) => {
+      const from = new Date(a.phase_started_at || a.created_at).getTime();
+      return Number.isFinite(from) ? Math.max(m, from + 30 * 864e5) : m;
+    }, 0);
+    accessPanel.hidden = !(until > Date.now());
+    if (until > Date.now()) {
+      document.getElementById("naAccessText").textContent = ftf("dashjs.news.accessUntil", {
+        date: new Date(until).toLocaleDateString(newsLang() === "cs" ? "cs-CZ" : "en-GB", { day: "numeric", month: "long", year: "numeric" }),
+      });
+    }
+  }
   const list = document.getElementById("naAccounts");
   if (list && accounts.length) list.innerHTML = accountHistoryRowsHtml(accounts);
   showResetOfferFromAccounts(accounts);
@@ -715,7 +852,7 @@ function showLimitedDashboard(accounts) {
 function resetOfferText(pkgKey) {
   const pkg = packageByKey(pkgKey);
   const price = packageMeta(pkg).resetFee;
-  return { pkg, price, text: `Restart your ${pkg.name} account with a discounted reset: ${usd(price)} instead of ${usd(pkg.price)} (40 % of the standard price). A reset can be used once per closed account.` };
+  return { pkg, price, text: ftf("dashjs.reset.offer", { name: pkg.name, price: usd(price), full: usd(pkg.price) }) };
 }
 
 // Tlačítko resetu šlo stisknout jen jednou: po kliknutí zůstalo "disabled" — když se hráč
@@ -729,7 +866,7 @@ async function startAccountReset(pkgKey, btn, note) {
   note.hidden = true;
   const label = btn.textContent;
   btn.dataset.label = label;
-  btn.textContent = "Opening the payment…";
+  btn.textContent = ft("dashjs.reset.opening");
   const release = () => { btn.disabled = false; btn.dataset.busy = ""; btn.textContent = label; };
   try {
     // živě spálený účet se na server dostane až syncem — počkat, ať je "breached" už zapsané
@@ -738,12 +875,12 @@ async function startAccountReset(pkgKey, btn, note) {
       await Promise.race([pushAccountSnapshot().catch(() => {}), new Promise((r) => setTimeout(r, 5000))]);
     }
     const user = await FundlyAuth.getUser();
-    if (!user || !user.email) throw new Error("Please sign in again.");
+    if (!user || !user.email) throw new Error(ft("dashjs.common.signInAgain"));
     const data = await FundlyCheckout.createSession(pkgKey, user.email, { reset: true });
     window.location.href = data.checkoutUrl;
     setTimeout(release, 8000); // přesměrování neproběhlo (zablokované / zrušené) → znovu použitelné
   } catch (err) {
-    note.textContent = err.message || "The payment gateway could not be opened.";
+    note.textContent = err.message || ft("dashjs.common.gatewayError");
     note.className = "auth-note mt error";
     note.hidden = false;
     release();
@@ -767,7 +904,7 @@ function wireResetPanel(panelId, textId, btnId, noteId, pkgKey) {
   const offer = resetOfferText(pkgKey);
   document.getElementById(textId).textContent = offer.text;
   const btn = document.getElementById(btnId);
-  btn.textContent = `Reset my account — ${usd(offer.price)}`;
+  btn.textContent = ftf("dashjs.reset.btn", { price: usd(offer.price) });
   btn.onclick = () => startAccountReset(pkgKey, btn, document.getElementById(noteId));
   panel.hidden = false;
 }
@@ -802,7 +939,7 @@ function showActivationPanel(email) {
       window.location.href = data.checkoutUrl;
     } catch (err) {
       const note = document.getElementById("activationNote");
-      note.textContent = err.message || "The payment gateway could not be opened.";
+      note.textContent = err.message || ft("dashjs.common.gatewayError");
       note.className = "auth-note mt error";
       note.hidden = false;
       btn.disabled = false;
@@ -833,7 +970,7 @@ async function syncChallengeAccount() {
     const fetchAccounts = async () => {
       const { data, error: fetchError } = await client
         .from("challenge_accounts")
-        .select("id, package_key, capital, phase, pending_phase, pending_requested_at, state, flags, created_at, inactivity_warned_7, inactivity_warned_13, nickname, leaderboard_opt_in, synced_at, phase_bonus_days")
+        .select("id, package_key, capital, phase, pending_phase, pending_requested_at, state, flags, created_at, phase_started_at, inactivity_warned_7, inactivity_warned_13, nickname, leaderboard_opt_in, synced_at, phase_bonus_days")
         .order("created_at", { ascending: false });
       if (fetchError) throw fetchError;
       return data || [];
@@ -911,8 +1048,7 @@ async function syncChallengeAccount() {
         if (typeof renderVykon === "function") renderVykon();
         if (typeof renderBankBar === "function") renderBankBar();
         if (added > 0) {
-          showToast("win", `+${added} days added to your phase`,
-            "Our sports-data feed was unavailable for a few days, so no entries could be placed. Your phase time limit has been extended to make up for it.");
+          showToast("win", ftp("dashjs.toast.bonusDays", added), ft("dashjs.toast.bonusDaysBody"));
         }
       }
     }
@@ -966,9 +1102,9 @@ async function syncChallengeAccount() {
     // neaktivita: min. 1 tiket / 14 dní na funded účtu, jinak se účet spálí
     // (viz account-maintenance cron) — banner podle posledního varování.
     if (account.state === "funded" && account.inactivity_warned_13) {
-      showToast("loss", "Last warning: place a bet", "No activity for 13+ days. The account will be closed after 14 days of inactivity.");
+      showToast("loss", ft("dashjs.toast.lastWarn"), ft("dashjs.toast.lastWarnBody"));
     } else if (account.state === "funded" && account.inactivity_warned_7) {
-      showToast("pend", "Stay active", "No activity for 7+ days. Place at least one bet every 14 days to keep the account active.");
+      showToast("pend", ft("dashjs.toast.stayActive"), ft("dashjs.toast.stayActiveBody"));
     }
 
     if (isPasswordRecovery) jumpToPasswordSettings("s");
@@ -1051,15 +1187,15 @@ async function syncChallengeAccount() {
       if (typeof renderBankBar === "function") renderBankBar();
       if (wasWaitingForApproval && account.state === "pending_approval") {
         // pořád čeká — sem se dostane jen když se localStorage mezitím ztratil
-        showToast("pend", "Awaiting approval", "Your phase result is being reviewed — betting stays paused until it's approved.");
+        showToast("pend", ft("dashjs.toast.awaiting"), ft("dashjs.toast.awaitingBody"));
       } else if (wasWaitingForApproval && account.state === "funded") {
-        showToast("win", "You're funded! 🏆", "Your Phase 2 result was approved — welcome to the partner program.");
+        showToast("win", ft("dashjs.toast.funded"), ft("dashjs.toast.fundedBody"));
       } else if (wasWaitingForApproval && account.phase === localPendingNum) {
-        showToast("win", `Phase ${account.phase} approved`, "Your result was approved — the account has been reset for a fresh start.");
+        showToast("win", ftf("dashjs.toast.phaseApproved", { n: account.phase }), ft("dashjs.toast.phaseApprovedBody"));
       } else if (wasWaitingForApproval) {
-        showToast("pend", "Back to trading", "Your last phase result wasn't approved yet — betting has resumed on the current phase.");
+        showToast("pend", ft("dashjs.toast.backToTrading"), ft("dashjs.toast.backToTradingBody"));
       } else {
-        showToast("win", "Account restored", "Your progress was restored from the server.");
+        showToast("win", ft("dashjs.toast.restored"), ft("dashjs.toast.restoredBody"));
       }
       return;
     }
@@ -1069,7 +1205,7 @@ async function syncChallengeAccount() {
     if (typeof renderPrehled === "function") renderPrehled();
     if (typeof renderVykon === "function") renderVykon();
     if (typeof renderBankBar === "function") renderBankBar();
-    showToast("win", "Account is active", `The ${packageByKey(account.package_key).name} package has been assigned.`);
+    showToast("win", ft("dashjs.toast.active"), ftf("dashjs.toast.activeBody", { name: packageByKey(account.package_key).name }));
   } catch (e) {
     // silent fallback to local data
   }
@@ -1118,7 +1254,7 @@ async function pollRemoteAccountSync() {
     if (typeof renderBankBar === "function") renderBankBar();
     const fresh = Portfolio.get();
     if (fresh && typeof renderBadges === "function") renderBadges(fresh);
-    showToast("win", "Synced", "Your account was updated from another device.");
+    showToast("win", ft("dashjs.toast.synced"), ft("dashjs.toast.syncedBody"));
   } catch (e) { /* best-effort, zkusí se to zas při dalším pollu */ }
 }
 setInterval(pollRemoteAccountSync, 20000);
@@ -1131,6 +1267,8 @@ window.addEventListener("focus", pollRemoteAccountSync);
 // API_BASE/API_KEY/BOOKMAKER/CACHE_TTL/cacheGet/cacheSet/cacheDrop/apiGet: see js/portfolio.js
 const ODDS_MIN = 1.0;
 const ODDS_MAX = 8.0;
+const oddsRangeText = () => ftf("dashjs.common.oddsRange", { min: ODDS_MIN.toFixed(2), max: ODDS_MAX.toFixed(2) });
+const oddsOutsideTitle = () => ftf("dashjs.bet.oddsOutside", { min: ODDS_MIN.toFixed(2), max: ODDS_MAX.toFixed(2) });
 // /odds/multi takes max 10 events per 1 request → batches below.
 // 100 instead of 60: measured against live data — most raw events from
 // /events don't actually have odds from either allowed bookmaker, so a
@@ -1179,6 +1317,11 @@ const SPORTS = [
 ];
 // sporty jen s vlastními zápasy (custom_events) — žádné volání odds-api
 const CUSTOM_ONLY_SPORTS = new Set(["wrestling"]);
+function sportName(slug, fallback) {
+  const key = `dashjs.sport.${slug}`;
+  const v = ft(key);
+  return v && v !== key ? v : fallback;
+}
 
 let activeSport = "basketball";
 let slip = []; // {id, match, pick, odds}
@@ -1362,28 +1505,29 @@ function liveClock(m) {
 }
 
 // market and pick translations
+// hodnoty = i18n klíče (dashjs.market.*), klíče = názvy trhů z odds-api (beze změny)
 const MARKET_LABELS = {
-  "ML": "Match winner",
-  "Draw No Bet": "Draw no bet",
-  "Double Chance": "Double chance",
-  "Double Chance HT": "Double chance · 1st half",
-  "Spread": "Asian handicap",
-  "European Handicap": "European handicap",
-  "Totals": "Total points (over / under)",
-  "Goals Over/Under": "Goals (over / under)",
-  "Both Teams To Score": "Both teams to score",
-  "Spread HT": "Handicap · 1st half",
-  "Totals HT": "Total · 1st half",
-  "ML HT": "Winner · 1st half",
-  "Half Time Result": "Winner · 1st half",
-  "Odd/Even": "Total goals odd / even",
-  "Odd/Even HT": "Odd / even · 1st half",
-  "Odd/Even 2H": "Odd / even · 2nd half",
-  "Alternative Goal Line": "Total points (alt. line)",
-  "Alternative Total Goals": "Total goals (alt. line)",
-  "Alternative 1st Half Goal Line": "Total · 1st half (alt. line)",
-  "Alternative Asian Handicap": "Asian handicap (alt. line)",
-  "Alternative 1st Half Asian Handicap": "Handicap · 1st half (alt. line)",
+  "ML": "dashjs.market.ml",
+  "Draw No Bet": "dashjs.market.dnb",
+  "Double Chance": "dashjs.market.dc",
+  "Double Chance HT": "dashjs.market.dcHt",
+  "Spread": "dashjs.market.spread",
+  "European Handicap": "dashjs.market.euroHcp",
+  "Totals": "dashjs.market.totals",
+  "Goals Over/Under": "dashjs.market.goalsOu",
+  "Both Teams To Score": "dashjs.market.btts",
+  "Spread HT": "dashjs.market.spreadHt",
+  "Totals HT": "dashjs.market.totalsHt",
+  "ML HT": "dashjs.market.winnerHt",
+  "Half Time Result": "dashjs.market.winnerHt",
+  "Odd/Even": "dashjs.market.oddEven",
+  "Odd/Even HT": "dashjs.market.oddEvenHt",
+  "Odd/Even 2H": "dashjs.market.oddEven2h",
+  "Alternative Goal Line": "dashjs.market.altGoalLine",
+  "Alternative Total Goals": "dashjs.market.altTotalGoals",
+  "Alternative 1st Half Goal Line": "dashjs.market.alt1hGoalLine",
+  "Alternative Asian Handicap": "dashjs.market.altAsian",
+  "Alternative 1st Half Asian Handicap": "dashjs.market.alt1hAsian",
 };
 // Trhy, co skutečně umíme vyhodnotit (viz settleSelection v js/portfolio.js —
 // obě sady MUSÍ zůstat v souladu). Zápas může nabízet desítky dalších trhů
@@ -1402,12 +1546,16 @@ const GRADEABLE_MARKETS = new Set([
   "Odd/Even", "Odd/Even HT", "Odd/Even 2H",
 ]);
 const PICK_LABELS = {
-  home: "1", draw: "X", away: "2", over: "Over", under: "Under", yes: "Yes", no: "No",
-  odd: "Odd", even: "Even", "1X": "1X", "12": "12", "X2": "X2",
+  home: "1", draw: "X", away: "2", over: "dashjs.pick.over", under: "dashjs.pick.under", yes: "dashjs.pick.yes", no: "dashjs.pick.no",
+  odd: "dashjs.pick.odd", even: "dashjs.pick.even", "1X": "1X", "12": "12", "X2": "X2",
 };
+function pickLabel(field) {
+  const v = PICK_LABELS[field];
+  return v ? (v.startsWith("dashjs.") ? ft(v) : v) : field;
+}
 const PICK_FIELDS = ["home", "draw", "away", "over", "under", "yes", "no", "odd", "even", "1X", "12", "X2"];
 
-function marketLabel(name) { return MARKET_LABELS[name] || name; }
+function marketLabel(name) { return MARKET_LABELS[name] ? ft(MARKET_LABELS[name]) : name; }
 
 function oddPlayable(v) {
   const n = parseFloat(v);
@@ -1422,7 +1570,7 @@ function refreshLeagueOptions() {
   const counts = {};
   sportEvents.forEach((m) => { if (m.league) counts[m.league] = (counts[m.league] || 0) + 1; });
   const leagues = Object.keys(counts).sort((a, b) => counts[b] - counts[a] || a.localeCompare(b));
-  sel.innerHTML = `<option value="">All leagues</option>` +
+  sel.innerHTML = `<option value="">${ft("dashjs.bet.allLeagues")}</option>` +
     leagues.map((l) => `<option value="${l.replace(/"/g, "&quot;")}">${l}</option>`).join("");
   sel.value = leagues.includes(current) ? current : "";
   filters.league = sel.value;
@@ -1441,10 +1589,11 @@ function fmtTime(iso) {
   const now = new Date();
   const today = now.toDateString() === d.toDateString();
   const tomorrow = new Date(now.getTime() + 864e5).toDateString() === d.toDateString();
-  const hm = d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
-  if (today) return `Today ${hm}`;
-  if (tomorrow) return `Tomorrow ${hm}`;
-  return `${d.toLocaleDateString("en-US", { day: "numeric", month: "numeric" })} ${hm}`;
+  const loc = uiLocale();
+  const hm = d.toLocaleTimeString(loc, { hour: "2-digit", minute: "2-digit", ...(loc === "en-US" ? {} : { hour12: false }) });
+  if (today) return ftf("dashjs.common.today", { time: hm });
+  if (tomorrow) return ftf("dashjs.common.tomorrow", { time: hm });
+  return `${d.toLocaleDateString(loc, { day: "numeric", month: "numeric" })} ${hm}`;
 }
 
 function renderSportTabs() {
@@ -1452,8 +1601,8 @@ function renderSportTabs() {
     <button class="${slug === activeSport ? "active" : ""}" data-sport="${slug}" role="tab" aria-selected="${slug === activeSport}">
       ${icon
         ? `<img src="assets/sports/${icon}.png" alt="" />`
-        : `<span class="ic-letter">${label[0]}</span>`}
-      ${label}
+        : `<span class="ic-letter">${sportName(slug, label)[0]}</span>`}
+      ${sportName(slug, label)}
     </button>`).join("");
 }
 
@@ -1530,18 +1679,18 @@ async function refreshSlipFromApi(items) {
       if (!ev) {
         const st = statusOf.get(id);
         if (st && FINISHED_STATUSES.includes(String(st.status).toLowerCase())) {
-          return { ok: false, error: `${item.match}: this match has already finished.`, removeId: item.id };
+          return { ok: false, error: ftf("dashjs.bet.finished", { match: item.match }), removeId: item.id };
         }
         if (st && (st.status === "live" || (st.date && new Date(st.date).getTime() <= now))) {
-          return { ok: false, error: `${item.match}: odds for this match are no longer available.`, removeId: item.id };
+          return { ok: false, error: ftf("dashjs.bet.noOdds", { match: item.match }), removeId: item.id };
         }
         continue;
       }
       const status = String(ev.status).toLowerCase();
-      if (FINISHED_STATUSES.includes(status)) return { ok: false, error: `${item.match}: this match has already finished.`, removeId: item.id };
+      if (FINISHED_STATUSES.includes(status)) return { ok: false, error: ftf("dashjs.bet.finished", { match: item.match }), removeId: item.id };
       const isLive = status === "live";
       if (!isLive && ev.date && new Date(ev.date).getTime() <= now) {
-        return { ok: false, error: `${item.match}: this match has already started and can't be confirmed as live right now.`, removeId: item.id };
+        return { ok: false, error: ftf("dashjs.bet.notLive", { match: item.match }), removeId: item.id };
       }
       item.live = isLive;
       if (ev.date) item.startTime = ev.date;
@@ -1560,10 +1709,10 @@ async function refreshSlipFromApi(items) {
         if (Number.isFinite(v)) { fresh = v; break; }
       }
       if (fresh === null) {
-        if (isLive && (!marketSeen || item.hdp != null)) return { ok: false, error: `${item.match}: this market is no longer available.`, removeId: item.id };
+        if (isLive && (!marketSeen || item.hdp != null)) return { ok: false, error: ftf("dashjs.bet.noMarket", { match: item.match }), removeId: item.id };
         continue;
       }
-      if (fresh < ODDS_MIN || fresh > ODDS_MAX) return { ok: false, error: `${item.match}: the odds moved outside the allowed range.`, removeId: item.id };
+      if (fresh < ODDS_MIN || fresh > ODDS_MAX) return { ok: false, error: ftf("dashjs.bet.outOfRange", { match: item.match }), removeId: item.id };
       if (Math.abs(fresh - item.oddValue) > 0.004) {
         changes.push({ match: item.match, from: item.oddValue, to: fresh });
         item.oddValue = fresh;
@@ -1571,7 +1720,7 @@ async function refreshSlipFromApi(items) {
       }
     }
     if (changes.length) {
-      return { ok: false, changed: true, error: "Odds changed: " + changes.map((c) => `${c.match} ${c.from.toFixed(2)} → ${c.to.toFixed(2)}`).join("; ") + ". Review your ticket and press Place bet again." };
+      return { ok: false, changed: true, error: ftf("dashjs.bet.oddsChanged", { list: changes.map((c) => `${c.match} ${c.from.toFixed(2)} → ${c.to.toFixed(2)}`).join("; ") }) };
     }
     return { ok: true };
   } catch (e) {
@@ -1580,7 +1729,7 @@ async function refreshSlipFromApi(items) {
 }
 
 function marketRowButtons(m, marketName, row, ri) {
-  const caption = row.label || (row.hdp !== undefined ? `Line ${row.hdp}` : "");
+  const caption = row.label || (row.hdp !== undefined ? ftf("dashjs.bet.line", { hdp: row.hdp }) : "");
   const btns = PICK_FIELDS
     .filter((f) => row[f] !== undefined && row[f] !== null)
     .map((f) => {
@@ -1589,9 +1738,9 @@ function marketRowButtons(m, marketName, row, ri) {
       const id = `${m.id}|${marketName}|${ri}|${f}`;
       const sel = slip.some((s) => s.id === id);
       const out = !oddPlayable(val);
-      const small = row.label ? "Odds" : (PICK_LABELS[f] || f);
+      const small = row.label ? ft("dashjs.common.odds") : pickLabel(f);
       return `<button class="odd-btn ${sel ? "selected" : ""}" data-pick="${id}"
-        ${out ? `disabled title="Odds outside the allowed range ${ODDS_MIN.toFixed(2)} to ${ODDS_MAX.toFixed(2)}"` : ""}>
+        ${out ? `disabled title="${oddsOutsideTitle()}"` : ""}>
         <small>${small}</small><b>${val.toFixed(2)}</b>
       </button>`;
     }).join("");
@@ -1662,7 +1811,7 @@ function patchOddBtn(btn, val) {
   const out = !oddPlayable(val);
   if (btn.disabled !== out) {
     btn.disabled = out;
-    if (out) btn.title = `Odds outside the allowed range ${ODDS_MIN.toFixed(2)} to ${ODDS_MAX.toFixed(2)}`;
+    if (out) btn.title = oddsOutsideTitle();
     else btn.removeAttribute("title");
   }
 }
@@ -1752,15 +1901,15 @@ function renderMatchDetail(m) {
     <div class="detail-bar">
       <button class="filter-chip" id="backToList">
         <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Back to matches
+        ${ft("dashjs.bet.backToMatches")}
       </button>
     </div>
     <div class="detail-head">
       <div class="m-league">${m.league}</div>
       <div class="detail-teams">${m.home} <span>vs</span> ${m.away}</div>
-      <div class="m-time">${m.live ? `<span class="live">● LIVE${liveScore(m)}</span>${liveClock(m) ? ` · ${liveClock(m)}` : ""} · ` : ""}${m.live ? "" : `${fmtTime(m.date)} · `}${m.markets.length} markets</div>
+      <div class="m-time">${m.live ? `<span class="live">● LIVE${liveScore(m)}</span>${liveClock(m) ? ` · ${liveClock(m)}` : ""} · ` : ""}${m.live ? "" : `${fmtTime(m.date)} · `}${ftp("dashjs.bet.markets", m.markets.length)}</div>
     </div>
-    <div class="mk-accs">${groups || `<p class="bet-msg">No additional markets available.</p>`}</div>`;
+    <div class="mk-accs">${groups || `<p class="bet-msg">${ft("dashjs.bet.noMoreMarkets")}</p>`}</div>`;
 
   document.getElementById("backToList").addEventListener("click", () => {
     detailMatch = null;
@@ -1786,7 +1935,7 @@ function renderMatches() {
   const list = visibleEvents();
   document.getElementById("matchCount").textContent = String(list.length);
   if (!list.length) {
-    matchList.innerHTML = `<p class="bet-msg">No matches match the filters.<br />Try another sport or clear the filters.</p>`;
+    matchList.innerHTML = `<p class="bet-msg">${ft("dashjs.bet.noMatches")}</p>`;
     return;
   }
   matchList.innerHTML = list.map(matchRowHtml).join("");
@@ -1797,11 +1946,11 @@ function matchRowHtml(m) {
     const extra = m.markets.length - 1;
   return `
   <div class="match" data-match="${m.id}">
-    <div class="match-head" role="button" tabindex="0" aria-label="Open match detail ${m.home} – ${m.away}">
+    <div class="match-head" role="button" tabindex="0" aria-label="${ftf("dashjs.bet.openDetail", { home: m.home, away: m.away })}">
       <div class="m-info">
         <div class="m-league">${m.league}</div>
         <div class="m-teams">${m.home} – ${m.away}</div>
-        <div class="m-time">${m.live ? `<span class="live">● LIVE${liveScore(m)}</span>${liveClock(m) ? ` · ${liveClock(m)}` : ""}` : fmtTime(m.date)}${extra > 0 ? ` · +${extra} markets` : ""}</div>
+        <div class="m-time">${m.live ? `<span class="live">● LIVE${liveScore(m)}</span>${liveClock(m) ? ` · ${liveClock(m)}` : ""}` : fmtTime(m.date)}${extra > 0 ? ` · ${ftp("dashjs.bet.moreMarkets", extra)}` : ""}</div>
       </div>
       <div class="m-odds">
         ${m.odds.map((o, i) => {
@@ -1812,7 +1961,7 @@ function matchRowHtml(m) {
           const out = !oddPlayable(o);
           const lbl = m.odds[1] === null ? (i === 0 ? "1" : "2") : ["1", "X", "2"][i];
           return `<button class="odd-btn ${sel ? "selected" : ""}" data-pick="${id}"
-            ${out ? `disabled title="Odds outside the allowed range ${ODDS_MIN.toFixed(2)} to ${ODDS_MAX.toFixed(2)}"` : ""}>
+            ${out ? `disabled title="${oddsOutsideTitle()}"` : ""}>
             <small>${lbl}</small><b>${o.toFixed(2)}</b>
           </button>`;
         }).join("")}
@@ -1836,12 +1985,12 @@ function resolvePick(id) {
   if (Number.isNaN(odds)) return null;
   let pick;
   if (marketName === "ML") {
-    pick = PICK_LABELS[field] || field;
+    pick = pickLabel(field);
   } else if (row.label) {
     pick = `${marketLabel(marketName)}: ${row.label}`;
   } else {
     const hdp = row.hdp !== undefined ? ` ${row.hdp}` : "";
-    pick = `${marketLabel(marketName)}${hdp}: ${PICK_LABELS[field] || field}`;
+    pick = `${marketLabel(marketName)}${hdp}: ${pickLabel(field)}`;
   }
   return {
     id, match: `${m.home} – ${m.away}`, pick, odds,
@@ -1866,10 +2015,10 @@ function resolvePick(id) {
 
 function renderError(err) {
   const msg = err && err.status === 429
-    ? "API request limit reached. Try again in a moment."
-    : "Matches could not be loaded.";
+    ? ft("dashjs.bet.rateLimit")
+    : ft("dashjs.bet.loadFail");
   matchList.innerHTML = `<p class="bet-msg">${msg}<br />
-    <button class="btn btn-ghost" id="betRetry">Try again</button></p>`;
+    <button class="btn btn-ghost" id="betRetry">${ft("dashjs.common.tryAgain")}</button></p>`;
   document.getElementById("betRetry").addEventListener("click", () => selectSport(activeSport, true));
 }
 
@@ -1900,7 +2049,7 @@ function renderBankBar() {
   const state = Portfolio.ensure("advanced");
   bal.textContent = usd(state.balance);
   document.getElementById("bankMaxStake").textContent = usd(Portfolio.ruleMeta(state).maxStake);
-  document.getElementById("bankOddsRange").textContent = `${ODDS_MIN.toFixed(2)} to ${ODDS_MAX.toFixed(2)}`;
+  document.getElementById("bankOddsRange").textContent = `${oddsRangeText()}`;
   updateBreachPanel();
 }
 
@@ -1909,7 +2058,7 @@ function updateMobileSlipBar() {
   if (!bar) return;
   if (!slip.length) { bar.hidden = true; return; }
   document.getElementById("msbCount").textContent = slip.length;
-  document.getElementById("msbText").textContent = slip.length === 1 ? "1 pick added" : `${slip.length} picks added`;
+  document.getElementById("msbText").textContent = ftp("dashjs.slip.picksAdded", slip.length);
   bar.hidden = false;
 }
 
@@ -1920,7 +2069,7 @@ document.getElementById("mobileSlipBar")?.addEventListener("click", () => {
 function renderSlip() {
   updateMobileSlipBar();
   if (!slip.length) {
-    slipBody.innerHTML = `<p class="slip-empty"><img src="assets/fan-1.jpg" alt="" />Your ticket is empty.<br />Pick odds from the offer.</p>`;
+    slipBody.innerHTML = `<p class="slip-empty"><img src="assets/fan-1.jpg" alt="" />${ft("dashjs.slip.empty")}</p>`;
     return;
   }
   const portfolio = Portfolio.ensure("advanced");
@@ -1931,20 +2080,20 @@ function renderSlip() {
       <div class="slip-item">
         <span class="si-info">
           <span class="si-match">${s.match}</span><br />
-          <span class="si-pick">Pick: ${s.pick}</span>
+          <span class="si-pick">${ftf("dashjs.slip.pick", { pick: s.pick })}</span>
         </span>
         <span class="si-odds">${s.odds.toFixed(2)}</span>
-        <button class="si-x" data-remove="${s.id}" aria-label="Remove">
+        <button class="si-x" data-remove="${s.id}" aria-label="${ft("dashjs.slip.remove")}">
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
         </button>
       </div>`).join("")}
-    <div class="slip-total"><span>Total odds</span><b>${totalOdds.toFixed(2)}</b></div>
+    <div class="slip-total"><span>${ft("dashjs.slip.totalOdds")}</span><b>${totalOdds.toFixed(2)}</b></div>
     <div class="field">
-      <label for="stakeInput">Entry size (max. ${usd(maxStake)})</label>
+      <label for="stakeInput">${ftf("dashjs.slip.entrySizeMax", { max: usd(maxStake) })}</label>
       <input class="input" id="stakeInput" type="number" min="5" max="${maxStake}" value="${Math.min(80, maxStake)}" />
     </div>
-    <div class="slip-total"><span>Potential win</span><b class="green" id="potWin"></b></div>
-    <button class="btn btn-primary" style="width:100%" id="placeBet">Place bet</button>
+    <div class="slip-total"><span>${ft("dashjs.common.potentialWin")}</span><b class="green" id="potWin"></b></div>
+    <button class="btn btn-primary" style="width:100%" id="placeBet">${ft("dashjs.slip.placeBet")}</button>
     <p class="auth-note mt" id="betNote" hidden></p>`;
 
   const stakeInput = document.getElementById("stakeInput");
@@ -1985,14 +2134,14 @@ function renderSlip() {
     const note = document.getElementById("betNote");
     const btn = document.getElementById("placeBet");
     if (window.__noRealAccount) {
-      note.textContent = "You're browsing in preview mode — get an account to submit entries.";
+      note.textContent = ft("dashjs.slip.preview");
       note.className = "auth-note mt error";
       note.hidden = false;
       return;
     }
     // čerstvé kurzy + stav zápasu těsně před potvrzením (viz refreshSlipFromApi)
     btn.disabled = true;
-    note.textContent = "Checking the latest odds…";
+    note.textContent = ft("dashjs.slip.checking");
     note.className = "auth-note mt";
     note.hidden = false;
     const fresh = await refreshSlipFromApi(slip);
@@ -2021,8 +2170,8 @@ function renderSlip() {
       return;
     }
     note.textContent = result.warning
-      ? `Ticket accepted. ${result.warning}`
-      : "Ticket accepted! Track it in the Overview.";
+      ? ftf("dashjs.slip.acceptedWarn", { warning: result.warning })
+      : ft("dashjs.slip.accepted");
     note.className = result.warning ? "auth-note mt warn" : "auth-note mt";
     note.hidden = false;
     btn.disabled = true;
@@ -2265,7 +2414,7 @@ async function loadLeaderboard() {
   const el = document.getElementById("lbList");
   if (!el) return;
   if (typeof fundlyBackendEnabled !== "function" || !fundlyBackendEnabled()) {
-    el.innerHTML = `<p class="bet-msg">Leaderboard needs the backend — sign in first.</p>`;
+    el.innerHTML = `<p class="bet-msg">${ft("dashjs.lb.needsBackend")}</p>`;
     return;
   }
   try {
@@ -2283,7 +2432,7 @@ async function loadLeaderboard() {
     lbRows = Array.isArray(data.rows) ? data.rows : [];
     renderLb();
   } catch (e) {
-    el.innerHTML = `<p class="bet-msg">Leaderboard could not be loaded.</p>`;
+    el.innerHTML = `<p class="bet-msg">${ft("dashjs.lb.loadFail")}</p>`;
   }
 }
 
@@ -2291,7 +2440,7 @@ function renderLb() {
   const el = document.getElementById("lbList");
   if (!el) return;
   if (!lbRows.length) {
-    el.innerHTML = `<p class="bet-msg">No shared results yet — be the first on the board.</p>`;
+    el.innerHTML = `<p class="bet-msg">${ft("dashjs.lb.empty")}</p>`;
     return;
   }
   const rows = [...lbRows].sort((a, b) =>
@@ -2302,7 +2451,7 @@ function renderLb() {
     <div class="lb-row ${r.isMe ? "me" : ""}">
       <span class="lb-rank">${i + 1}</span>
       <span class="pay2-av">${r.name.split(" ").map((w) => w[0]).join("").replace(".", "").slice(0, 2).toUpperCase()}</span>
-      <span class="lb-name">${r.name}${r.isMe ? " · you" : ""}<small>${packageByKey(r.packageKey || "").name}</small></span>
+      <span class="lb-name">${r.name}${r.isMe ? ft("dashjs.lb.you") : ""}<small>${packageByKey(r.packageKey || "").name}</small></span>
       <span class="lb-val">${val(r)}</span>
     </div>`).join("");
 }
@@ -2323,12 +2472,13 @@ document.getElementById("lbMetric")?.addEventListener("click", (e) => {
 // ---------- payouts ----------
 // Status labels of the withdrawal history (values are written by the request-payout / whop-payout edge functions).
 const WD_STATUS = {
-  pending: { tag: "pend", label: "Awaiting approval" },
-  approved: { tag: "pend", label: "Approved" },
-  paid: { tag: "win", label: "Paid out" },
-  sent: { tag: "win", label: "Paid out" },
-  failed: { tag: "loss", label: "Failed" },
-  rejected: { tag: "loss", label: "Rejected" },
+  // label = i18n klíč (dashjs.wd.*)
+  pending: { tag: "pend", label: "dashjs.wd.pending" },
+  approved: { tag: "pend", label: "dashjs.wd.approved" },
+  paid: { tag: "win", label: "dashjs.wd.paid" },
+  sent: { tag: "win", label: "dashjs.wd.paid" },
+  failed: { tag: "loss", label: "dashjs.wd.failed" },
+  rejected: { tag: "loss", label: "dashjs.wd.rejected" },
 };
 
 // Withdrawal history from the database — only with the backend and a signed-in
@@ -2369,13 +2519,15 @@ async function loadPayoutHistory() {
     }
 
     if (!payouts || !payouts.length) {
-      box.innerHTML = `<p class="slip-empty">No withdrawals yet.</p>`;
+      box.innerHTML = `<p class="slip-empty">${ft("dashjs.wd.empty")}</p>`;
       return;
     }
     box.innerHTML = payouts.map((p) => {
-      const s = WD_STATUS[p.status] || { tag: "pend", label: String(p.status) };
-      const date = new Date(p.created_at).toLocaleDateString("en-US");
-      return `<div class="k-row neutral">${date} · ${p.method || "—"}<span class="n"><span class="tag ${s.tag}">${s.label}</span> ${usd(Number(p.amount) || 0)}</span></div>`;
+      const st = WD_STATUS[p.status];
+      const s = st ? { tag: st.tag, label: ft(st.label) } : { tag: "pend", label: String(p.status) };
+      const date = new Date(p.created_at).toLocaleDateString(uiLocale());
+      const method = p.method === "Bank transfer" ? ft("forms.wdBank") : p.method === "Crypto" ? ft("forms.wdCrypto") : (p.method || "—");
+      return `<div class="k-row neutral">${date} · ${method}<span class="n"><span class="tag ${s.tag}">${s.label}</span> ${usd(Number(p.amount) || 0)}</span></div>`;
     }).join("");
   } catch (e) {
     // silent fallback to demo content
@@ -2432,7 +2584,7 @@ if (wdForm) {
           const ok = res.ok && data.ok;
           note.textContent = ok
             ? ft("forms.wdSubmitted")
-            : data.error || ft("forms.wdFailed"); // the server explains why (KYC, cooldown, cap…) — better than a generic line
+            : srvMsg(data.error) || ft("forms.wdFailed"); // the server explains why (KYC, cooldown, cap…) — better than a generic line
           note.className = ok ? "auth-note mt" : "auth-note mt error";
           note.hidden = false;
           if (ok) {
@@ -2463,13 +2615,18 @@ function esc(s) {
 }
 
 const AFF_PLAN_LABELS = {
-  all: "All packages",
+  all: "dashjs.aff.allPackages", // i18n klíč
   starter: "Starter",
   standard: "Standard",
   advanced: "Advanced",
   pro: "Pro",
   elite: "Elite",
 };
+
+function affPlanLabel(k) {
+  const v = AFF_PLAN_LABELS[k];
+  return v ? (v.startsWith("dashjs.") ? ft(v) : v) : k;
+}
 
 function renderAffiliateMessage(msg) {
   const stats = document.getElementById("affStatGrid");
@@ -2494,59 +2651,59 @@ function renderAffiliate(data) {
 
   const active = data.codes.filter((c) => c.active);
   stats.innerHTML =
-    dstat("Active codes", active.length, false) +
-    dstat("Conversions", data.totals.conversions, false) +
-    dstat("Estimated earnings", usd(data.totals.earnings), true);
+    dstat(ft("dashjs.aff.activeCodes"), active.length, false) +
+    dstat(ft("dashjs.aff.conversions"), data.totals.conversions, false) +
+    dstat(ft("dashjs.aff.earnings"), usd(data.totals.earnings), true);
 
   codes.innerHTML = data.codes.length
     ? data.codes.map((c) => {
         const limit = c.usageLimit == null ? "∞" : c.usageLimit;
         const state = c.active
-          ? `<span class="tag win">active</span>`
-          : `<span class="tag loss">archived</span>`;
-        return `<div class="k-row neutral"><span><b>${esc(c.code)}</b> · ${esc(AFF_PLAN_LABELS[c.planKey] || c.planKey)} · −${c.discountPct} % for buyers<br><span style="color:var(--text-muted);font-size:.8125rem">Your commission ${c.commissionPct} % · used ${c.used} / ${limit}</span></span><span class="n">${state} ${usd(c.earnings)}</span></div>`;
+          ? `<span class="tag win">${ft("dashjs.aff.active")}</span>`
+          : `<span class="tag loss">${ft("dashjs.aff.archived")}</span>`;
+        return `<div class="k-row neutral"><span><b>${esc(c.code)}</b> · ${esc(affPlanLabel(c.planKey))} · ${ftf("dashjs.aff.forBuyers", { pct: c.discountPct })}<br><span style="color:var(--text-muted);font-size:.8125rem">${ftf("dashjs.aff.commission", { pct: c.commissionPct, used: c.used, limit })}</span></span><span class="n">${state} ${usd(c.earnings)}</span></div>`;
       }).join("")
-    : `<p class="bet-msg">No affiliate code is linked to your account yet. Reach out to support to join the program.</p>`;
+    : `<p class="bet-msg">${ft("dashjs.aff.noCode")}</p>`;
 
   referrals.innerHTML = data.referrals.length
     ? data.referrals.map((r) => {
-        const date = new Date(r.date).toLocaleDateString("en-US");
+        const date = new Date(r.date).toLocaleDateString(uiLocale());
         const tickets = r.ticketsCapped ? "5+" : String(r.tickets);
         const amt = r.currency === "eur"
           ? `${(Number(r.amount) || 0).toLocaleString("en-US")} €`
           : usd(Number(r.amount) || 0);
         return `<tr>
           <td>${esc(r.email)}</td>
-          <td>${esc(AFF_PLAN_LABELS[r.packageKey] || r.packageKey || "?")}</td>
+          <td>${esc(affPlanLabel(r.packageKey) || "?")}</td>
           <td class="odds">${esc(r.code)}</td>
           <td class="odds">${tickets}</td>
           <td class="odds">${amt}</td>
           <td style="color:var(--text-muted)">${date}</td>
         </tr>`;
       }).join("")
-    : `<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">No referred players yet.</td></tr>`;
+    : `<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">${ft("dashjs.aff.noReferrals")}</td></tr>`;
 }
 
 async function loadAffiliateStats() {
   if (typeof fundlyBackendEnabled !== "function" || !fundlyBackendEnabled()) {
-    return renderAffiliateMessage("Affiliate stats need the backend — this page is running in demo mode.");
+    return renderAffiliateMessage(ft("dashjs.aff.demo"));
   }
   try {
     const client = await FundlyBackend.getClient();
-    if (!client) return renderAffiliateMessage("Affiliate stats need the backend.");
+    if (!client) return renderAffiliateMessage(ft("dashjs.aff.needsBackend"));
     const { data: sessionData } = await client.auth.getSession();
     const token = sessionData?.session?.access_token;
-    if (!token) return renderAffiliateMessage("Sign in to see your affiliate stats.");
+    if (!token) return renderAffiliateMessage(ft("dashjs.aff.signIn"));
     const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/affiliate-stats`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: "{}",
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) return renderAffiliateMessage(data.error || "Affiliate stats could not be loaded.");
+    if (!res.ok) return renderAffiliateMessage(srvMsg(data.error) || ft("dashjs.aff.loadFail"));
     renderAffiliate(data);
   } catch (e) {
-    renderAffiliateMessage("Affiliate stats could not be loaded.");
+    renderAffiliateMessage(ft("dashjs.aff.loadFail"));
   }
 }
 
@@ -2819,7 +2976,7 @@ async function saveProfileSetting(patch) {
     body: JSON.stringify(patch),
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || "Could not save.");
+  if (!res.ok) throw new Error(srvMsg(data.error) || ft("dashjs.common.couldNotSave"));
 }
 
 const lbShare = document.getElementById("lbShare");
@@ -2844,7 +3001,7 @@ if (nickSave) {
       nickSave.textContent = ft("forms.saved");
     } catch (e) {
       nickSave.textContent = ft("forms.failed");
-      if (typeof showToast === "function") showToast("loss", "Couldn't save nickname", e.message || "Try a different nickname.");
+      if (typeof showToast === "function") showToast("loss", ft("dashjs.toast.nickFail"), e.message || ft("dashjs.toast.nickFailBody"));
     }
     setTimeout(() => { nickSave.textContent = ft("forms.save"); nickSave.disabled = false; }, 1500);
   });
@@ -2857,7 +3014,7 @@ if (nickSave) {
 function renderEquityChart(state) {
   const points = state.equityHistory;
   if (points.length < 2) {
-    return `<p class="bet-msg">The chart fills in once the first placed and settled ticket comes through.</p>`;
+    return `<p class="bet-msg">${ft("dashjs.chart.empty")}</p>`;
   }
   const w = 600, h = 190, padL = 6, padR = 6, padT = 14, padB = 8;
   const targetAbs = state.phase === "funded" ? null : state.phaseBaseline + Portfolio.phaseTarget(state);
@@ -2876,8 +3033,8 @@ function renderEquityChart(state) {
 
   // levels: phase target (green) and fixed drawdown floor (red)
   const levels = [
-    targetAbs !== null ? { v: targetAbs, cls: "eq-lv-target", label: `Target ${usd(targetAbs)}` } : null,
-    { v: floor, cls: "eq-lv-floor", label: `Floor ${usd(floor)}` },
+    targetAbs !== null ? { v: targetAbs, cls: "eq-lv-target", label: ftf("dashjs.chart.target", { amount: usd(targetAbs) }) } : null,
+    { v: floor, cls: "eq-lv-floor", label: ftf("dashjs.chart.floor", { amount: usd(floor) }) },
   ].filter(Boolean);
   // labels must not overlap — sort by y and enforce a minimum gap
   levels.sort((a, b) => Y(a.v) - Y(b.v));
@@ -2888,10 +3045,10 @@ function renderEquityChart(state) {
   });
 
   const area = `${padL},${(h - padB).toFixed(1)} ` + coords.join(" ") + ` ${lastX.toFixed(1)},${(h - padB).toFixed(1)}`;
-  const fmtDay = (t) => new Date(t).toLocaleDateString("en-US", { day: "numeric", month: "numeric" });
+  const fmtDay = (t) => new Date(t).toLocaleDateString(uiLocale(), { day: "numeric", month: "numeric" });
 
   return `
-    <svg viewBox="0 0 ${w} ${h}" class="equity-svg" role="img" aria-label="Balance history chart">
+    <svg viewBox="0 0 ${w} ${h}" class="equity-svg" role="img" aria-label="${ft("dashjs.chart.aria")}">
       <defs>
         <linearGradient id="eqArea" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stop-color="rgb(153 69 255 / .38)" />
@@ -2906,8 +3063,8 @@ function renderEquityChart(state) {
       <circle cx="${lastX.toFixed(1)}" cy="${lastY.toFixed(1)}" r="3" fill="${stroke}" />
     </svg>
     <div class="eq-legend">
-      ${targetAbs !== null ? '<span><i class="sw eq-lv-target"></i>Phase target</span>' : ""}
-      <span><i class="sw eq-lv-floor"></i>Max. loss (${dd.trailing ? "trailing" : "fixed"} floor)</span>
+      ${targetAbs !== null ? `<span><i class="sw eq-lv-target"></i>${ft("dashjs.chart.phaseTarget")}</span>` : ""}
+      <span><i class="sw eq-lv-floor"></i>${dd.trailing ? ft("dashjs.chart.floorTrailing") : ft("dashjs.chart.floorFixed")}</span>
       <span class="eq-dates">${fmtDay(points[0].t)} – ${fmtDay(points[points.length - 1].t)}</span>
     </div>`;
 }
@@ -2916,17 +3073,17 @@ function renderEquityChart(state) {
 function flagTags(t) {
   if (!t.flags || !t.flags.length) return "";
   return t.flags.map((f) =>
-    `<span class="tag flag">${f === "arbitrage" ? "⚠ arbitrage" : "⚠ value bet"}</span>`
+    `<span class="tag flag">${f === "arbitrage" ? ft("dashjs.tk.flagArb") : ft("dashjs.tk.flagValue")}</span>`
   ).join(" ");
 }
 
 // status → [tag class, label] (cashedout = early cashout, vlastní tag)
 function ticketTag(t) {
-  if (t.status === "won") return ["win", "Won"];
-  if (t.status === "lost") return ["loss", "Lost"];
-  if (t.status === "push") return ["push", "Refunded"];
-  if (t.status === "cashedout") return ["push", "Cashed out"];
-  return ["pend", "Pending"];
+  if (t.status === "won") return ["win", ft("dashjs.tk.won")];
+  if (t.status === "lost") return ["loss", ft("dashjs.tk.lost")];
+  if (t.status === "push") return ["push", ft("dashjs.tk.push")];
+  if (t.status === "cashedout") return ["push", ft("dashjs.tk.cashedout")];
+  return ["pend", ft("dashjs.tk.pending")];
 }
 
 // rozbalovací detail čekajícího tiketu: výběry, kurzy, vklad, možná výhra,
@@ -2937,26 +3094,26 @@ function ticketDetailHtml(t) {
   return `
     <div class="tk-sels">
       ${t.selections.map((s) => `
-        <div class="tk-sel"><span>${s.homeTeam && s.awayTeam ? `${s.homeTeam} – ${s.awayTeam}` : (s.league || "Match")} · ${s.pickLabel || s.field}<br><small style="color:var(--text-muted)">${fmtTime(s.startTime)}</small></span><span class="n">${s.oddValue.toFixed(2)}</span></div>`).join("")}
+        <div class="tk-sel"><span>${s.homeTeam && s.awayTeam ? `${s.homeTeam} – ${s.awayTeam}` : (s.league || ft("dashjs.common.match"))} · ${s.pickLabel || s.field}<br><small style="color:var(--text-muted)">${fmtTime(s.startTime)}</small></span><span class="n">${s.oddValue.toFixed(2)}</span></div>`).join("")}
     </div>
     <div class="tk-meta">
-      <span>Entry size <b>${usd(t.stake)}</b></span>
-      <span>Odds <b>${t.combinedOdds.toFixed(2)}</b></span>
-      <span>Potential win <b class="green">${usd(potWin)}</b></span>
+      <span>${ft("dashjs.common.entrySize")} <b>${usd(t.stake)}</b></span>
+      <span>${ft("dashjs.common.odds")} <b>${t.combinedOdds.toFixed(2)}</b></span>
+      <span>${ft("dashjs.common.potentialWin")} <b class="green">${usd(potWin)}</b></span>
     </div>
-    <button class="btn btn-ghost" data-cashout="${t.id}">Cash out now for ${usd(cashout)} (early settlement −10 %)</button>`;
+    <button class="btn btn-ghost" data-cashout="${t.id}">${ftf("dashjs.tk.cashoutBtn", { amount: usd(cashout) })}</button>`;
 }
 
 function renderRecentTickets(state) {
   const recent = state.tickets.slice(0, 5);
   if (!recent.length) {
-    return `<p class="bet-msg">No tickets yet. Place your first one in the Betting section.</p>`;
+    return `<p class="bet-msg">${ft("dashjs.tk.noneRecent")}</p>`;
   }
   return recent.map((t) => {
     const rSel0 = t.selections[0];
     const label = t.selections.length > 1
-      ? `${t.selections.length}× accumulator`
-      : (rSel0.homeTeam && rSel0.awayTeam ? `${rSel0.homeTeam} – ${rSel0.awayTeam}` : (rSel0.league || "Ticket"));
+      ? ftf("dashjs.common.accumulator", { n: t.selections.length })
+      : (rSel0.homeTeam && rSel0.awayTeam ? `${rSel0.homeTeam} – ${rSel0.awayTeam}` : (rSel0.league || ft("dashjs.common.ticket")));
     const [tag, tagText] = ticketTag(t);
     // čekající tiket je rozbalovací (detail + cashout)
     if (t.status === "pending") {
@@ -2974,25 +3131,25 @@ function renderPrehled() {
   if (!view) return;
   const state = Portfolio.ensure("advanced");
   const meta = Portfolio.ruleMeta(state);
-  const phaseLabel = state.phase === "funded" ? "Partner account" : `Phase ${state.phase}`;
+  const phaseLabel = state.phase === "funded" ? ft("dashjs.common.partnerAccount") : ftf("dashjs.common.phaseN", { n: state.phase });
   document.getElementById("ovSubtitle").textContent = `${phaseLabel} · Fundly Challenge`;
-  document.getElementById("ovPhaseChip").textContent = state.pendingPhase ? `${phaseLabel} · Pending review` : phaseLabel;
+  document.getElementById("ovPhaseChip").textContent = state.pendingPhase ? ftf("dashjs.ov.pendingReview", { phase: phaseLabel }) : phaseLabel;
   const pendingPanel = document.getElementById("pendingApprovalPanel");
   if (pendingPanel) {
     pendingPanel.hidden = !state.pendingPhase;
     if (state.pendingPhase) {
-      const nextLabel = state.pendingPhase === "funded" ? "a Partner (funded) account" : `Phase ${state.pendingPhase}`;
-      let waitNote = "Reviews are usually completed within one business day.";
+      const nextLabel = state.pendingPhase === "funded" ? ft("dashjs.ov.nextFunded") : ftf("dashjs.ov.nextPhase", { n: state.pendingPhase });
+      let waitNote = ft("dashjs.ov.waitDefault");
       if (pendingApprovalSince) {
         const hours = Math.floor((Date.now() - new Date(pendingApprovalSince).getTime()) / 3600000);
         if (hours >= 1) {
           waitNote = hours >= 24
-            ? `You've been waiting ${Math.floor(hours / 24)} day${Math.floor(hours / 24) === 1 ? "" : "s"} — if it's been longer than expected, reach out to support.`
-            : `You've been waiting ${hours} hour${hours === 1 ? "" : "s"} — reviews are usually completed within one business day.`;
+            ? ftp("dashjs.ov.waitDays", Math.floor(hours / 24))
+            : ftp("dashjs.ov.waitHours", hours);
         }
       }
       document.getElementById("pendingApprovalText").textContent =
-        `You cleared this phase's target. Betting is paused while our team reviews and approves the move to ${nextLabel} — you'll get an e-mail as soon as it's confirmed. ${waitNote}`;
+        ftf("dashjs.ov.pendingText", { next: nextLabel, wait: waitNote });
     }
   }
   renderMomentum(state);
@@ -3007,44 +3164,44 @@ function renderPrehled() {
   // hero block: micro-label, big balance, delta row, chips, equity chart
   const deltaPct = state.phaseBaseline > 0 ? (profit / state.phaseBaseline) * 100 : 0;
   const sign = profit >= 0 ? "+" : "−";
-  const deltaFmt = `${sign}$${Math.abs(Math.round(profit)).toLocaleString("en-US")} · ${sign}${Math.abs(deltaPct).toLocaleString("en-US", { maximumFractionDigits: 2 })} %`;
+  const deltaFmt = `${sign}$${Math.abs(Math.round(profit)).toLocaleString("en-US")} · ${sign}${Math.abs(deltaPct).toLocaleString(uiLocale(), { maximumFractionDigits: 2 })} %`;
   document.getElementById("balanceCard").innerHTML = `
     <div class="balance-top">
       <div>
-        <div class="bc-plan">Account balance</div>
+        <div class="bc-plan">${ft("dashjs.ov.balance")}</div>
         <div class="bc-amount">${usd(state.balance)}</div>
-        <div class="bc-delta ${profit >= 0 ? "pos" : "neg"}">${deltaFmt} in this phase</div>
+        <div class="bc-delta ${profit >= 0 ? "pos" : "neg"}">${ftf("dashjs.ov.inPhase", { delta: deltaFmt })}</div>
       </div>
       <div class="bc-chips">
         <span class="chip-phase">${phaseLabel}</span>
-        <span class="chip-ghost">${state.packageName} · ${meta.profitSplit} % share</span>
+        <span class="chip-ghost">${state.packageName} · ${ftf("dashjs.ov.share", { pct: meta.profitSplit })}</span>
       </div>
     </div>
     <div class="bc-chart">${renderEquityChart(state)}</div>`;
 
   document.getElementById("ovStatGrid").innerHTML = `
     <div class="dstat">
-      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M1.5 11.5l4-4 3 3 5-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Profit</div>
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M1.5 11.5l4-4 3 3 5-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>${ft("dashjs.ov.profit")}</div>
       <div class="val ${s.netProfit >= 0 ? "green" : ""}">${s.netProfit >= 0 ? "+" : ""}${usd(s.netProfit)}</div>
     </div>
     <div class="dstat">
-      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.8"/><circle cx="7" cy="7" r="2" fill="currentColor"/></svg></span>To target</div>
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.8"/><circle cx="7" cy="7" r="2" fill="currentColor"/></svg></span>${ft("dashjs.ov.toTarget")}</div>
       <div class="val">${state.phase === "funded" ? "—" : usd(toGoal)}</div>
     </div>
     <div class="dstat">
-      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M4.5 2h6v4a3 3 0 01-6 0V2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M7.5 9v2.5M5 13h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>Wins</div>
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M4.5 2h6v4a3 3 0 01-6 0V2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M7.5 9v2.5M5 13h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>${ft("dashjs.ov.wins")}</div>
       <div class="val">${s.won} <small>/ ${s.won + s.lost}</small></div>
     </div>
     <div class="dstat">
-      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 5a1.5 1.5 0 001.5-1.5h8A1.5 1.5 0 0013 5v1.6a1.9 1.9 0 000 3.8V12a1.5 1.5 0 00-1.5 1.5h-8A1.5 1.5 0 002 12V5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" transform="translate(0,-1.2)"/></svg></span>Tickets</div>
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 5a1.5 1.5 0 001.5-1.5h8A1.5 1.5 0 0013 5v1.6a1.9 1.9 0 000 3.8V12a1.5 1.5 0 00-1.5 1.5h-8A1.5 1.5 0 002 12V5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" transform="translate(0,-1.2)"/></svg></span>${ft("dashjs.ov.tickets")}</div>
       <div class="val">${s.total}</div>
     </div>
     <div class="dstat">
-      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><circle cx="7.5" cy="7.5" r="5.5" stroke="currentColor" stroke-width="1.6"/><path d="M7.5 4.5v3.3l2.2 1.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Win rate</div>
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><circle cx="7.5" cy="7.5" r="5.5" stroke="currentColor" stroke-width="1.6"/><path d="M7.5 4.5v3.3l2.2 1.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>${ft("dashjs.ov.winRate")}</div>
       <div class="val ${s.winRate >= 50 ? "green" : ""}">${s.winRate} %</div>
     </div>
     <div class="dstat">
-      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 12.5l4-8 3 5 4-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Avg. odds</div>
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 12.5l4-8 3 5 4-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>${ft("dashjs.ov.avgOdds")}</div>
       <div class="val">${s.avgOdds.toFixed(2)}</div>
     </div>`;
 
@@ -3072,84 +3229,84 @@ function renderPrehled() {
       ${sub ? `<div class="rr-sub">${sub}</div>` : ""}
     </div>`;
   document.getElementById("rulesRail").innerHTML = `
-    <h3>Rules at a glance</h3>
+    <h3>${ft("dashjs.rules.glance")}</h3>
     ${state.phase === "funded"
-      ? rrRow("Phase target", "Completed", null, "", "Partner account — no target, unlimited time")
-      : rrRow("Phase target", `${usd(Math.max(0, profit))} / ${usd(target)}`, pct, pct >= 100 ? "" : "", pct >= 100 ? "Completed" : `${usd(toGoal)} to go`)}
-    ${rrRow(dd.trailing ? "Max. loss (trailing)" : "Max. loss (static)", `${usd(Math.round(dd.remaining))} / ${usd(dd.limit)}`, Math.round(dd.pct), ddTone,
-      dd.trailing ? `Floor follows your highest balance (${usd(dd.floor)})` : `Fixed floor ${usd(dd.floor)} — it never moves`)}
-    ${rrRow("Max. daily loss", `${usd(Math.round(dl.remaining))} / ${usd(dl.limit)} today`, pctDaily, dlTone, "Resets at midnight UTC")}
+      ? rrRow(ft("dashjs.rules.phaseTarget"), ft("dashjs.common.completed"), null, "", ft("dashjs.rules.partnerNoTarget"))
+      : rrRow(ft("dashjs.rules.phaseTarget"), `${usd(Math.max(0, profit))} / ${usd(target)}`, pct, pct >= 100 ? "" : "", pct >= 100 ? ft("dashjs.common.completed") : ftf("dashjs.rules.toGo", { amount: usd(toGoal) }))}
+    ${rrRow(dd.trailing ? ft("dashjs.rules.lossTrailing") : ft("dashjs.rules.lossStatic"), `${usd(Math.round(dd.remaining))} / ${usd(dd.limit)}`, Math.round(dd.pct), ddTone,
+      dd.trailing ? ftf("dashjs.rules.floorFollows", { floor: usd(dd.floor) }) : ftf("dashjs.rules.floorFixed", { floor: usd(dd.floor) }))}
+    ${rrRow(ft("dashjs.rules.dailyLoss"), ftf("dashjs.rules.today", { remaining: usd(Math.round(dl.remaining)), limit: usd(dl.limit) }), pctDaily, dlTone, ft("dashjs.rules.resetsUtc"))}
     ${(() => {
       const marginBefore = Math.max(1, state.balance - worstFloor);
       const pctExposure = Math.max(0, Math.min(100, Math.round((worstRemaining / marginBefore) * 100)));
       const tone = pctExposure < 30 ? "danger" : pctExposure < 60 ? "warn" : "";
-      return rrRow("Open exposure", `${usd(worst.exposure)} pending`, pctExposure, tone,
-        `Worst case if everything open lost: ${usd(Math.round(worst.worstCaseBalance))} (margin to limit: ${usd(Math.round(worstRemaining))})`);
+      return rrRow(ft("dashjs.rules.exposure"), ftf("dashjs.rules.pendingAmount", { amount: usd(worst.exposure) }), pctExposure, tone,
+        ftf("dashjs.rules.worstCase", { balance: usd(Math.round(worst.worstCaseBalance)), margin: usd(Math.round(worstRemaining)) }));
     })()}
-    ${state.phase === "funded" ? "" : rrRow("Time limit", `${daysLeft} / ${phaseLen} days`, pctTime, pctTime < 25 ? "danger" : "", "")}
-    ${rrRow("Qualifying tickets", `${Math.min(qual, meta.qualifyingTickets)} / ${meta.qualifyingTickets}`, pctTickets, "", "Winning tickets with net profit ≥ +0.5 % of capital")}
-    ${rrRow("Max. entry size", usd(meta.maxStake), null, "", "Per single ticket")}
-    ${rrRow("Odds", `${ODDS_MIN.toFixed(2)} – ${ODDS_MAX.toFixed(2)}`, null, "", "")}
-    ${rrRow("Performance split", `${meta.profitSplit} %`, null, "", "Your share of the performance reward")}
+    ${state.phase === "funded" ? "" : rrRow(ft("dashjs.rules.timeLimit"), ftf("dashjs.rules.daysOf", { left: daysLeft, len: phaseLen }), pctTime, pctTime < 25 ? "danger" : "", "")}
+    ${rrRow(ft("dashjs.rules.qualifying"), `${Math.min(qual, meta.qualifyingTickets)} / ${meta.qualifyingTickets}`, pctTickets, "", ft("dashjs.rules.qualifyingSub"))}
+    ${rrRow(ft("dashjs.rules.maxEntry"), usd(meta.maxStake), null, "", ft("dashjs.rules.perTicket"))}
+    ${rrRow(ft("dashjs.rules.odds"), `${ODDS_MIN.toFixed(2)} – ${ODDS_MAX.toFixed(2)}`, null, "", "")}
+    ${rrRow(ft("dashjs.rules.split"), `${meta.profitSplit} %`, null, "", ft("dashjs.rules.splitSub"))}
     <div class="rr-phase">
-      <span class="rr-phase-label">Phase</span>
+      <span class="rr-phase-label">${ft("dashjs.rules.phase")}</span>
       <span class="rr-phase-name">${phaseLabel}</span>
-      <span class="rr-phase-sub">Started ${new Date(state.phaseStartedAt).toLocaleDateString("en-US")}${state.phase === "funded" ? "" : ` · ${daysLeft} days left`}</span>
+      <span class="rr-phase-sub">${ftf("dashjs.rules.started", { date: new Date(state.phaseStartedAt).toLocaleDateString(uiLocale()) })}${state.phase === "funded" ? "" : ftp("dashjs.rules.daysLeftSuffix", daysLeft)}</span>
     </div>`;
 
   document.getElementById("ovLimity").innerHTML = `
     <div class="limit-row">
-      <span class="k">Max. total loss <small>(${dd.trailing ? "trailing" : "static"}, floor: ${usd(dd.floor)})</small></span>
-      <span class="v">${usd(Math.round(dd.remaining))} left</span>
+      <span class="k">${ft("dashjs.rules.totalLoss")} <small>${ftf("dashjs.rules.floorInfo", { kind: dd.trailing ? ft("dashjs.rules.kindTrailing") : ft("dashjs.rules.kindStatic"), floor: usd(dd.floor) })}</small></span>
+      <span class="v">${ftf("dashjs.common.amountLeft", { amount: usd(Math.round(dd.remaining)) })}</span>
     </div>
     <div class="dd-bar">
-      <span class="cap lo">Floor: ${Math.round(dd.floor).toLocaleString("en-US")}</span>
+      <span class="cap lo">${ftf("dashjs.rules.floorCap", { floor: Math.round(dd.floor).toLocaleString("en-US") })}</span>
       <span class="cursor" style="left:${dd.pct}%"></span>
       <span class="cap hi">${Math.round(state.balance).toLocaleString("en-US")}</span>
     </div>
     <div class="limit-row" style="margin-top:14px">
-      <span class="k">Max. daily loss <small>(resets at midnight UTC)</small></span>
-      <span class="v">${usd(Math.round(dl.remaining))} / ${usd(dl.limit)} left</span>
+      <span class="k">${ft("dashjs.rules.dailyLoss")} <small>${ft("dashjs.rules.resetsUtcSmall")}</small></span>
+      <span class="v">${ftf("dashjs.rules.leftOf", { remaining: usd(Math.round(dl.remaining)), limit: usd(dl.limit) })}</span>
     </div>
     <div class="limit-row">
-      <span class="k">Open exposure <small>(pending tickets, worst case if all lost)</small></span>
-      <span class="v">${usd(worst.exposure)} → ${usd(Math.round(worst.worstCaseBalance))} balance</span>
+      <span class="k">${ft("dashjs.rules.exposure")} <small>${ft("dashjs.rules.exposureSub")}</small></span>
+      <span class="v">${ftf("dashjs.rules.exposureVal", { exposure: usd(worst.exposure), balance: usd(Math.round(worst.worstCaseBalance)) })}</span>
     </div>
     <div class="limit-row">
-      <span class="k">Qualifying tickets <small>(winning, profit ≥ +0.5 % of capital)</small></span>
+      <span class="k">${ft("dashjs.rules.qualifying")} <small>${ft("dashjs.rules.qualifyingSmall")}</small></span>
       <span class="v">${Math.min(qual, meta.qualifyingTickets)} / ${meta.qualifyingTickets}</span>
     </div>
     <div class="limit-row">
-      <span class="k">Profit withdrawal <small>(Partner account)</small></span>
-      <span class="v">80 % of profit · max $4,000</span>
+      <span class="k">${ft("dashjs.rules.withdrawal")} <small>${ft("dashjs.rules.partnerSmall")}</small></span>
+      <span class="v">${ft("dashjs.rules.withdrawalVal")}</span>
     </div>`;
 
   document.getElementById("ovPravidla").innerHTML = `
     <div class="rules-grid">
-      <div class="rule-tile"><div class="k">Performance split</div><div class="v green">${meta.profitSplit} %</div></div>
-      <div class="rule-tile"><div class="k">Max. entry size</div><div class="v">${usd(meta.maxStake)}</div></div>
-      <div class="rule-tile"><div class="k">Odds</div><div class="v">${ODDS_MIN.toFixed(2)} to ${ODDS_MAX.toFixed(2)}</div></div>
-      <div class="rule-tile"><div class="k">Max. loss</div><div class="v">${usd(dd.limit)}</div></div>
-      <div class="rule-tile"><div class="k">Max. daily loss</div><div class="v">${usd(dl.limit)}</div></div>
-      <div class="rule-tile"><div class="k">Time limit</div><div class="v">30 days / phase</div></div>
-      <div class="rule-tile"><div class="k">Qualifying tickets</div><div class="v">5 × ≥ +0.5 %</div></div>
-      <div class="rule-tile"><div class="k">Profit withdrawal</div><div class="v">80 % of profit</div></div>
-      <div class="rule-tile"><div class="k">Max. payout</div><div class="v">$4,000</div></div>
-      <div class="rule-tile"><div class="k">Consistency rule</div><div class="v">${usd(Math.round(Portfolio.consistencyLimit(state)))} max / ticket</div></div>
+      <div class="rule-tile"><div class="k">${ft("dashjs.rules.split")}</div><div class="v green">${meta.profitSplit} %</div></div>
+      <div class="rule-tile"><div class="k">${ft("dashjs.rules.maxEntry")}</div><div class="v">${usd(meta.maxStake)}</div></div>
+      <div class="rule-tile"><div class="k">${ft("dashjs.rules.odds")}</div><div class="v">${oddsRangeText()}</div></div>
+      <div class="rule-tile"><div class="k">${ft("dashjs.rules.maxLoss")}</div><div class="v">${usd(dd.limit)}</div></div>
+      <div class="rule-tile"><div class="k">${ft("dashjs.rules.dailyLoss")}</div><div class="v">${usd(dl.limit)}</div></div>
+      <div class="rule-tile"><div class="k">${ft("dashjs.rules.timeLimit")}</div><div class="v">${ft("dashjs.rules.daysPerPhase")}</div></div>
+      <div class="rule-tile"><div class="k">${ft("dashjs.rules.qualifying")}</div><div class="v">${ft("dashjs.rules.qualifyingVal")}</div></div>
+      <div class="rule-tile"><div class="k">${ft("dashjs.rules.withdrawal")}</div><div class="v">${ft("dashjs.rules.profitPct")}</div></div>
+      <div class="rule-tile"><div class="k">${ft("dashjs.rules.maxPayout")}</div><div class="v">${ft("dashjs.rules.maxPayoutVal")}</div></div>
+      <div class="rule-tile"><div class="k">${ft("dashjs.rules.consistency")}</div><div class="v">${ftf("dashjs.rules.perTicketMax", { amount: usd(Math.round(Portfolio.consistencyLimit(state))) })}</div></div>
     </div>
-    <p class="t-meta" style="margin-top:10px">Consistency rule: no single ticket's potential profit may exceed 40 % of the current phase target (or of the profit buffer once in Phase 3) — this keeps one lucky ticket from carrying the whole result.</p>`;
+    <p class="t-meta" style="margin-top:10px">${ft("dashjs.rules.consistencyNote")}</p>`;
 
   const steps = [
-    { title: "Phase 1 · Fundly Challenge", desc: `Target +${usd(meta.target1)}`, img: "assets/journey-phase1.jpg" },
-    { title: "Phase 2 · Verification", desc: `Target +${usd(meta.target2)}`, img: "assets/journey-phase2.jpg" },
-    { title: "Partner account", desc: `${meta.profitSplit} % performance split, unlimited time, regular payouts.`, img: "assets/journey-funded.jpg" },
+    { title: ft("dashjs.journey.phase1"), desc: ftf("dashjs.journey.target", { amount: usd(meta.target1) }), img: "assets/journey-phase1.jpg" },
+    { title: ft("dashjs.journey.phase2"), desc: ftf("dashjs.journey.target", { amount: usd(meta.target2) }), img: "assets/journey-phase2.jpg" },
+    { title: ft("dashjs.journey.partner"), desc: ftf("dashjs.journey.partnerDesc", { split: meta.profitSplit }), img: "assets/journey-funded.jpg" },
   ];
   const currentIndex = state.phase === "funded" ? 2 : state.phase - 1;
   document.getElementById("ovCesta").innerHTML = `<div class="journey">${steps.map((step, i) => {
     const cls = i < currentIndex ? "done" : i === currentIndex ? "now" : "";
     const dot = i < 2 ? String(i + 1) : "✓";
     const desc = i === currentIndex && state.phase !== "funded"
-      ? `${step.desc}, currently in progress. You have ${pct} % completed.`
+      ? ftf("dashjs.journey.inProgress", { desc: step.desc, pct })
       : step.desc;
     return `<div class="j-step ${cls}">
       <div class="j-dot-col"><span class="j-dot">${dot}</span>${i < steps.length - 1 ? '<span class="j-line"></span>' : ""}</div>
@@ -3194,7 +3351,7 @@ function renderPayoutConds(state) {
     <div class="k-rows" style="margin-top:12px">
       <div class="k-row neutral">${ft("forms.wdCondBuffer").replace("{pct}", meta.payoutBufferPct)}<span class="n ${bufferMet ? "green" : ""}">${bufferMet ? ft("forms.wdDone") : `${usd(profit)} / ${usd(bufferNeed)}`}</span></div>
       <div class="k-row neutral">${ft("forms.wdCondQual")}<span class="n ${qual >= meta.qualifyingTickets ? "green" : ""}">${Math.min(qual, meta.qualifyingTickets)} / ${meta.qualifyingTickets}</span></div>
-      <div class="k-row neutral">${ft("forms.wdCondCool")}<span class="n ${cooldownDone ? "green" : ""}">${cooldownDone ? ft("forms.wdOpenNow") : ft("forms.wdOpens").replace("{date}", nextEligible.toLocaleDateString(document.documentElement.lang || "en"))}</span></div>
+      <div class="k-row neutral">${ft("forms.wdCondCool")}<span class="n ${cooldownDone ? "green" : ""}">${cooldownDone ? ft("forms.wdOpenNow") : ft("forms.wdOpens").replace("{date}", nextEligible.toLocaleDateString(uiLocale()))}</span></div>
       <div class="k-row neutral">${ft("forms.wdCondPayout")}<span class="n">${ft("forms.wdCondPayoutVal")}</span></div>
     </div>`;
 }
@@ -3208,7 +3365,7 @@ function renderProfile(state) {
   const target = Portfolio.phaseTarget(state);
   const profit = state.balance - state.phaseBaseline;
   const pct = target > 0 ? Math.max(0, Math.min(100, Math.round((profit / target) * 100))) : 100;
-  const phaseLabel = state.phase === "funded" ? "Partner account" : `Phase ${state.phase}`;
+  const phaseLabel = state.phase === "funded" ? ft("dashjs.common.partnerAccount") : ftf("dashjs.common.phaseN", { n: state.phase });
   const set = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
 
   set("pfName", state.packageName);
@@ -3223,46 +3380,46 @@ function renderProfile(state) {
   document.getElementById("pfWinRate").classList.toggle("green", s.winRate >= 50);
 
   if (state.phase === "funded") {
-    set("pfGoalLabel", "Partner account");
-    set("pfGoalPct", "No target");
+    set("pfGoalLabel", ft("dashjs.common.partnerAccount"));
+    set("pfGoalPct", ft("dashjs.profile.noTarget"));
     document.getElementById("pfGoalBar").style.width = "100%";
-    set("pfGoalMeta", "Unlimited time, regular payouts.");
+    set("pfGoalMeta", ft("dashjs.profile.unlimitedPayouts"));
   } else {
-    set("pfGoalLabel", `Progress to target (${usd(state.phaseBaseline + target)})`);
+    set("pfGoalLabel", ftf("dashjs.profile.progress", { amount: usd(state.phaseBaseline + target) }));
     set("pfGoalPct", `${pct} %`);
     document.getElementById("pfGoalBar").style.width = pct + "%";
-    set("pfGoalMeta", `${usd(Math.max(0, target - profit))} to target · ${Portfolio.daysRemaining(state)} days left`);
+    set("pfGoalMeta", ftp("dashjs.profile.goalMeta", Portfolio.daysRemaining(state), { amount: usd(Math.max(0, target - profit)) }));
   }
 
-  set("pfDdDetail", dd.trailing ? `(trailing floor ${usd(dd.floor)})` : `(fixed floor ${usd(dd.floor)})`);
-  set("pfDdRemain", `${usd(Math.round(dd.remaining))} left`);
+  set("pfDdDetail", dd.trailing ? ftf("dashjs.profile.trailingFloor", { floor: usd(dd.floor) }) : ftf("dashjs.profile.fixedFloor", { floor: usd(dd.floor) }));
+  set("pfDdRemain", ftf("dashjs.common.amountLeft", { amount: usd(Math.round(dd.remaining)) }));
   document.getElementById("pfDdBar").style.width = Math.round(dd.pct) + "%";
 
   const dl = Portfolio.dailyLossInfo(state);
   const daysLeft = Portfolio.daysRemaining(state);
-  set("pfDaysLeft", state.phase === "funded" ? "Unlimited" : `${daysLeft} days`);
+  set("pfDaysLeft", state.phase === "funded" ? ft("dashjs.profile.unlimited") : ftp("dashjs.profile.days", daysLeft));
   const deadline = new Date(new Date(state.phaseStartedAt).getTime() + Portfolio.phaseLengthDays(state) * 86400000);
   set("pfDeadline", state.phase === "funded"
-    ? "No time limit, but place at least 1 ticket every 14 days or the account closes"
-    : `Left until the end of the phase · Deadline: ${deadline.toLocaleDateString("en-US")}`);
+    ? ft("dashjs.profile.fundedDeadline")
+    : ftf("dashjs.profile.deadline", { date: deadline.toLocaleDateString(uiLocale()) }));
 
   const rules = document.getElementById("pfRules");
   if (rules) rules.innerHTML = `
-    <div class="rule-tile"><div class="k">Performance split</div><div class="v green">${meta.profitSplit} %</div></div>
-    <div class="rule-tile"><div class="k">Max. entry size</div><div class="v">${usd(meta.maxStake)}</div></div>
-    <div class="rule-tile"><div class="k">Odds</div><div class="v">${ODDS_MIN.toFixed(2)} to ${ODDS_MAX.toFixed(2)}</div></div>
-    <div class="rule-tile"><div class="k">Max. loss</div><div class="v">${usd(dd.limit)}</div></div>
-    <div class="rule-tile"><div class="k">Max. daily loss</div><div class="v">${usd(dl.limit)}</div></div>
-    <div class="rule-tile"><div class="k">Time limit</div><div class="v">30 days / phase</div></div>
-    <div class="rule-tile"><div class="k">Qualifying tickets</div><div class="v">5 × ≥ +0.5 %</div></div>
-    <div class="rule-tile"><div class="k">Profit withdrawal</div><div class="v">80 % of profit</div></div>
-    <div class="rule-tile"><div class="k">Max. payout</div><div class="v">$4,000</div></div>`;
+    <div class="rule-tile"><div class="k">${ft("dashjs.rules.split")}</div><div class="v green">${meta.profitSplit} %</div></div>
+    <div class="rule-tile"><div class="k">${ft("dashjs.rules.maxEntry")}</div><div class="v">${usd(meta.maxStake)}</div></div>
+    <div class="rule-tile"><div class="k">${ft("dashjs.rules.odds")}</div><div class="v">${oddsRangeText()}</div></div>
+    <div class="rule-tile"><div class="k">${ft("dashjs.rules.maxLoss")}</div><div class="v">${usd(dd.limit)}</div></div>
+    <div class="rule-tile"><div class="k">${ft("dashjs.rules.dailyLoss")}</div><div class="v">${usd(dl.limit)}</div></div>
+    <div class="rule-tile"><div class="k">${ft("dashjs.rules.timeLimit")}</div><div class="v">${ft("dashjs.rules.daysPerPhase")}</div></div>
+    <div class="rule-tile"><div class="k">${ft("dashjs.rules.qualifying")}</div><div class="v">${ft("dashjs.rules.qualifyingVal")}</div></div>
+    <div class="rule-tile"><div class="k">${ft("dashjs.rules.withdrawal")}</div><div class="v">${ft("dashjs.rules.profitPct")}</div></div>
+    <div class="rule-tile"><div class="k">${ft("dashjs.rules.maxPayout")}</div><div class="v">${ft("dashjs.rules.maxPayoutVal")}</div></div>`;
 
   const history = document.getElementById("pfAccountHistory");
   if (history) {
     history.innerHTML = lastFetchedAccounts.length
       ? accountHistoryRowsHtml(lastFetchedAccounts)
-      : `<p class="bet-msg">No account history yet.</p>`;
+      : `<p class="bet-msg">${ft("dashjs.profile.noHistory")}</p>`;
   }
 }
 
@@ -3271,44 +3428,44 @@ function renderVykon() {
   const view = document.getElementById("view-vykon");
   if (!view) return;
   const state = Portfolio.ensure("advanced");
-  document.getElementById("vykonSubtitle").textContent = `${state.packageName} package statistics`;
+  document.getElementById("vykonSubtitle").textContent = ftf("dashjs.vykon.subtitle", { name: state.packageName });
   const s = Portfolio.summary(state);
 
   document.getElementById("vykonStatGrid").innerHTML = `
     <div class="dstat">
-      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M1.5 11.5l4-4 3 3 5-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Current profit</div>
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M1.5 11.5l4-4 3 3 5-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>${ft("dashjs.vykon.currentProfit")}</div>
       <div class="val ${s.netProfit >= 0 ? "green" : ""}">${s.netProfit >= 0 ? "+" : ""}${usd(s.netProfit)}</div>
     </div>
     <div class="dstat">
-      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M4.5 2h6v4a3 3 0 01-6 0V2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M7.5 9v2.5M5 13h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>Win rate</div>
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M4.5 2h6v4a3 3 0 01-6 0V2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M7.5 9v2.5M5 13h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>${ft("dashjs.ov.winRate")}</div>
       <div class="val ${s.winRate >= 50 ? "green" : ""}">${s.winRate} %</div>
     </div>
     <div class="dstat">
-      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 12.5l4-8 3 5 4-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Average odds</div>
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 12.5l4-8 3 5 4-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>${ft("dashjs.vykon.avgOdds")}</div>
       <div class="val">${s.avgOdds.toFixed(2)}</div>
     </div>
     <div class="dstat">
-      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><circle cx="7.5" cy="7.5" r="5.5" stroke="currentColor" stroke-width="1.6"/><path d="M7.5 4.5v3.3l2.2 1.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Pending</div>
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><circle cx="7.5" cy="7.5" r="5.5" stroke="currentColor" stroke-width="1.6"/><path d="M7.5 4.5v3.3l2.2 1.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>${ft("dashjs.vykon.pending")}</div>
       <div class="val">${s.pending}</div>
     </div>
     <div class="dstat">
-      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.5v12M10.5 4.5c0-1.2-1.3-2-3-2s-3 .8-3 2 1.3 2 3 2 3 .8 3 2-1.3 2-3 2-3-.8-3-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>Entered</div>
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.5v12M10.5 4.5c0-1.2-1.3-2-3-2s-3 .8-3 2 1.3 2 3 2 3 .8 3 2-1.3 2-3 2-3-.8-3-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>${ft("dashjs.vykon.entered")}</div>
       <div class="val">${usd(s.staked)}</div>
     </div>
     <div class="dstat">
-      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 7-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Returned</div>
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 7-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>${ft("dashjs.vykon.returned")}</div>
       <div class="val ${s.returned >= s.staked && s.staked > 0 ? "green" : ""}">${usd(s.returned)}</div>
     </div>`;
 
   document.getElementById("vykonBreakdown").innerHTML = `
-    <div class="k-row win">Won<span class="n">${s.won}</span></div>
-    <div class="k-row loss">Lost<span class="n">${s.lost}</span></div>
-    <div class="k-row pend">Pending<span class="n">${s.pending}</span></div>`;
+    <div class="k-row win">${ft("dashjs.vykon.won")}<span class="n">${s.won}</span></div>
+    <div class="k-row loss">${ft("dashjs.vykon.lost")}<span class="n">${s.lost}</span></div>
+    <div class="k-row pend">${ft("dashjs.vykon.pending")}<span class="n">${s.pending}</span></div>`;
 
   document.getElementById("vykonFinancials").innerHTML = `
-    <div class="k-row neutral">Entered<span class="n">${usd(s.staked)}</span></div>
-    <div class="k-row neutral">Returned<span class="n">${usd(s.returned)}</span></div>
-    <div class="k-row neutral">Net profit<span class="n ${s.netProfit >= 0 ? "green" : ""}">${s.netProfit >= 0 ? "+" : ""}${usd(s.netProfit)}</span></div>`;
+    <div class="k-row neutral">${ft("dashjs.vykon.entered")}<span class="n">${usd(s.staked)}</span></div>
+    <div class="k-row neutral">${ft("dashjs.vykon.returned")}<span class="n">${usd(s.returned)}</span></div>
+    <div class="k-row neutral">${ft("dashjs.vykon.netProfit")}<span class="n ${s.netProfit >= 0 ? "green" : ""}">${s.netProfit >= 0 ? "+" : ""}${usd(s.netProfit)}</span></div>`;
 
   const days = Portfolio.dailyNet(state, 7);
   const maxAbs = Math.max(1, ...days.map((d) => Math.abs(d.net)));
@@ -3322,17 +3479,17 @@ function renderVykon() {
   document.getElementById("vykonTicketTable").innerHTML = recent.length ? recent.map((t) => {
     const vSel0 = t.selections[0];
     const label = t.selections.length > 1
-      ? `${t.selections.length}× accumulator`
-      : (vSel0.homeTeam && vSel0.awayTeam ? `${vSel0.homeTeam} – ${vSel0.awayTeam}` : (vSel0.league || "Ticket"));
-    const tip = t.selections.length > 1 ? "AKU" : (vSel0.pickLabel || "");
+      ? ftf("dashjs.common.accumulator", { n: t.selections.length })
+      : (vSel0.homeTeam && vSel0.awayTeam ? `${vSel0.homeTeam} – ${vSel0.awayTeam}` : (vSel0.league || ft("dashjs.common.ticket")));
+    const tip = t.selections.length > 1 ? ft("dashjs.common.accTip") : (vSel0.pickLabel || "");
     const [tag, tagText] = ticketTag(t);
     // čekající tiket: kliknutelný řádek + skrytý detail s cashoutem
     if (t.status === "pending") {
-      return `<tr class="tk-exp" data-tkexp="${t.id}" title="Show ticket detail"><td>${label}</td><td>${tip}</td><td class="odds">${t.combinedOdds.toFixed(2)}</td><td>${usd(t.stake)}</td><td>${flagTags(t)}<span class="tag ${tag}">${tagText}</span></td></tr>` +
+      return `<tr class="tk-exp" data-tkexp="${t.id}" title="${ft("dashjs.vykon.showDetail")}"><td>${label}</td><td>${tip}</td><td class="odds">${t.combinedOdds.toFixed(2)}</td><td>${usd(t.stake)}</td><td>${flagTags(t)}<span class="tag ${tag}">${tagText}</span></td></tr>` +
         `<tr class="tk-detail" hidden><td colspan="5">${ticketDetailHtml(t)}</td></tr>`;
     }
     return `<tr><td>${label}</td><td>${tip}</td><td class="odds">${t.combinedOdds.toFixed(2)}</td><td>${usd(t.stake)}</td><td>${flagTags(t)}<span class="tag ${tag}">${tagText}</span></td></tr>`;
-  }).join("") : `<tr><td colspan="5">No tickets yet.</td></tr>`;
+  }).join("") : `<tr><td colspan="5">${ft("dashjs.vykon.noTickets")}</td></tr>`;
 
   const { days: dailyRows } = Portfolio.dailyBalanceHistory(state);
   const dailyTable = document.getElementById("vykonDailyTable");
@@ -3340,12 +3497,12 @@ function renderVykon() {
     dailyTable.innerHTML = dailyRows.length
       ? dailyRows.slice().reverse().map((d) => `
         <tr>
-          <td>${new Date(d.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</td>
+          <td>${new Date(d.date).toLocaleDateString(uiLocale(), { month: "short", day: "numeric" })}</td>
           <td>${d.count}</td>
           <td class="${d.net >= 0 ? "green" : ""}" style="${d.net < 0 ? "color:#ff9d9d" : ""}">${d.net >= 0 ? "+" : ""}${usd(d.net)}</td>
           <td class="odds">${usd(d.balance)}</td>
         </tr>`).join("")
-      : `<tr><td colspan="4">No settled tickets yet this phase.</td></tr>`;
+      : `<tr><td colspan="4">${ft("dashjs.vykon.noSettled")}</td></tr>`;
   }
 }
 
@@ -3353,7 +3510,7 @@ document.getElementById("vykonRefresh")?.addEventListener("click", async (e) => 
   const btn = e.currentTarget;
   btn.disabled = true;
   const label = btn.innerHTML;
-  btn.innerHTML = "Refreshing…";
+  btn.innerHTML = ft("dashjs.vykon.refreshing");
   try {
     // vyhodnotí čekající tikety (klient), stáhne co mezitím dořešil server
     // (settle-tickets cron), a teprve pak přerenderuje — tlačítko tak
@@ -3365,4 +3522,59 @@ document.getElementById("vykonRefresh")?.addEventListener("click", async (e) => 
   renderVykon();
   btn.disabled = false;
   btn.innerHTML = label;
+});
+
+// ---------- přepnutí jazyka: překreslit právě viditelné části generované v JS ----------
+// Statické HTML přeloží js/i18n.js samo (data-i18n); tady jen to, co JS vykresluje
+// do innerHTML/textContent. Vzácnější panely (výplaty, affiliate, žebříček) se
+// obnoví jen když jsou zrovna otevřené, jinak při dalším otevření.
+document.addEventListener("fundly:lang-changed", () => {
+  const safe = (fn) => { try { fn(); } catch (e) { /* jedna část nesmí shodit ostatní */ } };
+  const visible = (id) => { const el = document.getElementById(id); return !!el && !el.hidden; };
+  safe(renderNotifications);
+  safe(() => {
+    const state = Portfolio.get();
+    if (state) { renderBadges(state); renderMomentum(state); }
+  });
+  safe(renderPrehled);
+  safe(renderVykon);
+  safe(renderBankBar);
+  safe(() => {
+    if (!sportTabs) return;
+    renderSportTabs();
+    // seznam zápasů: jen když už je načtený (ne přes skeleton / chybovou hlášku)
+    if (matchList && !matchList.querySelector(".skel-row, #betRetry")) {
+      refreshLeagueOptions();
+      renderMatches();
+    }
+    // tiket: zachovat rozepsaný vklad
+    const stakeBefore = document.getElementById("stakeInput")?.value;
+    renderSlip();
+    const stakeInput = document.getElementById("stakeInput");
+    if (stakeInput && stakeBefore !== undefined && stakeBefore !== "") {
+      stakeInput.value = stakeBefore;
+      stakeInput.dispatchEvent(new Event("input"));
+    }
+  });
+  safe(() => { if (lbRows.length) renderLb(); });
+  safe(() => {
+    if (!window.__noRealAccount) return;
+    const list = document.getElementById("naAccounts");
+    if (list && lastFetchedAccounts.length) list.innerHTML = accountHistoryRowsHtml(lastFetchedAccounts);
+    showResetOfferFromAccounts(lastFetchedAccounts);
+  });
+  safe(() => { if (visible("view-vyplaty")) loadPayoutHistory(); });
+  safe(() => { if (visible("view-affiliate")) loadAffiliateStats(); });
+  // nastavení účtu (heslo / výplata / 2FA): překreslit a znovu navázat, pokud v něm hráč
+  // zrovna nic nerozpracoval (rozepsané heslo, probíhající zapnutí 2FA)
+  safe(() => {
+    if (typeof FundlyBackend === "undefined") return;
+    ["s", "na"].forEach((prefix) => {
+      const slot = document.getElementById(prefix === "s" ? "settingsSlot" : "naSettingsSlot");
+      if (!slot) return;
+      if (document.getElementById(`${prefix}MfaVerifyForm`) || document.getElementById(`${prefix}NewPass`)?.value) return;
+      slot.innerHTML = renderSettingsPanel(prefix);
+      setupAccountSettings(prefix);
+    });
+  });
 });

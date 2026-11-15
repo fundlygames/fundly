@@ -9,7 +9,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { handleCors, jsonResponse } from "../_shared/cors.ts";
 import { computeServerRiskSignals, watchStatusFor } from "../_shared/risk.ts";
-import { sendEmail, accountClosedHtml, pendingApprovalAdminHtml } from "../_shared/email.ts";
+import { sendEmail, accountClosedHtml, pendingApprovalAdminHtml, subjects } from "../_shared/email.ts";
+import { userLang } from "../_shared/user-lang.ts";
 import { packageByKey, resetPrice } from "../_shared/packages.ts";
 import { enforceLossLimits } from "../_shared/loss-enforce.ts";
 import { lossLimitBreach } from "../_shared/loss-limits.ts";
@@ -305,11 +306,14 @@ serve(async (req) => {
     // nejvýš jednou za účet). account.state je stav PŘED tímhle update.
     if (account.state !== "breached" && nextState === "breached" && account.email) {
       const pkg = packageByKey(String(account.package_key ?? ""));
-      sendEmail({
-        to: String(account.email),
-        subject: "Your Fundly account was closed",
-        html: accountClosedHtml(pkg.name, breachReason ?? "Loss limit exceeded", `${SITE_URL}/dashboard`, resetPrice(pkg)),
-      }).then((r) => { if (!r.sent) console.error("account-closed e-mail selhal:", r.error); })
+      // jazyk podle účtu přihlášeného hráče (user_metadata.lang / checkout_lang, jinak doména e-mailu)
+      userLang(supabase, { user, email: account.email })
+        .then((lang) => sendEmail({
+          to: String(account.email),
+          subject: subjects.accountClosed(lang),
+          html: accountClosedHtml(pkg.name, breachReason ?? "Loss limit exceeded", `${SITE_URL}/dashboard`, resetPrice(pkg), lang),
+        }))
+        .then((r) => { if (!r.sent) console.error("account-closed e-mail selhal:", r.error); })
         .catch((e) => console.error("account-closed e-mail error:", e));
     }
 

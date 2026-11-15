@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-i18n-doc-title="meta.dashboard">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
@@ -13,68 +13,48 @@
   <meta name="apple-mobile-web-app-title" content="Fundly" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   <link rel="icon" type="image/png" href="assets/logo.png" />
-  <link rel="stylesheet" href="css/style.css?v=20261115b" />
-  <link rel="stylesheet" href="css/dashboard.css?v=20261115b" />
-  <!-- Meta Pixel -->
-  <script>
-  !function(f,b,e,v,n,t,s)
-  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-  n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-  n.queue=[];t=b.createElement(e);t.async=!0;
-  t.src=v;s=b.getElementsByTagName(e)[0];
-  s.parentNode.insertBefore(t,s)}(window, document,'script',
-  'https://connect.facebook.net/en_US/fbevents.js');
-  fbq('init', '1872298250403527');
-  fbq('track', 'PageView');
-  </script>
-  <noscript><img height="1" width="1" style="display:none"
-  src="https://www.facebook.com/tr?id=1872298250403527&ev=PageView&noscript=1"
-  /></noscript>
-  <!-- End Meta Pixel Code -->
-  <!-- Microsoft Clarity -->
-  <script type="text/javascript">
-    (function(c,l,a,r,i,t,y){
-        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-    })(window, document, "clarity", "script", "ycxug4lnng");
-  </script>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-C01K5JXEGQ"></script>
+  <link rel="stylesheet" href="css/style.css?v=20261115h" />
+  <link rel="stylesheet" href="css/dashboard.css?v=20261115h" />
+  <!-- Měření (Meta Pixel, Microsoft Clarity, Google Analytics): tady jen fronty volání.
+       Skutečné skripty načte js/consent.js AŽ po souhlasu s cookies (zákon č. 127/2005 Sb.). -->
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
     gtag('config', 'G-C01K5JXEGQ');
+    !function(f){if(f.fbq)return;var n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[]}(window);
+    fbq('init', '1872298250403527');
+    fbq('track', 'PageView');
+    window.clarity = window.clarity || function(){(window.clarity.q = window.clarity.q || []).push(arguments)};
   </script>
+  <script src="js/consent.js?v=20261115h"></script>
   <!-- backend (Supabase/Whop) — defer, page works without it too (demo mode) -->
-  <script defer src="js/config.js?v=20261115b"></script>
-  <script defer src="js/whop.js?v=20261115b"></script>
+  <script defer src="js/config.js?v=20261115h"></script>
+  <script defer src="js/whop.js?v=20261115h"></script>
 </head>
 <body class="with-sidebar">
 
   <!-- ============ TOP BAR (mobile <1024px; hidden by the sidebar on desktop) ============ -->
   <header class="nav scrolled">
     <div class="container nav-inner">
-      <a href="./" class="logo" aria-label="Fundly, home">
+      <a href="./" class="logo" aria-label="Fundly, home" data-i18n-aria-label="dash.fundly_home">
         <img src="assets/logo.png" alt="" width="24" height="24" />
-        fundly
+        <span data-i18n="dash.fundly">fundly</span>
       </a>
       <div class="nav-cta">
-        <a href="./#packages" class="btn btn-primary buy-challenge-cta" id="topbarBuyBtn" hidden style="padding:8px 14px;font-size:.8125rem">Buy a Challenge</a>
-        <button class="icon-btn notif-bell" aria-label="Notifications" data-notif-toggle>
+        <a href="./#packages" class="btn btn-primary buy-challenge-cta" id="topbarBuyBtn" data-i18n="dash.buy_a_challenge" hidden style="padding:8px 14px;font-size:.8125rem">Buy a Challenge</a>
+        <button class="icon-btn notif-bell" aria-label="Notifications" data-notif-toggle data-i18n-aria-label="dash.notifications">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 2a4 4 0 00-4 4v2.2L2.8 10.6a.7.7 0 00.6 1.05h9.2a.7.7 0 00.6-1.05L12 8.2V6a4 4 0 00-4-4zM6.5 13.5a1.5 1.5 0 003 0" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <span class="notif-dot" hidden></span>
         </button>
         <div class="notif-panel" id="notifPanel" hidden>
           <div class="notif-panel-head">
-            <span>Notifications</span>
-            <button class="btn btn-ghost" id="notifClearAll" style="height:auto;padding:2px 8px;font-size:.75rem">Clear all</button>
+            <span data-i18n="dash.notifications">Notifications</span>
+            <button class="btn btn-ghost" id="notifClearAll" data-i18n="dash.clear_all" style="height:auto;padding:2px 8px;font-size:.75rem">Clear all</button>
           </div>
           <div class="notif-list" id="notifList"><!-- JS --></div>
         </div>
-        <a class="icon-btn" href="./" aria-label="Log out" data-logout>
+        <a class="icon-btn" href="./" aria-label="Log out" data-logout data-i18n-aria-label="dash.log_out">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6.5 2h-2A1.5 1.5 0 003 3.5v9A1.5 1.5 0 004.5 14h2M10 5l3 3-3 3M13 8H6.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
       </div>
@@ -83,22 +63,22 @@
 
   <!-- ============ SIDEBAR (desktop ≥1024px) ============ -->
   <aside class="dside">
-    <a href="./" class="logo" aria-label="Fundly, home">
+    <a href="./" class="logo" aria-label="Fundly, home" data-i18n-aria-label="dash.fundly_home">
       <img src="assets/logo.png" alt="" width="24" height="24" />
-      fundly
+      <span data-i18n="dash.fundly">fundly</span>
     </a>
-    <nav class="dnav-links" aria-label="Dashboard">
+    <nav class="dnav-links" aria-label="Dashboard" data-i18n-aria-label="dash.dashboard">
       <button class="dnav-link active" data-view="prehled">
         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><rect x="1.5" y="1.5" width="5" height="5" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="8.5" y="1.5" width="5" height="5" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="1.5" y="8.5" width="5" height="5" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="8.5" y="8.5" width="5" height="5" rx="1.5" stroke="currentColor" stroke-width="1.6"/></svg>
-        Overview
+        <span data-i18n="dash.overview">Overview</span>
       </button>
       <button class="dnav-link" data-view="vykon">
         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M1.5 11.5l4-4 3 3 5-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Performance
+        <span data-i18n="dash.performance">Performance</span>
       </button>
       <button class="dnav-link" data-view="sazeni">
         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 5a1.5 1.5 0 001.5-1.5h8A1.5 1.5 0 0013 5v1.6a1.9 1.9 0 000 3.8V12a1.5 1.5 0 00-1.5 1.5h-8A1.5 1.5 0 002 12V5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" transform="translate(0,-1.2)"/></svg>
-        Entries
+        <span data-i18n="dash.entries">Entries</span>
       </button>
       <!-- Leaderboard temporarily hidden until there are more players (see
            #view-zebricek + mobile More-sheet button, hidden the same way) —
@@ -106,32 +86,36 @@
            `hidden` removal to bring back later. -->
       <button class="dnav-link" data-view="zebricek" hidden>
         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M4.5 2h6v4a3 3 0 01-6 0V2zM4.5 3.5h-2a2 2 0 002 2.5M10.5 3.5h2a2 2 0 01-2 2.5M7.5 9v2.5M5 13h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Leaderboard
+        <span data-i18n="dash.leaderboard">Leaderboard</span>
       </button>
       <button class="dnav-link" data-view="vyplaty">
         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><rect x="1.5" y="3.5" width="12" height="8.5" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M9.5 7.75h2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-        Payouts
+        <span data-i18n="dash.payouts">Payouts</span>
       </button>
       <button class="dnav-link" data-view="affiliate">
         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.5l1.8 3.8 4.2.6-3 3 .7 4.1-3.7-2-3.7 2 .7-4.1-3-3 4.2-.6z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
-        Affiliate
+        <span data-i18n="dash.affiliate">Affiliate</span>
+      </button>
+      <button class="dnav-link" data-view="novinky">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><rect x="1.75" y="2.5" width="11.5" height="10" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M4 5.5h7M4 8h7M4 10.5h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        <span data-i18n="dash.news">News</span>
       </button>
       <button class="dnav-link" data-view="akademie">
         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 3.5A1.5 1.5 0 013.5 2H13v10H3.5A1.5 1.5 0 002 13.5v-10z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M2 13.5A1.5 1.5 0 013.5 12H13M5.5 5.5h5M5.5 8h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-        Academy
+        <span data-i18n="dash.academy">Academy</span>
       </button>
       <button class="dnav-link" data-view="profil">
         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><circle cx="7.5" cy="4.75" r="2.75" stroke="currentColor" stroke-width="1.4"/><path d="M2.5 13c.7-2.4 2.7-3.75 5-3.75S11.8 10.6 12.5 13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-        Profile
+        <span data-i18n="dash.profile">Profile</span>
       </button>
     </nav>
-    <a href="./#packages" class="btn btn-primary buy-challenge-cta" id="sidebarBuyBtn" hidden style="margin:4px 16px 12px;text-align:center">Buy a Challenge</a>
+    <a href="./#packages" class="btn btn-primary buy-challenge-cta" id="sidebarBuyBtn" data-i18n="dash.buy_a_challenge" hidden style="margin:4px 16px 12px;text-align:center">Buy a Challenge</a>
     <div class="dside-foot">
-      <button class="icon-btn notif-bell" aria-label="Notifications" data-notif-toggle>
+      <button class="icon-btn notif-bell" aria-label="Notifications" data-notif-toggle data-i18n-aria-label="dash.notifications">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 2a4 4 0 00-4 4v2.2L2.8 10.6a.7.7 0 00.6 1.05h9.2a.7.7 0 00.6-1.05L12 8.2V6a4 4 0 00-4-4zM6.5 13.5a1.5 1.5 0 003 0" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span class="notif-dot" hidden></span>
       </button>
-      <a class="icon-btn" href="./" aria-label="Log out" data-logout>
+      <a class="icon-btn" href="./" aria-label="Log out" data-logout data-i18n-aria-label="dash.log_out">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6.5 2h-2A1.5 1.5 0 003 3.5v9A1.5 1.5 0 004.5 14h2M10 5l3 3-3 3M13 8H6.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </a>
     </div>
@@ -144,7 +128,7 @@
       <section class="dash-view" id="view-prehled">
         <div class="dash-head">
           <div>
-            <h1>Overview</h1>
+            <h1 data-i18n="dash.overview">Overview</h1>
             <p id="ovSubtitle">Phase 1 · Fundly Challenge</p>
           </div>
           <span class="spacer"></span>
@@ -157,7 +141,7 @@
 
             <!-- účet spálen: zlevněný reset (40 % ceny), viz updateBreachPanel() -->
             <div class="panel act-panel" id="breachPanel" hidden>
-              <h3>Your account was closed</h3>
+              <h3 data-i18n="dash.your_account_was_closed">Your account was closed</h3>
               <p class="t-small" id="breachPanelText"></p>
               <button class="btn btn-primary" id="breachResetBtn" style="margin-top:12px">Reset my account</button>
               <p class="auth-note mt" id="breachResetNote" hidden></p>
@@ -165,14 +149,14 @@
 
             <!-- funded účet bez zaplaceného aktivačního poplatku -->
             <div class="panel act-panel" id="activationPanel" hidden>
-              <h3>Activate your Partner account</h3>
-              <p class="t-small">Your Partner account is almost ready. Pay the $80 activation fee to unlock payouts.</p>
-              <button class="btn btn-primary" id="activationPay" style="margin-top:12px">Pay activation fee — $80</button>
+              <h3 data-i18n="dash.activate_your_partner_account">Activate your Partner account</h3>
+              <p class="t-small" data-i18n="dash.your_partner_account_is_almost_ready_pay">Your Partner account is almost ready. Pay the $80 activation fee to unlock payouts.</p>
+              <button class="btn btn-primary" id="activationPay" data-i18n="dash.pay_activation_fee_80" style="margin-top:12px">Pay activation fee — $80</button>
               <p class="auth-note mt" id="activationNote" hidden></p>
             </div>
 
             <div class="panel act-panel" id="pendingApprovalPanel" hidden>
-              <h3>Phase target reached 🎯</h3>
+              <h3 data-i18n="dash.phase_target_reached">Phase target reached 🎯</h3>
               <p class="t-small" id="pendingApprovalText">You cleared this phase's target. Betting is paused while our team reviews and approves the move to the next phase — you'll get an e-mail as soon as it's confirmed.</p>
             </div>
 
@@ -180,18 +164,18 @@
 
             <div class="stat-grid" id="ovStatGrid"><!-- JS: renderPrehled() --></div>
 
-            <button class="btn btn-primary btn-lg cta-bet" data-view-link="sazeni">Enter now</button>
+            <button class="btn btn-primary btn-lg cta-bet" data-view-link="sazeni" data-i18n="dash.enter_now">Enter now</button>
 
             <div class="panel" id="recentTicketsPanel">
-              <h3>Recent tickets</h3>
+              <h3 data-i18n="dash.recent_tickets">Recent tickets</h3>
               <div class="k-rows" id="recentTickets"><!-- JS: renderPrehled() --></div>
             </div>
 
-            <div class="subtabs" role="tablist" aria-label="Challenge detail" id="ovTabs">
-              <button class="active" data-ovtab="limity" role="tab" aria-selected="true">Limits</button>
-              <button data-ovtab="pravidla" role="tab" aria-selected="false">Rules</button>
-              <button data-ovtab="cesta" role="tab" aria-selected="false">Journey</button>
-              <button data-ovtab="tipy" role="tab" aria-selected="false">Tips</button>
+            <div class="subtabs" role="tablist" aria-label="Challenge detail" id="ovTabs" data-i18n-aria-label="dash.challenge_detail">
+              <button class="active" data-ovtab="limity" role="tab" aria-selected="true" data-i18n="dash.limits">Limits</button>
+              <button data-ovtab="pravidla" role="tab" aria-selected="false" data-i18n="dash.rules">Rules</button>
+              <button data-ovtab="cesta" role="tab" aria-selected="false" data-i18n="dash.journey">Journey</button>
+              <button data-ovtab="tipy" role="tab" aria-selected="false" data-i18n="dash.tips">Tips</button>
             </div>
 
             <div class="panel" data-ovpanel="limity" id="ovLimity"><!-- JS: renderPrehled() --></div>
@@ -202,10 +186,10 @@
 
             <div class="panel" data-ovpanel="tipy" hidden>
               <ul class="tip-list">
-                <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Enter consistent amounts — 1 to 2 % of capital per ticket is plenty.</li>
-                <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Stick to sports and leagues you truly know — volume alone won't hit the target.</li>
-                <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Max. loss is a fixed −10 % of capital, no trailing — the floor never moves.</li>
-                <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>You have 30 days to hit the target — don't rush. On average, roughly +0.35 % of capital per day is enough.</li>
+                <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="dash.enter_consistent_amounts_1_to_2_of_capit">Enter consistent amounts — 1 to 2 % of capital per ticket is plenty.</span></li>
+                <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="dash.stick_to_sports_and_leagues_you_truly_kn">Stick to sports and leagues you truly know — volume alone won't hit the target.</span></li>
+                <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="dash.max_loss_is_a_fixed_10_of_capital_no_tra">Max. loss is a fixed −10 % of capital, no trailing — the floor never moves.</span></li>
+                <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="dash.you_have_30_days_to_hit_the_target_don_t">You have 30 days to hit the target — don't rush. On average, roughly +0.35 % of capital per day is enough.</span></li>
               </ul>
             </div>
           </div>
@@ -219,13 +203,13 @@
       <section class="dash-view" id="view-vykon" hidden>
         <div class="dash-head">
           <div>
-            <h1>Performance</h1>
+            <h1 data-i18n="dash.performance">Performance</h1>
             <p id="vykonSubtitle">Package statistics</p>
           </div>
           <span class="spacer"></span>
           <button type="button" class="btn btn-ghost" id="vykonRefresh">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M12 7A5 5 0 112.8 4.2M2.5 1.5v3h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Refresh
+            <span data-i18n="dash.refresh">Refresh</span>
           </button>
         </div>
 
@@ -233,25 +217,25 @@
 
         <div class="two-col">
           <div class="panel">
-            <h3>Ticket overview</h3>
+            <h3 data-i18n="dash.ticket_overview">Ticket overview</h3>
             <div class="k-rows" id="vykonBreakdown"><!-- JS: renderVykon() --></div>
           </div>
           <div class="panel">
-            <h3>Financial overview</h3>
+            <h3 data-i18n="dash.financial_overview">Financial overview</h3>
             <div class="k-rows" id="vykonFinancials"><!-- JS: renderVykon() --></div>
           </div>
         </div>
 
         <div class="two-col">
           <div class="panel">
-            <h3>Daily balance, last 7 days</h3>
-            <div class="bar-chart" role="img" aria-label="Bar chart of daily balance" id="vykonBarChart"><!-- JS: renderVykon() --></div>
+            <h3 data-i18n="dash.daily_balance_last_7_days">Daily balance, last 7 days</h3>
+            <div class="bar-chart" role="img" aria-label="Bar chart of daily balance" id="vykonBarChart" data-i18n-aria-label="dash.bar_chart_of_daily_balance"><!-- JS: renderVykon() --></div>
           </div>
           <div class="panel">
-            <h3>Recent tickets</h3>
+            <h3 data-i18n="dash.recent_tickets">Recent tickets</h3>
             <div style="overflow-x:auto">
               <table class="ticket-table">
-                <thead><tr><th>Match</th><th>Pick</th><th>Odds</th><th>Amount</th><th>Status</th></tr></thead>
+                <thead><tr><th data-i18n="dash.match">Match</th><th data-i18n="dash.pick">Pick</th><th data-i18n="dash.odds">Odds</th><th data-i18n="dash.amount">Amount</th><th data-i18n="dash.status">Status</th></tr></thead>
                 <tbody id="vykonTicketTable"><!-- JS: renderVykon() --></tbody>
               </table>
             </div>
@@ -259,10 +243,10 @@
         </div>
 
         <div class="panel">
-          <h3>Day by day, this phase</h3>
+          <h3 data-i18n="dash.day_by_day_this_phase">Day by day, this phase</h3>
           <div style="overflow-x:auto">
             <table class="ticket-table">
-              <thead><tr><th>Day</th><th>Tickets</th><th>Net</th><th>Balance</th></tr></thead>
+              <thead><tr><th data-i18n="dash.day">Day</th><th data-i18n="dash.tickets">Tickets</th><th data-i18n="dash.net">Net</th><th data-i18n="dash.balance">Balance</th></tr></thead>
               <tbody id="vykonDailyTable"><!-- JS: renderVykon() --></tbody>
             </table>
           </div>
@@ -273,78 +257,78 @@
       <section class="dash-view" id="view-sazeni" hidden>
         <div class="dash-head">
           <div>
-            <h1>Entries</h1>
-            <p>Pick matches and build your ticket</p>
+            <h1 data-i18n="dash.entries">Entries</h1>
+            <p data-i18n="dash.pick_matches_and_build_your_ticket">Pick matches and build your ticket</p>
           </div>
         </div>
 
         <div class="panel act-panel" id="previewModePanel" hidden>
-          <h3>You're browsing in preview mode</h3>
-          <p class="t-small">You can look around and see how it works, but you'll need an account to submit an entry.</p>
-          <a class="btn btn-primary" style="margin-top:12px" href="./#packages">Get an account</a>
+          <h3 data-i18n="dash.you_re_browsing_in_preview_mode">You're browsing in preview mode</h3>
+          <p class="t-small" data-i18n="dash.you_can_look_around_and_see_how_it_works">You can look around and see how it works, but you'll need an account to submit an entry.</p>
+          <a class="btn btn-primary" style="margin-top:12px" href="./#packages" data-i18n="dash.get_an_account">Get an account</a>
         </div>
 
         <div class="bank-bar">
-          <span>Balance: <b id="bankBalance">–</b></span>
-          <span class="right"><span>Max. entry size: <b id="bankMaxStake">–</b></span><span>Odds: <b id="bankOddsRange">–</b></span></span>
+          <span><span data-i18n="dash.balance_2">Balance:</span> <b id="bankBalance">–</b></span>
+          <span class="right"><span><span data-i18n="dash.max_entry_size">Max. entry size:</span> <b id="bankMaxStake">–</b></span><span><span data-i18n="dash.odds_2">Odds:</span> <b id="bankOddsRange">–</b></span></span>
         </div>
 
         <div class="panel bet-filters" id="betFiltersPanel">
           <div class="bf-grid">
             <div class="field">
-              <label for="betSearch">Search</label>
-              <input class="input" id="betSearch" type="search" placeholder="Team or league…" />
+              <label for="betSearch" data-i18n="dash.search">Search</label>
+              <input class="input" id="betSearch" type="search" placeholder="Team or league…" data-i18n-placeholder="dash.team_or_league" />
             </div>
             <div class="field">
-              <label for="fDate">Date</label>
+              <label for="fDate" data-i18n="dash.date">Date</label>
               <select class="input" id="fDate">
-                <option value="">All dates</option>
-                <option value="dnes">Today</option>
-                <option value="zitra">Tomorrow</option>
-                <option value="7d">Next 7 days</option>
-                <option value="20d">Next 20 days</option>
+                <option value="" data-i18n="dash.all_dates">All dates</option>
+                <option value="dnes" data-i18n="dash.today">Today</option>
+                <option value="zitra" data-i18n="dash.tomorrow">Tomorrow</option>
+                <option value="7d" data-i18n="dash.next_7_days">Next 7 days</option>
+                <option value="20d" data-i18n="dash.next_20_days">Next 20 days</option>
               </select>
             </div>
             <div class="field">
-              <label for="fLeague">League</label>
+              <label for="fLeague" data-i18n="dash.league">League</label>
               <select class="input" id="fLeague">
-                <option value="">All leagues</option>
+                <option value="" data-i18n="dash.all_leagues">All leagues</option>
               </select>
             </div>
             <div class="field">
-              <label for="fOdds">Odds</label>
+              <label for="fOdds" data-i18n="dash.odds">Odds</label>
               <select class="input" id="fOdds">
-                <option value="">All odds</option>
-                <option value="0-1.5">Up to 1.50</option>
-                <option value="1.5-2.5">1.50 to 2.50</option>
-                <option value="2.5-4">2.50 to 4.00</option>
-                <option value="4-8">4.00 to 8.00</option>
+                <option value="" data-i18n="dash.all_odds">All odds</option>
+                <option value="0-1.5" data-i18n="dash.up_to_1_50">Up to 1.50</option>
+                <option value="1.5-2.5" data-i18n="dash.1_50_to_2_50">1.50 to 2.50</option>
+                <option value="2.5-4" data-i18n="dash.2_50_to_4_00">2.50 to 4.00</option>
+                <option value="4-8" data-i18n="dash.4_00_to_8_00">4.00 to 8.00</option>
               </select>
             </div>
           </div>
           <div class="bf-quick">
-            <span class="bf-label">Quick filters:</span>
-            <button class="filter-chip" id="qLive" aria-pressed="false"><span class="live-dot" aria-hidden="true"></span>LIVE</button>
-            <button class="filter-chip" id="qToday" aria-pressed="false">Today</button>
-            <button class="filter-chip" id="qHigh" aria-pressed="false">High odds</button>
+            <span class="bf-label" data-i18n="dash.quick_filters">Quick filters:</span>
+            <button class="filter-chip" id="qLive" aria-pressed="false"><span class="live-dot" aria-hidden="true"></span><span data-i18n="dash.live">LIVE</span></button>
+            <button class="filter-chip" id="qToday" data-i18n="dash.today" aria-pressed="false">Today</button>
+            <button class="filter-chip" id="qHigh" data-i18n="dash.high_odds" aria-pressed="false">High odds</button>
             <button class="filter-chip" id="betRefresh" style="margin-left:auto">
               <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M12 7A5 5 0 112.8 4.2M2.5 1.5v3h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Refresh
+              <span data-i18n="dash.refresh">Refresh</span>
             </button>
           </div>
           <div class="bf-quick" id="leagueChips" hidden><!-- JS: ligové chipy --></div>
         </div>
 
-        <div class="sport-tabs" role="tablist" aria-label="Sports" id="sportTabs"><!-- JS --></div>
+        <div class="sport-tabs" role="tablist" aria-label="Sports" id="sportTabs" data-i18n-aria-label="dash.sports"><!-- JS --></div>
 
-        <p class="match-count" id="matchCountRow">Matches: <b id="matchCount">–</b></p>
+        <p class="match-count" id="matchCountRow"><span data-i18n="dash.matches">Matches:</span> <b id="matchCount">–</b></p>
 
         <div class="bet-layout">
           <div class="panel" style="padding:6px 4px">
             <div id="matchList"><!-- JS --></div>
           </div>
           <aside class="panel slip" id="slipPanel">
-            <h3>Ticket</h3>
+            <h3 data-i18n="dash.ticket">Ticket</h3>
             <div id="slipBody"><!-- JS --></div>
           </aside>
         </div>
@@ -356,29 +340,29 @@
       <button type="button" class="mobile-slip-bar" id="mobileSlipBar" hidden>
         <span class="msb-count" id="msbCount">1</span>
         <span class="msb-text" id="msbText">1 pick added</span>
-        <span class="msb-cta">View ticket ›</span>
+        <span class="msb-cta" data-i18n="dash.view_ticket">View ticket ›</span>
       </button>
 
       <!-- ============ LEADERBOARD ============ -->
       <section class="dash-view" id="view-zebricek" hidden>
         <div class="dash-head">
           <div>
-            <h1>Leaderboard</h1>
-            <p>Top bettors — only those with sharing enabled in their profile are shown.</p>
+            <h1 data-i18n="dash.leaderboard">Leaderboard</h1>
+            <p data-i18n="dash.top_bettors_only_those_with_sharing_enab">Top bettors — only those with sharing enabled in their profile are shown.</p>
           </div>
         </div>
 
         <div class="hero-panel lb">
           <div>
-            <div class="t">All-time ranking</div>
-            <div class="d">The best bettors by profit, ROI and win rate.</div>
+            <div class="t" data-i18n="dash.all_time_ranking">All-time ranking</div>
+            <div class="d" data-i18n="dash.the_best_bettors_by_profit_roi_and_win_r">The best bettors by profit, ROI and win rate.</div>
           </div>
         </div>
 
-        <div class="subtabs" style="margin-top:0" role="tablist" aria-label="Metric" id="lbMetric">
-          <button class="active" data-metric="profit">Profit</button>
-          <button data-metric="roi">ROI</button>
-          <button data-metric="uspesnost">Win rate</button>
+        <div class="subtabs" style="margin-top:0" role="tablist" aria-label="Metric" id="lbMetric" data-i18n-aria-label="dash.metric">
+          <button class="active" data-metric="profit" data-i18n="dash.profit">Profit</button>
+          <button data-metric="roi" data-i18n="dash.roi">ROI</button>
+          <button data-metric="uspesnost" data-i18n="dash.win_rate">Win rate</button>
         </div>
 
         <div class="panel" style="padding:6px 4px">
@@ -390,15 +374,15 @@
       <section class="dash-view" id="view-vyplaty" hidden>
         <div class="dash-head">
           <div>
-            <h1>Payouts</h1>
-            <p>Build your buffer first, then withdraw your profits.</p>
+            <h1 data-i18n="dash.payouts">Payouts</h1>
+            <p data-i18n="dash.build_your_buffer_first_then_withdraw_yo">Build your buffer first, then withdraw your profits.</p>
           </div>
         </div>
 
         <div class="hero-panel wd">
           <div>
-            <div class="t">Your vault opens with a Partner account</div>
-            <div class="d">80 % of every profit, payouts within 7 days of approval.</div>
+            <div class="t" data-i18n="dash.your_vault_opens_with_a_partner_account">Your vault opens with a Partner account</div>
+            <div class="d" data-i18n="dash.80_of_every_profit_payouts_within_7_days">80 % of every profit, payouts within 7 days of approval.</div>
           </div>
         </div>
 
@@ -431,33 +415,33 @@
           </div>
           <div class="stack">
             <div class="panel">
-              <h3>How it works</h3>
+              <h3 data-i18n="dash.how_it_works">How it works</h3>
               <ol class="ol-steps">
-                <li>Once in Phase 3, build a one-time profit buffer of at least +5 % of capital.</li>
-                <li>Before every payout, complete 5 winning tickets with a net profit of at least +0.5 % of capital — the counter resets after each payout.</li>
-                <li>Pick an amount — you receive 80 % of your profit, up to $4,000 per payout.</li>
-                <li>We approve the request within 24 hours and pay it out.</li>
-                <li>After the withdrawal, the balance must stay above the trailing floor.</li>
+                <li data-i18n="dash.once_in_phase_3_build_a_one_time_profit">Once in Phase 3, build a one-time profit buffer of at least +5 % of capital.</li>
+                <li data-i18n="dash.before_every_payout_complete_5_winning_t">Before every payout, complete 5 winning tickets with a net profit of at least +0.5 % of capital — the counter resets after each payout.</li>
+                <li data-i18n="dash.pick_an_amount_you_receive_80_of_your_pr">Pick an amount — you receive 80 % of your profit, up to $4,000 per payout.</li>
+                <li data-i18n="dash.we_approve_the_request_within_24_hours_a">We approve the request within 24 hours and pay it out.</li>
+                <li data-i18n="dash.after_the_withdrawal_the_balance_must_st">After the withdrawal, the balance must stay above the trailing floor.</li>
               </ol>
             </div>
             <div class="panel">
-              <h3>Payout methods</h3>
+              <h3 data-i18n="dash.payout_methods">Payout methods</h3>
               <div class="method">
                 <span class="ic"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="1.5" y="3.5" width="13" height="9" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M1.5 6.5h13" stroke="currentColor" stroke-width="1.4"/></svg></span>
-                <span><span class="t">Bank transfer</span><br /><span class="d">1 to 3 business days</span></span>
+                <span><span class="t" data-i18n="dash.bank_transfer">Bank transfer</span><br /><span class="d" data-i18n="dash.1_to_3_business_days">1 to 3 business days</span></span>
               </div>
               <div class="method">
                 <span class="ic"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.4"/><path d="M6 5.5h2.6a1.5 1.5 0 010 3H6m0 0h3a1.5 1.5 0 010 3H6m1.5-7.5v9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span>
-                <span><span class="t">Crypto</span><br /><span class="d">Within 24 hours</span></span>
+                <span><span class="t" data-i18n="dash.crypto">Crypto</span><br /><span class="d" data-i18n="dash.within_24_hours">Within 24 hours</span></span>
               </div>
             </div>
           </div>
         </div>
 
         <div class="panel mt">
-          <h3>Withdrawal history</h3>
+          <h3 data-i18n="dash.withdrawal_history">Withdrawal history</h3>
           <div id="wdHistory">
-            <p class="slip-empty">No withdrawals yet. They unlock with a Partner account.</p>
+            <p class="slip-empty" data-i18n="dash.no_withdrawals_yet_they_unlock_with_a_pa">No withdrawals yet. They unlock with a Partner account.</p>
           </div>
         </div>
       </section>
@@ -466,105 +450,120 @@
       <section class="dash-view" id="view-affiliate" hidden>
         <div class="dash-head">
           <div>
-            <h1>Affiliate program</h1>
-            <p>Your codes, conversions and earnings estimate</p>
+            <h1 data-i18n="dash.affiliate_program">Affiliate program</h1>
+            <p data-i18n="dash.your_codes_conversions_and_earnings_esti">Your codes, conversions and earnings estimate</p>
           </div>
         </div>
 
         <div class="stat-grid" style="margin-top:0" id="affStatGrid"><!-- JS: renderAffiliate() --></div>
 
         <div class="panel mt">
-          <h3>Your codes</h3>
+          <h3 data-i18n="dash.your_codes">Your codes</h3>
           <div class="k-rows" id="affCodes"><!-- JS: renderAffiliate() --></div>
         </div>
 
         <div class="panel mt">
-          <h3>Referred players</h3>
-          <p class="t-small" style="margin-bottom:10px">Everyone who bought a package with your code. We show up to 5 tickets per player.</p>
+          <h3 data-i18n="dash.referred_players">Referred players</h3>
+          <p class="t-small" style="margin-bottom:10px" data-i18n="dash.everyone_who_bought_a_package_with_your">Everyone who bought a package with your code. We show up to 5 tickets per player.</p>
           <div style="overflow-x:auto">
             <table class="ticket-table">
-              <thead><tr><th>Player</th><th>Package</th><th>Code</th><th>Tickets</th><th>Paid</th><th>Date</th></tr></thead>
+              <thead><tr><th data-i18n="dash.player">Player</th><th data-i18n="dash.package">Package</th><th data-i18n="dash.code">Code</th><th data-i18n="dash.tickets">Tickets</th><th data-i18n="dash.paid">Paid</th><th data-i18n="dash.date">Date</th></tr></thead>
               <tbody id="affReferrals"><!-- JS: renderAffiliate() --></tbody>
             </table>
           </div>
         </div>
       </section>
 
+      <!-- ============ NOVINKY (sportovní zprávy, edge funkce sports-news) ============ -->
+      <section class="dash-view" id="view-novinky" hidden>
+        <div class="dash-head">
+          <div>
+            <h1 data-i18n="dash.news">News</h1>
+            <p data-i18n="dash.news_sub">Fresh sports headlines from trusted sources — read the full story on the source's website.</p>
+          </div>
+          <button class="btn btn-ghost limited-only" data-view-link="noaccount" type="button" data-i18n="dash.back_to_accounts">← Back to your accounts</button>
+        </div>
+        <div class="news-filters" id="newsFilters" role="group"></div>
+        <div class="news-list" id="newsList"><p class="bet-msg" data-i18n="dash.news_loading">Loading news…</p></div>
+        <p class="t-meta" style="margin-top:14px" data-i18n="dash.news_note">Headlines and links come from the public RSS feeds of the listed websites. Fundly is not the author of the articles.</p>
+      </section>
+
       <!-- ============ ACADEMY ============ -->
       <section class="dash-view" id="view-akademie" hidden>
         <div class="dash-head">
           <div>
-            <h1>Academy</h1>
-            <p>Simulation fundamentals for the Fundly Challenge</p>
+            <h1 data-i18n="dash.academy">Academy</h1>
+            <p data-i18n="dash.simulation_fundamentals_for_the_fundly_c">Simulation fundamentals for the Fundly Challenge</p>
           </div>
+          <button class="btn btn-ghost limited-only" data-view-link="noaccount" type="button" data-i18n="dash.back_to_accounts">← Back to your accounts</button>
         </div>
 
         <div class="hero-panel">
           <div>
-            <div class="t">Learn the rules of the game before you enter</div>
-            <div class="d">Five short reads — capital management, odds, value, qualifying tickets and drawdown.</div>
+            <div class="t" data-i18n="dash.learn_the_rules_of_the_game_before_you_e">Learn the rules of the game before you enter</div>
+            <div class="d" data-i18n="dash.five_short_reads_capital_management_odds">Five short reads — capital management, odds, value, qualifying tickets and drawdown.</div>
           </div>
         </div>
 
         <div class="two-col">
           <div class="panel">
-            <h3>Capital management</h3>
+            <h3 data-i18n="dash.capital_management">Capital management</h3>
             <ul class="tip-list">
-              <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Treat your challenge capital as a fixed budget, not a number to double overnight.</li>
-              <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Flat entry sizing wins long-term: 1–2 % of capital per ticket. On Fundly the max entry size is 1.5 % of capital anyway.</li>
-              <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Never chase losses by raising entry sizes — that is how accounts hit the drawdown floor.</li>
+              <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="dash.treat_your_challenge_capital_as_a_fixed">Treat your challenge capital as a fixed budget, not a number to double overnight.</span></li>
+              <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="dash.flat_entry_sizing_wins_long_term_1_2_of">Flat entry sizing wins long-term: 1–2 % of capital per ticket. On Fundly the max entry size is 1.5 % of capital anyway.</span></li>
+              <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="dash.never_chase_losses_by_raising_entry_size">Never chase losses by raising entry sizes — that is how accounts hit the drawdown floor.</span></li>
             </ul>
           </div>
           <div class="panel">
-            <h3>What odds mean</h3>
-            <p class="t-small" style="margin-bottom:12px">Decimal odds tell you two things: your return and the implied probability of the outcome.</p>
+            <h3 data-i18n="dash.what_odds_mean">What odds mean</h3>
+            <p class="t-small" style="margin-bottom:12px" data-i18n="dash.decimal_odds_tell_you_two_things_your_re">Decimal odds tell you two things: your return and the implied probability of the outcome.</p>
             <div class="k-rows">
-              <div class="k-row neutral">Odds 1.50 → implied probability<span class="n">66.7 %</span></div>
-              <div class="k-row neutral">Odds 2.00 → implied probability<span class="n">50 %</span></div>
-              <div class="k-row neutral">Odds 4.00 → implied probability<span class="n">25 %</span></div>
-              <div class="k-row neutral">Return = entry size × odds<span class="n">$10 × 2.00 = $20</span></div>
+              <div class="k-row neutral"><span data-i18n="dash.odds_1_50_implied_probability">Odds 1.50 → implied probability</span><span class="n">66.7 %</span></div>
+              <div class="k-row neutral"><span data-i18n="dash.odds_2_00_implied_probability">Odds 2.00 → implied probability</span><span class="n">50 %</span></div>
+              <div class="k-row neutral"><span data-i18n="dash.odds_4_00_implied_probability">Odds 4.00 → implied probability</span><span class="n">25 %</span></div>
+              <div class="k-row neutral"><span data-i18n="dash.return_entry_size_odds">Return = entry size × odds</span><span class="n">$10 × 2.00 = $20</span></div>
             </div>
-            <p class="t-small" style="margin-top:12px">Implied probability = 1 ÷ odds. Bookmakers build a margin into the odds, so the total of all outcomes is always over 100 %.</p>
+            <p class="t-small" style="margin-top:12px" data-i18n="dash.implied_probability_1_odds_bookmakers_bu">Implied probability = 1 ÷ odds. Bookmakers build a margin into the odds, so the total of all outcomes is always over 100 %.</p>
           </div>
           <div class="panel">
-            <h3>Value vs arbitrage</h3>
-            <p class="t-small" style="margin-bottom:12px"><b>Value betting</b> means betting when the odds are higher than the true probability — you have an edge and accept variance. <b>Arbitrage</b> (sure betting) means covering all outcomes across bookmakers for a guaranteed, risk-free profit.</p>
+            <h3 data-i18n="dash.value_vs_arbitrage">Value vs arbitrage</h3>
+            <p class="t-small" style="margin-bottom:12px"><b data-i18n="dash.value_betting">Value betting</b> <span data-i18n="dash.means_betting_when_the_odds_are_higher_t">means betting when the odds are higher than the true probability — you have an edge and accept variance.</span> <b data-i18n="dash.arbitrage">Arbitrage</b> <span data-i18n="dash.sure_betting_means_covering_all_outcomes">(sure betting) means covering all outcomes across bookmakers for a guaranteed, risk-free profit.</span></p>
             <div class="notice">
               <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.8L1.8 12.7h11.4z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M7.5 6v3M7.5 10.7v.1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-              Arbitrage and sure betting are FORBIDDEN on Fundly. Hedging outcomes for guaranteed profit breaks the challenge rules, gets flagged automatically and leads to a breach.
+              <span data-i18n="dash.arbitrage_and_sure_betting_are_forbidden">Arbitrage and sure betting are FORBIDDEN on Fundly. Hedging outcomes for guaranteed profit breaks the challenge rules, gets flagged automatically and leads to a breach.</span>
             </div>
           </div>
           <div class="panel">
-            <h3>Qualifying tickets</h3>
+            <h3 data-i18n="dash.qualifying_tickets">Qualifying tickets</h3>
             <ul class="tip-list">
-              <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>To pass a phase (and before every payout) you need 5 qualifying tickets.</li>
-              <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>A qualifying ticket is a winning ticket with a net profit of at least +0.5 % of your capital.</li>
-              <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>The rule exists to prove consistent, real betting — not one lucky all-in.</li>
+              <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="dash.to_pass_a_phase_and_before_every_payout">To pass a phase (and before every payout) you need 5 qualifying tickets.</span></li>
+              <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="dash.a_qualifying_ticket_is_a_winning_ticket">A qualifying ticket is a winning ticket with a net profit of at least +0.5 % of your capital.</span></li>
+              <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="dash.the_rule_exists_to_prove_consistent_real">The rule exists to prove consistent, real betting — not one lucky all-in.</span></li>
             </ul>
           </div>
           <div class="panel">
-            <h3>Drawdown</h3>
-            <p class="t-small" style="margin-bottom:12px">Drawdown is how far your balance may fall before the challenge fails. In the Challenge phases the max. loss is a static −10 % of capital — a fixed floor. In Phase 3 it becomes trailing: the floor follows your highest reached balance.</p>
+            <h3 data-i18n="dash.drawdown">Drawdown</h3>
+            <p class="t-small" style="margin-bottom:12px" data-i18n="dash.drawdown_is_how_far_your_balance_may_fal">Drawdown is how far your balance may fall before the challenge fails. In the Challenge phases the max. loss is a static −10 % of capital — a fixed floor. In Phase 3 it becomes trailing: the floor follows your highest reached balance.</p>
             <div class="limit-row">
-              <span class="k">Max. loss <small>(static → trailing in Phase 3)</small></span>
-              <span class="v">−10 % of capital</span>
+              <span class="k"><span data-i18n="dash.max_loss">Max. loss</span> <small data-i18n="dash.static_trailing_in_phase_3">(static → trailing in Phase 3)</small></span>
+              <span class="v" data-i18n="dash.10_of_capital">−10 % of capital</span>
             </div>
             <div class="progress"><span style="width:90%"></span></div>
             <div class="limit-row" style="margin-top:10px">
-              <span class="k">Max. daily loss <small>(resets at midnight UTC)</small></span>
-              <span class="v">−4 % of capital</span>
+              <span class="k"><span data-i18n="dash.max_daily_loss">Max. daily loss</span> <small data-i18n="dash.resets_at_midnight_utc">(resets at midnight UTC)</small></span>
+              <span class="v" data-i18n="dash.4_of_capital">−4 % of capital</span>
             </div>
-            <p class="t-small" style="margin-top:12px">Example: with $25,000 capital the static floor is $22,500. In Phase 3, peaking at $27,000, the trailing floor moves to $24,300.</p>
+            <p class="t-small" style="margin-top:12px" data-i18n="dash.example_with_25_000_capital_the_static_f">Example: with $25,000 capital the static floor is $22,500. In Phase 3, peaking at $27,000, the trailing floor moves to $24,300.</p>
           </div>
           <div class="panel">
-            <h3>House rules in short</h3>
+            <h3 data-i18n="dash.house_rules_in_short">House rules in short</h3>
             <ol class="ol-steps">
-              <li>Phase 1 target +10 %, Phase 2 target +5 % of capital, 30 days per phase.</li>
-              <li>Max. loss −10 % (static in the Challenge, trailing in Phase 3), max. daily loss −4 % of capital.</li>
-              <li>Max. entry size 1.5 % of capital per ticket.</li>
-              <li>5 qualifying tickets per phase and before every payout.</li>
-              <li>No arbitrage, no sure betting, no abusive strategies — flagged tickets lead to a breach.</li>
-              <li>Partner account: 80 % performance split, payouts within 7 days of approval.</li>
+              <li data-i18n="dash.phase_1_target_10_phase_2_target_5_of_ca">Phase 1 target +10 %, Phase 2 target +5 % of capital, 30 days per phase.</li>
+              <li data-i18n="dash.max_loss_10_static_in_the_challenge_trai">Max. loss −10 % (static in the Challenge, trailing in Phase 3), max. daily loss −4 % of capital.</li>
+              <li data-i18n="dash.max_entry_size_1_5_of_capital_per_ticket">Max. entry size 1.5 % of capital per ticket.</li>
+              <li data-i18n="dash.5_qualifying_tickets_per_phase_and_befor">5 qualifying tickets per phase and before every payout.</li>
+              <li data-i18n="dash.no_arbitrage_no_sure_betting_no_abusive">No arbitrage, no sure betting, no abusive strategies — flagged tickets lead to a breach.</li>
+              <li data-i18n="dash.partner_account_80_performance_split_pay">Partner account: 80 % performance split, payouts within 7 days of approval.</li>
             </ol>
           </div>
         </div>
@@ -574,17 +573,17 @@
       <section class="dash-view" id="view-profil" hidden>
         <div class="dash-head">
           <div>
-            <h1>Profile</h1>
-            <p>Manage your details, badges and settings</p>
+            <h1 data-i18n="dash.profile">Profile</h1>
+            <p data-i18n="dash.manage_your_details_badges_and_settings">Manage your details, badges and settings</p>
           </div>
         </div>
 
-        <div class="subtabs" role="tablist" aria-label="Profile section" id="profileTabs">
-          <button class="active" data-ptab="overview" aria-pressed="true">Overview</button>
-          <button data-ptab="badges" aria-pressed="false">Badges</button>
-          <button data-ptab="leaderboard" aria-pressed="false">Referrals</button>
-          <button data-ptab="settings" aria-pressed="false">Settings</button>
-          <button data-ptab="support" aria-pressed="false">Support</button>
+        <div class="subtabs" role="tablist" aria-label="Profile section" id="profileTabs" data-i18n-aria-label="dash.profile_section">
+          <button class="active" data-ptab="overview" aria-pressed="true" data-i18n="dash.overview">Overview</button>
+          <button data-ptab="badges" aria-pressed="false" data-i18n="dash.badges">Badges</button>
+          <button data-ptab="leaderboard" aria-pressed="false" data-i18n="dash.referrals">Referrals</button>
+          <button data-ptab="settings" aria-pressed="false" data-i18n="dash.settings">Settings</button>
+          <button data-ptab="support" aria-pressed="false" data-i18n="dash.support">Support</button>
         </div>
 
         <!-- ---- Overview: account snapshot + risk/time limits + package rules ---- -->
@@ -596,15 +595,15 @@
               </span>
               <span class="grow" style="flex:1">
                 <span class="t" id="pfName">–</span><br />
-                <span class="d">Capital: <span id="pfCap">–</span></span>
+                <span class="d"><span data-i18n="dash.capital">Capital:</span> <span id="pfCap">–</span></span>
               </span>
               <span class="chip-phase" id="pfPhase">–</span>
             </div>
             <div class="stat-grid">
-              <div class="dstat"><div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><rect x="1.5" y="4" width="12" height="8" rx="2" stroke="currentColor" stroke-width="1.6"/><circle cx="7.5" cy="8" r="1.6" fill="currentColor"/></svg></span>Current balance</div><div class="val" id="pfBalance">–</div></div>
-              <div class="dstat"><div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M1.5 11.5l4-4 3 3 5-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Total profit</div><div class="val" id="pfProfit">–</div></div>
-              <div class="dstat"><div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 5a1.5 1.5 0 001.5-1.5h8A1.5 1.5 0 0013 5v1.6a1.9 1.9 0 000 3.8V12a1.5 1.5 0 00-1.5 1.5h-8A1.5 1.5 0 002 12V5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" transform="translate(0,-1.2)"/></svg></span>Total tickets</div><div class="val" id="pfTickets">–</div></div>
-              <div class="dstat"><div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M4.5 2h6v4a3 3 0 01-6 0V2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M7.5 9v2.5M5 13h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>Win rate</div><div class="val" id="pfWinRate">–</div></div>
+              <div class="dstat"><div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><rect x="1.5" y="4" width="12" height="8" rx="2" stroke="currentColor" stroke-width="1.6"/><circle cx="7.5" cy="8" r="1.6" fill="currentColor"/></svg></span><span data-i18n="dash.current_balance">Current balance</span></div><div class="val" id="pfBalance">–</div></div>
+              <div class="dstat"><div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M1.5 11.5l4-4 3 3 5-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="dash.total_profit">Total profit</span></div><div class="val" id="pfProfit">–</div></div>
+              <div class="dstat"><div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 5a1.5 1.5 0 001.5-1.5h8A1.5 1.5 0 0013 5v1.6a1.9 1.9 0 000 3.8V12a1.5 1.5 0 00-1.5 1.5h-8A1.5 1.5 0 002 12V5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" transform="translate(0,-1.2)"/></svg></span><span data-i18n="dash.total_tickets">Total tickets</span></div><div class="val" id="pfTickets">–</div></div>
+              <div class="dstat"><div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M4.5 2h6v4a3 3 0 01-6 0V2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M7.5 9v2.5M5 13h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><span data-i18n="dash.win_rate">Win rate</span></div><div class="val" id="pfWinRate">–</div></div>
             </div>
             <div class="bc-goal">
               <div class="bc-goal-row"><span id="pfGoalLabel">Progress to target</span><span><b id="pfGoalPct">–</b></span></div>
@@ -615,29 +614,29 @@
 
           <div class="two-col">
             <div class="panel">
-              <h3>Risk limits</h3>
-              <p class="t-small" style="margin-bottom:12px">Failure rules: max. loss −10 % of capital (static in the Challenge, trailing once in Phase 3) and max. daily loss −4 %.</p>
+              <h3 data-i18n="dash.risk_limits">Risk limits</h3>
+              <p class="t-small" style="margin-bottom:12px" data-i18n="dash.failure_rules_max_loss_10_of_capital_sta">Failure rules: max. loss −10 % of capital (static in the Challenge, trailing once in Phase 3) and max. daily loss −4 %.</p>
               <div class="limit-row">
-                <span class="k">Max. loss (static) <small id="pfDdDetail">(fixed floor –)</small></span>
+                <span class="k"><span data-i18n="dash.max_loss_static">Max. loss (static)</span> <small id="pfDdDetail">(fixed floor –)</small></span>
                 <span class="v" id="pfDdRemain">–</span>
               </div>
               <div class="progress"><span id="pfDdBar" style="width:100%"></span></div>
             </div>
             <div class="panel">
-              <h3>Time limit</h3>
+              <h3 data-i18n="dash.time_limit">Time limit</h3>
               <div class="val green" style="font-size:1.75rem;font-weight:800" id="pfDaysLeft">–</div>
               <p class="t-small" id="pfDeadline">Left until the end of the phase</p>
             </div>
           </div>
 
           <div class="panel mt">
-            <h3>Package rules</h3>
+            <h3 data-i18n="dash.package_rules">Package rules</h3>
             <div class="rules-grid" id="pfRules"><!-- JS: renderProfile() --></div>
           </div>
 
           <div class="panel mt">
-            <h3>Your account history</h3>
-            <p class="t-small" style="margin-bottom:12px">You can only have one active Challenge account at a time — a new package can't be purchased while you already have one active, funded, or pending approval.</p>
+            <h3 data-i18n="dash.your_account_history">Your account history</h3>
+            <p class="t-small" style="margin-bottom:12px" data-i18n="dash.you_can_only_have_one_active_challenge_a">You can only have one active Challenge account at a time — a new package can't be purchased while you already have one active, funded, or pending approval.</p>
             <div class="k-rows" id="pfAccountHistory"><!-- JS: renderProfile() --></div>
           </div>
         </div>
@@ -645,7 +644,7 @@
         <!-- ---- Badges ---- -->
         <div class="profile-sub" data-psec="badges" hidden>
           <div class="panel">
-            <h3>Badges · <span style="color:var(--text-muted);font-weight:500" id="badgeCount">0 / 12</span></h3>
+            <h3><span data-i18n="dash.badges_2">Badges ·</span> <span style="color:var(--text-muted);font-weight:500" id="badgeCount">0 / 12</span></h3>
             <div class="badges" id="badgeGrid"><!-- JS --></div>
           </div>
         </div>
@@ -654,14 +653,14 @@
         <div class="profile-sub" data-psec="leaderboard" hidden>
           <div class="two-col">
             <div class="panel">
-              <h3>Invite your friends</h3>
-              <p class="t-small">For every friend who buys a package, you get 5 % cashback to your challenge balance.</p>
+              <h3 data-i18n="dash.invite_your_friends">Invite your friends</h3>
+              <p class="t-small" data-i18n="dash.for_every_friend_who_buys_a_package_you">For every friend who buys a package, you get 5 % cashback to your challenge balance.</p>
               <div class="ref-stats">
-                <div><div class="num">0</div><div class="lbl">Invited</div></div>
-                <div><div class="num green">0</div><div class="lbl">Active</div></div>
-                <div><div class="num green">$0</div><div class="lbl">Bonus</div></div>
+                <div><div class="num">0</div><div class="lbl" data-i18n="dash.invited">Invited</div></div>
+                <div><div class="num green">0</div><div class="lbl" data-i18n="dash.active">Active</div></div>
+                <div><div class="num green">$0</div><div class="lbl" data-i18n="dash.bonus">Bonus</div></div>
               </div>
-              <p class="t-meta" style="margin-top:10px">Live stats are in the <a href="#" data-view-link="affiliate" style="color:var(--accent);font-weight:600">Affiliate tab</a>.</p>
+              <p class="t-meta" style="margin-top:10px"><span data-i18n="dash.live_stats_are_in_the">Live stats are in the</span> <a href="#" data-view-link="affiliate" style="color:var(--accent);font-weight:600" data-i18n="dash.affiliate_tab">Affiliate tab</a>.</p>
             </div>
             <!-- Leaderboard opt-in temporarily hidden (see dnav-link
                  data-view="zebricek" above for the full explanation) — the
@@ -670,10 +669,10 @@
               <div class="panel">
                 <div class="switch-row">
                   <span class="grow">
-                    <span class="t">Share on the leaderboard</span><br />
-                    <span class="d">Without a nickname you appear anonymously as Player #4f2c.</span>
+                    <span class="t" data-i18n="dash.share_on_the_leaderboard">Share on the leaderboard</span><br />
+                    <span class="d" data-i18n="dash.without_a_nickname_you_appear_anonymousl">Without a nickname you appear anonymously as Player #4f2c.</span>
                   </span>
-                  <button class="switch" role="switch" aria-checked="true" id="lbShare" aria-label="Share on the leaderboard"></button>
+                  <button class="switch" role="switch" aria-checked="true" id="lbShare" aria-label="Share on the leaderboard" data-i18n-aria-label="dash.share_on_the_leaderboard"></button>
                 </div>
               </div>
               <div class="panel">
@@ -698,7 +697,7 @@
         <div class="profile-sub" data-psec="support" hidden>
           <div class="panel">
             <h3 data-i18n="forms.supTitle">Contact support</h3>
-            <p class="t-small" style="margin-bottom:12px" data-i18n-html="forms.supIntro">Question about a payout, your account, or a rule? We'll reply by email — or <a href="https://t.me/+420608187811" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600">chat with us on Telegram</a> for a faster reply.</p>
+            <p class="t-small" style="margin-bottom:12px" data-i18n-html="forms.supIntro">Question about a payout, your account, or a rule? We'll reply by email — or <a href="https://t.me/+420608187811" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600" data-i18n="dash.chat_with_us_on_telegram">chat with us on Telegram</a> for a faster reply.</p>
             <form id="supportForm">
               <div class="field">
                 <label for="supportMessage" data-i18n="forms.supMessage">Message</label>
@@ -715,26 +714,35 @@
       <section class="dash-view" id="view-noaccount" hidden>
         <div class="dash-head">
           <div>
-            <h1>Your accounts</h1>
-            <p>You don't have an active challenge account.</p>
+            <h1 data-i18n="dash.your_accounts">Your accounts</h1>
+            <p data-i18n="dash.you_don_t_have_an_active_challenge_accou">You don't have an active challenge account.</p>
+          </div>
+        </div>
+
+        <div class="panel" id="naAccessPanel" hidden>
+          <h3 data-i18n="dash.access_title">Your platform access continues</h3>
+          <p class="t-small" id="naAccessText"></p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+            <button class="btn btn-primary" type="button" data-view-link="novinky" data-i18n="dash.news">News</button>
+            <button class="btn btn-ghost" type="button" data-view-link="akademie" data-i18n="dash.academy">Academy</button>
           </div>
         </div>
 
         <div class="panel act-panel" id="naResetPanel" hidden>
-          <h3>Your account was closed</h3>
+          <h3 data-i18n="dash.your_account_was_closed">Your account was closed</h3>
           <p class="t-small" id="naResetText"></p>
           <button class="btn btn-primary" id="naResetBtn" style="margin-top:12px">Reset my account</button>
           <p class="auth-note mt" id="naResetNote" hidden></p>
         </div>
 
         <div class="panel act-panel">
-          <h3>Get an account</h3>
-          <p class="t-small">Start a new Challenge — a one-time fee, 30 days per phase.</p>
-          <a class="btn btn-primary" href="checkout" style="margin-top:12px">Buy a new Challenge</a>
+          <h3 data-i18n="dash.get_an_account">Get an account</h3>
+          <p class="t-small" data-i18n="dash.start_a_new_challenge_a_one_time_fee_30">Start a new Challenge — a one-time fee, 30 days per phase.</p>
+          <a class="btn btn-primary" href="checkout" style="margin-top:12px" data-i18n="dash.buy_a_new_challenge">Buy a new Challenge</a>
         </div>
 
         <div class="panel mt" id="naPastPanel" hidden>
-          <h3>Your past accounts</h3>
+          <h3 data-i18n="dash.your_past_accounts">Your past accounts</h3>
           <div class="k-rows" id="naAccounts"><!-- JS: showLimitedDashboard() --></div>
         </div>
 
@@ -745,57 +753,64 @@
   </main>
 
   <!-- mobile navigation: 5 primary tabs + "More" sheet for the rest -->
-  <nav class="dnav-mobile" aria-label="Dashboard, mobile">
+  <nav class="dnav-mobile" aria-label="Dashboard, mobile" data-i18n-aria-label="dash.dashboard_mobile">
     <button class="active" data-view="prehled">
       <svg width="17" height="17" viewBox="0 0 15 15" fill="none" aria-hidden="true"><rect x="1.5" y="1.5" width="5" height="5" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="8.5" y="1.5" width="5" height="5" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="1.5" y="8.5" width="5" height="5" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="8.5" y="8.5" width="5" height="5" rx="1.5" stroke="currentColor" stroke-width="1.6"/></svg>
-      Overview
+      <span data-i18n="dash.overview">Overview</span>
     </button>
     <button data-view="sazeni">
       <svg width="17" height="17" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 5a1.5 1.5 0 001.5-1.5h8A1.5 1.5 0 0013 5v1.6a1.9 1.9 0 000 3.8V12a1.5 1.5 0 00-1.5 1.5h-8A1.5 1.5 0 002 12V5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" transform="translate(0,-1.2)"/></svg>
-      Entries
+      <span data-i18n="dash.entries">Entries</span>
     </button>
     <button data-view="vykon">
       <svg width="17" height="17" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M1.5 11.5l4-4 3 3 5-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Performance
+      <span data-i18n="dash.performance">Performance</span>
     </button>
     <button data-view="vyplaty">
       <svg width="17" height="17" viewBox="0 0 15 15" fill="none" aria-hidden="true"><rect x="1.5" y="3.5" width="12" height="8.5" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M9.5 7.75h2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-      Payouts
+      <span data-i18n="dash.payouts">Payouts</span>
     </button>
     <button id="dnavMoreBtn" aria-haspopup="true" aria-expanded="false">
       <svg width="17" height="17" viewBox="0 0 15 15" fill="none" aria-hidden="true"><circle cx="3.25" cy="7.5" r="1.25" fill="currentColor"/><circle cx="7.5" cy="7.5" r="1.25" fill="currentColor"/><circle cx="11.75" cy="7.5" r="1.25" fill="currentColor"/></svg>
-      More
+      <span data-i18n="dash.more">More</span>
     </button>
   </nav>
   <div id="dnavMoreSheet" class="dnav-more-sheet" hidden>
     <!-- Leaderboard temporarily hidden — see dnav-link with data-view="zebricek" above. -->
     <button data-view="zebricek" hidden>
       <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M4.5 2h6v4a3 3 0 01-6 0V2zM4.5 3.5h-2a2 2 0 002 2.5M10.5 3.5h2a2 2 0 01-2 2.5M7.5 9v2.5M5 13h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Leaderboard
+      <span data-i18n="dash.leaderboard">Leaderboard</span>
     </button>
     <button data-view="affiliate">
       <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.5l1.8 3.8 4.2.6-3 3 .7 4.1-3.7-2-3.7 2 .7-4.1-3-3 4.2-.6z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
-      Affiliate
+      <span data-i18n="dash.affiliate">Affiliate</span>
+    </button>
+    <button data-view="novinky">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><rect x="1.75" y="2.5" width="11.5" height="10" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M4 5.5h7M4 8h7M4 10.5h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      <span data-i18n="dash.news">News</span>
     </button>
     <button data-view="akademie">
       <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 3.5A1.5 1.5 0 013.5 2H13v10H3.5A1.5 1.5 0 002 13.5v-10z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M2 13.5A1.5 1.5 0 013.5 12H13M5.5 5.5h5M5.5 8h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-      Academy
+      <span data-i18n="dash.academy">Academy</span>
     </button>
     <button data-view="profil">
       <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><circle cx="7.5" cy="4.75" r="2.75" stroke="currentColor" stroke-width="1.4"/><path d="M2.5 13c.7-2.4 2.7-3.75 5-3.75S11.8 10.6 12.5 13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-      Profile
+      <span data-i18n="dash.profile">Profile</span>
     </button>
   </div>
 
   <div id="toastLayer" class="toast-layer" aria-live="polite"></div>
 
-  <script src="js/packages.js?v=20261115b"></script>
-  <script src="js/i18n.js?v=20261115b"></script>
-  <script src="js/portfolio.js?v=20261115b"></script>
-  <script src="js/dashboard.js?v=20261115b"></script>
-  <script src="js/promo-banner.js?v=20261115b"></script>
-  <script src="js/track.js?v=20261115b"></script>
-  <script src="js/pwa.js?v=20261115b"></script>
-  <script src="js/telegram-widget.js?v=20261115b"></script>
+  <script src="js/packages.js?v=20261115h"></script>
+  <script src="js/i18n.js?v=20261115h"></script>
+  <script src="js/i18n-dash.js?v=20261115h"></script>
+  <script src="js/i18n-dash-js.js?v=20261115h"></script>
+  <script src="js/portfolio.js?v=20261115h"></script>
+  <script src="js/dashboard.js?v=20261115h"></script>
+  <script src="js/tour.js?v=20261115l"></script>
+  <script src="js/promo-banner.js?v=20261115h"></script>
+  <script src="js/track.js?v=20261115h"></script>
+  <script src="js/pwa.js?v=20261115h"></script>
+  <script src="js/telegram-widget.js?v=20261115h"></script>
 </body>
 </html>
