@@ -1491,3 +1491,35 @@ body.limited .limited-only { display: inline-flex; }
 .panel > div[style*="overflow-x"] { max-width: 100%; }
 /* horní lišta dashboardu neprůhledná — dřív přes ni prosvítal obsah (graf, popisky) */
 .with-sidebar .nav, .with-sidebar .nav.scrolled { background: #020204; }
+
+/* Výběr sportu: tlačítko s aktuálním sportem → mřížka všech sportů */
+.sport-picker { position: relative; margin-bottom: 10px; }
+.sport-picker[hidden] { display: none; }
+.sport-pick {
+  display: flex; align-items: center; gap: 12px; width: 100%; max-width: 360px;
+  height: 52px; padding: 0 14px; border-radius: var(--d-r); border: 0; cursor: pointer;
+  background: #ffffff08; box-shadow: inset 0 0 0 1px var(--line); color: var(--text-primary); font: inherit; text-align: left;
+}
+.sport-pick:hover, .sport-pick[aria-expanded="true"] { box-shadow: inset 0 0 0 1px var(--accent-border-soft); }
+.sport-pick img { width: 28px; height: 28px; object-fit: contain; }
+.sport-pick-t { display: flex; flex-direction: column; flex: 1; min-width: 0; line-height: 1.2; }
+.sport-pick-t small { font-size: .6875rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
+.sport-pick-t b { font-size: 1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sport-pick-chev { color: var(--text-muted); transition: transform .15s ease; }
+.sport-pick[aria-expanded="true"] .sport-pick-chev { transform: rotate(180deg); }
+.sport-menu {
+  position: absolute; z-index: 40; top: calc(100% + 6px); left: 0; width: min(560px, 100%);
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; padding: 8px;
+  background: rgb(14 14 20 / .98); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 18px 40px -12px rgb(0 0 0 / .7);
+}
+.sport-menu[hidden] { display: none; }
+@media (max-width: 480px) { .sport-menu { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.sport-menu button {
+  display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 12px; border: 0; border-radius: 10px;
+  background: transparent; color: var(--text-secondary); font: inherit; font-size: .875rem; font-weight: 600; text-align: left; cursor: pointer;
+}
+.sport-menu button span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sport-menu button img { width: 24px; height: 24px; object-fit: contain; flex-shrink: 0; }
+.sport-menu button:hover { background: #ffffff0d; color: var(--text-primary); }
+.sport-menu button.active { background: var(--accent-tint); color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent-border-soft); }
+.sport-picker .ic-letter { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 6px; background: #ffffff14; font-weight: 800; font-size: .75rem; }
