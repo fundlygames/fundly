@@ -3487,38 +3487,42 @@ function renderPrehled() {
       <span class="rr-phase-sub">${ftf("dashjs.rules.started", { date: new Date(state.phaseStartedAt).toLocaleDateString(uiLocale()) })}${state.phase === "funded" ? "" : ftp("dashjs.rules.daysLeftSuffix", daysLeft)}</span>
     </div>`;
 
+  // Limity: každý limit = samostatná karta (název → jedno velké číslo → pruh → jedna věta vysvětlení).
+  // Barva pruhu podle stavu: zelená = v pohodě, oranžová = pozor, červená = blízko limitu.
+  const limTone = (p) => (p < 30 ? "danger" : p < 60 ? "warn" : "ok");
+  const limBar = (p) => `<div class="lim-bar ${limTone(p)}"><span style="width:${Math.max(2, Math.min(100, p))}%"></span></div>`;
+  const qualN = Math.min(qual, meta.qualifyingTickets);
   document.getElementById("ovLimity").innerHTML = `
-    <div class="limit-row">
-      <span class="k">${ft("dashjs.rules.totalLoss")} <small>${ftf("dashjs.rules.floorInfo", { kind: dd.trailing ? ft("dashjs.rules.kindTrailing") : ft("dashjs.rules.kindStatic"), floor: usd(dd.floor) })}</small></span>
-      <span class="v">${ftf("dashjs.common.amountLeft", { amount: usd(Math.round(dd.remaining)) })}</span>
-    </div>
-    <div class="dd-bar" role="img" aria-label="${esc(ftf("dashjs.common.amountLeft", { amount: usd(Math.round(dd.remaining)) }))}">
-      <span class="dd-fill" style="width:${dd.pct}%"></span>
-      <span class="cursor" style="left:${dd.pct}%"></span>
-    </div>
-    <div class="dd-scale">
-      <span class="lo">${ftf("dashjs.rules.floorCap", { floor: usd(dd.floor) })}</span>
-      ${dd.pct > 75
-        // zůstatek u horního okraje: místo dvou čísel vedle sebe jedno "zůstatek / start"
-        ? `<span class="hi"><b>${usd(state.balance)}</b> / ${usd(dd.trailing ? state.hwm : state.cap)}</span>`
-        : `<span class="now" style="left:${Math.max(30, dd.pct)}%">${usd(state.balance)}</span>
-      <span class="hi">${usd(dd.trailing ? state.hwm : state.cap)}</span>`}
-    </div>
-    <div class="limit-row" style="margin-top:14px">
-      <span class="k">${ft("dashjs.rules.dailyLoss")} <small>${ft("dashjs.rules.resetsUtcSmall")}</small></span>
-      <span class="v">${ftf("dashjs.rules.leftOf", { remaining: usd(Math.round(dl.remaining)), limit: usd(dl.limit) })}</span>
-    </div>
-    <div class="limit-row">
-      <span class="k">${ft("dashjs.rules.exposure")} <small>${ft("dashjs.rules.exposureSub")}</small></span>
-      <span class="v">${ftf("dashjs.rules.exposureVal", { exposure: usd(worst.exposure), balance: usd(Math.round(worst.worstCaseBalance)) })}</span>
-    </div>
-    <div class="limit-row">
-      <span class="k">${ft("dashjs.rules.qualifying")} <small>${ft("dashjs.rules.qualifyingSmall")}</small></span>
-      <span class="v">${Math.min(qual, meta.qualifyingTickets)} / ${meta.qualifyingTickets}</span>
-    </div>
-    <div class="limit-row">
-      <span class="k">${ft("dashjs.rules.withdrawal")} <small>${ft("dashjs.rules.partnerSmall")}</small></span>
-      <span class="v">${ft("dashjs.rules.withdrawalVal")}</span>
+    <div class="lim-grid">
+      <div class="lim-card lim-wide">
+        <div class="lim-k">${ft("dashjs.lim.maxLoss")}</div>
+        <div class="lim-v">${ftf("dashjs.lim.left", { amount: usd(Math.round(dd.remaining)) })}</div>
+        ${limBar(dd.pct)}
+        <div class="lim-scale"><span>${ftf("dashjs.lim.floor", { amount: usd(dd.floor) })}</span><span>${ftf("dashjs.lim.now", { amount: usd(state.balance) })}</span></div>
+        <p class="lim-sub">${ftf(dd.trailing ? "dashjs.lim.maxLossSubTrailing" : "dashjs.lim.maxLossSub", { floor: usd(dd.floor) })}</p>
+      </div>
+      <div class="lim-card">
+        <div class="lim-k">${ft("dashjs.lim.daily")}</div>
+        <div class="lim-v">${ftf("dashjs.lim.left", { amount: usd(Math.round(dl.remaining)) })} <small>${ftf("dashjs.lim.of", { amount: usd(dl.limit) })}</small></div>
+        ${limBar(pctDaily)}
+        <p class="lim-sub">${ft("dashjs.lim.dailySub")}</p>
+      </div>
+      <div class="lim-card">
+        <div class="lim-k">${ft("dashjs.lim.open")}</div>
+        <div class="lim-v">${usd(worst.exposure)}</div>
+        <p class="lim-sub">${worst.exposure > 0 ? ftf("dashjs.lim.openSub", { balance: usd(Math.round(worst.worstCaseBalance)) }) : ft("dashjs.lim.openNone")}</p>
+      </div>
+      <div class="lim-card">
+        <div class="lim-k">${ft("dashjs.lim.qual")}</div>
+        <div class="lim-v">${qualN} <small>/ ${meta.qualifyingTickets}</small></div>
+        <div class="lim-dots" aria-hidden="true">${Array.from({ length: meta.qualifyingTickets }, (_, i) => `<span class="${i < qualN ? "on" : ""}"></span>`).join("")}</div>
+        <p class="lim-sub">${ftf("dashjs.lim.qualSub", { amount: usd(Math.round(state.cap * 0.005)) })}</p>
+      </div>
+      <div class="lim-card">
+        <div class="lim-k">${ft("dashjs.lim.reward")}</div>
+        <div class="lim-v">${ftf("dashjs.lim.rewardVal", { pct: meta.profitSplit })}</div>
+        <p class="lim-sub">${ft("dashjs.lim.rewardSub")}</p>
+      </div>
     </div>`;
 
   document.getElementById("ovPravidla").innerHTML = `
