@@ -187,22 +187,67 @@ function timeAgo(iso) {
   return new Date(iso).toLocaleDateString(newsLang() === "cs" ? "cs-CZ" : "en-GB", { day: "numeric", month: "short" });
 }
 const newsEsc = (v) => String(v ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+// sport → ikona (assets/sports) a klíč popisku
+const NEWS_SPORTS = {
+  football: "fotbal", hockey: "hokej", tennis: "tenis", basketball: "basketbal", mma: "mma",
+  motorsport: "f1", esports: "esporty", amfootball: null, other: null,
+};
+let newsSport = "";
+let newsShown = 13;
+function newsThumb(i, cls) {
+  const icon = NEWS_SPORTS[i.sport];
+  const ph = `<div class="${cls} news-ph news-ph-${newsEsc(i.sport)}">${icon ? `<img src="assets/sports/${icon}.png" alt="" />` : `<img src="assets/logo.png" alt="" class="news-ph-logo" />`}</div>`;
+  if (!i.image) return ph;
+  // obrázek z RSS zdroje (náhled, který vydavatel sám nabízí); při chybě načtení náhradní ikona
+  return `<div class="${cls}"><img src="${newsEsc(i.image)}" alt="" loading="lazy" referrerpolicy="no-referrer"
+    onerror="this.parentNode.outerHTML=this.parentNode.dataset.ph" /></div>`.replace(`class="${cls}"`, `class="${cls}" data-ph="${newsEsc(ph)}"`);
+}
+function newsMeta(i) {
+  const sp = i.sport && i.sport !== "other" ? `<span class="news-sport">${newsEsc(ft("dashjs.news.sport." + i.sport))}</span>` : "";
+  return `<div class="news-meta"><span class="news-src">${newsEsc(i.source)}</span>${sp}<span>${newsEsc(timeAgo(i.published))}</span></div>`;
+}
 function renderNews() {
   const list = document.getElementById("newsList");
   const filters = document.getElementById("newsFilters");
   if (!list) return;
-  const sources = [...new Set(newsData.items.map((i) => i.source))];
+  const sports = Object.keys(NEWS_SPORTS).filter((k) => newsData.items.some((i) => i.sport === k));
+  const bySport = newsData.items.filter((i) => !newsSport || i.sport === newsSport);
+  const sources = [...new Set(bySport.map((i) => i.source))];
+  if (newsSource && !sources.includes(newsSource)) newsSource = "";
   if (filters) {
-    filters.innerHTML = [`<button type="button" data-news-src="" aria-pressed="${!newsSource}">${newsEsc(ft("dashjs.news.all"))}</button>`]
-      .concat(sources.map((src) => `<button type="button" data-news-src="${newsEsc(src)}" aria-pressed="${newsSource === src}">${newsEsc(src)}</button>`)).join("");
+    const chip = (attr, val, label, on, icon) =>
+      `<button type="button" ${attr}="${newsEsc(val)}" aria-pressed="${on}">${icon ? `<img src="assets/sports/${icon}.png" alt="" />` : ""}${newsEsc(label)}</button>`;
+    filters.innerHTML =
+      `<div class="news-row">${chip("data-news-sport", "", ft("dashjs.news.allSports"), !newsSport)}${sports.map((k) => chip("data-news-sport", k, ft("dashjs.news.sport." + k), newsSport === k, NEWS_SPORTS[k])).join("")}</div>` +
+      `<div class="news-row news-row-src">${chip("data-news-src", "", ft("dashjs.news.all"), !newsSource)}${sources.map((src) => chip("data-news-src", src, src, newsSource === src)).join("")}</div>`;
   }
-  const items = newsData.items.filter((i) => !newsSource || i.source === newsSource);
+  const items = bySport.filter((i) => !newsSource || i.source === newsSource);
   if (!items.length) { list.innerHTML = `<p class="bet-msg">${newsEsc(ft("dashjs.news.empty"))}</p>`; return; }
-  list.innerHTML = items.map((i) => `
-    <a class="news-item" href="${newsEsc(i.link)}" target="_blank" rel="noopener noreferrer">
-      <div class="news-meta"><span class="news-src">${newsEsc(i.source)}</span><span>${newsEsc(timeAgo(i.published))}</span></div>
-      <div class="news-title">${newsEsc(i.title)}</div>
-    </a>`).join("");
+  const featIdx = Math.max(0, items.findIndex((i) => i.image));
+  const feat = items[featIdx];
+  const rest = items.filter((_, k) => k !== featIdx);
+  const read = (i) => newsEsc(ftf("dashjs.news.readOn", { source: i.source }));
+  const card = (i) => `
+    <a class="news-card" href="${newsEsc(i.link)}" target="_blank" rel="noopener noreferrer">
+      ${newsThumb(i, "news-img")}
+      <div class="news-body">${newsMeta(i)}
+        <div class="news-title">${newsEsc(i.title)}</div>
+        ${i.summary ? `<p class="news-sum">${newsEsc(i.summary)}</p>` : ""}
+        <span class="news-read">${read(i)} ↗</span>
+      </div>
+    </a>`;
+  const shown = rest.slice(0, newsShown - 1);
+  list.innerHTML = `
+    <a class="news-feat" href="${newsEsc(feat.link)}" target="_blank" rel="noopener noreferrer">
+      ${newsThumb(feat, "news-feat-img")}
+      <div class="news-body">${newsMeta(feat)}
+        <div class="news-feat-title">${newsEsc(feat.title)}</div>
+        ${feat.summary ? `<p class="news-sum">${newsEsc(feat.summary)}</p>` : ""}
+        <span class="news-read">${read(feat)} ↗</span>
+      </div>
+    </a>
+    <div class="news-grid">${shown.map(card).join("")}</div>
+    ${rest.length > shown.length ? `<button type="button" class="btn btn-ghost news-more" data-news-more>${newsEsc(ft("dashjs.news.more"))}</button>` : ""}`;
 }
 async function loadNews(force) {
   const lang = newsLang();
@@ -222,9 +267,13 @@ async function loadNews(force) {
   }
 }
 document.addEventListener("click", (e) => {
-  const b = e.target.closest("[data-news-src]");
-  if (!b) return;
-  newsSource = b.dataset.newsSrc;
+  const src = e.target.closest("[data-news-src]");
+  const sp = e.target.closest("[data-news-sport]");
+  const more = e.target.closest("[data-news-more]");
+  if (!src && !sp && !more) return;
+  if (src) { newsSource = src.dataset.newsSrc; newsShown = 13; }
+  if (sp) { newsSport = sp.dataset.newsSport; newsSource = ""; newsShown = 13; }
+  if (more) newsShown += 12;
   renderNews();
 });
 document.addEventListener("fundly:lang-changed", () => {

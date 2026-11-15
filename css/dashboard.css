@@ -1326,16 +1326,40 @@ text.eq-lv-floor { fill: #ff9d9d; }
 .si-odds.odd-flash { animation: oddFlash 1.5s ease-out; }
 @media (prefers-reduced-motion: reduce) { .odd-btn.odd-up, .odd-btn.odd-down, .si-odds.odd-flash { animation: none; } }
 
-/* Novinky (sportovní zprávy) */
-.news-filters { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 14px; }
-.news-filters button { border: 1px solid var(--line); background: transparent; color: var(--text-secondary); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: .8125rem; cursor: pointer; }
+/* Novinky (sportovní zprávy) — magazín */
+.news-filters { display: grid; gap: 8px; margin: 4px 0 16px; }
+.news-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.news-filters button { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: transparent; color: var(--text-secondary); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: .8125rem; cursor: pointer; }
+.news-filters button img { width: 16px; height: 16px; object-fit: contain; }
+.news-row-src button { padding: 4px 10px; font-size: .75rem; }
 .news-filters button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #04140c; font-weight: 700; }
-.news-list { display: grid; gap: 10px; }
-.news-item { display: block; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius-lg, 14px); background: var(--surface, rgb(255 255 255 / .02)); color: inherit; text-decoration: none; transition: border-color .15s; }
-.news-item:hover { border-color: var(--accent); }
-.news-meta { font-size: .75rem; color: var(--text-muted); margin-bottom: 4px; display: flex; gap: 8px; }
+.news-feat, .news-card { display: flex; color: inherit; text-decoration: none; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--surface, rgb(255 255 255 / .02)); transition: border-color .15s, transform .15s; }
+.news-feat:hover, .news-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.news-feat { margin-bottom: 14px; min-height: 240px; }
+.news-feat-img { flex: 0 0 52%; position: relative; background: #0d0d12; }
+.news-feat-img img, .news-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.news-feat .news-body { padding: 20px 22px; }
+.news-feat-title { font-size: 1.375rem; font-weight: 800; line-height: 1.25; letter-spacing: -.01em; margin: 6px 0 10px; }
+.news-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.news-card { flex-direction: column; }
+.news-img { aspect-ratio: 16 / 9; background: #0d0d12; overflow: hidden; }
+.news-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.news-meta { font-size: .75rem; color: var(--text-muted); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .news-src { color: var(--accent); font-weight: 700; }
-.news-title { font-weight: 600; line-height: 1.4; }
+.news-sport { border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; }
+.news-title { font-weight: 700; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.news-sum { margin: 0; color: var(--text-secondary); font-size: .8125rem; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.news-feat .news-sum { -webkit-line-clamp: 4; font-size: .875rem; }
+.news-read { margin-top: auto; padding-top: 4px; font-size: .75rem; font-weight: 700; color: var(--accent); }
+.news-ph { display: grid; place-items: center; background: radial-gradient(120% 120% at 30% 20%, rgb(20 241 149 / .18), transparent 60%), linear-gradient(135deg, #14141b, #0b0b10); }
+.news-ph img { width: 64px !important; height: 64px !important; object-fit: contain !important; opacity: .9; }
+.news-ph-logo { opacity: .5 !important; }
+.news-more { display: block; margin: 16px auto 0; }
+@media (max-width: 720px) {
+  .news-feat { flex-direction: column; min-height: 0; }
+  .news-feat-img { aspect-ratio: 16 / 9; flex: none; }
+  .news-feat-title { font-size: 1.125rem; }
+}
 /* prvky jen pro omezený režim (bez aktivního účtu) */
 .limited-only { display: none; }
 body.limited .limited-only { display: inline-flex; }

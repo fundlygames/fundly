@@ -1,6 +1,8 @@
 // sports-news — športové novinky pro dashboard (sekce Novinky). Veřejná, bez JWT.
-// Stahuje veřejné RSS kanály sportovních webů, vrací JEN titulek, odkaz, zdroj a čas
-// (žádný text článku ani obrázky — autorská práva; čtenář jde na web zdroje).
+// Stahuje veřejné RSS kanály sportovních webů. Vrací jen to, co vydavatelé v RSS sami nabízejí
+// k převzetí: titulek, krátký úvod (perex, zkrácený), náhledový obrázek, zdroj, čas a odkaz.
+// Celý text článků NEPŘEBÍRÁME (autorská práva) — čtenář jde na web zdroje.
+// Obsah o sázení (např. sekce iDNES „Sázení“) se vyřazuje — Fundly se nemá spojovat s hazardem.
 // Cache 15 min (tabulka odds_cache, klíč news:<lang>) + paměť instance; při výpadku zdrojů
 // vrací poslední uložená data.
 // GET ?lang=cs|en  (sk → cs, ostatní → en)
@@ -22,9 +24,9 @@ const FEEDS: Record<"cs" | "en", { name: string; url: string }[]> = {
   ],
 };
 const TTL_S = 15 * 60;
-const MAX_ITEMS = 60;
+const MAX_ITEMS = 80;
 
-type Item = { title: string; link: string; source: string; published: string | null };
+type Item = { title: string; link: string; source: string; published: string | null; summary: string; image: string | null; sport: string };
 
 const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 const mem = new Map<string, { t: number; body: string }>();
@@ -44,6 +46,24 @@ const tag = (xml: string, name: string) => {
   return m ? decode(m[1]) : "";
 };
 
+// sport z adresy článku / kategorie RSS (pro filtry v dashboardu)
+const SPORT_RULES: [string, RegExp][] = [
+  ["amfootball", /\bnfl\b|college-football|american-football|\bncaaf?\b|super-bowl/i],
+  ["football", /fotbal|football|soccer|premier-league|liga-mistr|champions|\/fotbal|uefa|fifa/i],
+  ["hockey", /hokej|hockey|nhl|\/hokej|extraliga/i],
+  ["tennis", /tenis|tennis|wimbledon|atp|wta|roland|us-open/i],
+  ["basketball", /basket|nba|euroleague/i],
+  ["mma", /mma|ufc|oktagon|box|boxing|wrestling|raf/i],
+  ["motorsport", /formul|f1|formula-1|motorsport|moto-gp|motogp|rallye|rally/i],
+  ["esports", /esport|e-sport|counter-strike|league-of-legends|dota/i],
+];
+function sportOf(link: string, title: string, cats: string): string {
+  const hay = `${link} ${cats} ${title}`;
+  for (const [k, re] of SPORT_RULES) if (re.test(hay)) return k;
+  return "other";
+}
+const BETTING = /sazeni\.|\/sazeni|\/sazky|sázen|sázk|betting|\/bet\b/i;
+
 async function fetchFeed(f: { name: string; url: string }): Promise<Item[]> {
   const res = await fetch(f.url, { headers: { "User-Agent": "FundlyNewsBot/1.0 (+https://fundly.games)" }, signal: AbortSignal.timeout(8000) });
   if (!res.ok) throw new Error(`${f.name} HTTP ${res.status}`);
@@ -55,8 +75,20 @@ async function fetchFeed(f: { name: string; url: string }): Promise<Item[]> {
     let link = tag(it, "link");
     if (!link) { const g = it.match(/<guid[^>]*>(https?:[^<]+)<\/guid>/i); if (g) link = decode(g[1]); }
     if (!title || !/^https:\/\//.test(link)) continue;
+    const cats = [...it.matchAll(/<category[^>]*>([\s\S]*?)<\/category>/gi)].map((c) => decode(c[1])).join(" ");
+    if (BETTING.test(link) || BETTING.test(cats)) continue; // obsah o sázení vynechat
     const d = new Date(tag(it, "pubDate") || tag(it, "dc:date"));
-    items.push({ title: title.slice(0, 220), link, source: f.name, published: Number.isNaN(d.getTime()) ? null : d.toISOString() });
+    const rawDesc = (it.match(/<description[^>]*>([\s\S]*?)<\/description>/i) || [])[1] || "";
+    let summary = decode(rawDesc);
+    if (summary.length > 240) summary = summary.slice(0, 240).replace(/\s+\S*$/, "") + "…";
+    const imgM = it.match(/<(?:media:content|media:thumbnail|enclosure)[^>]*url="([^"]+)"/i) || rawDesc.match(/<img[^>]+src="([^"]+)"/i)
+      || decode(rawDesc).match(/(https:\/\/\S+\.(?:jpe?g|png|webp))/i);
+    const image = imgM && /^https:\/\//.test(imgM[1].replace(/&amp;/g, "&")) ? imgM[1].replace(/&amp;/g, "&") : null;
+    items.push({
+      title: title.slice(0, 220), link, source: f.name,
+      published: Number.isNaN(d.getTime()) ? null : d.toISOString(),
+      summary: summary === title ? "" : summary, image, sport: sportOf(link, title, cats),
+    });
     if (items.length >= 25) break;
   }
   return items;
@@ -86,7 +118,7 @@ serve(async (req) => {
   if (req.method !== "GET") return new Response("Method not allowed", { status: 405, headers: corsHeaders });
   const raw = (new URL(req.url).searchParams.get("lang") ?? "en").slice(0, 2).toLowerCase();
   const lang: "cs" | "en" = raw === "cs" || raw === "sk" ? "cs" : "en";
-  const key = `news:${lang}`;
+  const key = `news2:${lang}`; // v2: perex, obrázek, sport
   const now = Date.now();
   const headers = { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "public, max-age=300" };
 
