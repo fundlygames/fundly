@@ -441,6 +441,15 @@ FUNDLY_I18N.extend("cs", { dashjs: { news: {
   minAgo: "před {n} min", hAgo: "před {n} h",
   accessUntil: "Tvoje hodnocení skončilo, ale v rámci nákupu máš přístup ke sportovním novinkám a Fundly Akademii až do {date}.",
 } } });
+// Novinky v2 (magazín: sporty, perex, obrázky)
+FUNDLY_I18N.extend("en", { dashjs: { news: {
+  allSports: "All sports", more: "Load more", readOn: "Read on {source}",
+  sport: { football: "Football", hockey: "Hockey", tennis: "Tennis", basketball: "Basketball", mma: "MMA & boxing", motorsport: "Motorsport", esports: "Esports", amfootball: "American football", other: "Other" },
+} } });
+FUNDLY_I18N.extend("cs", { dashjs: { news: {
+  allSports: "Všechny sporty", more: "Načíst další", readOn: "Číst na {source}",
+  sport: { football: "Fotbal", hockey: "Hokej", tennis: "Tenis", basketball: "Basketbal", mma: "MMA a box", motorsport: "Motorsport", esports: "Esporty", amfootball: "Americký fotbal", other: "Ostatní" },
+} } });
 // Statické texty (data-i18n) i18n.js přeložil hned při načtení — ještě BEZ slovníků dashboardu
 // (načítají se až po něm), takže by místo překladu zůstaly klíče. Po načtení obou slovníků přeložit znovu.
 if (typeof FUNDLY_I18N !== "undefined" && FUNDLY_I18N.refresh) FUNDLY_I18N.refresh();

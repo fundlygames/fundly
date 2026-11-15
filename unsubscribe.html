@@ -7,9 +7,9 @@
   <meta name="robots" content="noindex" />
   <meta name="theme-color" content="#020204" />
   <link rel="icon" type="image/png" href="assets/logo.png" />
-  <link rel="stylesheet" href="css/style.css?v=20261115h" />
-  <link rel="stylesheet" href="css/legal.css?v=20261115h" />
-  <script src="js/consent.js?v=20261115h"></script>
+  <link rel="stylesheet" href="css/style.css?v=20261116b" />
+  <link rel="stylesheet" href="css/legal.css?v=20261116b" />
+  <script src="js/consent.js?v=20261116b"></script>
 </head>
 <body>
   <header class="nav scrolled">
@@ -32,7 +32,7 @@
     </div>
   </main>
 
-  <script src="js/config.js?v=20261115h"></script>
+  <script src="js/config.js?v=20261116b"></script>
   <script>
     (function () {
       // jazyk jako na zbytku webu (fundly:lang, jinak jazyk prohlížeče); sk/cs → česky
@@ -52,7 +52,24 @@
         ask: function (e) { return "Stop sending promotional emails to " + e + "?"; },
         done: "You're unsubscribed", doneText: "We won't send you promotional emails anymore.", fail: "Could not unsubscribe.",
       };
-      if (CS) { document.documentElement.lang = "cs"; document.title = "Odhlášení z e-mailů | Fundly"; }
+      // &type=weekly = jen týdenní přehled tipů (funkce weekly-report), ne propagační e-maily
+      var WEEKLY = new URLSearchParams(location.search).get("type") === "weekly";
+      if (WEEKLY) {
+        var W = CS ? {
+          title: "Odhlášení týdenního přehledu", text: "Přestat dostávat týdenní přehled tvých tipů?",
+          foot: "Ostatní e-maily o tvém účtu ti budou chodit dál. Rozmyslel(a) sis to? Napiš na ",
+          ask: function (e) { return "Přestat posílat týdenní přehled tipů na " + e + "?"; },
+          done: "Týdenní přehled odhlášen", doneText: "Týdenní přehled ti už posílat nebudeme. Analýzu najdeš dál v dashboardu (Výkon → Analýza).",
+        } : {
+          title: "Unsubscribe from the weekly report", text: "Stop receiving the weekly summary of your tips?",
+          foot: "You'll still receive other emails about your account. Changed your mind? Write to ",
+          ask: function (e) { return "Stop sending the weekly tip report to " + e + "?"; },
+          done: "Weekly report unsubscribed", doneText: "We won't send you the weekly report anymore. Your analytics stay in the dashboard (Performance → Analytics).",
+        };
+        for (var k in W) T[k] = W[k];
+        document.title = T.title + " | Fundly";
+      }
+      if (CS) { document.documentElement.lang = "cs"; document.title = (WEEKLY ? T.title : "Odhlášení z e-mailů") + " | Fundly"; }
       document.getElementById("unsubTitle").textContent = T.title;
       document.getElementById("unsubText").textContent = T.text;
       var footEl = document.getElementById("unsubFoot");
@@ -73,7 +90,7 @@
         try {
           var res = await fetch(FUNDLY_SUPABASE_URL + "/functions/v1/email-unsubscribe", {
             method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: email, token: token }),
+            body: JSON.stringify(WEEKLY ? { email: email, token: token, type: "weekly" } : { email: email, token: token }),
           });
           var data = await res.json().catch(function () { return {}; });
           if (!res.ok) throw new Error(CS ? T.fail : (data.error || T.fail));
@@ -87,6 +104,6 @@
       });
     })();
   </script>
-  <script src="js/legal-lang.js?v=20261115h"></script>
+  <script src="js/legal-lang.js?v=20261116b"></script>
 </body>
 </html>

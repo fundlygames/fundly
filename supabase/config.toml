@@ -110,3 +110,6 @@ verify_jwt = false
 
 [functions.daily-health]
 verify_jwt = false
+
+[functions.weekly-report]
+verify_jwt = false

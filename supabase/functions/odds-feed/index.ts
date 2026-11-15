@@ -162,6 +162,81 @@ async function fetchOddsFor(ids: string[]): Promise<any[]> {
   return odds;
 }
 
+// ---------- historie ML kurzů pre-match (tabulka odds_history, migrace 042) ----------
+// Graf pohybu kurzu v detailu zápasu (js/odds-watch.js). Žádné další požadavky na odds-api:
+// po sestavení pre-match balíčku se zapíše jeden řádek jen pro zápas × bookmaker, jehož ML kurz
+// se od posledního uloženého změnil (jedním insertem). Poslední hodnoty drží paměť instance;
+// po studeném startu se doplní z DB (odds_history_latest), a když ani tam nic není, zapíše se
+// kurz i tak — ale max. 1× za 30 min na zápas. Živé kurzy zapisuje odds-stream.
+const HIST_BUCKET_MS = 30_000; // ts zarovnaný na 30 s jako v odds-stream → souběžné instance nezapíšou dvakrát
+const HIST_UNKNOWN_GAP_MS = 30 * 60_000;
+const HIST_RETENTION_MS = 7 * 864e5;
+const histLast = new Map<string, string>(); // "event|bookie" → "home|draw|away" naposledy uloženého
+const histSeeded = new Set<string>(); // zápasy, pro které už se poslední hodnota hledala v DB
+const histUnknownAt = new Map<string, number>(); // zápas → kdy se naposledy zapsal "naslepo"
+let histCleanupAt = 0;
+let histOff = false; // tabulka chybí (migrace 042 neproběhla) → nezkoušet znovu
+const histNum = (v: unknown): number | null => {
+  const n = typeof v === "number" ? v : parseFloat(String(v ?? ""));
+  return Number.isFinite(n) && n > 1 ? n : null;
+};
+
+// deno-lint-ignore no-explicit-any
+async function recordPrematchHistory(odds: any[]) {
+  if (histOff || !Array.isArray(odds)) return;
+  const now = Date.now();
+  const cur: { key: string; event_id: string; bookie: string; sig: string; home: number; draw: number | null; away: number }[] = [];
+  for (const e of odds) {
+    for (const [bookie, markets] of Object.entries(e?.bookmakers ?? {})) {
+      if (!Array.isArray(markets)) continue;
+      const row = markets.find((m) => m && m.name === "ML")?.odds?.[0];
+      const home = histNum(row?.home), away = histNum(row?.away), draw = histNum(row?.draw);
+      if (!home || !away) continue;
+      const event_id = String(e.id);
+      cur.push({ key: `${event_id}|${bookie}`, event_id, bookie, sig: `${home}|${draw ?? ""}|${away}`, home, draw, away });
+    }
+  }
+  if (!cur.length) return;
+  if (histLast.size > 50_000) { histLast.clear(); histSeeded.clear(); } // strop paměti
+
+  const unseeded = [...new Set(cur.filter((c) => !histLast.has(c.key) && !histSeeded.has(c.event_id)).map((c) => c.event_id))];
+  for (let i = 0; i < unseeded.length; i += 500) {
+    const chunk = unseeded.slice(i, i + 500);
+    const { data, error } = await db.rpc("odds_history_latest", { p_event_ids: chunk });
+    if (error) break; // bez funkce to jde i tak — rozhodne 30min pojistka níž
+    for (const r of data ?? []) {
+      const home = histNum(r.home), away = histNum(r.away);
+      if (home && away) histLast.set(`${r.event_id}|${r.bookie}`, `${home}|${histNum(r.draw) ?? ""}|${away}`);
+    }
+    for (const id of chunk) histSeeded.add(id);
+  }
+
+  const ts = new Date(Math.floor(now / HIST_BUCKET_MS) * HIST_BUCKET_MS).toISOString();
+  const blind = new Set<string>();
+  const picked = cur.filter((c) => {
+    const last = histLast.get(c.key);
+    if (last === c.sig) return false;
+    if (last === undefined) {
+      if (!blind.has(c.event_id) && now - (histUnknownAt.get(c.event_id) ?? 0) < HIST_UNKNOWN_GAP_MS) return false;
+      blind.add(c.event_id);
+    }
+    return true;
+  });
+  for (const id of blind) histUnknownAt.set(id, now);
+  if (histUnknownAt.size > 20_000) histUnknownAt.clear();
+  if (picked.length) {
+    const rows = picked.map((c) => ({ event_id: c.event_id, bookie: c.bookie, ts, home: c.home, draw: c.draw, away: c.away }));
+    const { error } = await db.from("odds_history").upsert(rows, { onConflict: "event_id,ts,bookie", ignoreDuplicates: true });
+    if (error) { histOff = /odds_history|does not exist|schema cache/i.test(error.message); console.error("odds_history insert", error.message); return; }
+    for (const c of picked) histLast.set(c.key, c.sig);
+  }
+  // retence 7 dní — max. jednou za hodinu na instanci (hlavní úklid dělá odds-stream)
+  if (now - histCleanupAt > 3600_000) {
+    histCleanupAt = now;
+    await db.from("odds_history").delete().lt("ts", new Date(now - HIST_RETENTION_MS).toISOString());
+  }
+}
+
 async function buildBundle(sport: string, live: boolean) {
   const to = new Date(Date.now() + 20 * 864e5).toISOString();
   // deno-lint-ignore no-explicit-any
@@ -178,7 +253,15 @@ async function buildBundle(sport: string, live: boolean) {
     for (const list of lists as any[][]) for (const e of list) if (!seen.has(e.id)) { seen.add(e.id); events.push(e); }
   }
   const ids = events.map((e) => String(e.id));
-  if (!live) return { events, odds: await fetchOddsFor(ids) };
+  if (!live) {
+    const odds = await fetchOddsFor(ids);
+    // historie kurzů na pozadí — odpověď hráči na zápis do DB nečeká
+    const hist = recordPrematchHistory(odds).catch((e) => console.error("odds_history", e));
+    // deno-lint-ignore no-explicit-any
+    const rt = (globalThis as any).EdgeRuntime;
+    if (rt && typeof rt.waitUntil === "function") rt.waitUntil(hist);
+    return { events, odds };
+  }
 
   const now = Date.now();
   let cov = coverage.get(sport);
