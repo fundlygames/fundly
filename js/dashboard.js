@@ -1144,7 +1144,12 @@ const SPORTS = [
   ["darts", "Darts", "sipky"],
   ["baseball", "Baseball", "baseball"],
   ["mixed-martial-arts", "MMA", "mma"],
+  // Wrestling (RAF a další) — odds-api ho nemá, zápasy a kurzy zadává admin (sekce Zápasy,
+  // tabulka custom_events). Přidáno 2026-11-15.
+  ["wrestling", "Wrestling", "wrestling"],
 ];
+// sporty jen s vlastními zápasy (custom_events) — žádné volání odds-api
+const CUSTOM_ONLY_SPORTS = new Set(["wrestling"]);
 
 let activeSport = "basketball";
 let slip = []; // {id, match, pick, odds}
@@ -1206,6 +1211,16 @@ const PRIORITY_LEAGUES = {
   "ice-hockey": ["usa-nhl"],
 };
 
+// Sport jen z vlastních zápasů: event i kurzy jsou v jednom objektu (bookmaker "Fundly").
+// Živé sázení na ně není (nemají živý zdroj kurzů) — sázky končí začátkem zápasu.
+async function fetchCustomSport(sport, live) {
+  if (live) return { events: [], odds: [] };
+  const now = Date.now();
+  const mine = (await fetchCustomEvents({ sport }))
+    .filter((e) => String(e.status) === "pending" && new Date(e.date).getTime() > now);
+  return { events: mine, odds: mine };
+}
+
 // Záloha, když sdílená cache (odds-feed) není dostupná: původní přímé stahování z odds-api.
 async function fetchSportDirect(sport, live) {
   const events = live
@@ -1253,7 +1268,9 @@ async function loadSportEvents(sport, live) {
   if (cached) return cached;
 
   // 1 požadavek na sdílenou cache (odds-feed) místo ~13 přímo na odds-api — viz js/portfolio.js
-  const raw = (await fetchOddsBundle(sport, live)) || (await fetchSportDirect(sport, live));
+  const raw = CUSTOM_ONLY_SPORTS.has(sport)
+    ? await fetchCustomSport(sport, live)
+    : (await fetchOddsBundle(sport, live)) || (await fetchSportDirect(sport, live));
   const events = raw.events;
   const withOdds = raw.odds;
   if (!events.length) { cacheSet(key, []); return []; }

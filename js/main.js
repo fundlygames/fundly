@@ -118,6 +118,7 @@ const SPORTS = [
   ["Tennis", "TEN", "#d97757", "tenis"],
   ["Basketball", "BSK", "#ff9900", "basketbal"],
   ["MMA", "MMA", "#ff4d4d", "mma"],
+  ["Wrestling", "WRS", "#ffb84d", "wrestling"],
   ["Formula 1", "F1", "#e82127", "f1"],
   ["Baseball", "MLB", "#0668e1", "baseball"],
   ["Esports", "ESP", "#9945ff", "esporty"],
