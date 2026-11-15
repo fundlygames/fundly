@@ -26,7 +26,7 @@
   <meta name="twitter:description" content="Sports analytics evaluation platform. Get up to $100,000 in simulated capital, keep up to 80% of the performance reward from successful entries — no personal bankroll required." />
   <meta name="twitter:image" content="https://fundly.games/assets/og-image.png" />
   <link rel="icon" type="image/png" href="assets/logo.png" />
-  <link rel="stylesheet" href="css/style.css?v=20261116g" />
+  <link rel="stylesheet" href="css/style.css?v=20261116h" />
   <!-- Měření (Meta Pixel, Microsoft Clarity, Google Analytics): tady jen fronty volání.
        Skutečné skripty načte js/consent.js AŽ po souhlasu s cookies (zákon č. 127/2005 Sb.). -->
   <script>
@@ -39,10 +39,10 @@
     fbq('track', 'PageView');
     window.clarity = window.clarity || function(){(window.clarity.q = window.clarity.q || []).push(arguments)};
   </script>
-  <script src="js/consent.js?v=20261116g"></script>
+  <script src="js/consent.js?v=20261116h"></script>
   <!-- backend (Supabase/Whop) — defer, page works without it too (demo mode) -->
-  <script defer src="js/config.js?v=20261116g"></script>
-  <script defer src="js/whop.js?v=20261116g"></script>
+  <script defer src="js/config.js?v=20261116h"></script>
+  <script defer src="js/whop.js?v=20261116h"></script>
 </head>
 <body>
 
@@ -503,6 +503,8 @@
         <p class="auth-forgot" id="authForgotRow"><button type="button" id="authForgot" data-i18n="auth.forgot">Forgot password?</button></p>
         <p class="auth-note" id="authNote" hidden></p>
         <button type="submit" class="btn btn-primary" style="width:100%" id="authSubmit" data-i18n="auth.login">Log in</button>
+        <!-- přihlášení bez hesla: odkaz do e-mailu (na telefonu nejjednodušší) -->
+        <button type="button" class="btn btn-ghost auth-magic" id="authMagic" data-i18n="forms.magicBtn">Send me a login link (no password)</button>
       </form>
       <!-- 2FA step-up: shown instead of authForm once the password is correct
            but the account has TOTP enabled — a fresh sign-in session starts
@@ -587,15 +589,15 @@
     </div>
   </div>
 
-  <script src="js/packages.js?v=20261116g"></script>
-  <script src="js/portfolio.js?v=20261116g"></script>
-  <script src="js/i18n.js?v=20261116g"></script>
-  <script src="js/main.js?v=20261116g"></script>
-  <script defer src="js/vsl.js?v=20261116g"></script>
-  <script src="js/discount-popup.js?v=20261116g"></script>
-  <script src="js/promo-banner.js?v=20261116g"></script>
-  <script src="js/track.js?v=20261116g"></script>
-  <script src="js/pwa.js?v=20261116g"></script>
-  <script src="js/telegram-widget.js?v=20261116g"></script>
+  <script src="js/packages.js?v=20261116h"></script>
+  <script src="js/portfolio.js?v=20261116h"></script>
+  <script src="js/i18n.js?v=20261116h"></script>
+  <script src="js/main.js?v=20261116h"></script>
+  <script defer src="js/vsl.js?v=20261116h"></script>
+  <script src="js/discount-popup.js?v=20261116h"></script>
+  <script src="js/promo-banner.js?v=20261116h"></script>
+  <script src="js/track.js?v=20261116h"></script>
+  <script src="js/pwa.js?v=20261116h"></script>
+  <script src="js/telegram-widget.js?v=20261116h"></script>
 </body>
 </html>

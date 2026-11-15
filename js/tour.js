@@ -182,7 +182,13 @@
       .tour-btn{border-radius:10px;padding:8px 13px;font:700 13px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;cursor:pointer;border:1px solid #ffffff2a;background:transparent;color:#e8e8ec}
       .tour-btn.primary{background:#14f195;border-color:#14f195;color:#04140c}
       .tour-btn.link{border:0;color:#9a9aa8;padding:8px 6px}
-      @media (max-width:1023px){.tour-help{right:14px;bottom:140px}}
+      @media (max-width:1023px){.tour-help{display:none}}
+      .tour-inline{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px;box-shadow:inset 0 0 0 1px rgb(20 241 149 / .35)}
+      .tour-inline-t{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1 1 220px}
+      .tour-inline-t b{font-size:.9375rem}
+      .tour-inline-t span{font-size:.8125rem;color:var(--text-muted)}
+      .tour-inline-a{display:flex;gap:8px}
+      .tour-inline-a .btn{height:38px;padding:0 14px;font-size:.8125rem}
       @media (prefers-reduced-motion:reduce){.tour-spot{transition:none}}`;
     document.head.appendChild(st);
   }
@@ -284,30 +290,29 @@
   }
 
   // ---------- první příchod: dotaz ----------
+  // Nabídka prohlídky: žádné vyskakovací okno přes celou obrazovku — jen nenápadná karta
+  // nahoře v Přehledu (zmizí po "Teď ne" nebo po spuštění, už se nevrátí).
   function prompt() {
     css();
+    const host = document.querySelector("#view-prehled .ov-main");
+    if (!host || document.querySelector(".tour-inline")) return;
     const u = UI[lang()];
     const card = document.createElement("div");
-    card.className = "tour-card";
-    card.setAttribute("role", "dialog");
-    card.style.cssText = "left:50%;top:50%;transform:translate(-50%,-50%)";
-    const shade = document.createElement("div");
-    shade.className = "tour-shade";
-    shade.style.background = "rgb(2 2 4 / .6)";
-    card.innerHTML = `<h4></h4><p></p><div class="tour-foot"><span class="tour-count"></span>
-      <button type="button" class="tour-btn" data-p="later"></button><button type="button" class="tour-btn primary" data-p="start"></button></div>`;
-    card.querySelector("h4").textContent = u.promptTitle;
-    card.querySelector("p").textContent = u.promptText;
+    card.className = "panel tour-inline";
+    card.innerHTML = `<div class="tour-inline-t"><b></b><span></span></div>
+      <div class="tour-inline-a"><button type="button" class="btn btn-ghost" data-p="later"></button><button type="button" class="btn btn-primary" data-p="start"></button></div>`;
+    card.querySelector("b").textContent = u.promptTitle;
+    card.querySelector("span").textContent = u.promptText;
     card.querySelector('[data-p="later"]').textContent = u.later;
     card.querySelector('[data-p="start"]').textContent = u.start;
     card.addEventListener("click", (e) => {
       const b = e.target.closest("[data-p]");
       if (!b) return;
-      shade.remove(); card.remove();
+      card.remove();
       try { localStorage.setItem(DONE_KEY, "1"); } catch (err) { /* */ }
       if (b.dataset.p === "start") start(FULL);
     });
-    document.body.append(shade, card);
+    host.prepend(card);
   }
 
   // ---------- tlačítko „?“ v rohu ----------
@@ -332,10 +337,18 @@
     });
     document.body.appendChild(menu);
     const r = btn.getBoundingClientRect();
-    menu.style.right = `${window.innerWidth - r.right}px`;
-    menu.style.bottom = `${window.innerHeight - r.top + 8}px`;
+    menu.style.right = `${Math.max(8, window.innerWidth - r.right)}px`;
+    // tlačítko v horní liště → menu pod ním, plovoucí dole → nad ním
+    if (r.top < window.innerHeight / 2) { menu.style.top = `${r.bottom + 8}px`; menu.style.bottom = "auto"; }
+    else menu.style.bottom = `${window.innerHeight - r.top + 8}px`;
   }
   function helpButton() {
+    // "?" v horní liště (telefon) — plovoucí "?" je jen na počítači
+    const top = document.getElementById("topHelpBtn");
+    if (top && !top.dataset.wired) {
+      top.dataset.wired = "1";
+      top.addEventListener("click", (e) => { e.stopPropagation(); openMenu(top); });
+    }
     if (document.querySelector(".tour-help")) return;
     css();
     const b = document.createElement("button");
@@ -363,8 +376,7 @@
       helpButton();
       let done = false;
       try { done = !!localStorage.getItem(DONE_KEY); } catch (e) { done = true; }
-      const blocked = document.querySelector(".cookie-bar, .modal-backdrop:not([hidden]), .tour-card");
-      if (!done) setTimeout(() => { if (!document.querySelector(".tour-card")) prompt(); }, blocked ? 6000 : 1200);
+      if (!done) prompt();
     }, 500);
   }
   window.FundlyTour = { start: () => start(FULL), section: () => start(SECTIONS[currentView()] || FULL) };

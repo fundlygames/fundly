@@ -467,6 +467,15 @@ FUNDLY_I18N.extend("en", { dashjs: {
   discNext: "Next badge at {n} days in a row (record {best})",
   nav: { learn: "Learn", account: "Account" },
   filters: "Filters",
+  more: { help: "Help", support: "Support on Telegram", install: "Install the app" },
+  rewardsLock: {
+    title: "Rewards unlock with a Partner account",
+    now: "You're in Phase {n} — {pct} % of the phase target.",
+    pending: "Phase {n} target reached — waiting for approval.",
+    s1: "Phase 1", s2: "Phase 2", s3: "Partner · rewards",
+    s1d: "+10 % of capital", s2d: "+5 % of capital", s3d: "80 % of profit",
+    cta: "Go to tips", how: "How rewards work",
+  },
 } });
 FUNDLY_I18N.extend("cs", { dashjs: {
   badge: { firstWin: "První úspěšný tip", discipline7: "7 dní disciplíny", discipline21: "21 dní disciplíny", journal10: "Deník analytika", academy: "Absolvent akademie", greenMonth: "Měsíc v plusu" },
@@ -485,6 +494,15 @@ FUNDLY_I18N.extend("cs", { dashjs: {
   discNext: "Další odznak při {n} dnech v řadě (rekord {best})",
   nav: { learn: "Učení", account: "Účet" },
   filters: "Filtry",
+  more: { help: "Nápověda", support: "Podpora na Telegramu", install: "Nainstalovat aplikaci" },
+  rewardsLock: {
+    title: "Odměny se odemknou s účtem Partner",
+    now: "Jsi ve Fázi {n} — {pct} % cíle fáze.",
+    pending: "Cíl Fáze {n} splněn — čeká na schválení.",
+    s1: "Fáze 1", s2: "Fáze 2", s3: "Partner · odměny",
+    s1d: "+10 % kapitálu", s2d: "+5 % kapitálu", s3d: "80 % zisku",
+    cta: "Jít tipovat", how: "Jak fungují odměny",
+  },
 } });
 // Statické texty (data-i18n) i18n.js přeložil hned při načtení — ještě BEZ slovníků dashboardu
 // (načítají se až po něm), takže by místo překladu zůstaly klíče. Po načtení obou slovníků přeložit znovu.
