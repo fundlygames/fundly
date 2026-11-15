@@ -47,3 +47,6 @@ button.badge-tile:focus-visible { outline: 2px solid var(--accent); outline-offs
 .share-hint { margin: 10px 0 0; font-size: .75rem; color: var(--text-muted); }
 .rc-months { display: flex; gap: 6px; }
 .rc-months button { flex: 0 0 auto; padding: 0 16px; }
+
+/* skupiny v postranním menu (Učení / Účet) */
+.dnav-group { margin: 14px 12px 4px; font-size: .6875rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }

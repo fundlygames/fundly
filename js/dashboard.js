@@ -1,6 +1,7 @@
 /* Fundly dashboard — section switching, betting, leaderboard, profile */
 
-const usd = (n) => "$" + Math.round(n).toLocaleString("en-US");
+// záporná částka jako "−$85" (ne "$-85")
+const usd = (n) => { const v = Math.round(n); return (v < 0 ? "−$" : "$") + Math.abs(v).toLocaleString("en-US"); };
 
 // Form texts/messages come from the i18n dictionary (js/i18n.js, group "forms").
 const ft = (key) => (typeof window.t === "function" ? window.t(key) : key);
@@ -2334,6 +2335,25 @@ function renderSlip() {
   });
 }
 
+// telefon: rozšířené filtry (datum, liga, kurz, ligové chipy) schované pod "Filtry" — počet aktivních v závorce
+(function setupFilterToggle() {
+  const panel = document.getElementById("betFiltersPanel");
+  const btn = document.getElementById("bfMoreBtn");
+  const count = document.getElementById("bfMoreCount");
+  if (!panel || !btn) return;
+  const update = () => {
+    const n = ["fDate", "fLeague", "fOdds"].filter((id) => document.getElementById(id)?.value).length;
+    if (count) { count.hidden = !n; count.textContent = n ? String(n) : ""; }
+  };
+  btn.addEventListener("click", () => {
+    const open = !panel.classList.contains("bf-open");
+    panel.classList.toggle("bf-open", open);
+    btn.setAttribute("aria-expanded", String(open));
+  });
+  ["fDate", "fLeague", "fOdds"].forEach((id) => document.getElementById(id)?.addEventListener("change", update));
+  update();
+})();
+
 if (sportTabs) {
   renderSportTabs();
   renderSlip();
@@ -3156,8 +3176,29 @@ if (nickSave) {
 // Equity chart: balance curve + dashed levels (phase target, fixed drawdown
 // floor) with labels and a purple area under the curve. Data = state.equityHistory,
 // only the presentation changes.
+// Body grafu: lokální equityHistory; když chybí (obnova účtu ze serveru, jiné zařízení —
+// historie zůstatku se na serveru nedrží), složí se z tipů aktuální fáze: start fáze →
+// každý vyhodnocený tip (vklad + výsledek) → aktuální zůstatek (vč. čekajících vkladů).
+function equityPoints(state) {
+  const hist = Array.isArray(state.equityHistory) ? state.equityHistory : [];
+  if (hist.length >= 2) return hist;
+  const start = new Date(state.phaseStartedAt).getTime();
+  const settled = (state.tickets || [])
+    .filter((t) => t.settledAt && t.status !== "pending" && new Date(t.placedAt).getTime() >= start)
+    .sort((a, b) => new Date(a.settledAt) - new Date(b.settledAt));
+  if (!settled.length) return hist;
+  let bal = Number(state.phaseBaseline) || 0;
+  const pts = [{ t: state.phaseStartedAt, balance: bal }];
+  settled.forEach((t) => {
+    bal += (Number(t.payout) || 0) - (Number(t.stake) || 0);
+    pts.push({ t: t.settledAt, balance: bal });
+  });
+  if (Math.abs(bal - state.balance) > 0.5) pts.push({ t: new Date().toISOString(), balance: state.balance });
+  return pts;
+}
+
 function renderEquityChart(state) {
-  const points = state.equityHistory;
+  const points = equityPoints(state);
   if (points.length < 2) {
     return `<p class="bet-msg">${ft("dashjs.chart.empty")}</p>`;
   }
@@ -3404,10 +3445,17 @@ function renderPrehled() {
       <span class="k">${ft("dashjs.rules.totalLoss")} <small>${ftf("dashjs.rules.floorInfo", { kind: dd.trailing ? ft("dashjs.rules.kindTrailing") : ft("dashjs.rules.kindStatic"), floor: usd(dd.floor) })}</small></span>
       <span class="v">${ftf("dashjs.common.amountLeft", { amount: usd(Math.round(dd.remaining)) })}</span>
     </div>
-    <div class="dd-bar">
-      <span class="cap lo">${ftf("dashjs.rules.floorCap", { floor: Math.round(dd.floor).toLocaleString("en-US") })}</span>
+    <div class="dd-bar" role="img" aria-label="${esc(ftf("dashjs.common.amountLeft", { amount: usd(Math.round(dd.remaining)) }))}">
+      <span class="dd-fill" style="width:${dd.pct}%"></span>
       <span class="cursor" style="left:${dd.pct}%"></span>
-      <span class="cap hi">${Math.round(state.balance).toLocaleString("en-US")}</span>
+    </div>
+    <div class="dd-scale">
+      <span class="lo">${ftf("dashjs.rules.floorCap", { floor: usd(dd.floor) })}</span>
+      ${dd.pct > 75
+        // zůstatek u horního okraje: místo dvou čísel vedle sebe jedno "zůstatek / start"
+        ? `<span class="hi"><b>${usd(state.balance)}</b> / ${usd(dd.trailing ? state.hwm : state.cap)}</span>`
+        : `<span class="now" style="left:${Math.max(30, dd.pct)}%">${usd(state.balance)}</span>
+      <span class="hi">${usd(dd.trailing ? state.hwm : state.cap)}</span>`}
     </div>
     <div class="limit-row" style="margin-top:14px">
       <span class="k">${ft("dashjs.rules.dailyLoss")} <small>${ft("dashjs.rules.resetsUtcSmall")}</small></span>

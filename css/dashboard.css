@@ -517,6 +517,10 @@ body::after {
 .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 8px; }
 @media (min-width: 640px) { .stat-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (min-width: 1024px) { .stat-grid { grid-template-columns: repeat(6, 1fr); } }
+.stat-grid > * { min-width: 0; }
+/* Přehled: hlavní sloupec vedle pravého panelu je užší — 6 dlaždic v řadě přetékalo
+   a popisky se lámaly ("DO / CÍLE"); 3 + 3 je čitelnější */
+@media (min-width: 1024px) { #ovStatGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .dstat {
   background: var(--surface-1);
   border-radius: var(--d-r);
@@ -600,9 +604,15 @@ body::after {
   border-radius: 2px;
   background: #fff;
 }
-.dd-bar .cap { position: absolute; top: 50%; transform: translateY(-50%); font-size: .6875rem; font-weight: 600; }
-.dd-bar .cap.lo { left: 10px; color: #ffb4b4; }
-.dd-bar .cap.hi { right: 10px; color: var(--accent); }
+/* pruh max. ztráty: dno vlevo, start/HWM vpravo, aktuální zůstatek pod ukazatelem */
+.dd-bar { height: 10px; background: rgb(255 77 77 / .18); overflow: visible; margin-top: 4px; }
+.dd-bar .dd-fill { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: linear-gradient(90deg, rgb(255 77 77 / .55), rgb(var(--accent-rgb) / .75)); }
+.dd-bar .cursor { top: -4px; bottom: -4px; transform: translateX(-50%); box-shadow: 0 0 0 2px rgb(0 0 0 / .35); }
+.dd-scale { position: relative; height: 18px; margin-top: 6px; font-size: .75rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.dd-scale span { position: absolute; top: 0; white-space: nowrap; }
+.dd-scale .lo { left: 0; color: #ffb4b4; }
+.dd-scale .hi { right: 0; color: var(--text-muted); }
+.dd-scale .now { transform: translateX(-50%); color: var(--text-primary); }
 
 .rules-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
 @media (min-width: 768px) { .rules-grid { grid-template-columns: repeat(3, 1fr); } }
@@ -845,6 +855,7 @@ body::after {
 }
 .sport-tabs button.active .ic-letter { background: rgb(0 0 0 / .18); color: var(--primary-ink); }
 .sport-tabs button {
+  flex: 0 0 auto; /* nezmenšovat — jinak se název sportu ořízne ("Basketba") */
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -1364,3 +1375,20 @@ text.eq-lv-floor { fill: #ff9d9d; }
 .limited-only { display: none; }
 body.limited .limited-only { display: inline-flex; }
 
+.dd-scale .hi b { color: var(--text-primary); }
+
+/* Tipy na telefonu: nahoře hledání + rychlé filtry, zbytek pod tlačítkem "Filtry" */
+.bf-more-btn { display: none; }
+.bf-more-btn b { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--accent); color: var(--primary-ink, #04140c); font-size: .6875rem; }
+.bf-more-btn b[hidden] { display: none; }
+@media (max-width: 767px) {
+  .bf-more-btn { display: inline-flex; }
+  .bet-filters .bf-label { display: none; }
+  .bet-filters:not(.bf-open) .bf-grid { grid-template-columns: 1fr; }
+  .bet-filters:not(.bf-open) .bf-grid .field:not(:first-child) { display: none; }
+  .bet-filters:not(.bf-open) #leagueChips { display: none !important; }
+  .bet-filters .bf-quick:not(#leagueChips) { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; touch-action: pan-x; }
+  .bet-filters .bf-quick:not(#leagueChips)::-webkit-scrollbar { display: none; }
+  .bet-filters .bf-quick .filter-chip { flex: 0 0 auto; }
+  .bf-more-btn[aria-expanded="true"] { color: var(--accent); border-color: var(--accent-border-soft); background: var(--accent-tint); }
+}

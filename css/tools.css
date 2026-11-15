@@ -81,3 +81,35 @@
 .jr-note { margin-top: 8px; font-size: .875rem; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--text-primary); }
 .jr-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .jr-tag { font-size: .6875rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--text-secondary); }
+
+/* ---------- zjednodušený výběr nástroje (4 otázky, vždy jen jedna kalkulačka) ---------- */
+.tl-picker { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+@media (max-width: 900px) { .tl-picker { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.tl-pick {
+  display: flex; align-items: center; gap: 10px; text-align: left;
+  padding: 12px 14px; border-radius: var(--d-r); border: 0; cursor: pointer;
+  background: var(--surface-1, #ffffff08); color: var(--text-secondary);
+  box-shadow: inset 0 0 0 1px var(--line); font: inherit;
+  transition: box-shadow .15s ease, background-color .15s ease, color .15s ease;
+}
+.tl-pick svg { flex-shrink: 0; color: var(--text-muted); }
+.tl-pick span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.tl-pick b { font-size: .875rem; color: var(--text-primary); line-height: 1.3; }
+.tl-pick small { font-size: .75rem; color: var(--text-muted); }
+.tl-pick:hover { box-shadow: inset 0 0 0 1px var(--accent-border-soft); }
+.tl-pick.active { background: var(--accent-tint); box-shadow: inset 0 0 0 1px var(--accent-border-soft); }
+.tl-pick.active svg { color: var(--accent); }
+.tl-pick:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tl-one { max-width: 640px; display: flex; flex-direction: column; gap: 10px; }
+.tl-one h3 { margin: 0 0 2px; }
+.tl-more { border-top: 1px solid var(--line); padding-top: 10px; }
+.tl-more summary { cursor: pointer; font-size: .8125rem; font-weight: 600; color: var(--text-muted); list-style: none; display: flex; align-items: center; gap: 6px; }
+.tl-more summary::-webkit-details-marker { display: none; }
+.tl-more summary::before { content: "+"; display: inline-flex; width: 16px; justify-content: center; color: var(--accent); font-weight: 800; }
+.tl-more[open] summary::before { content: "−"; }
+.tl-more[open] > :not(summary) { margin-top: 10px; }
+.tl-more p { margin: 10px 0 0; font-size: .8125rem; color: var(--text-muted); line-height: 1.6; }
+.tl-big { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: var(--d-r-sm, 10px); background: var(--accent-tint); }
+.tl-big span { font-size: .8125rem; color: var(--text-secondary); }
+.tl-big b { font-size: 1.5rem; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+.tl-disclaimer { margin-top: 10px; }
