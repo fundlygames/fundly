@@ -1,0 +1,201 @@
+/* Fundly — Akademie (lekce, kvízy, odznaky, živá analýza). Vykresluje js/academy.js. */
+
+.acad-sr {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ---------- hero + postup ---------- */
+.acad-hero {
+  background:
+    radial-gradient(120% 140% at 92% -20%, rgb(153 69 255 / .28), transparent 60%),
+    radial-gradient(90% 120% at 0% 120%, rgb(var(--accent-rgb) / .10), transparent 60%),
+    var(--surface-1);
+  min-height: 0;
+}
+.acad-hero::before { display: none; }
+.acad-hero-in { width: 100%; }
+.acad-progress { margin-top: 14px; max-width: 520px; }
+.acad-progress-row {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap;
+  font-size: .8125rem; font-weight: 600; color: var(--text-primary); margin-bottom: 8px;
+}
+
+/* ---------- odznaky ---------- */
+.acad-badges { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 10px; }
+.acad-badge {
+  position: relative;
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface-1);
+  border-radius: var(--d-r);
+  box-shadow: inset 0 0 0 1px var(--line);
+  padding: 12px;
+  min-width: 0;
+  color: var(--text-muted);
+}
+.acad-medal {
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border-radius: 9999px;
+  background: #ffffff0a;
+  box-shadow: inset 0 0 0 1px #ffffff1f;
+  color: #ffffff4d;
+  transition: transform .3s var(--ease-spring), box-shadow .3s var(--ease);
+}
+.acad-badge-txt { display: flex; flex-direction: column; min-width: 0; }
+.acad-badge-txt b { font-size: .8125rem; font-weight: 700; color: var(--text-secondary); overflow-wrap: anywhere; }
+.acad-badge-txt small { font-size: .6875rem; color: var(--text-muted); }
+.acad-badge.on { box-shadow: inset 0 0 0 1px var(--accent-border-soft); }
+.acad-badge.on .acad-badge-txt b { color: var(--text-primary); }
+.acad-badge.on .acad-badge-txt small { color: var(--accent); font-weight: 600; }
+.acad-badge.on .acad-medal { transform: scale(1.04); }
+.acad-badge.b-start.on .acad-medal {
+  color: #04140c; background: linear-gradient(140deg, #6dffc4, var(--accent));
+  box-shadow: 0 0 0 3px rgb(var(--accent-rgb) / .18), 0 0 18px rgb(var(--accent-rgb) / .45);
+}
+.acad-badge.b-four.on .acad-medal {
+  color: #fff; background: linear-gradient(140deg, #c49bff, var(--brand));
+  box-shadow: 0 0 0 3px rgb(var(--brand-rgb) / .2), 0 0 18px rgb(var(--brand-rgb) / .5);
+}
+.acad-badge.b-all.on .acad-medal {
+  color: #2a1a00; background: linear-gradient(140deg, #fff1b8, #f5c542 55%, #d99a1e);
+  box-shadow: 0 0 0 3px rgb(245 197 66 / .2), 0 0 20px rgb(245 197 66 / .5);
+}
+@media (max-width: 560px) {
+  .acad-badges { gap: 6px; }
+  .acad-badge { flex-direction: column; text-align: center; padding: 10px 6px; gap: 6px; }
+  .acad-badge-txt b { font-size: .75rem; }
+}
+
+/* ---------- lekce ---------- */
+.acad-lessons { display: grid; gap: 10px; }
+@media (min-width: 1024px) {
+  .acad-lessons { grid-template-columns: 1fr 1fr; }
+  .acad-lesson.quiz-open { grid-column: 1 / -1; }
+}
+.acad-lesson { display: flex; flex-direction: column; }
+.acad-lesson-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.acad-lesson-head h3 { margin: 0; flex: 1; min-width: 0; }
+.acad-lesson-head h3::before { display: none; }
+.acad-num {
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; border-radius: var(--d-r-sm);
+  font-size: .75rem; font-weight: 800; font-variant-numeric: tabular-nums;
+  color: var(--accent); background: var(--accent-tint);
+}
+.acad-check {
+  flex-shrink: 0;
+  width: 24px; height: 24px; border-radius: 9999px;
+  box-shadow: inset 0 0 0 1.5px #ffffff24;
+  position: relative;
+}
+.acad-lesson.done .acad-check {
+  background: var(--accent);
+  box-shadow: 0 0 12px rgb(var(--accent-rgb) / .5);
+}
+.acad-lesson.done .acad-check::after {
+  content: "";
+  position: absolute; left: 8px; top: 4px;
+  width: 6px; height: 11px;
+  border: solid var(--primary-ink); border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg);
+}
+.acad-lesson.done { box-shadow: inset 0 0 0 1px var(--accent-border-soft), inset 0 1px 0 #ffffff0a, 0 12px 32px -18px rgb(0 0 0 / .6); }
+.acad-body { flex: 1; }
+.acad-foot {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line);
+}
+.acad-quiz-btn { height: 38px; padding: 0 18px; font-size: .875rem; }
+.acad-status { font-size: .75rem; font-weight: 600; color: var(--text-muted); }
+.acad-lesson.done .acad-status { color: var(--accent); }
+.acad-link { color: var(--accent); text-decoration: none; font-weight: 600; }
+.acad-link:hover { text-decoration: underline; }
+.acad-summary { margin-top: 10px; }
+
+/* ---------- kvíz ---------- */
+.acad-quiz[hidden] { display: none; }
+.acad-quiz { margin-top: 14px; padding-top: 14px; border-top: 1px dashed #ffffff1f; }
+.acad-quiz-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; font-size: .9375rem; }
+.acad-qs { display: flex; flex-direction: column; gap: 12px; padding: 0; counter-reset: aq; }
+.acad-q {
+  list-style: none;
+  background: var(--bg);
+  border-radius: var(--d-r);
+  box-shadow: inset 0 0 0 1px var(--line);
+  padding: 14px;
+}
+.acad-q.ok { box-shadow: inset 0 0 0 1px var(--accent-border-soft); }
+.acad-q.bad { box-shadow: inset 0 0 0 1px rgb(255 77 77 / .35); }
+.acad-q-text { font-size: .875rem; font-weight: 600; margin-bottom: 10px; display: flex; gap: 8px; }
+.acad-q-text::before { counter-increment: aq; content: counter(aq) "."; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.acad-opts { display: grid; gap: 6px; }
+@media (min-width: 720px) { .acad-opts { grid-template-columns: 1fr 1fr; } }
+.acad-opt {
+  text-align: left;
+  font: inherit; font-size: .8125rem; line-height: 1.35;
+  color: var(--text-secondary);
+  background: var(--surface-1);
+  border: none;
+  border-radius: var(--d-r);
+  box-shadow: inset 0 0 0 1px #ffffff1f;
+  padding: 10px 12px;
+  min-height: 42px;
+  cursor: pointer;
+  transition: background-color .15s var(--ease), box-shadow .15s var(--ease), color .15s var(--ease);
+}
+.acad-opt:hover:not([disabled]) { background: #ffffff0f; color: var(--text-primary); box-shadow: inset 0 0 0 1px #ffffff3d; }
+.acad-opt:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.acad-opt[disabled] { cursor: default; }
+.acad-opt.is-correct { color: var(--accent); background: var(--accent-tint); box-shadow: inset 0 0 0 1px var(--accent-border-soft); font-weight: 600; }
+.acad-opt.is-wrong { color: #ff9d9d; background: rgb(255 77 77 / .1); box-shadow: inset 0 0 0 1px rgb(255 77 77 / .35); }
+.acad-opt.is-dim { opacity: .5; }
+.acad-expl { margin-top: 10px; font-size: .8125rem; color: var(--text-secondary); outline: none; }
+.acad-q.ok .acad-expl b { color: var(--accent); }
+.acad-q.bad .acad-expl b { color: #ff9d9d; }
+.acad-result-box { margin-top: 12px; border-radius: var(--d-r); padding: 14px; font-size: .875rem; font-weight: 600; }
+.acad-result-box.pass { color: var(--accent); background: var(--accent-tint); box-shadow: inset 0 0 0 1px var(--accent-border-soft); }
+.acad-result-box.fail { color: #ffce7a; background: rgb(255 153 0 / .08); box-shadow: inset 0 0 0 1px rgb(255 153 0 / .3); }
+.acad-result-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.acad-result-actions .btn { height: 36px; padding: 0 16px; font-size: .8125rem; }
+.acad-local-note { margin-top: 10px; font-weight: 500; }
+
+/* ---------- měsíční živá analýza ---------- */
+.acad-live[hidden] { display: none; }
+.acad-live {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  margin-bottom: 10px;
+  background:
+    radial-gradient(100% 160% at 100% 0%, rgb(153 69 255 / .2), transparent 60%),
+    var(--surface-1);
+  box-shadow: inset 0 0 0 1px var(--brand-border-soft), 0 12px 32px -18px rgb(0 0 0 / .6);
+}
+.acad-live.is-live { box-shadow: inset 0 0 0 1px var(--accent-border-soft), 0 0 28px -10px rgb(var(--accent-rgb) / .5); }
+.acad-live-main { min-width: 0; flex: 1 1 280px; }
+.acad-live-k {
+  display: flex; align-items: center; gap: 8px;
+  font-size: .6875rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted);
+}
+.acad-live-t { margin-top: 4px; font-size: 1.0625rem; font-weight: 700; overflow-wrap: anywhere; }
+.acad-live-d { margin: 2px 0 6px; font-size: .875rem; font-weight: 600; color: var(--accent); }
+.acad-live-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.acad-live-actions .btn { height: 40px; padding: 0 18px; font-size: .875rem; text-decoration: none; }
+.acad-live-dot {
+  width: 8px; height: 8px; border-radius: 9999px; background: #ff4d4d;
+  box-shadow: 0 0 0 0 rgb(255 77 77 / .6);
+  animation: acad-pulse 1.6s infinite;
+}
+@keyframes acad-pulse {
+  0% { box-shadow: 0 0 0 0 rgb(255 77 77 / .6); }
+  70% { box-shadow: 0 0 0 8px rgb(255 77 77 / 0); }
+  100% { box-shadow: 0 0 0 0 rgb(255 77 77 / 0); }
+}
+@media (max-width: 560px) {
+  .acad-live-actions { width: 100%; }
+  .acad-live-actions .btn { flex: 1 1 auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .acad-live-dot { animation: none; }
+  .acad-medal { transition: none; }
+}
