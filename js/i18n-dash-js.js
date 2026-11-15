@@ -113,7 +113,7 @@ FUNDLY_I18N.extend("en", { dashjs: {
     floorTrailing: "Max. loss (trailing floor)", floorFixed: "Max. loss (fixed floor)",
   },
   tk: {
-    flagArb: "⚠ arbitrage", flagValue: "⚠ value bet",
+    flagArb: "⚠ arbitrage", flagValue: "⚠ pricing check",
     won: "Won", lost: "Lost", push: "Refunded", cashedout: "Cashed out", pending: "Pending",
     cashoutBtn: "Cash out now for {amount} (early settlement −10 %)",
     noneRecent: "No tickets yet. Place your first one in the Betting section.",
@@ -328,7 +328,7 @@ FUNDLY_I18N.extend("cs", { dashjs: {
     floorTrailing: "Max. ztráta (klouzavé dno)", floorFixed: "Max. ztráta (pevné dno)",
   },
   tk: {
-    flagArb: "⚠ arbitráž", flagValue: "⚠ value tip",
+    flagArb: "⚠ arbitráž", flagValue: "⚠ kontrola kurzu",
     won: "Výhra", lost: "Prohra", push: "Vráceno", cashedout: "Předčasně vyplaceno", pending: "Čeká na vyhodnocení",
     cashoutBtn: "Vyrovnat hned za {amount} (předčasné vyrovnání −10 %)",
     noneRecent: "Zatím žádné tipy. Podej svůj první v sekci Tipování.",
