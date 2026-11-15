@@ -467,6 +467,15 @@ FUNDLY_I18N.extend("en", { dashjs: {
   discNext: "Next badge at {n} days in a row (record {best})",
   nav: { learn: "Learn", account: "Account" },
   filters: "Filters",
+  lim: {
+    maxLoss: "Max. total loss", left: "{amount} left", of: "of {amount}", floor: "Floor {amount}", now: "Now {amount}",
+    maxLossSub: "If your balance drops to {floor}, the account closes. The floor never moves.",
+    maxLossSubTrailing: "If your balance drops to {floor}, the account closes. The floor follows your highest balance.",
+    daily: "Daily loss limit", dailySub: "How much you can still lose today. Resets at midnight (UTC).",
+    open: "Pending entries", openSub: "If none of your pending tips come through, your balance will be {balance}.", openNone: "No tips are waiting to be settled.",
+    qual: "Qualifying tips", qualSub: "A successful tip with a profit of at least {amount} (0.5 % of capital).",
+    reward: "Reward (Partner account)", rewardVal: "{pct} % of profit", rewardSub: "Up to $4,000 per reward.",
+  },
   more: { help: "Help", support: "Support on Telegram", install: "Install the app" },
   rewardsLock: {
     title: "Rewards unlock with a Partner account",
@@ -494,6 +503,15 @@ FUNDLY_I18N.extend("cs", { dashjs: {
   discNext: "Další odznak při {n} dnech v řadě (rekord {best})",
   nav: { learn: "Učení", account: "Účet" },
   filters: "Filtry",
+  lim: {
+    maxLoss: "Max. celková ztráta", left: "zbývá {amount}", of: "z {amount}", floor: "Dno {amount}", now: "Teď {amount}",
+    maxLossSub: "Když zůstatek klesne na {floor}, účet se uzavře. Dno se nikdy neposouvá.",
+    maxLossSubTrailing: "Když zůstatek klesne na {floor}, účet se uzavře. Dno se posouvá s tvým nejvyšším zůstatkem.",
+    daily: "Denní limit ztráty", dailySub: "Kolik můžeš dnes ještě ztratit. Nuluje se o půlnoci (UTC).",
+    open: "Čekající vklady", openSub: "Kdyby žádný z čekajících tipů nevyšel, zůstatek bude {balance}.", openNone: "Žádné tipy nečekají na vyhodnocení.",
+    qual: "Kvalifikační tipy", qualSub: "Úspěšný tip se ziskem aspoň {amount} (0,5 % kapitálu).",
+    reward: "Odměna (účet Partner)", rewardVal: "{pct} % zisku", rewardSub: "Maximálně $4,000 na jednu odměnu.",
+  },
   more: { help: "Nápověda", support: "Podpora na Telegramu", install: "Nainstalovat aplikaci" },
   rewardsLock: {
     title: "Odměny se odemknou s účtem Partner",
