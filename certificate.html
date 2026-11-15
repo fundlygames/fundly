@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Certificate verification | Fundly</title>
+  <meta name="description" content="Verify a Fundly Certified Analyst certificate issued for passing both evaluation phases of the Fundly Challenge." />
+  <meta name="theme-color" content="#020204" />
+  <meta name="robots" content="noindex" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Fundly Certified Analyst — verified certificate" />
+  <meta property="og:description" content="Passed both evaluation phases of the Fundly Challenge (Phase 1 and Phase 2) with disciplined risk management." />
+  <meta property="og:image" content="https://fundly.games/assets/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:site_name" content="Fundly" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+  <link rel="stylesheet" href="css/style.css?v=20261115h" />
+  <link rel="stylesheet" href="css/legal.css?v=20261115h" />
+  <link rel="stylesheet" href="css/certificate-page.css" />
+  <script src="js/consent.js?v=20261115h"></script>
+</head>
+<body>
+
+  <!-- ============ NAV ============ -->
+  <header class="nav scrolled">
+    <div class="container nav-inner">
+      <a href="./" class="logo" aria-label="Fundly, home">
+        <img src="assets/logo.png" alt="" width="24" height="24" />
+        fundly
+      </a>
+      <div class="nav-cta">
+        <div class="legal-lang" role="group" aria-label="Language">
+          <button type="button" class="legal-lang-btn" data-cv-lang="en">EN</button><button type="button" class="legal-lang-btn" data-cv-lang="cs">CS</button>
+        </div>
+        <a class="btn btn-ghost" href="./" data-cv="back">Back to home</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="legal-main">
+    <div class="container cv-wrap">
+      <h1 class="t-h2" data-cv="heading">Certificate verification</h1>
+      <p class="cv-sub" data-cv="sub">Check that a Fundly Certified Analyst certificate is genuine.</p>
+
+      <!-- stav: načítání -->
+      <div class="cv-card cv-state" id="cvLoading">
+        <p class="cv-muted" data-cv="loading">Checking the certificate…</p>
+      </div>
+
+      <!-- stav: nalezeno -->
+      <article class="cv-card cv-state" id="cvFound" hidden>
+        <div class="cv-head">
+          <span class="cv-verified" data-cv="verified">Verified ✓</span>
+          <span class="cv-id" id="cvId"></span>
+        </div>
+        <p class="cv-eyebrow">Fundly Certified Analyst</p>
+        <h2 class="cv-name" id="cvName"></h2>
+        <p class="cv-kind" data-cv="kind">Passed both evaluation phases of the Fundly Challenge (Phase 1 and Phase 2) with disciplined risk management.</p>
+
+        <dl class="cv-meta">
+          <div><dt data-cv="package">Package</dt><dd id="cvPackage"></dd></div>
+          <div><dt data-cv="capital">Simulated capital</dt><dd id="cvCapital"></dd></div>
+          <div><dt data-cv="date">Date passed</dt><dd id="cvDate"></dd></div>
+          <div><dt data-cv="issued">Issued</dt><dd id="cvIssued"></dd></div>
+        </dl>
+
+        <div class="cv-stats">
+          <div><b id="cvTips"></b><span data-cv="tips">Tips</span></div>
+          <div><b id="cvWin"></b><span data-cv="winRate">Win rate</span></div>
+          <div class="acc"><b id="cvProfit"></b><span data-cv="profit">Profit (% of capital)</span></div>
+          <div><b id="cvOdds"></b><span data-cv="avgOdds">Average odds</span></div>
+        </div>
+        <ul class="cv-phases" id="cvPhases" hidden></ul>
+
+        <p class="cv-note" data-cv="note">Simulated evaluation using virtual credits with no monetary value.</p>
+        <a class="btn btn-primary" href="./#packages" data-cv="cta">Start your own Fundly Challenge</a>
+      </article>
+
+      <!-- stav: nenalezeno / zadat ID -->
+      <div class="cv-card cv-state" id="cvMissing" hidden>
+        <h2 class="cv-missing-title" id="cvMissingTitle" data-cv="notFound">Certificate not found</h2>
+        <p class="cv-muted" id="cvMissingText" data-cv="notFoundText">No valid certificate matches this ID. Check the ID on the certificate (e.g. FC-7K3M9Q) and try again.</p>
+        <form class="cv-form" id="cvForm">
+          <label for="cvInput" class="cv-label" data-cv="idLabel">Certificate ID</label>
+          <div class="cv-form-row">
+            <input class="input" id="cvInput" placeholder="FC-XXXXXX" maxlength="12" autocomplete="off" spellcheck="false" />
+            <button class="btn btn-primary" type="submit" data-cv="check">Verify</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer>
+    <div class="container">
+      <div class="foot-grid">
+        <div class="foot-brand">
+          <a href="./" class="logo" aria-label="Fundly, home">
+            <img src="assets/logo.png" alt="" width="20" height="20" />
+            fundly
+          </a>
+          <p data-cv="brand">A professional evaluation platform for sports analysts. Up to $100,000 in simulated capital and an 80 % performance split.</p>
+        </div>
+        <div class="foot-col">
+          <h4 data-cv="packages">Packages</h4>
+          <ul>
+            <li><a href="./#packages">Starter</a></li>
+            <li><a href="./#packages">Standard</a></li>
+            <li><a href="./#packages">Advanced</a></li>
+            <li><a href="./#packages">Pro</a></li>
+            <li><a href="./#packages">Elite</a></li>
+          </ul>
+        </div>
+        <div class="foot-col">
+          <h4 data-cv="info">Information</h4>
+          <ul>
+            <li><a href="./#how-it-works" data-cv="how">How it works</a></li>
+            <li><a href="./#why-fundly" data-cv="why">Why Fundly</a></li>
+            <li><a href="./#faq" data-cv="faq">FAQ</a></li>
+          </ul>
+        </div>
+        <div class="foot-col">
+          <h4 data-cv="support">Support</h4>
+          <ul>
+            <li><a href="./#contact" data-cv="contact">Contact us</a></li>
+            <li><a href="https://t.me/+420608187811" target="_blank" rel="noopener" data-cv="telegram">Chat on Telegram</a></li>
+            <li><a href="#" data-cv="status">Service status</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="foot-legal">
+        <p data-cv="disclaimer">Legal Disclaimer: Fundly.games is operated by Grindit LLC (Sharjah Media City, Sharjah, UAE, Reg: 2541536). Fundly Games is not a bookmaker, gambling operator, or financial institution. All services, evaluation challenges, and metrics provided on this platform are strictly for educational and analytical simulation purposes, utilizing virtual credits with zero monetary value. Challenge fees cover software licensing, data evaluation, and analytical platform access.</p>
+      </div>
+      <div class="foot-bottom">
+        <span data-cv="rights">© 2026 Fundly. All rights reserved.</span>
+        <nav aria-label="Legal links">
+          <a href="privacy" data-cv="privacy">Privacy</a>
+          <a href="terms" data-cv="terms">Terms</a>
+          <a href="rules" data-cv="rules">Rules</a>
+          <a href="disclaimer" data-cv="disc">Disclaimer</a>
+          <a href="refund" data-cv="refund">Refund</a>
+          <a href="aml" data-cv="aml">AML Policy</a>
+          <a href="restricted-countries" data-cv="restricted">Restricted Countries</a>
+          <a href="#" data-cookie-settings data-cv="cookies">Cookies</a>
+        </nav>
+      </div>
+    </div>
+  </footer>
+  <script src="js/config.js?v=20261115h"></script>
+  <script src="js/certificate-page.js"></script>
+</body>
+</html>

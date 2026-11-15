@@ -15,6 +15,7 @@
   <link rel="icon" type="image/png" href="assets/logo.png" />
   <link rel="stylesheet" href="css/style.css?v=20261115h" />
   <link rel="stylesheet" href="css/dashboard.css?v=20261115h" />
+  <link rel="stylesheet" href="css/certificate.css" />
   <!-- Měření (Meta Pixel, Microsoft Clarity, Google Analytics): tady jen fronty volání.
        Skutečné skripty načte js/consent.js AŽ po souhlasu s cookies (zákon č. 127/2005 Sb.). -->
   <script>
@@ -159,6 +160,9 @@
               <h3 data-i18n="dash.phase_target_reached">Phase target reached 🎯</h3>
               <p class="t-small" id="pendingApprovalText">You cleared this phase's target. Betting is paused while our team reviews and approves the move to the next phase — you'll get an e-mail as soon as it's confirmed.</p>
             </div>
+
+            <!-- certifikát po splnění Fáze 2 — JS: js/certificate.js -->
+            <div class="panel act-panel cert-promo" id="certPromo" hidden></div>
 
             <div class="balance-card" id="balanceCard"><!-- JS: renderPrehled() (incl. equity chart) --></div>
 
@@ -612,6 +616,9 @@
             </div>
           </div>
 
+          <!-- certifikáty Fundly Certified Analyst — JS: js/certificate.js -->
+          <div class="panel mt" id="certPanel" hidden></div>
+
           <div class="two-col">
             <div class="panel">
               <h3 data-i18n="dash.risk_limits">Risk limits</h3>
@@ -808,6 +815,7 @@
   <script src="js/portfolio.js?v=20261115h"></script>
   <script src="js/dashboard.js?v=20261115h"></script>
   <script src="js/tour.js?v=20261115l"></script>
+  <script src="js/certificate.js"></script>
   <script src="js/promo-banner.js?v=20261115h"></script>
   <script src="js/track.js?v=20261115h"></script>
   <script src="js/pwa.js?v=20261115h"></script>
