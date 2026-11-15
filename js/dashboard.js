@@ -123,11 +123,11 @@ document.addEventListener("click", (e) => {
 });
 
 // ---------- section switching ----------
-const views = ["prehled", "vykon", "sazeni", "zebricek", "vyplaty", "affiliate", "akademie", "profil"];
+const views = ["prehled", "vykon", "sazeni", "zebricek", "vyplaty", "affiliate", "novinky", "akademie", "profil"];
 
 // "More" sheet na mobilu: sekce, co se nevejdou do spodní lišty
 // (Leaderboard/Affiliate/Academy/Profile) — otevře se přes #dnavMoreBtn.
-const MORE_SHEET_VIEWS = ["zebricek", "affiliate", "akademie", "profil"];
+const MORE_SHEET_VIEWS = ["zebricek", "affiliate", "novinky", "akademie", "profil"];
 
 function closeMoreSheet() {
   const sheet = document.getElementById("dnavMoreSheet");
@@ -140,6 +140,9 @@ function showView(name) {
   views.forEach((v) => {
     document.getElementById(`view-${v}`).hidden = v !== name;
   });
+  // omezený režim (bez aktivního účtu): přehled účtů ↔ Akademie / Novinky (přístup 30 dní po nákupu)
+  const naView = document.getElementById("view-noaccount");
+  if (naView && document.body.classList.contains("limited")) naView.hidden = name !== "noaccount";
   document.querySelectorAll("[data-view]").forEach((b) => {
     b.classList.toggle("active", b.dataset.view === name);
   });
@@ -162,7 +165,70 @@ function showView(name) {
   if (name === "vyplaty" && typeof loadPayoutHistory === "function") loadPayoutHistory();
   if (name === "affiliate" && typeof loadAffiliateStats === "function") loadAffiliateStats();
   if (name === "zebricek" && typeof loadLeaderboard === "function") loadLeaderboard();
+  if (name === "novinky") loadNews();
 }
+
+// ---------- Novinky: sportovní zprávy (edge funkce sports-news, cache 15 min) ----------
+// Jen titulek, zdroj, čas a odkaz na web zdroje — text článků nepřebíráme (autorská práva).
+let newsData = { lang: null, at: 0, items: [] };
+let newsSource = "";
+function newsLang() {
+  const l = (typeof FUNDLY_I18N !== "undefined" && FUNDLY_I18N.getLang()) || "en";
+  return l === "cs" || l === "sk" ? "cs" : "en";
+}
+function timeAgo(iso) {
+  if (!iso) return "";
+  const min = Math.max(1, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+  if (min < 60) return ftf("dashjs.news.minAgo", { n: min });
+  const h = Math.round(min / 60);
+  if (h < 24) return ftf("dashjs.news.hAgo", { n: h });
+  return new Date(iso).toLocaleDateString(newsLang() === "cs" ? "cs-CZ" : "en-GB", { day: "numeric", month: "short" });
+}
+const newsEsc = (v) => String(v ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function renderNews() {
+  const list = document.getElementById("newsList");
+  const filters = document.getElementById("newsFilters");
+  if (!list) return;
+  const sources = [...new Set(newsData.items.map((i) => i.source))];
+  if (filters) {
+    filters.innerHTML = [`<button type="button" data-news-src="" aria-pressed="${!newsSource}">${newsEsc(ft("dashjs.news.all"))}</button>`]
+      .concat(sources.map((src) => `<button type="button" data-news-src="${newsEsc(src)}" aria-pressed="${newsSource === src}">${newsEsc(src)}</button>`)).join("");
+  }
+  const items = newsData.items.filter((i) => !newsSource || i.source === newsSource);
+  if (!items.length) { list.innerHTML = `<p class="bet-msg">${newsEsc(ft("dashjs.news.empty"))}</p>`; return; }
+  list.innerHTML = items.map((i) => `
+    <a class="news-item" href="${newsEsc(i.link)}" target="_blank" rel="noopener noreferrer">
+      <div class="news-meta"><span class="news-src">${newsEsc(i.source)}</span><span>${newsEsc(timeAgo(i.published))}</span></div>
+      <div class="news-title">${newsEsc(i.title)}</div>
+    </a>`).join("");
+}
+async function loadNews(force) {
+  const lang = newsLang();
+  if (!force && newsData.lang === lang && Date.now() - newsData.at < 5 * 60 * 1000 && newsData.items.length) { renderNews(); return; }
+  const list = document.getElementById("newsList");
+  if (list && !newsData.items.length) list.innerHTML = `<p class="bet-msg">${newsEsc(ft("dashjs.news.loading"))}</p>`;
+  try {
+    if (typeof FUNDLY_SUPABASE_URL === "undefined") throw new Error("no backend");
+    const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/sports-news?lang=${lang}`);
+    const data = await res.json();
+    if (!Array.isArray(data.items) || !data.items.length) throw new Error("empty");
+    newsData = { lang, at: Date.now(), items: data.items };
+    if (newsSource && !data.items.some((i) => i.source === newsSource)) newsSource = "";
+    renderNews();
+  } catch (e) {
+    if (list && !newsData.items.length) list.innerHTML = `<p class="bet-msg">${newsEsc(ft("dashjs.news.error"))}</p>`;
+  }
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-news-src]");
+  if (!b) return;
+  newsSource = b.dataset.newsSrc;
+  renderNews();
+});
+document.addEventListener("fundly:lang-changed", () => {
+  const v = document.getElementById("view-novinky");
+  if (v && !v.hidden) loadNews(true);
+});
 
 document.addEventListener("click", (e) => {
   const moreBtn = e.target.closest("#dnavMoreBtn");
@@ -757,6 +823,21 @@ function showLimitedDashboard(accounts) {
   if (view) view.hidden = false;
   const pastPanel = document.getElementById("naPastPanel");
   if (pastPanel) pastPanel.hidden = !accounts.length;
+  // Hodnota i po neúspěchu: poplatek kupuje přístup k platformě na 30 dní (Akademie, novinky) —
+  // po spálení účtu zůstává přístup do konce těch 30 dní od začátku poslední výzvy.
+  const accessPanel = document.getElementById("naAccessPanel");
+  if (accessPanel) {
+    const until = accounts.reduce((m, a) => {
+      const from = new Date(a.phase_started_at || a.created_at).getTime();
+      return Number.isFinite(from) ? Math.max(m, from + 30 * 864e5) : m;
+    }, 0);
+    accessPanel.hidden = !(until > Date.now());
+    if (until > Date.now()) {
+      document.getElementById("naAccessText").textContent = ftf("dashjs.news.accessUntil", {
+        date: new Date(until).toLocaleDateString(newsLang() === "cs" ? "cs-CZ" : "en-GB", { day: "numeric", month: "long", year: "numeric" }),
+      });
+    }
+  }
   const list = document.getElementById("naAccounts");
   if (list && accounts.length) list.innerHTML = accountHistoryRowsHtml(accounts);
   showResetOfferFromAccounts(accounts);
@@ -889,7 +970,7 @@ async function syncChallengeAccount() {
     const fetchAccounts = async () => {
       const { data, error: fetchError } = await client
         .from("challenge_accounts")
-        .select("id, package_key, capital, phase, pending_phase, pending_requested_at, state, flags, created_at, inactivity_warned_7, inactivity_warned_13, nickname, leaderboard_opt_in, synced_at, phase_bonus_days")
+        .select("id, package_key, capital, phase, pending_phase, pending_requested_at, state, flags, created_at, phase_started_at, inactivity_warned_7, inactivity_warned_13, nickname, leaderboard_opt_in, synced_at, phase_bonus_days")
         .order("created_at", { ascending: false });
       if (fetchError) throw fetchError;
       return data || [];

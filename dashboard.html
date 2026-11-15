@@ -13,8 +13,8 @@
   <meta name="apple-mobile-web-app-title" content="Fundly" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   <link rel="icon" type="image/png" href="assets/logo.png" />
-  <link rel="stylesheet" href="css/style.css?v=20261115g" />
-  <link rel="stylesheet" href="css/dashboard.css?v=20261115g" />
+  <link rel="stylesheet" href="css/style.css?v=20261115h" />
+  <link rel="stylesheet" href="css/dashboard.css?v=20261115h" />
   <!-- Měření (Meta Pixel, Microsoft Clarity, Google Analytics): tady jen fronty volání.
        Skutečné skripty načte js/consent.js AŽ po souhlasu s cookies (zákon č. 127/2005 Sb.). -->
   <script>
@@ -27,10 +27,10 @@
     fbq('track', 'PageView');
     window.clarity = window.clarity || function(){(window.clarity.q = window.clarity.q || []).push(arguments)};
   </script>
-  <script src="js/consent.js?v=20261115g"></script>
+  <script src="js/consent.js?v=20261115h"></script>
   <!-- backend (Supabase/Whop) — defer, page works without it too (demo mode) -->
-  <script defer src="js/config.js?v=20261115g"></script>
-  <script defer src="js/whop.js?v=20261115g"></script>
+  <script defer src="js/config.js?v=20261115h"></script>
+  <script defer src="js/whop.js?v=20261115h"></script>
 </head>
 <body class="with-sidebar">
 
@@ -95,6 +95,10 @@
       <button class="dnav-link" data-view="affiliate">
         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.5l1.8 3.8 4.2.6-3 3 .7 4.1-3.7-2-3.7 2 .7-4.1-3-3 4.2-.6z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
         <span data-i18n="dash.affiliate">Affiliate</span>
+      </button>
+      <button class="dnav-link" data-view="novinky">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><rect x="1.75" y="2.5" width="11.5" height="10" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M4 5.5h7M4 8h7M4 10.5h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        <span data-i18n="dash.news">News</span>
       </button>
       <button class="dnav-link" data-view="akademie">
         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 3.5A1.5 1.5 0 013.5 2H13v10H3.5A1.5 1.5 0 002 13.5v-10z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M2 13.5A1.5 1.5 0 013.5 12H13M5.5 5.5h5M5.5 8h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
@@ -470,6 +474,20 @@
         </div>
       </section>
 
+      <!-- ============ NOVINKY (sportovní zprávy, edge funkce sports-news) ============ -->
+      <section class="dash-view" id="view-novinky" hidden>
+        <div class="dash-head">
+          <div>
+            <h1 data-i18n="dash.news">News</h1>
+            <p data-i18n="dash.news_sub">Fresh sports headlines from trusted sources — read the full story on the source's website.</p>
+          </div>
+          <button class="btn btn-ghost limited-only" data-view-link="noaccount" type="button" data-i18n="dash.back_to_accounts">← Back to your accounts</button>
+        </div>
+        <div class="news-filters" id="newsFilters" role="group"></div>
+        <div class="news-list" id="newsList"><p class="bet-msg" data-i18n="dash.news_loading">Loading news…</p></div>
+        <p class="t-meta" style="margin-top:14px" data-i18n="dash.news_note">Headlines and links come from the public RSS feeds of the listed websites. Fundly is not the author of the articles.</p>
+      </section>
+
       <!-- ============ ACADEMY ============ -->
       <section class="dash-view" id="view-akademie" hidden>
         <div class="dash-head">
@@ -477,6 +495,7 @@
             <h1 data-i18n="dash.academy">Academy</h1>
             <p data-i18n="dash.simulation_fundamentals_for_the_fundly_c">Simulation fundamentals for the Fundly Challenge</p>
           </div>
+          <button class="btn btn-ghost limited-only" data-view-link="noaccount" type="button" data-i18n="dash.back_to_accounts">← Back to your accounts</button>
         </div>
 
         <div class="hero-panel">
@@ -700,6 +719,15 @@
           </div>
         </div>
 
+        <div class="panel" id="naAccessPanel" hidden>
+          <h3 data-i18n="dash.access_title">Your platform access continues</h3>
+          <p class="t-small" id="naAccessText"></p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+            <button class="btn btn-primary" type="button" data-view-link="novinky" data-i18n="dash.news">News</button>
+            <button class="btn btn-ghost" type="button" data-view-link="akademie" data-i18n="dash.academy">Academy</button>
+          </div>
+        </div>
+
         <div class="panel act-panel" id="naResetPanel" hidden>
           <h3 data-i18n="dash.your_account_was_closed">Your account was closed</h3>
           <p class="t-small" id="naResetText"></p>
@@ -757,6 +785,10 @@
       <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.5l1.8 3.8 4.2.6-3 3 .7 4.1-3.7-2-3.7 2 .7-4.1-3-3 4.2-.6z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
       <span data-i18n="dash.affiliate">Affiliate</span>
     </button>
+    <button data-view="novinky">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><rect x="1.75" y="2.5" width="11.5" height="10" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M4 5.5h7M4 8h7M4 10.5h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      <span data-i18n="dash.news">News</span>
+    </button>
     <button data-view="akademie">
       <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 3.5A1.5 1.5 0 013.5 2H13v10H3.5A1.5 1.5 0 002 13.5v-10z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M2 13.5A1.5 1.5 0 013.5 12H13M5.5 5.5h5M5.5 8h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
       <span data-i18n="dash.academy">Academy</span>
@@ -769,15 +801,15 @@
 
   <div id="toastLayer" class="toast-layer" aria-live="polite"></div>
 
-  <script src="js/packages.js?v=20261115g"></script>
-  <script src="js/i18n.js?v=20261115g"></script>
-  <script src="js/i18n-dash.js?v=20261115g"></script>
-  <script src="js/i18n-dash-js.js?v=20261115g"></script>
-  <script src="js/portfolio.js?v=20261115g"></script>
-  <script src="js/dashboard.js?v=20261115g"></script>
-  <script src="js/promo-banner.js?v=20261115g"></script>
-  <script src="js/track.js?v=20261115g"></script>
-  <script src="js/pwa.js?v=20261115g"></script>
-  <script src="js/telegram-widget.js?v=20261115g"></script>
+  <script src="js/packages.js?v=20261115h"></script>
+  <script src="js/i18n.js?v=20261115h"></script>
+  <script src="js/i18n-dash.js?v=20261115h"></script>
+  <script src="js/i18n-dash-js.js?v=20261115h"></script>
+  <script src="js/portfolio.js?v=20261115h"></script>
+  <script src="js/dashboard.js?v=20261115h"></script>
+  <script src="js/promo-banner.js?v=20261115h"></script>
+  <script src="js/track.js?v=20261115h"></script>
+  <script src="js/pwa.js?v=20261115h"></script>
+  <script src="js/telegram-widget.js?v=20261115h"></script>
 </body>
 </html>

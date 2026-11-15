@@ -368,3 +368,15 @@ FUNDLY_I18N.extend("cs", { dash: {
   "pay_activation_fee_80": "Zaplatit aktivační poplatek — $80",
   "high_odds": "Vysoké kurzy"
 } });
+// Novinky + přístup po neúspěchu (přidáno 2026-11-15)
+FUNDLY_I18N.extend("en", { dash: {
+  news: "News", news_sub: "Fresh sports headlines from trusted sources — read the full story on the source's website.",
+  news_loading: "Loading news…", news_note: "Headlines and links come from the public RSS feeds of the listed websites. Fundly is not the author of the articles.",
+  back_to_accounts: "← Back to your accounts", access_title: "Your platform access continues",
+} });
+FUNDLY_I18N.extend("cs", { dash: {
+  news: "Novinky", news_sub: "Čerstvé sportovní zprávy z ověřených zdrojů — celý článek si přečteš na webu zdroje.",
+  news_loading: "Načítám novinky…", news_note: "Titulky a odkazy pocházejí z veřejných RSS kanálů uvedených webů. Fundly není autorem článků.",
+  back_to_accounts: "← Zpět na tvoje účty", access_title: "Tvůj přístup k platformě pokračuje",
+} });
+

@@ -1325,3 +1325,18 @@ text.eq-lv-floor { fill: #ff9d9d; }
 .odd-btn.odd-down b::after { content: " ▼"; font-size: .6em; color: #ff5c5c; }
 .si-odds.odd-flash { animation: oddFlash 1.5s ease-out; }
 @media (prefers-reduced-motion: reduce) { .odd-btn.odd-up, .odd-btn.odd-down, .si-odds.odd-flash { animation: none; } }
+
+/* Novinky (sportovní zprávy) */
+.news-filters { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 14px; }
+.news-filters button { border: 1px solid var(--line); background: transparent; color: var(--text-secondary); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: .8125rem; cursor: pointer; }
+.news-filters button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #04140c; font-weight: 700; }
+.news-list { display: grid; gap: 10px; }
+.news-item { display: block; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius-lg, 14px); background: var(--surface, rgb(255 255 255 / .02)); color: inherit; text-decoration: none; transition: border-color .15s; }
+.news-item:hover { border-color: var(--accent); }
+.news-meta { font-size: .75rem; color: var(--text-muted); margin-bottom: 4px; display: flex; gap: 8px; }
+.news-src { color: var(--accent); font-weight: 700; }
+.news-title { font-weight: 600; line-height: 1.4; }
+/* prvky jen pro omezený režim (bez aktivního účtu) */
+.limited-only { display: none; }
+body.limited .limited-only { display: inline-flex; }
+

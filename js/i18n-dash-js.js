@@ -430,6 +430,17 @@ FUNDLY_I18N.extend("cs", { dashjs: {
 // tlačítko resetu během přesměrování na platbu (oprava #97)
 FUNDLY_I18N.extend("en", { dashjs: { reset: { opening: "Opening the payment…" } } });
 FUNDLY_I18N.extend("cs", { dashjs: { reset: { opening: "Otevírám platbu…" } } });
+// Novinky (sports-news) + přístup po neúspěchu
+FUNDLY_I18N.extend("en", { dashjs: { news: {
+  all: "All sources", loading: "Loading news…", empty: "No news right now.", error: "News could not be loaded. Try again later.",
+  minAgo: "{n} min ago", hAgo: "{n} h ago",
+  accessUntil: "Your evaluation has ended, but your purchase includes access to the platform's sports news and the Fundly Academy until {date}.",
+} } });
+FUNDLY_I18N.extend("cs", { dashjs: { news: {
+  all: "Všechny zdroje", loading: "Načítám novinky…", empty: "Zatím žádné novinky.", error: "Novinky se nepodařilo načíst. Zkus to prosím později.",
+  minAgo: "před {n} min", hAgo: "před {n} h",
+  accessUntil: "Tvoje hodnocení skončilo, ale v rámci nákupu máš přístup ke sportovním novinkám a Fundly Akademii až do {date}.",
+} } });
 // Statické texty (data-i18n) i18n.js přeložil hned při načtení — ještě BEZ slovníků dashboardu
 // (načítají se až po něm), takže by místo překladu zůstaly klíče. Po načtení obou slovníků přeložit znovu.
 if (typeof FUNDLY_I18N !== "undefined" && FUNDLY_I18N.refresh) FUNDLY_I18N.refresh();
