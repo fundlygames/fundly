@@ -2,11 +2,12 @@
 // auth.signUp() ve druhém kroku checkoutu (nový účet, ne fallback signIn na
 // existující). Best-effort: pokud e-mail selže, checkout tím není blokován
 // — klient na chybu nijak nereaguje, jen ji zaloguje.
-// POST { email } → { ok: true }
+// POST { email, lang? } → { ok: true }
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { handleCors, jsonResponse } from "../_shared/cors.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { sendEmail, checkoutWelcomeHtml } from "../_shared/email.ts";
+import { sendEmail, checkoutWelcomeHtml, subjects } from "../_shared/email.ts";
+import { userLang } from "../_shared/user-lang.ts";
 import { allow } from "../_shared/throttle.ts";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -35,10 +36,13 @@ serve(async (req) => {
       return jsonResponse({ ok: true });
     }
 
+    // jazyk: lang z těla (pokud ho klient pošle), jinak user_metadata.checkout_lang právě
+    // založeného účtu (js/checkout.js ho ukládá při signUp), jinak doména e-mailu
+    const lang = await userLang(supabase, { email, hint: typeof body.lang === "string" ? body.lang : null });
     const result = await sendEmail({
       to: email,
-      subject: "Welcome to Fundly",
-      html: checkoutWelcomeHtml(`${SITE_URL}/dashboard`),
+      subject: subjects.checkoutWelcome(lang),
+      html: checkoutWelcomeHtml(`${SITE_URL}/dashboard`, lang),
     });
     if (!result.sent) {
       console.error("checkout-welcome-email selhal:", result.error);

@@ -2,7 +2,8 @@
 // (viz loss-limits.ts). Volá se po každém sync-tickets / sync-account a v denním
 // account-maintenance, takže upravený klient, který limit nehlásí (nebo vůbec nesyncuje),
 // účet neuchrání. Vypínač: secret LOSS_LIMIT_ENFORCE=false (jen zaloguje "would close").
-import { sendEmail, accountClosedHtml } from "./email.ts";
+import { sendEmail, accountClosedHtml, subjects } from "./email.ts";
+import { userLang } from "./user-lang.ts";
 import { packageByKey, resetPrice } from "./packages.ts";
 import { isExcludedFromExpiry } from "./phase-expiry.ts";
 import { lossLimitBreach, type LossAccount, type LossTicket } from "./loss-limits.ts";
@@ -13,7 +14,7 @@ const SITE_URL = Deno.env.get("SITE_URL") ?? "https://fundly.games";
 export async function enforceLossLimits(supabase: any, accountId: string, dryRun = false): Promise<string | null> {
   const { data: acc } = await supabase
     .from("challenge_accounts")
-    .select("id, email, package_key, capital, phase, state, phase_started_at, phase_baseline")
+    .select("id, user_id, email, package_key, capital, phase, state, phase_started_at, phase_baseline")
     .eq("id", accountId)
     .maybeSingle();
   if (!acc) return null;
@@ -42,11 +43,13 @@ export async function enforceLossLimits(supabase: any, accountId: string, dryRun
   console.error(`loss-limits CLOSED: account ${accountId} — ${reason}`);
   if (closed?.length && acc.email) {
     const pkg = packageByKey(String(acc.package_key ?? ""));
-    sendEmail({
-      to: String(acc.email),
-      subject: "Your Fundly account was closed",
-      html: accountClosedHtml(pkg.name, reason, `${SITE_URL}/dashboard`, resetPrice(pkg)),
-    }).then((r) => { if (!r.sent) console.error("account-closed e-mail selhal:", r.error); })
+    userLang(supabase, { userId: acc.user_id, email: acc.email })
+      .then((lang) => sendEmail({
+        to: String(acc.email),
+        subject: subjects.accountClosed(lang),
+        html: accountClosedHtml(pkg.name, reason, `${SITE_URL}/dashboard`, resetPrice(pkg), lang),
+      }))
+      .then((r) => { if (!r.sent) console.error("account-closed e-mail selhal:", r.error); })
       .catch((e) => console.error("account-closed e-mail error:", e));
   }
   return reason;

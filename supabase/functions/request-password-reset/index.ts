@@ -11,16 +11,17 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { handleCors, jsonResponse } from "../_shared/cors.ts";
 import { sendEmail } from "../_shared/email.ts";
 import { allow } from "../_shared/throttle.ts";
+import { userLang } from "../_shared/user-lang.ts";
 
 const SITE_URL = Deno.env.get("SITE_URL") ?? "https://fundly.games";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-type Lang = "en" | "cs" | "sk" | "pl" | "hu" | "es";
-const LANGS: Lang[] = ["en", "cs", "sk", "pl", "hu", "es"];
+// Slovenským hráčům posíláme češtinu (sk → cs), stejně jako ostatní e-maily (viz _shared/user-lang.ts).
+type Lang = "en" | "cs" | "pl" | "hu" | "es";
+const LANGS: Lang[] = ["en", "cs", "pl", "hu", "es"];
 const TEXTS: Record<Lang, { subject: string; h: string; p: string; btn: string; ignore: string; q: string }> = {
   en: { subject: "Reset your Fundly password", h: "Reset your password", p: "Someone (hopefully you) asked to reset the password on your Fundly account. Click below to set a new one — this link works once and expires soon.", btn: "Reset password", ignore: "Didn't request this? You can safely ignore this e-mail — your password won't change unless you click the link above.", q: "Questions? Reach us at" },
-  cs: { subject: "Obnovení hesla k účtu Fundly", h: "Obnovení hesla", p: "Někdo (doufáme, že vy) požádal o obnovení hesla k vašemu účtu Fundly. Kliknutím níže nastavíte nové — odkaz funguje jen jednou a brzy vyprší.", btn: "Obnovit heslo", ignore: "Nežádali jste o to? Tento e-mail klidně ignorujte — heslo se nezmění, dokud nekliknete na odkaz výše.", q: "Máte otázky? Napište nám na" },
-  sk: { subject: "Obnovenie hesla k účtu Fundly", h: "Obnovenie hesla", p: "Niekto (dúfame, že vy) požiadal o obnovenie hesla k vášmu účtu Fundly. Kliknutím nižšie nastavíte nové — odkaz funguje len raz a čoskoro vyprší.", btn: "Obnoviť heslo", ignore: "Nežiadali ste o to? Tento e-mail pokojne ignorujte — heslo sa nezmení, kým nekliknete na odkaz vyššie.", q: "Máte otázky? Napíšte nám na" },
+  cs: { subject: "Obnovení hesla k účtu Fundly", h: "Obnovení hesla", p: "Někdo (doufáme, že ty) požádal o obnovení hesla k tvému účtu Fundly. Kliknutím níže si nastavíš nové — odkaz funguje jen jednou a brzy vyprší.", btn: "Obnovit heslo", ignore: "Nežádal(a) jsi o to? Tento e-mail klidně ignoruj — heslo se nezmění, dokud neklikneš na odkaz výše.", q: "Máš otázky? Napiš nám na" },
   pl: { subject: "Reset hasła do konta Fundly", h: "Reset hasła", p: "Ktoś (mamy nadzieję, że Ty) poprosił o reset hasła do Twojego konta Fundly. Kliknij poniżej, aby ustawić nowe — link działa tylko raz i wkrótce wygaśnie.", btn: "Zresetuj hasło", ignore: "Nie prosiłeś o to? Możesz bezpiecznie zignorować tego e-maila — hasło się nie zmieni, dopóki nie klikniesz linku powyżej.", q: "Pytania? Napisz do nas:" },
   hu: { subject: "Fundly jelszó visszaállítása", h: "Jelszó visszaállítása", p: "Valaki (remélhetőleg te) a Fundly-fiókod jelszavának visszaállítását kérte. Kattints lent az új jelszó beállításához — a link csak egyszer használható, és hamarosan lejár.", btn: "Jelszó visszaállítása", ignore: "Nem te kérted? Nyugodtan figyelmen kívül hagyhatod ezt az e-mailt — a jelszavad nem változik, amíg nem kattintasz a fenti linkre.", q: "Kérdésed van? Írj nekünk:" },
   es: { subject: "Restablece tu contraseña de Fundly", h: "Restablece tu contraseña", p: "Alguien (esperamos que tú) ha pedido restablecer la contraseña de tu cuenta de Fundly. Haz clic abajo para crear una nueva: este enlace funciona una sola vez y caduca pronto.", btn: "Restablecer contraseña", ignore: "¿No lo pediste? Puedes ignorar este correo sin problema: tu contraseña no cambiará a menos que hagas clic en el enlace de arriba.", q: "¿Preguntas? Escríbenos a" },
@@ -53,8 +54,10 @@ serve(async (req) => {
   try {
     const body = await req.json().catch(() => ({}));
     const email = String(body.email ?? "").trim();
-    const langIn = String(body.lang ?? "").slice(0, 2).toLowerCase();
-    const lang: Lang = (LANGS as string[]).includes(langIn) ? (langIn as Lang) : "en";
+    const rawLang = String(body.lang ?? "").slice(0, 2).toLowerCase();
+    const langIn = rawLang === "sk" ? "cs" : rawLang;
+    // jazyk z klienta (js/whop.js posílá aktuální jazyk webu); bez něj se dohledá jazyk účtu níže
+    let lang: Lang = (LANGS as string[]).includes(langIn) ? (langIn as Lang) : "en";
     // Same response either way (see file header) — but still bail out on
     // garbage input before touching the admin API.
     if (!EMAIL_RE.test(email)) return jsonResponse({ ok: true });
@@ -78,6 +81,8 @@ serve(async (req) => {
     // report success to the caller so this endpoint can't be used to probe
     // which e-mails have an account.
     if (!error && data?.properties?.action_link) {
+      // klient jazyk neposlal → jazyk účtu (user_metadata.lang / checkout_lang), jinak doména e-mailu
+      if (!rawLang) lang = await userLang(null, { user: data.user ?? null, email });
       const result = await sendEmail({
         to: email,
         subject: TEXTS[lang].subject,

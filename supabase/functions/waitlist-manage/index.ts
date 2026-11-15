@@ -5,24 +5,17 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { handleCors, jsonResponse } from "../_shared/cors.ts";
 import { isAdminRequest } from "../_shared/admin.ts";
-import { sendEmail } from "../_shared/email.ts";
+import { sendEmail, waitlistInviteHtml, subjects } from "../_shared/email.ts";
+import { userLang } from "../_shared/user-lang.ts";
 import { launchCapacity, soldCount } from "../_shared/capacity.ts";
 import { packageByKey } from "../_shared/packages.ts";
 
 const SITE_URL = Deno.env.get("SITE_URL") ?? "https://fundly.games";
 
 // deno-lint-ignore no-explicit-any
-function inviteHtml(row: any): string {
+function inviteLink(row: any): string {
   const pkg = row.package_key ? packageByKey(row.package_key) : null;
-  const link = `${SITE_URL}/checkout${pkg ? `?package=${pkg.key}` : ""}`;
-  return `<div style="background:#020204;padding:32px;font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#e8e8ec">
-    <div style="max-width:520px;margin:0 auto;background:#0d0d12;border:1px solid #ffffff1a;border-radius:16px;padding:28px">
-      <div style="color:#14f195;font-weight:700;font-size:18px;margin-bottom:16px">fundly</div>
-      <h2 style="color:#fff;font-size:18px;margin:0 0 12px">A spot just opened up</h2>
-      <p style="color:#a0a0ab;font-size:14px;line-height:1.6;margin:0 0 20px">You're invited to complete your Fundly Challenge purchase. This invite is tied to ${row.email} — sign up with the same e-mail to unlock checkout.</p>
-      <a href="${link}" style="display:inline-block;background:#14f195;color:#020204;font-weight:700;text-decoration:none;padding:12px 24px;border-radius:10px">Complete your purchase</a>
-    </div>
-  </div>`;
+  return `${SITE_URL}/checkout${pkg ? `?package=${pkg.key}` : ""}`;
 }
 
 // deno-lint-ignore no-explicit-any
@@ -31,10 +24,12 @@ async function inviteRow(supabase: any, row: any) {
     .from("waitlist")
     .update({ invited_at: new Date().toISOString() })
     .eq("id", row.id);
+  // jazyk podle účtu s tímhle e-mailem (pokud existuje), jinak doména e-mailu
+  const lang = await userLang(supabase, { email: row.email });
   return sendEmail({
     to: row.email,
-    subject: "A Fundly spot just opened up for you",
-    html: inviteHtml(row),
+    subject: subjects.waitlistInvite(lang),
+    html: waitlistInviteHtml(row.email, inviteLink(row), lang),
   });
 }
 

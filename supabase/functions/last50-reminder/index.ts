@@ -9,7 +9,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsonResponse } from "../_shared/cors.ts";
-import { sendEmail, last50Html } from "../_shared/email.ts";
+import { sendEmail, last50Html, subjects } from "../_shared/email.ts";
+import { resolveLangSync } from "../_shared/user-lang.ts";
 import { packageByKey } from "../_shared/packages.ts";
 
 const SITE_URL = Deno.env.get("SITE_URL") ?? "https://fundly.games";
@@ -70,10 +71,11 @@ serve(async (req) => {
     let sent = 0;
     for (const u of candidates) {
       const email = String(u.email);
+      const lang = resolveLangSync({ user: u, email }); // auth uživatele už máme načteného
       const result = await sendEmail({
         to: email,
-        subject: "50% off — last chance",
-        html: last50Html(pkg, `${SITE_URL}/checkout?package=advanced`),
+        subject: subjects.last50(lang),
+        html: last50Html(pkg, `${SITE_URL}/checkout?package=advanced`, lang),
       });
       if (result.sent) {
         await supabase.from("last50_reminders_sent").insert({ email: email.toLowerCase() });

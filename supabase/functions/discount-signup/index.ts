@@ -6,27 +6,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { handleCors, jsonResponse } from "../_shared/cors.ts";
-import { sendEmail } from "../_shared/email.ts";
+import { sendEmail, discountCodeHtml, subjects } from "../_shared/email.ts";
+import { userLang } from "../_shared/user-lang.ts";
 import { allow } from "../_shared/throttle.ts";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const CODE = "NEWFUNDLY";
 const SITE_URL = Deno.env.get("SITE_URL") ?? "https://fundly.games";
-
-function discountHtml(): string {
-  return `
-  <div style="background:#020204;padding:32px;font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#e8e8ec">
-    <div style="max-width:520px;margin:0 auto;background:#0d0d12;border:1px solid #ffffff1a;border-radius:16px;padding:28px">
-      <div style="color:#14f195;font-weight:700;font-size:18px;margin-bottom:16px">fundly</div>
-      <h2 style="color:#fff;font-size:18px;margin:0 0 12px">Here's your 30% off code</h2>
-      <p style="color:#a0a0ab;font-size:14px;line-height:1.6;margin:0 0 20px">Enter this code at checkout on any package:</p>
-      <div style="background:#14f19522;border:1px solid #14f19555;border-radius:10px;padding:14px 20px;text-align:center;font-family:'SF Mono',ui-monospace,monospace;font-size:20px;font-weight:700;letter-spacing:.08em;color:#14f195;margin:0 0 20px">${CODE}</div>
-      <a href="${SITE_URL}/get-started" style="display:inline-block;background:#14f195;color:#020204;font-weight:700;text-decoration:none;padding:12px 24px;border-radius:10px">Get funded now</a>
-      <hr style="border:none;border-top:1px solid #ffffff1a;margin:24px 0 16px" />
-      <p style="color:#5a5a66;font-size:11px;line-height:1.6;margin:0">Grindit LLC · Sharjah Media City, Sharjah, UAE · Reg. 2541536<br />Questions? Reach us at <a href="mailto:support@fundly.games" style="color:#7a7a86">support@fundly.games</a>.</p>
-    </div>
-  </div>`;
-}
 
 serve(async (req) => {
   const cors = handleCors(req);
@@ -69,10 +55,12 @@ serve(async (req) => {
 
     // kód dostane adresa nejvýš 1× za 24 h (jinak šlo cizí schránku zahltit opakovaným voláním)
     if (await allow(supabase, `discount:${email.toLowerCase()}`, 24 * 3600_000)) {
+      // jazyk: lang z pop-upu (aktuální jazyk webu), jinak jazyk účtu / doména e-mailu
+      const mailLang = await userLang(supabase, { email, hint: lang });
       const result = await sendEmail({
         to: email,
-        subject: "Your 30% off Fundly code",
-        html: discountHtml(),
+        subject: subjects.discountCode(mailLang),
+        html: discountCodeHtml(CODE, `${SITE_URL}/get-started`, mailLang),
       });
       if (!result.sent) console.error("discount-signup e-mail selhal:", result.error);
     }

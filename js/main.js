@@ -524,7 +524,7 @@ if (heroEl) heroSentinel.observe(heroEl);
       const res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/preview-signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, lang: (document.documentElement.lang || "en") }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(res.status === 400 && /password/i.test(String(data.error)) ? tr("forms.errWeakPassword") : res.status === 400 && /e-?mail/i.test(String(data.error)) ? tr("co.errInvalidEmail") : tr("forms.previewFailed"));
