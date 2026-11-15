@@ -32,11 +32,23 @@ const MARKET_SET = new Set(MARKETS);
 
 type Row = { event_id: string; bookie: string; ml: unknown; markets: unknown[]; seq: number | null; updated_at: string };
 
+// Historie ML kurzů (tabulka odds_history, migrace 042) pro graf pohybu kurzu v detailu zápasu.
+// Max. 1 řádek na zápas × bookmaker za HIST_BUCKET_MS: drží se jen poslední změněná hodnota
+// a zapíše se v běžném 1s flush, jakmile začne nové 30s okno. ts = začátek okna, takže
+// překrývající se běhy (dvě spojení naráz) zapíšou stejné okno jen jednou (unikátní index).
+const HIST_BUCKET_MS = 30_000;
+const HIST_RETENTION_MS = 7 * 864e5;
+type HistPending = { event_id: string; bookie: string; sig: string; home: number; draw: number | null; away: number };
+const oddNum = (v: unknown): number | null => {
+  const n = typeof v === "number" ? v : parseFloat(String(v ?? ""));
+  return Number.isFinite(n) && n > 1 ? n : null;
+};
+
 async function run(apiKey: string) {
   const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
   const started = Date.now();
   const deadline = started + RUN_S * 1000;
-  const stats = { msgs: 0, updates: 0, removed: 0, settled: 0, upserted: 0, flushes: 0, errors: [] as string[], connects: 0, closes: [] as string[], replay: null as string | null };
+  const stats = { msgs: 0, updates: 0, removed: 0, settled: 0, upserted: 0, flushes: 0, history: 0, errors: [] as string[], connects: 0, closes: [] as string[], replay: null as string | null };
 
   // Mezera ve streamu (předchozí běh spadl / cron stál)? Pak řádky můžou být zastaralé
   // (stažený trh, o kterém jsme se nedozvěděli) → smazat; dashboard do příchodu nových
@@ -48,6 +60,31 @@ async function run(apiKey: string) {
   const pending = new Map<string, Row>();
   const settled = new Set<string>();
   let resync = false;
+
+  // historie: poslední ZAPSANÁ hodnota (sig + 30s okno) a čekající změna na zápas × bookmaker.
+  // Při připojení pošle WS snímek všech živých zápasů — aby každý běh (každou minutu) znovu
+  // nezapsal stovky nezměněných kurzů, výchozí stav se vezme z live_odds (= poslední známé ML).
+  const histLast = new Map<string, { b: number; sig: string }>();
+  const histPending = new Map<string, HistPending>();
+  let histOff = false; // tabulka chybí (migrace 042 neproběhla) → historii vypnout, stream jede dál
+  if (!gap) {
+    const { data: seed } = await db.from("live_odds").select("event_id,bookie,ml").limit(5000);
+    for (const r of seed ?? []) {
+      // deno-lint-ignore no-explicit-any
+      const ml = r.ml as any;
+      const h = oddNum(ml?.home), a = oddNum(ml?.away);
+      if (h && a) histLast.set(`${r.event_id}|${r.bookie}`, { b: 0, sig: `${h}|${oddNum(ml?.draw) ?? ""}|${a}` });
+    }
+  }
+  // deno-lint-ignore no-explicit-any
+  function noteHistory(eventId: string, bookie: string, mlRow: any) {
+    const home = oddNum(mlRow?.home), away = oddNum(mlRow?.away), draw = oddNum(mlRow?.draw);
+    if (!home || !away) return; // trh stažený / neúplný → do historie nic
+    const key = `${eventId}|${bookie}`;
+    const sig = `${home}|${draw ?? ""}|${away}`;
+    if (histLast.get(key)?.sig === sig) { histPending.delete(key); return; } // vrátil se na zapsanou hodnotu
+    histPending.set(key, { event_id: eventId, bookie, sig, home, draw, away });
+  }
 
   let lastBeat = 0;
   let connected = false;
@@ -67,6 +104,21 @@ async function run(apiKey: string) {
       const { error } = await db.from("live_odds").upsert(rows, { onConflict: "event_id,bookie" });
       if (error) stats.errors.push("upsert: " + error.message); else stats.upserted += rows.length;
       stats.flushes++;
+    }
+    if (histPending.size && !histOff) {
+      const b = Math.floor(Date.now() / HIST_BUCKET_MS);
+      const rows = [];
+      for (const [key, p] of histPending) {
+        if ((histLast.get(key)?.b ?? -1) >= b) continue; // v tomhle 30s okně už zapsáno → počkat na další
+        histPending.delete(key);
+        histLast.set(key, { b, sig: p.sig });
+        rows.push({ event_id: p.event_id, bookie: p.bookie, ts: new Date(b * HIST_BUCKET_MS).toISOString(), home: p.home, draw: p.draw, away: p.away });
+      }
+      if (rows.length) {
+        const { error } = await db.from("odds_history").upsert(rows, { onConflict: "event_id,ts,bookie", ignoreDuplicates: true });
+        if (error) { histOff = /odds_history|does not exist|schema cache/i.test(error.message); stats.errors.push("history: " + error.message); }
+        else stats.history += rows.length;
+      }
     }
     if (settled.size) {
       const ids = [...settled];
@@ -104,6 +156,7 @@ async function run(apiKey: string) {
     const markets = (Array.isArray(d.markets) ? d.markets : []).filter((m: any) => m && MARKET_SET.has(m.name));
     // deno-lint-ignore no-explicit-any
     const ml = markets.find((m: any) => m.name === "ML");
+    if (ml && Array.isArray(ml.odds) && ml.odds[0]) noteHistory(String(d.id), String(d.bookie), ml.odds[0]);
     pending.set(`${d.id}|${d.bookie}`, {
       event_id: String(d.id),
       bookie: String(d.bookie),
@@ -141,6 +194,12 @@ async function run(apiKey: string) {
   await flush().catch((e) => stats.errors.push(String(e)));
   // úklid: řádky, které se 6 h nezměnily (skončené zápasy bez zprávy o konci)
   await db.from("live_odds").delete().lt("updated_at", new Date(Date.now() - 6 * 3600 * 1000).toISOString());
+  // retence historie kurzů (7 dní) — max. jednou za běh, a jen v běhu startujícím v minutě dělitelné 10
+  // (cron spouští běh každou minutu; mazání po malých dávkách stačí ~6× za hodinu)
+  if (!histOff && Math.floor(started / 60000) % 10 === 0) {
+    const { error } = await db.from("odds_history").delete().lt("ts", new Date(Date.now() - HIST_RETENTION_MS).toISOString());
+    if (error) stats.errors.push("history cleanup: " + error.message);
+  }
   await db.from("odds_stream_state").update({
     last_seq: lastSeq,
     updated_at: new Date().toISOString(),

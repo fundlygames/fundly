@@ -1,0 +1,111 @@
+/* Fundly — vývoj kurzu (graf v detailu zápasu) + sledované zápasy (js/odds-watch.js) */
+:root {
+  /* barvy linií 1 / X / 2 — ověřené proti tmavému povrchu (rozlišitelné i při poruchách barvocitu) */
+  --ow-c0: #3987e5;
+  --ow-c1: #199e70;
+  --ow-c2: #d95926;
+  --ow-star: #ffce7a;
+}
+
+/* ---------- hvězdička v řádku zápasu ---------- */
+.ow-star {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  margin: -4px -4px -4px -8px;
+  padding: 0;
+  border: none;
+  border-radius: var(--d-r-sm, 2px);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color .15s var(--ease), background-color .15s var(--ease), transform .15s var(--ease);
+}
+.ow-star .ow-star-ic { fill: none; }
+.ow-star:hover { color: var(--text-primary); background: #ffffff0f; }
+.ow-star:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+.ow-star[aria-pressed="true"] { color: var(--ow-star); }
+.ow-star[aria-pressed="true"] .ow-star-ic { fill: currentColor; }
+.ow-star:active { transform: scale(.9); }
+
+/* tlačítko v detailu ("Sledovat" / "Sledováno") */
+.detail-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.detail-bar .filter-chip { height: 34px; } /* "Zpět" a "Sledovat" stejně vysoké (jako rychlé filtry) */
+.ow-star.ow-star-chip {
+  width: auto;
+  margin: 0;
+  padding: 0 14px;
+  gap: 6px;
+  border: 1px solid #ffffff24;
+  color: var(--text-secondary);
+}
+.ow-star.ow-star-chip[aria-pressed="true"] { color: var(--ow-star); border-color: rgb(255 206 122 / .45); background: rgb(255 206 122 / .08); }
+.ow-star.ow-star-chip[aria-pressed="true"] .ow-star-txt { color: var(--text-primary); }
+
+/* sledovaný řádek + upozornění na pohyb kurzu */
+.match.ow-alerted { box-shadow: inset 3px 0 0 var(--ow-star); background: rgb(255 206 122 / .06); }
+.match.ow-alerted .ow-star { animation: ow-pulse 1.6s ease-in-out 3; }
+@keyframes ow-pulse { 50% { transform: scale(1.25); } }
+@media (prefers-reduced-motion: reduce) { .match.ow-alerted .ow-star { animation: none; } }
+
+/* chip "Sledované" — počet */
+.ow-count {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: #ffffff14;
+  color: var(--text-primary);
+  font-size: .6875rem;
+  line-height: 18px;
+  text-align: center;
+}
+.ow-count[hidden] { display: none; }
+
+/* ---------- graf vývoje kurzu ---------- */
+.ow-chart { padding: 14px 16px 12px; border-bottom: 1px solid var(--line); }
+.ow-chart-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.ow-chart-head b { font-size: .875rem; font-weight: 700; color: var(--text-primary); }
+.ow-chart-head span { font-size: .75rem; color: var(--text-muted); }
+.ow-plot { width: 100%; min-width: 0; }
+.ow-svg { display: block; max-width: 100%; height: auto; overflow: visible; }
+.ow-msg { margin: 0; padding: 18px 0; font-size: .8125rem; color: var(--text-muted); text-align: center; }
+.ow-loading { animation: ow-fade 1.2s ease-in-out infinite; }
+@keyframes ow-fade { 50% { opacity: .45; } }
+
+.ow-grid { stroke: #ffffff0f; stroke-width: 1; }
+.ow-zero { stroke: #ffffff33; stroke-width: 1; stroke-dasharray: 3 3; }
+.ow-ax { fill: var(--text-muted); font-size: 10px; font-variant-numeric: tabular-nums; }
+.ow-l { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.ow-l-0 { stroke: var(--ow-c0); }
+.ow-l-1 { stroke: var(--ow-c1); }
+.ow-l-2 { stroke: var(--ow-c2); }
+.ow-dot { stroke: var(--surface-2, #0d0f10); stroke-width: 2; }
+.ow-d-0 { fill: var(--ow-c0); }
+.ow-d-1 { fill: var(--ow-c1); }
+.ow-d-2 { fill: var(--ow-c2); }
+.ow-end { fill: var(--text-primary); font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.ow-end-k { fill: var(--text-muted); font-weight: 600; }
+
+.ow-legend { margin-top: 8px; display: grid; gap: 2px; font-size: .8125rem; }
+.ow-lg-row, .ow-lg-head {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr) auto 64px;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+}
+.ow-lg-head { padding: 0; font-size: .6875rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; }
+.ow-lg-head span:nth-child(3) { text-align: right; }
+.ow-sw { width: 12px; height: 3px; border-radius: 2px; }
+.ow-sw-0 { background: var(--ow-c0); }
+.ow-sw-1 { background: var(--ow-c1); }
+.ow-sw-2 { background: var(--ow-c2); }
+.ow-lg-name { color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ow-lg-name b { color: var(--text-muted); font-weight: 700; margin-right: 2px; }
+.ow-lg-val { color: var(--text-muted); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.ow-lg-val b { color: var(--text-primary); }
+.ow-lg-chg { color: var(--text-secondary); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; font-weight: 600; }
