@@ -22,3 +22,15 @@ export async function unsubscribeUrl(siteUrl: string, email: string): Promise<st
   const e = email.trim().toLowerCase();
   return `${siteUrl}/unsubscribe.html?e=${encodeURIComponent(e)}&t=${await unsubscribeToken(e)}`;
 }
+
+// Odhlášení jen z týdenního reportu (weekly-report): vlastní token (HMAC "weekly:<email>"),
+// takže odkaz z propagačního e-mailu neodhlásí report a naopak. Stránka unsubscribe.html
+// pozná druh podle &type=weekly a pošle ho do email-unsubscribe.
+export function weeklyUnsubscribeToken(email: string): Promise<string> {
+  return unsubscribeToken(`weekly:${email.trim().toLowerCase()}`);
+}
+
+export async function weeklyUnsubscribeUrl(siteUrl: string, email: string): Promise<string> {
+  const e = email.trim().toLowerCase();
+  return `${siteUrl}/unsubscribe.html?e=${encodeURIComponent(e)}&t=${await weeklyUnsubscribeToken(e)}&type=weekly`;
+}

@@ -3504,6 +3504,7 @@ function renderVykon() {
         </tr>`).join("")
       : `<tr><td colspan="4">${ft("dashjs.vykon.noSettled")}</td></tr>`;
   }
+  window.FundlyAnalytics?.render(); // záložka Analýza (js/analytics.js) — překreslí se jen když je otevřená
 }
 
 document.getElementById("vykonRefresh")?.addEventListener("click", async (e) => {

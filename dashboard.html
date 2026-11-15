@@ -15,6 +15,7 @@
   <link rel="icon" type="image/png" href="assets/logo.png" />
   <link rel="stylesheet" href="css/style.css?v=20261115h" />
   <link rel="stylesheet" href="css/dashboard.css?v=20261115h" />
+  <link rel="stylesheet" href="css/analytics.css" />
   <!-- Měření (Meta Pixel, Microsoft Clarity, Google Analytics): tady jen fronty volání.
        Skutečné skripty načte js/consent.js AŽ po souhlasu s cookies (zákon č. 127/2005 Sb.). -->
   <script>
@@ -213,6 +214,11 @@
           </button>
         </div>
 
+        <div class="subtabs an-tabs" role="tablist" aria-label="Performance sections" data-i18n-aria-label="an.tabsLabel">
+          <button type="button" class="active" data-an-tab="overview" role="tab" aria-selected="true" data-i18n="an.tabOverview">Overview</button>
+          <button type="button" data-an-tab="analytics" role="tab" aria-selected="false" data-i18n="an.tabAnalytics">Analytics</button>
+        </div>
+
         <div class="stat-grid" style="margin-top:0" id="vykonStatGrid"><!-- JS: renderVykon() --></div>
 
         <div class="two-col">
@@ -251,6 +257,8 @@
             </table>
           </div>
         </div>
+
+        <div id="analyticsRoot" hidden><!-- JS: js/analytics.js --></div>
       </section>
 
       <!-- ============ BETTING ============ -->
@@ -807,6 +815,7 @@
   <script src="js/i18n-dash-js.js?v=20261115h"></script>
   <script src="js/portfolio.js?v=20261115h"></script>
   <script src="js/dashboard.js?v=20261115h"></script>
+  <script src="js/analytics.js"></script>
   <script src="js/tour.js?v=20261115l"></script>
   <script src="js/promo-banner.js?v=20261115h"></script>
   <script src="js/track.js?v=20261115h"></script>
