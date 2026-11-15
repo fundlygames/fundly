@@ -15,7 +15,9 @@ export const ODDS_MAX = 8.0;
 
 // tolerance vůči aktuálním kurzům odds-api (nárok hráče = jeho kurz je VYŠŠÍ než trh)
 export const LIVE_ODDS_TOLERANCE = { mult: 1.08, add: 0.02 };
-export const PREMATCH_ODDS_TOLERANCE = { mult: 1.4, add: 0.1 }; // jen proti vymyšleným kurzům
+// Pre-match: klient těsně před podáním vždy ověří čerstvý kurz (fresh=1), takže stačí malá rezerva
+// na pohyb kurzu během pár sekund. Dřív 1.4× — upravený prohlížeč si tak mohl „vymyslet“ až o 40 % lepší kurz.
+export const PREMATCH_ODDS_TOLERANCE = { mult: 1.05, add: 0.02 };
 
 export interface DraftSelection {
   eventId: string | null;

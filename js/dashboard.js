@@ -651,7 +651,13 @@ function computeRisk(state, s) {
   const arb = state.tickets.filter((t) => (t.flags || []).includes("arbitrage")).length;
   const val = state.tickets.filter((t) => (t.flags || []).includes("value")).length;
   if (arb) { score += Math.min(60, arb * 40); reasons.push(`${arb}× tiket s arbitráží / sure bettingem`); }
-  if (val) { score += Math.min(40, val * 20); reasons.push(`${val}× value-bet tiket`); }
+  // Value z vlastní analýzy je dovolené (pravidla čl. 6) — signál jen při SYSTEMATICKÉM tipování
+  // kurzů, které zdroj označil jako chybné / zpožděné (≥ 5 tipů a ≥ polovina všech tipů hráče).
+  const allTips = state.tickets.length;
+  if (val >= 5 && val / Math.max(1, allTips) >= 0.5) {
+    score += 30;
+    reasons.push(`${val}/${allTips} tipů na kurzech, které zdroj označil jako chybné či zpožděné — přezkoumat`);
+  }
   if (s.total >= 5 && s.avgOdds > 4) {
     score += 10;
     reasons.push(`průměrný kurz outlier (${s.avgOdds.toFixed(2)})`);
