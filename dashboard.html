@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="css/dashboard.css?v=20261115h" />
   <link rel="stylesheet" href="css/certificate.css" />
   <link rel="stylesheet" href="css/tools.css?v=20261115h" /><!-- Nástroje + Deník tipů (js/tools.js, js/journal.js) -->
+  <link rel="stylesheet" href="css/academy.css?v=20261115h" />
   <!-- Měření (Meta Pixel, Microsoft Clarity, Google Analytics): tady jen fronty volání.
        Skutečné skripty načte js/consent.js AŽ po souhlasu s cookies (zákon č. 127/2005 Sb.). -->
   <script>
@@ -524,64 +525,154 @@
           <button class="btn btn-ghost limited-only" data-view-link="noaccount" type="button" data-i18n="dash.back_to_accounts">← Back to your accounts</button>
         </div>
 
-        <div class="hero-panel">
-          <div>
-            <div class="t" data-i18n="dash.learn_the_rules_of_the_game_before_you_e">Learn the rules of the game before you enter</div>
-            <div class="d" data-i18n="dash.five_short_reads_capital_management_odds">Five short reads — capital management, odds, value, qualifying tickets and drawdown.</div>
+        <!-- měsíční živá analýza zápasů — řídí assets/academy/live.json, vykresluje js/academy.js -->
+        <div class="acad-live panel" id="acadLive" hidden></div>
+
+        <div class="hero-panel acad-hero">
+          <div class="acad-hero-in">
+            <div class="t" data-i18n="acad.hero_t">Learn the rules of the game before you enter</div>
+            <div class="d" data-i18n="acad.hero_d">Eight short lessons, each with a quiz — from capital management to the whole evaluation. Pass the quizzes to earn Academy badges.</div>
+            <div class="acad-progress">
+              <div class="acad-progress-row"><span id="acadProgressLabel">0 / 8</span><span class="t-meta" data-i18n="acad.pass_rule">Pass mark: 80 % correct</span></div>
+              <div class="progress"><span id="acadProgressBar" style="width:0%"></span></div>
+            </div>
           </div>
         </div>
 
-        <div class="two-col">
-          <div class="panel">
-            <h3 data-i18n="dash.capital_management">Capital management</h3>
-            <ul class="tip-list">
-              <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="dash.treat_your_challenge_capital_as_a_fixed">Treat your challenge capital as a fixed budget, not a number to double overnight.</span></li>
-              <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="dash.flat_entry_sizing_wins_long_term_1_2_of">Flat entry sizing wins long-term: 1–2 % of capital per ticket. On Fundly the max entry size is 1.5 % of capital anyway.</span></li>
-              <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="dash.never_chase_losses_by_raising_entry_size">Never chase losses by raising entry sizes — that is how accounts hit the drawdown floor.</span></li>
-            </ul>
-          </div>
-          <div class="panel">
-            <h3 data-i18n="dash.what_odds_mean">What odds mean</h3>
-            <p class="t-small" style="margin-bottom:12px" data-i18n="dash.decimal_odds_tell_you_two_things_your_re">Decimal odds tell you two things: your return and the implied probability of the outcome.</p>
-            <div class="k-rows">
-              <div class="k-row neutral"><span data-i18n="dash.odds_1_50_implied_probability">Odds 1.50 → implied probability</span><span class="n">66.7 %</span></div>
-              <div class="k-row neutral"><span data-i18n="dash.odds_2_00_implied_probability">Odds 2.00 → implied probability</span><span class="n">50 %</span></div>
-              <div class="k-row neutral"><span data-i18n="dash.odds_4_00_implied_probability">Odds 4.00 → implied probability</span><span class="n">25 %</span></div>
-              <div class="k-row neutral"><span data-i18n="dash.return_entry_size_odds">Return = entry size × odds</span><span class="n">$10 × 2.00 = $20</span></div>
+        <div class="acad-badges" id="acadBadges" role="list"></div>
+
+        <div class="acad-lessons" id="acadLessons">
+          <article class="panel acad-lesson" id="acad-capital-management" data-lesson="capital-management">
+            <header class="acad-lesson-head"><span class="acad-num">1</span><h3 data-i18n="dash.capital_management">Capital management</h3><span class="acad-check" aria-hidden="true"></span></header>
+            <div class="acad-body">
+              <ul class="tip-list">
+                <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="dash.treat_your_challenge_capital_as_a_fixed">Treat your challenge capital as a fixed budget, not a number to double overnight.</span></li>
+                <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="dash.flat_entry_sizing_wins_long_term_1_2_of">Flat entry sizing wins long-term: 1–2 % of capital per ticket. On Fundly the max entry size is 1.5 % of capital anyway.</span></li>
+                <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="dash.never_chase_losses_by_raising_entry_size">Never chase losses by raising entry sizes — that is how accounts hit the drawdown floor.</span></li>
+              </ul>
             </div>
-            <p class="t-small" style="margin-top:12px" data-i18n="dash.implied_probability_1_odds_bookmakers_bu">Implied probability = 1 ÷ odds. Bookmakers build a margin into the odds, so the total of all outcomes is always over 100 %.</p>
-          </div>
-          <div class="panel">
-            <h3 data-i18n="dash.value_vs_arbitrage">Value vs arbitrage</h3>
-            <p class="t-small" style="margin-bottom:12px"><b data-i18n="dash.value_betting">Value betting</b> <span data-i18n="dash.means_betting_when_the_odds_are_higher_t">means betting when the odds are higher than the true probability — you have an edge and accept variance.</span> <b data-i18n="dash.arbitrage">Arbitrage</b> <span data-i18n="dash.sure_betting_means_covering_all_outcomes">(sure betting) means covering all outcomes across bookmakers for a guaranteed, risk-free profit.</span></p>
-            <div class="notice">
-              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.8L1.8 12.7h11.4z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M7.5 6v3M7.5 10.7v.1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-              <span data-i18n="dash.arbitrage_and_sure_betting_are_forbidden">Arbitrage and sure betting are FORBIDDEN on Fundly. Hedging outcomes for guaranteed profit breaks the challenge rules, gets flagged automatically and leads to a breach.</span>
+            <div class="acad-foot"><button class="btn btn-ghost acad-quiz-btn" type="button" data-quiz-open="capital-management" data-i18n="acad.quiz_btn">Quiz</button><span class="acad-status" data-status></span></div>
+            <div class="acad-quiz" data-quiz hidden></div>
+          </article>
+
+          <article class="panel acad-lesson" id="acad-odds" data-lesson="odds">
+            <header class="acad-lesson-head"><span class="acad-num">2</span><h3 data-i18n="dash.what_odds_mean">What odds mean</h3><span class="acad-check" aria-hidden="true"></span></header>
+            <div class="acad-body">
+              <p class="t-small" style="margin-bottom:12px" data-i18n="dash.decimal_odds_tell_you_two_things_your_re">Decimal odds tell you two things: your return and the implied probability of the outcome.</p>
+              <div class="k-rows">
+                <div class="k-row neutral"><span data-i18n="dash.odds_1_50_implied_probability">Odds 1.50 → implied probability</span><span class="n">66.7 %</span></div>
+                <div class="k-row neutral"><span data-i18n="dash.odds_2_00_implied_probability">Odds 2.00 → implied probability</span><span class="n">50 %</span></div>
+                <div class="k-row neutral"><span data-i18n="dash.odds_4_00_implied_probability">Odds 4.00 → implied probability</span><span class="n">25 %</span></div>
+                <div class="k-row neutral"><span data-i18n="dash.return_entry_size_odds">Return = entry size × odds</span><span class="n">$10 × 2.00 = $20</span></div>
+              </div>
+              <p class="t-small" style="margin-top:12px" data-i18n="dash.implied_probability_1_odds_bookmakers_bu">Implied probability = 1 ÷ odds. Bookmakers build a margin into the odds, so the total of all outcomes is always over 100 %.</p>
             </div>
-          </div>
-          <div class="panel">
-            <h3 data-i18n="dash.qualifying_tickets">Qualifying tickets</h3>
-            <ul class="tip-list">
-              <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="dash.to_pass_a_phase_and_before_every_payout">To pass a phase (and before every payout) you need 5 qualifying tickets.</span></li>
-              <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="dash.a_qualifying_ticket_is_a_winning_ticket">A qualifying ticket is a winning ticket with a net profit of at least +0.5 % of your capital.</span></li>
-              <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="dash.the_rule_exists_to_prove_consistent_real">The rule exists to prove consistent, real betting — not one lucky all-in.</span></li>
-            </ul>
-          </div>
-          <div class="panel">
-            <h3 data-i18n="dash.drawdown">Drawdown</h3>
-            <p class="t-small" style="margin-bottom:12px" data-i18n="dash.drawdown_is_how_far_your_balance_may_fal">Drawdown is how far your balance may fall before the challenge fails. In the Challenge phases the max. loss is a static −10 % of capital — a fixed floor. In Phase 3 it becomes trailing: the floor follows your highest reached balance.</p>
-            <div class="limit-row">
-              <span class="k"><span data-i18n="dash.max_loss">Max. loss</span> <small data-i18n="dash.static_trailing_in_phase_3">(static → trailing in Phase 3)</small></span>
-              <span class="v" data-i18n="dash.10_of_capital">−10 % of capital</span>
+            <div class="acad-foot"><button class="btn btn-ghost acad-quiz-btn" type="button" data-quiz-open="odds" data-i18n="acad.quiz_btn">Quiz</button><span class="acad-status" data-status></span></div>
+            <div class="acad-quiz" data-quiz hidden></div>
+          </article>
+
+          <article class="panel acad-lesson" id="acad-value-vs-arbitrage" data-lesson="value-vs-arbitrage">
+            <header class="acad-lesson-head"><span class="acad-num">3</span><h3 data-i18n="dash.value_vs_arbitrage">Value vs arbitrage</h3><span class="acad-check" aria-hidden="true"></span></header>
+            <div class="acad-body">
+              <p class="t-small" style="margin-bottom:12px"><b data-i18n="dash.value_betting">Value betting</b> <span data-i18n="dash.means_betting_when_the_odds_are_higher_t">means betting when the odds are higher than the true probability — you have an edge and accept variance.</span> <b data-i18n="dash.arbitrage">Arbitrage</b> <span data-i18n="dash.sure_betting_means_covering_all_outcomes">(sure betting) means covering all outcomes across bookmakers for a guaranteed, risk-free profit.</span></p>
+              <div class="notice">
+                <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.8L1.8 12.7h11.4z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M7.5 6v3M7.5 10.7v.1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                <span data-i18n="dash.arbitrage_and_sure_betting_are_forbidden">Arbitrage and sure betting are FORBIDDEN on Fundly. Hedging outcomes for guaranteed profit breaks the challenge rules, gets flagged automatically and leads to a breach.</span>
+              </div>
             </div>
-            <div class="progress"><span style="width:90%"></span></div>
-            <div class="limit-row" style="margin-top:10px">
-              <span class="k"><span data-i18n="dash.max_daily_loss">Max. daily loss</span> <small data-i18n="dash.resets_at_midnight_utc">(resets at midnight UTC)</small></span>
-              <span class="v" data-i18n="dash.4_of_capital">−4 % of capital</span>
+            <div class="acad-foot"><button class="btn btn-ghost acad-quiz-btn" type="button" data-quiz-open="value-vs-arbitrage" data-i18n="acad.quiz_btn">Quiz</button><span class="acad-status" data-status></span></div>
+            <div class="acad-quiz" data-quiz hidden></div>
+          </article>
+
+          <article class="panel acad-lesson" id="acad-qualifying-tips" data-lesson="qualifying-tips">
+            <header class="acad-lesson-head"><span class="acad-num">4</span><h3 data-i18n="dash.qualifying_tickets">Qualifying tickets</h3><span class="acad-check" aria-hidden="true"></span></header>
+            <div class="acad-body">
+              <ul class="tip-list">
+                <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="dash.to_pass_a_phase_and_before_every_payout">To pass a phase (and before every payout) you need 5 qualifying tickets.</span></li>
+                <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="dash.a_qualifying_ticket_is_a_winning_ticket">A qualifying ticket is a winning ticket with a net profit of at least +0.5 % of your capital.</span></li>
+                <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="dash.the_rule_exists_to_prove_consistent_real">The rule exists to prove consistent, real betting — not one lucky all-in.</span></li>
+              </ul>
             </div>
-            <p class="t-small" style="margin-top:12px" data-i18n="dash.example_with_25_000_capital_the_static_f">Example: with $25,000 capital the static floor is $22,500. In Phase 3, peaking at $27,000, the trailing floor moves to $24,300.</p>
-          </div>
-          <div class="panel">
+            <div class="acad-foot"><button class="btn btn-ghost acad-quiz-btn" type="button" data-quiz-open="qualifying-tips" data-i18n="acad.quiz_btn">Quiz</button><span class="acad-status" data-status></span></div>
+            <div class="acad-quiz" data-quiz hidden></div>
+          </article>
+
+          <article class="panel acad-lesson" id="acad-drawdown" data-lesson="drawdown">
+            <header class="acad-lesson-head"><span class="acad-num">5</span><h3 data-i18n="dash.drawdown">Drawdown</h3><span class="acad-check" aria-hidden="true"></span></header>
+            <div class="acad-body">
+              <p class="t-small" style="margin-bottom:12px" data-i18n="dash.drawdown_is_how_far_your_balance_may_fal">Drawdown is how far your balance may fall before the challenge fails. In the Challenge phases the max. loss is a static −10 % of capital — a fixed floor. In Phase 3 it becomes trailing: the floor follows your highest reached balance.</p>
+              <div class="limit-row">
+                <span class="k"><span data-i18n="dash.max_loss">Max. loss</span> <small data-i18n="dash.static_trailing_in_phase_3">(static → trailing in Phase 3)</small></span>
+                <span class="v" data-i18n="dash.10_of_capital">−10 % of capital</span>
+              </div>
+              <div class="progress"><span style="width:90%"></span></div>
+              <div class="limit-row" style="margin-top:10px">
+                <span class="k"><span data-i18n="dash.max_daily_loss">Max. daily loss</span> <small data-i18n="dash.resets_at_midnight_utc">(resets at midnight UTC)</small></span>
+                <span class="v" data-i18n="dash.4_of_capital">−4 % of capital</span>
+              </div>
+              <p class="t-small" style="margin-top:12px" data-i18n="dash.example_with_25_000_capital_the_static_f">Example: with $25,000 capital the static floor is $22,500. In Phase 3, peaking at $27,000, the trailing floor moves to $24,300.</p>
+            </div>
+            <div class="acad-foot"><button class="btn btn-ghost acad-quiz-btn" type="button" data-quiz-open="drawdown" data-i18n="acad.quiz_btn">Quiz</button><span class="acad-status" data-status></span></div>
+            <div class="acad-quiz" data-quiz hidden></div>
+          </article>
+
+          <article class="panel acad-lesson" id="acad-line-movement" data-lesson="line-movement">
+            <header class="acad-lesson-head"><span class="acad-num">6</span><h3 data-i18n="acad.lm_t">Reading line movement</h3><span class="acad-check" aria-hidden="true"></span></header>
+            <div class="acad-body">
+              <p class="t-small" style="margin-bottom:12px" data-i18n="acad.lm_p">Odds move before a match. The movement shows where the market's money and information are heading — not who will win.</p>
+              <ul class="tip-list">
+                <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="acad.lm_1">Shortening odds (e.g. 2.20 → 1.90) mean the market believes in the outcome more: the implied probability rose from 45.5 % to 52.6 %.</span></li>
+                <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="acad.lm_2">Big moves usually follow news — line-ups, injuries, rotation, weather. Find out why the odds moved before you react.</span></li>
+                <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="acad.lm_3">Odds that have already dropped offer a worse price. Jumping in late behind the market usually means less value.</span></li>
+                <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="acad.lm_4">Compare the odds you took with the closing line (the odds just before kick-off). Regularly beating the closing line is a good sign that your analysis is ahead of the market.</span></li>
+              </ul>
+              <div class="notice" style="margin-top:12px;margin-bottom:0">
+                <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.8L1.8 12.7h11.4z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M7.5 6v3M7.5 10.7v.1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                <span data-i18n="acad.lm_warn">Odds on Fundly come from the Betano feed. Exploiting stale data (latency) or tipping on matches that have already started or finished is forbidden.</span>
+              </div>
+            </div>
+            <div class="acad-foot"><button class="btn btn-ghost acad-quiz-btn" type="button" data-quiz-open="line-movement" data-i18n="acad.quiz_btn">Quiz</button><span class="acad-status" data-status></span></div>
+            <div class="acad-quiz" data-quiz hidden></div>
+          </article>
+
+          <article class="panel acad-lesson" id="acad-discipline-tilt" data-lesson="discipline-tilt">
+            <header class="acad-lesson-head"><span class="acad-num">7</span><h3 data-i18n="acad.dt_t">Discipline &amp; tilt</h3><span class="acad-check" aria-hidden="true"></span></header>
+            <div class="acad-body">
+              <p class="t-small" style="margin-bottom:12px" data-i18n="acad.dt_p">Tilt is when emotions — frustration after a loss or euphoria after a streak — override your plan. More accounts end because of tilt than because of bad analysis.</p>
+              <ul class="tip-list">
+                <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="acad.dt_1">Have a fixed plan: entry size, max. number of tips per day and the sports you tip. Write it down in advance.</span></li>
+                <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="acad.dt_2">After two or three losses in a row, take a break. The −4 % daily loss limit is a safety net, not a target.</span></li>
+                <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="acad.dt_3">Don't raise entry sizes after a loss and don't treat a good streak as a reason to take more risk — swings are normal.</span></li>
+                <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="acad.dt_4">Keep a journal: why you made the tip, at what odds and what you learned. Judge the decision, not just the result.</span></li>
+                <li><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="acad.dt_5">You have 30 days per phase — there is no need to hit the target in a week.</span></li>
+              </ul>
+            </div>
+            <div class="acad-foot"><button class="btn btn-ghost acad-quiz-btn" type="button" data-quiz-open="discipline-tilt" data-i18n="acad.quiz_btn">Quiz</button><span class="acad-status" data-status></span></div>
+            <div class="acad-quiz" data-quiz hidden></div>
+          </article>
+
+          <article class="panel acad-lesson" id="acad-evaluation-steps" data-lesson="evaluation-steps">
+            <header class="acad-lesson-head"><span class="acad-num">8</span><h3 data-i18n="acad.ev_t">How the evaluation works, step by step</h3><span class="acad-check" aria-hidden="true"></span></header>
+            <div class="acad-body">
+              <ol class="ol-steps">
+                <li data-i18n="acad.ev_1">You pick a package and get simulated capital in virtual credits — you never pay for a tip with your own money.</li>
+                <li data-i18n="acad.ev_2">Phase 1 — Challenge: target +10 % of capital within 30 days and at least 5 qualifying tips (each with a net profit of at least +0.5 % of capital).</li>
+                <li data-i18n="acad.ev_3">Limits apply the whole time: max. overall loss −10 % (static in Phases 1 and 2), max. daily loss −4 % (resets at midnight UTC), max. 1.5 % of capital per tip, odds 1.00–8.00 per selection, one open tip per match.</li>
+                <li data-i18n="acad.ev_4">Consistency rule: the potential profit of a single tip may not exceed 40 % of the phase target (4 % of capital in Phase 1, 2 % in Phase 2).</li>
+                <li data-i18n="acad.ev_5">Once you reach the target and the qualifying tips, the operator confirms the move to the next phase after a review.</li>
+                <li data-i18n="acad.ev_6">Phase 2 — Verification: target +5 % within 30 days, same limits as Phase 1.</li>
+                <li data-i18n="acad.ev_7">Phase 3 — Fundly Partner: no time limit, max. loss −10 % trailing from your highest balance, 80 % Performance Reward share. 14 days without a tip closes the account.</li>
+                <li data-i18n="acad.ev_8">Rewards: one-time $80 activation, a profit buffer of at least +5 %, 5 qualifying tips before every request, $10–$4,000 per request, at least 14 days between rewards and identity verification (KYC). Requests are reviewed within 24 hours.</li>
+                <li data-i18n="acad.ev_9">Breaking a loss limit or missing a phase target in time closes the account. A reset costs 40 % of the package price (once per closed account).</li>
+              </ol>
+              <p class="t-meta" style="margin-top:12px"><a href="rules.html" class="acad-link" data-i18n="acad.ev_rules">Read the full Challenge Rules →</a></p>
+            </div>
+            <div class="acad-foot"><button class="btn btn-ghost acad-quiz-btn" type="button" data-quiz-open="evaluation-steps" data-i18n="acad.quiz_btn">Quiz</button><span class="acad-status" data-status></span></div>
+            <div class="acad-quiz" data-quiz hidden></div>
+          </article>
+        </div>
+
+        <div class="panel acad-summary">
             <h3 data-i18n="dash.house_rules_in_short">House rules in short</h3>
             <ol class="ol-steps">
               <li data-i18n="dash.phase_1_target_10_phase_2_target_5_of_ca">Phase 1 target +10 %, Phase 2 target +5 % of capital, 30 days per phase.</li>
@@ -591,7 +682,6 @@
               <li data-i18n="dash.no_arbitrage_no_sure_betting_no_abusive">No arbitrage, no sure betting, no abusive strategies — flagged tickets lead to a breach.</li>
               <li data-i18n="dash.partner_account_80_performance_split_pay">Partner account: 80 % performance split, payouts within 7 days of approval.</li>
             </ol>
-          </div>
         </div>
       </section>
 
@@ -844,6 +934,7 @@
   <script src="js/dashboard.js?v=20261115h"></script>
   <script src="js/tour.js?v=20261115l"></script>
   <script src="js/certificate.js"></script>
+  <script src="js/academy.js?v=20261115h"></script>
   <script src="js/promo-banner.js?v=20261115h"></script>
   <script src="js/track.js?v=20261115h"></script>
   <script src="js/pwa.js?v=20261115h"></script>
