@@ -9,6 +9,7 @@
 // zdroje kurzů neblokoval hráče.
 
 import { CUSTOM_BOOKMAKER, isCustomEventId, loadCustomEvents } from "./custom-events.ts";
+import { isGradeableMarket } from "./settle.ts";
 
 export const ODDS_MIN = 1.0;
 export const ODDS_MAX = 8.0;
@@ -22,6 +23,7 @@ export const PREMATCH_ODDS_TOLERANCE = { mult: 1.05, add: 0.02 };
 export interface DraftSelection {
   eventId: string | null;
   marketName: string | null;
+  sport?: string | null;
   field: string | null;
   hdp: number | null;
   startTime: string | null;
@@ -70,6 +72,8 @@ export function staticAdmission(
   if (!Number.isFinite(stake) || stake <= 0) return { reason: VOID.stake, combinedOdds };
   if (Number.isFinite(cap) && cap > 0 && stake > maxStakeFor(cap) + 0.5) return { reason: VOID.stake, combinedOdds };
   if (odds.some((o) => !Number.isFinite(o) || o < ODDS_MIN || o > ODDS_MAX)) return { reason: VOID.oddsRange, combinedOdds };
+  // trh, který u daného sportu neumíme vyhodnotit (viz SPORT_MARKETS v settle.ts) → storno, vklad zpět
+  if (d.selections.some((s) => !isGradeableMarket(s.sport, s.marketName))) return { reason: VOID.noMarket, combinedOdds };
   if (Number.isFinite(cap) && cap > 0) {
     const potentialProfit = stake * (combinedOdds - 1);
     if (potentialProfit > consistencyLimitFor(cap, phase) + 1) return { reason: VOID.profitLimit, combinedOdds };

@@ -1657,7 +1657,7 @@ async function loadSportEvents(sport, live) {
         bookmaker,
         odds: [parseFloat(row.home), row.draw ? parseFloat(row.draw) : null, parseFloat(row.away)],
         markets: markets
-          .filter((m) => Array.isArray(m.odds) && m.odds.length && GRADEABLE_MARKETS.has(m.name))
+          .filter((m) => Array.isArray(m.odds) && m.odds.length && gradeableMarket(activeSport, m.name))
           .slice(0, 14), // only markets we can actually settle — see GRADEABLE_MARKETS
       };
     })
@@ -1722,6 +1722,15 @@ const GRADEABLE_MARKETS = new Set([
   "Double Chance", "Double Chance HT",
   "Odd/Even", "Odd/Even HT", "Odd/Even 2H",
 ]);
+// Trhy podle sportu: u MMA, stolního tenisu, šipek a wrestlingu hlásí zdroj výsledků skóre v jiné
+// jednotce než linie trhu (např. stolní tenis: sety vs. počet bodů) — nabízíme jen trhy, které jdou
+// spravedlivě vyhodnotit. Shodně se supabase/functions/_shared/settle.ts SPORT_MARKETS.
+const SPORT_MARKETS = { "mixed-martial-arts": ["ML"], mma: ["ML"], "table-tennis": ["ML", "Spread"], darts: ["ML"], wrestling: ["ML"] };
+function gradeableMarket(sport, name) {
+  if (!GRADEABLE_MARKETS.has(name)) return false;
+  const allowed = SPORT_MARKETS[sport];
+  return !allowed || allowed.includes(name);
+}
 const PICK_LABELS = {
   home: "1", draw: "X", away: "2", over: "dashjs.pick.over", under: "dashjs.pick.under", yes: "dashjs.pick.yes", no: "dashjs.pick.no",
   odd: "dashjs.pick.odd", even: "dashjs.pick.even", "1X": "1X", "12": "12", "X2": "X2",
@@ -1773,15 +1782,36 @@ function fmtTime(iso) {
   return `${d.toLocaleDateString(loc, { day: "numeric", month: "numeric" })} ${hm}`;
 }
 
-function renderSportTabs() {
-  sportTabs.innerHTML = SPORTS.map(([slug, label, icon]) => `
-    <button class="${slug === activeSport ? "active" : ""}" data-sport="${slug}" role="tab" aria-selected="${slug === activeSport}">
-      ${icon
-        ? `<img src="assets/sports/${icon}.png" alt="" />`
-        : `<span class="ic-letter">${sportName(slug, label)[0]}</span>`}
-      ${sportName(slug, label)}
-    </button>`).join("");
+// Výběr sportu: jedno tlačidlo s aktuálním sportem → mřížka všech sportů (žádné posouvání do strany,
+// sportů může přibývat). Zavře se výběrem, kliknutím mimo nebo Esc.
+let sportMenuOpen = false;
+function sportIcon(slug, label, icon) {
+  return icon ? `<img src="assets/sports/${icon}.png" alt="" />` : `<span class="ic-letter">${sportName(slug, label)[0]}</span>`;
 }
+function renderSportTabs() {
+  const cur = SPORTS.find(([slug]) => slug === activeSport) || SPORTS[0];
+  sportTabs.innerHTML = `
+    <button type="button" class="sport-pick" data-sport-toggle aria-haspopup="true" aria-expanded="${sportMenuOpen}">
+      ${sportIcon(cur[0], cur[1], cur[2])}
+      <span class="sport-pick-t"><small>${esc(ft("dashjs.sportPick"))}</small><b>${esc(sportName(cur[0], cur[1]))}</b></span>
+      <svg class="sport-pick-chev" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M3.5 5.5L7 9l3.5-3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="sport-menu" role="menu"${sportMenuOpen ? "" : " hidden"}>
+      ${SPORTS.map(([slug, label, icon]) => `
+        <button type="button" role="menuitemradio" aria-checked="${slug === activeSport}" class="${slug === activeSport ? "active" : ""}" data-sport="${slug}">
+          ${sportIcon(slug, label, icon)}<span>${esc(sportName(slug, label))}</span>
+        </button>`).join("")}
+    </div>`;
+}
+function setSportMenu(open) {
+  sportMenuOpen = open;
+  const menu = sportTabs && sportTabs.querySelector(".sport-menu");
+  const btn = sportTabs && sportTabs.querySelector("[data-sport-toggle]");
+  if (menu) menu.hidden = !open;
+  if (btn) btn.setAttribute("aria-expanded", String(open));
+}
+document.addEventListener("click", (e) => { if (sportMenuOpen && sportTabs && !sportTabs.contains(e.target)) setSportMenu(false); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && sportMenuOpen) setSportMenu(false); });
 
 function renderSkeleton() {
   matchList.innerHTML = Array.from({ length: 6 }, () => `
@@ -2408,8 +2438,11 @@ if (sportTabs) {
   selectSport(activeSport);
 
   sportTabs.addEventListener("click", (e) => {
+    if (e.target.closest("[data-sport-toggle]")) { setSportMenu(!sportMenuOpen); return; }
     const btn = e.target.closest("[data-sport]");
-    if (!btn || btn.dataset.sport === activeSport) return;
+    if (!btn) return;
+    sportMenuOpen = false;
+    if (btn.dataset.sport === activeSport) { setSportMenu(false); return; }
     selectSport(btn.dataset.sport);
   });
 
@@ -2570,7 +2603,7 @@ function applyLiveRow(m, row, withMarkets) {
     : [null, null, null]; // trh stažený (suspendováno) → tlačítka se schovají
   if (JSON.stringify(next) !== JSON.stringify(m.odds)) { m.odds = next; changed = true; }
   if (withMarkets && Array.isArray(row.markets)) {
-    m.markets = row.markets.filter((mk) => Array.isArray(mk.odds) && mk.odds.length && GRADEABLE_MARKETS.has(mk.name)).slice(0, 14);
+    m.markets = row.markets.filter((mk) => Array.isArray(mk.odds) && mk.odds.length && gradeableMarket(activeSport, mk.name)).slice(0, 14);
     changed = true;
   } else {
     // trh ML v m.markets musí sedět s m.odds — z něj se bere kurz při kliknutí (resolvePick)

@@ -467,6 +467,7 @@ FUNDLY_I18N.extend("en", { dashjs: {
   discNext: "Next badge at {n} days in a row (record {best})",
   nav: { learn: "Learn", account: "Account" },
   filters: "Filters",
+  sportPick: "Sport",
   lim: {
     maxLoss: "Max. total loss", left: "{amount} left", of: "of {amount}", floor: "Floor {amount}", now: "Now {amount}",
     maxLossSub: "If your balance drops to {floor}, the account closes. The floor never moves.",
@@ -503,6 +504,7 @@ FUNDLY_I18N.extend("cs", { dashjs: {
   discNext: "Další odznak při {n} dnech v řadě (rekord {best})",
   nav: { learn: "Učení", account: "Účet" },
   filters: "Filtry",
+  sportPick: "Sport",
   lim: {
     maxLoss: "Max. celková ztráta", left: "zbývá {amount}", of: "z {amount}", floor: "Dno {amount}", now: "Teď {amount}",
     maxLossSub: "Když zůstatek klesne na {floor}, účet se uzavře. Dno se nikdy neposouvá.",

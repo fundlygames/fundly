@@ -27,11 +27,31 @@ const SPREAD_MARKETS = new Set([
 const ODD_EVEN_MARKETS = new Set(["Odd/Even", "Odd/Even HT", "Odd/Even 2H"]);
 const DOUBLE_CHANCE_MARKETS = new Set(["Double Chance", "Double Chance HT"]);
 
+// Sporty, kde zdroj výsledků (odds-api) hlásí skóre v JINÉ jednotce než linie trhu — takové trhy
+// neumíme spravedlivě vyhodnotit, proto jsou povolené jen uvedené (ověřeno na datech 15. 11. 2026):
+//   MMA: skóre jen 1:0 (kdo vyhrál), linie Totals = počet kol, Spread = body → jen ML
+//   stolní tenis: skóre = sety, Totals = počet BODŮ (71,5–77,5) → ML + Spread (±1,5 setu)
+//   šipky: skóre sety nebo legy podle formátu, Spread v legech → jen ML
+//   wrestling (vlastní zápasy Fundly): jen ML
+// MUSÍ zůstat stejné jako SPORT_MARKETS v js/dashboard.js a js/portfolio.js.
+export const SPORT_MARKETS: Record<string, string[]> = {
+  "mixed-martial-arts": ["ML"], mma: ["ML"],
+  "table-tennis": ["ML", "Spread"],
+  darts: ["ML"],
+  wrestling: ["ML"],
+};
+export function isGradeableMarket(sport: string | null | undefined, market: string | null | undefined): boolean {
+  const allowed = SPORT_MARKETS[String(sport ?? "")];
+  return !allowed || allowed.includes(String(market ?? ""));
+}
+
 // Trhy, co tahle funkce umí vyhodnotit — MUSÍ zůstat v souladu s
 // GRADEABLE_MARKETS v js/dashboard.js (ten filtruje, na co se vůbec dá
 // vsadit, tak aby nikdy nešlo vsadit na trh, který tu skončí jako "default: push").
 export function settleSelection(sel: Selection, scores: Scores): "won" | "lost" | "push" {
   const market = sel.marketName ?? "";
+  // trh, který u tohoto sportu nejde spravedlivě vyhodnotit → vklad zpět (nikdy špatný výsledek)
+  if (!isGradeableMarket(sel.sport, market)) return "push";
   const isHt = HT_MARKETS.has(market);
   const period = isHt ? scores.p1 : scores.ft;
   if (!period || typeof period.home !== "number" || typeof period.away !== "number") return "push";
