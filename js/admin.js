@@ -13,7 +13,7 @@ const czk = (n) => n.toLocaleString("cs-CZ") + " Kč";
 const usd = (n) => "$" + Math.round(Number(n) || 0).toLocaleString("en-US");
 
 // ---------- přepínání sekcí ----------
-const views = ["finance", "hraci", "affiliate", "support", "waitlist", "reporty", "problemy", "naklady", "investori", "diagnostika"];
+const views = ["finance", "hraci", "affiliate", "support", "waitlist", "reporty", "problemy", "zapasy", "naklady", "investori", "diagnostika"];
 
 function showView(name) {
   views.forEach((v) => {
@@ -411,6 +411,7 @@ async function loadRealStats() {
   loadReportHistory();
   loadExpenses();
   loadInvestors();
+  loadCustomEvents();
 }
 
 // ---------- E-maily zákazníků (Finance view) ----------
@@ -1821,3 +1822,150 @@ if (adminBackendReady()) {
     }
   })();
 }
+
+// ---------- Vlastní zápasy (custom-events-manage) ----------
+// Sporty / zápasy mimo zdroj kurzů (wrestling — RAF, …). Admin přidá zápas s kurzy, po konci
+// zapíše výsledek; tikety vyhodnotí cron settle-tickets (do ~10 min).
+let CE_ROWS = [];
+let CE_EDIT = null;
+const ceEsc = (v) => String(v ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+function ceMsg(text, isErr) {
+  const el = document.getElementById("ceMsg");
+  if (!el) return;
+  el.textContent = text || "";
+  el.className = "auth-note mt" + (isErr ? " error" : "");
+  el.hidden = !text;
+}
+// ISO (UTC) → hodnota pro <input type="datetime-local"> v místním čase a zpět
+const toLocalInput = (iso) => { const d = new Date(iso); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16); };
+
+async function loadCustomEvents() {
+  const list = document.getElementById("ceList");
+  if (!list) return;
+  try {
+    const data = await adminFetch("custom-events-manage", { action: "list" });
+    CE_ROWS = data.rows || [];
+    const sel = document.getElementById("ceSport");
+    if (sel && data.sports) {
+      const cur = sel.value || "wrestling";
+      sel.innerHTML = Object.entries(data.sports).map(([k, v]) => `<option value="${k}">${ceEsc(v)}</option>`).join("");
+      sel.value = cur;
+    }
+    renderCustomEvents();
+  } catch (err) {
+    list.innerHTML = `<p class="t-meta">Zápasy se nepodařilo načíst: ${ceEsc(err.message)}</p>`;
+  }
+}
+
+function renderCustomEvents() {
+  const list = document.getElementById("ceList");
+  if (!CE_ROWS.length) { list.innerHTML = `<p class="t-meta">Zatím žádné vlastní zápasy.</p>`; return; }
+  const now = Date.now();
+  list.innerHTML = CE_ROWS.map((r) => {
+    const ev = r.event || {};
+    const o = ev.bookmakers?.Fundly?.[0]?.odds?.[0] || {};
+    const start = new Date(ev.date);
+    const started = start.getTime() <= now;
+    const settled = ev.status === "settled";
+    const RES = { home: `vyhrál ${ev.home}`, away: `vyhrál ${ev.away}`, draw: "remíza", void: "zrušeno (vklady vráceny)" };
+    const state = settled ? `✅ Výsledek: ${ceEsc(RES[ev.result] || ev.result || "zapsán")}`
+      : started ? "⏳ Probíhá / čeká na výsledek" : (r.active ? "🟢 V nabídce" : "⚪ Skryto");
+    const odds = [o.home, o.draw, o.away].filter(Boolean).join(" / ");
+    const actions = settled ? "" : started
+      ? `<select class="input" data-ce-res="${r.id}" style="max-width:240px"><option value="">Zapsat výsledek…</option>
+           <option value="home">Vyhrál ${ceEsc(ev.home)}</option><option value="away">Vyhrál ${ceEsc(ev.away)}</option>
+           ${o.draw ? `<option value="draw">Remíza</option>` : ""}<option value="void">Zrušeno / remíza — vrátit vklady</option></select>`
+      : `<button class="btn btn-ghost" data-ce-edit="${r.id}">Upravit</button>
+         <button class="btn btn-ghost" data-ce-hide="${r.id}" data-active="${r.active ? "0" : "1"}">${r.active ? "Skrýt" : "Zobrazit"}</button>`;
+    return `<div class="k-row" style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center">
+      <div>
+        <b>${ceEsc(ev.home)} vs ${ceEsc(ev.away)}</b>
+        <div class="t-meta">${ceEsc(ev.sport?.name || r.sport)} · ${ceEsc(ev.league?.name || "")} · ${start.toLocaleString("cs-CZ", { dateStyle: "medium", timeStyle: "short" })} · kurzy ${ceEsc(odds)}</div>
+        <div class="t-meta">${state} · tikety: ${r.tickets} (otevřené ${r.pending}, vklady $${Number(r.pendingStake || 0).toLocaleString("en-US")})</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">${actions}</div>
+    </div>`;
+  }).join("");
+}
+
+function resetCeForm() {
+  CE_EDIT = null;
+  document.getElementById("ceForm").reset();
+  document.getElementById("ceSport").value = "wrestling";
+  document.getElementById("ceSubmit").textContent = "Přidat zápas";
+  document.getElementById("ceFormTitle").textContent = "Přidat zápas";
+  document.getElementById("ceCancel").hidden = true;
+}
+
+document.getElementById("ceForm")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const v = (id) => document.getElementById(id).value.trim();
+  const dateVal = v("ceDate");
+  if (!v("ceHome") || !v("ceAway") || !dateVal || !v("ceOddsHome") || !v("ceOddsAway")) {
+    ceMsg("Vyplňte oba soupeře, začátek a kurzy 1 a 2.", true); return;
+  }
+  const btn = document.getElementById("ceSubmit");
+  btn.disabled = true;
+  try {
+    await adminFetch("custom-events-manage", {
+      action: "upsert", id: CE_EDIT || undefined,
+      sport: v("ceSport"), league: v("ceLeague"), home: v("ceHome"), away: v("ceAway"),
+      date: new Date(dateVal).toISOString(),
+      oddsHome: v("ceOddsHome"), oddsDraw: v("ceOddsDraw") || undefined, oddsAway: v("ceOddsAway"),
+    });
+    ceMsg(CE_EDIT ? "Změny uloženy." : "Zápas přidán — hráči ho uvidí v dashboardu.", false);
+    resetCeForm();
+    await loadCustomEvents();
+  } catch (err) {
+    ceMsg(err.message || "Uložení se nepodařilo.", true);
+  } finally {
+    btn.disabled = false;
+  }
+});
+document.getElementById("ceCancel")?.addEventListener("click", () => { resetCeForm(); ceMsg("", false); });
+
+document.getElementById("ceList")?.addEventListener("click", async (e) => {
+  const edit = e.target.closest("[data-ce-edit]");
+  const hide = e.target.closest("[data-ce-hide]");
+  if (edit) {
+    const r = CE_ROWS.find((x) => x.id === edit.dataset.ceEdit);
+    if (!r) return;
+    const ev = r.event || {};
+    const o = ev.bookmakers?.Fundly?.[0]?.odds?.[0] || {};
+    CE_EDIT = r.id;
+    document.getElementById("ceSport").value = r.sport;
+    document.getElementById("ceLeague").value = ev.league?.name || "";
+    document.getElementById("ceHome").value = ev.home || "";
+    document.getElementById("ceAway").value = ev.away || "";
+    document.getElementById("ceDate").value = toLocalInput(ev.date);
+    document.getElementById("ceOddsHome").value = o.home || "";
+    document.getElementById("ceOddsDraw").value = o.draw || "";
+    document.getElementById("ceOddsAway").value = o.away || "";
+    document.getElementById("ceSubmit").textContent = "Uložit změny";
+    document.getElementById("ceFormTitle").textContent = "Upravit zápas";
+    document.getElementById("ceCancel").hidden = false;
+    document.getElementById("ceForm").scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+  if (hide) {
+    hide.disabled = true;
+    try {
+      await adminFetch("custom-events-manage", { action: "hide", id: hide.dataset.ceHide, active: hide.dataset.active === "1" });
+      await loadCustomEvents();
+    } catch (err) { window.alert(err.message || "Nepodařilo se."); hide.disabled = false; }
+  }
+});
+
+document.getElementById("ceList")?.addEventListener("change", async (e) => {
+  const sel = e.target.closest("[data-ce-res]");
+  if (!sel || !sel.value) return;
+  const r = CE_ROWS.find((x) => x.id === sel.dataset.ceRes);
+  const label = sel.options[sel.selectedIndex].textContent;
+  if (!window.confirm(`Zapsat výsledek „${label}“ pro ${r?.event?.home} vs ${r?.event?.away}?\n\nOtevřené tikety (${r?.pending ?? 0}) se podle něj vyhodnotí a výsledek už nepůjde změnit.`)) { sel.value = ""; return; }
+  sel.disabled = true;
+  try {
+    await adminFetch("custom-events-manage", { action: "result", id: sel.dataset.ceRes, winner: sel.value });
+    await loadCustomEvents();
+  } catch (err) { window.alert(err.message || "Nepodařilo se."); sel.disabled = false; sel.value = ""; }
+});
+
