@@ -63,6 +63,7 @@ document.addEventListener("click", (e) => {
   const flush = typeof pushAccountSnapshot === "function" ? pushAccountSnapshot() : Promise.resolve();
   const capped = Promise.race([flush.catch(() => {}), new Promise((r) => setTimeout(r, 5000))]);
   capped.finally(() => {
+    window.FundlyPromo?.setActivePlayer(false);
     FundlyAuth.signOut().catch(() => {}).finally(() => { window.location.href = href; });
   });
 });
@@ -693,6 +694,7 @@ function accountHistoryRowsHtml(accounts) {
 function showLimitedDashboard(accounts) {
   document.body.classList.add("limited");
   window.__noRealAccount = true;
+  window.FundlyPromo?.setActivePlayer(false); // bez aktivního účtu → sleva na nákup / reset dává smysl
   document.querySelectorAll(".buy-challenge-cta").forEach((btn) => { btn.hidden = false; });
   document.querySelectorAll(".dash-view").forEach((v) => { v.hidden = true; });
   const view = document.getElementById("view-noaccount");
@@ -716,22 +718,48 @@ function resetOfferText(pkgKey) {
   return { pkg, price, text: `Restart your ${pkg.name} account with a discounted reset: ${usd(price)} instead of ${usd(pkg.price)} (40 % of the standard price). A reset can be used once per closed account.` };
 }
 
+// Tlačítko resetu šlo stisknout jen jednou: po kliknutí zůstalo "disabled" — když se hráč
+// z platební brány vrátil zpět (prohlížeč obnoví stránku z paměti i se zablokovaným
+// tlačítkem), nebo když se některý krok před přesměrováním zasekl. Teď se tlačítko vždy
+// uvolní: po chybě, po návratu zpět (pageshow), a pojistkou, kdyby přesměrování neproběhlo.
 async function startAccountReset(pkgKey, btn, note) {
+  if (btn.dataset.busy === "1") return; // dvojklik
+  btn.dataset.busy = "1";
   btn.disabled = true;
+  note.hidden = true;
+  const label = btn.textContent;
+  btn.dataset.label = label;
+  btn.textContent = "Opening the payment…";
+  const release = () => { btn.disabled = false; btn.dataset.busy = ""; btn.textContent = label; };
   try {
     // živě spálený účet se na server dostane až syncem — počkat, ať je "breached" už zapsané
-    if (typeof pushAccountSnapshot === "function") await pushAccountSnapshot();
+    // (max. 5 s — pomalá síť nesmí tlačítko zablokovat)
+    if (typeof pushAccountSnapshot === "function") {
+      await Promise.race([pushAccountSnapshot().catch(() => {}), new Promise((r) => setTimeout(r, 5000))]);
+    }
     const user = await FundlyAuth.getUser();
     if (!user || !user.email) throw new Error("Please sign in again.");
     const data = await FundlyCheckout.createSession(pkgKey, user.email, { reset: true });
     window.location.href = data.checkoutUrl;
+    setTimeout(release, 8000); // přesměrování neproběhlo (zablokované / zrušené) → znovu použitelné
   } catch (err) {
     note.textContent = err.message || "The payment gateway could not be opened.";
     note.className = "auth-note mt error";
     note.hidden = false;
-    btn.disabled = false;
+    release();
   }
 }
+// návrat z platební brány tlačítkem Zpět: stránka z paměti prohlížeče (bfcache) → uvolnit tlačítka
+window.addEventListener("pageshow", (e) => {
+  if (!e.persisted) return;
+  const act = document.getElementById("activationPay"); // platba aktivace má stejný vzor
+  if (act) act.disabled = false;
+  ["breachResetBtn", "naResetBtn"].forEach((id) => {
+    const b = document.getElementById(id);
+    if (b && b.dataset.busy === "1") { b.disabled = false; b.dataset.busy = ""; if (b.dataset.label) b.textContent = b.dataset.label; }
+  });
+  updateBreachPanel(); // obnoví i popisek tlačítka
+});
 
 function wireResetPanel(panelId, textId, btnId, noteId, pkgKey) {
   const panel = document.getElementById(panelId);
@@ -866,6 +894,7 @@ async function syncChallengeAccount() {
     document.querySelectorAll(".buy-challenge-cta").forEach((btn) => { btn.hidden = true; });
     document.body.classList.remove("limited");
     window.__noRealAccount = false;
+    window.FundlyPromo?.setActivePlayer(true); // aktivní hráč slevový banner nepotřebuje
 
     // Bonusové dny k lhůtě fáze (kompenzace výpadku zdroje kurzů apod.) drží server
     // — admin je přidá SQL/migrací a klient je jen zobrazuje. Zařízení s už existujícím
