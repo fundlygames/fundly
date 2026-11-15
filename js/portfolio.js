@@ -14,6 +14,20 @@ const BOOKMAKERS = ["Bet365", "Sportsbet.com.au"];
 const BOOKMAKER = BOOKMAKERS[0];
 const CACHE_TTL = 5 * 60 * 1000; // 5 min, free tier má 100 requestů/hod
 
+// Texty pro hráče přes i18n (klíče dashjs.val.* v js/i18n-dash-js.js, načítá se jen na
+// dashboard.html). Jinde (index.html…) klíč chybí → použije se anglický výchozí text.
+function portfolioT(key, fallback, vars) {
+  let s = typeof window !== "undefined" && typeof window.t === "function" ? window.t(key) : null;
+  if (typeof s !== "string" || !s || s === key) s = fallback;
+  return String(s).replace(/\{(\w+)\}/g, (m, k) => (vars && vars[k] !== undefined ? vars[k] : m));
+}
+// Locale pro data/časy podle zvoleného jazyka (cs → cs-CZ, sk → sk-SK, jinak en-US).
+function portfolioLocale() {
+  const lang = typeof window !== "undefined" && window.FUNDLY_I18N && typeof window.FUNDLY_I18N.getLang === "function"
+    ? window.FUNDLY_I18N.getLang() : "en";
+  return lang === "cs" ? "cs-CZ" : lang === "sk" ? "sk-SK" : "en-US";
+}
+
 function cacheGet(key, ttl) {
   try {
     const raw = localStorage.getItem("bf2:" + key);
@@ -477,7 +491,7 @@ const Portfolio = (() => {
     const now = new Date();
     for (let i = days - 1; i >= 0; i--) {
       const d = new Date(now.getTime() - i * 86400000);
-      buckets.push({ key: d.toDateString(), label: d.toLocaleDateString("en-US", { weekday: "short" }), net: 0 });
+      buckets.push({ key: d.toDateString(), label: d.toLocaleDateString(portfolioLocale(), { weekday: "short" }), net: 0 });
     }
     const byKey = Object.fromEntries(buckets.map((b) => [b.key, b]));
     state.tickets
@@ -578,14 +592,14 @@ const Portfolio = (() => {
   // ticket/UI zase přerenderuje (reálně nahlášeno — chce to vidět dopředu).
   function evaluateBet(selections, stake, extraFlags) {
     const state = get();
-    if (!state) return { ok: false, error: "Please sign in first." };
+    if (!state) return { ok: false, error: portfolioT("dashjs.val.signIn", "Please sign in first.") };
     if (breachInfo(state).breached) {
-      return { ok: false, error: "This account has breached its loss limit and is closed. Buy a new Challenge to keep trading." };
+      return { ok: false, error: portfolioT("dashjs.val.breached", "This account has breached its loss limit and is closed. Buy a new Challenge to keep trading.") };
     }
     if (state.pendingPhase) {
-      return { ok: false, error: "You cleared this phase's target — betting is paused while our team reviews and approves the move to the next phase." };
+      return { ok: false, error: portfolioT("dashjs.val.pendingPhase", "You cleared this phase's target — betting is paused while our team reviews and approves the move to the next phase.") };
     }
-    if (!selections || !selections.length) return { ok: false, error: "Your ticket is empty." };
+    if (!selections || !selections.length) return { ok: false, error: portfolioT("dashjs.val.empty", "Your ticket is empty.") };
     // Past-post guard: odds-api.io occasionally still lists an event as
     // upcoming ("pending") well after its real-world start time, usually
     // for lower-tier/youth fixtures the feed never got final live status
@@ -598,22 +612,22 @@ const Portfolio = (() => {
     // leaving genuine in-play/live betting untouched.
     const nowMs = Date.now();
     if (selections.some((s) => new Date(s.startTime).getTime() <= nowMs && !s.live)) {
-      return { ok: false, error: "This match has already started and can't be confirmed as live right now — refresh the match list and try again." };
+      return { ok: false, error: portfolioT("dashjs.val.started", "This match has already started and can't be confirmed as live right now — refresh the match list and try again.") };
     }
     const amount = Number(stake);
-    if (!amount || amount <= 0) return { ok: false, error: "Enter a valid entry amount." };
+    if (!amount || amount <= 0) return { ok: false, error: portfolioT("dashjs.val.invalidAmount", "Enter a valid entry amount.") };
     const maxStake = ruleMeta(state).maxStake;
-    if (amount > maxStake) return { ok: false, error: `Max. entry size is $${maxStake.toLocaleString("en-US")}.` };
-    if (amount > state.balance) return { ok: false, error: "Insufficient balance." };
+    if (amount > maxStake) return { ok: false, error: portfolioT("dashjs.val.maxStake", "Max. entry size is {amount}.", { amount: `$${maxStake.toLocaleString("en-US")}` }) };
+    if (amount > state.balance) return { ok: false, error: portfolioT("dashjs.val.insufficient", "Insufficient balance.") };
     const seenEventIds = new Set();
     for (const s of selections) {
       if (seenEventIds.has(s.eventId)) {
-        return { ok: false, error: "You can only include a match once per ticket." };
+        return { ok: false, error: portfolioT("dashjs.val.matchOnce", "You can only include a match once per ticket.") };
       }
       seenEventIds.add(s.eventId);
     }
     if (selections.some((s) => hasPendingBetOnEvent(state, s.eventId))) {
-      return { ok: false, error: "You already have a pending bet on this match. Wait for it to settle before betting on it again." };
+      return { ok: false, error: portfolioT("dashjs.val.pendingOnMatch", "You already have a pending bet on this match. Wait for it to settle before betting on it again.") };
     }
 
     const combinedOdds = selections.reduce((acc, s) => acc * s.oddValue, 1);
@@ -624,14 +638,14 @@ const Portfolio = (() => {
     // breach, ale musí o něm vědět předem (na žádost testera).
     const worst = worstCaseInfo(state, amount);
     const worstCaseWarning = (worst.worstCaseBalance < worst.dailyFloor || worst.worstCaseBalance < worst.totalFloor)
-      ? "Heads up: if every open ticket lost, this bet would breach your loss limit and could burn the account."
+      ? portfolioT("dashjs.val.worstCase", "Heads up: if every open ticket lost, this bet would breach your loss limit and could burn the account.")
       : null;
 
     // Consistency rule: potenciální čistý zisk jednoho tiketu ≤ 40 % z cíle.
     const potentialProfit = amount * (combinedOdds - 1);
     const capLimit = consistencyLimit(state);
     if (potentialProfit > capLimit) {
-      return { ok: false, error: `A single ticket can't account for more than 40 % of the phase profit target (max potential profit here: $${Math.round(capLimit).toLocaleString("en-US")}).` };
+      return { ok: false, error: portfolioT("dashjs.val.consistency", "A single ticket can't account for more than 40 % of the phase profit target (max potential profit here: {amount}).", { amount: `$${Math.round(capLimit).toLocaleString("en-US")}` }) };
     }
 
     // flagy zakázaných strategií (value z dashboard.js, arbitrage zde)
@@ -687,12 +701,12 @@ const Portfolio = (() => {
   // to, aby to hráč vůbec nemohl zkusit z UI.
   function cashOut(ticketId) {
     const state = get();
-    if (!state) return { ok: false, error: "Please sign in first." };
+    if (!state) return { ok: false, error: portfolioT("dashjs.val.signIn", "Please sign in first.") };
     const t = state.tickets.find((x) => x.id === ticketId);
-    if (!t || t.status !== "pending") return { ok: false, error: "Ticket is no longer pending." };
+    if (!t || t.status !== "pending") return { ok: false, error: portfolioT("dashjs.val.noLongerPending", "Ticket is no longer pending.") };
     const now = Date.now();
     if (t.selections.some((s) => s.startTime && new Date(s.startTime).getTime() <= now)) {
-      return { ok: false, error: "Cash out is only available before the match starts." };
+      return { ok: false, error: portfolioT("dashjs.val.cashoutBefore", "Cash out is only available before the match starts.") };
     }
     const amount = Math.round(t.stake * 0.9);
     t.status = "cashedout";

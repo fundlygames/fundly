@@ -38,7 +38,7 @@ const FUNDLY_I18N = (() => {
         phase3Tag: "Partner Account", phase3Name: "Fundly Partner",
         profitTarget: "Profit target", maxLossStatic: "Max. loss (static)", maxLossTrailing: "Max. loss (trailing)",
         maxDailyLoss: "Max. daily loss", timeLimit: "Time limit", days30: "30 days", unlimited: "Unlimited",
-        qualifyingEntries: "Qualifying entries", yourShare: "Your share", permissibleOdds: "Permissible odds ratio",
+        qualifyingEntries: "Qualifying entries", yourShare: "Your share", permissibleOdds: "Permissible odds ratio", oddsRange: "1.00 to 8.00",
         pkgSuffix: "package", simCapital: "simulated capital at your disposal", mostPopular: "Most popular",
         f1: "2 evaluation phases", f2: "80 % performance split", f3: "Max. entry size", f4: "Unlimited time in the partner phase", f5: "Daily loss limit −4 % of capital",
         oneTime: "one-time", buy: "Buy the Challenge",
@@ -246,7 +246,7 @@ const FUNDLY_I18N = (() => {
         phase3Tag: "Partnerský účet", phase3Name: "Fundly Partner",
         profitTarget: "Cílový zisk", maxLossStatic: "Max. ztráta (statická)", maxLossTrailing: "Max. ztráta (klouzavá)",
         maxDailyLoss: "Max. denní ztráta", timeLimit: "Časový limit", days30: "30 dní", unlimited: "Bez limitu",
-        qualifyingEntries: "Kvalifikační tikety", yourShare: "Váš podíl", permissibleOdds: "Povolený kurzový rozsah",
+        qualifyingEntries: "Kvalifikační tikety", yourShare: "Váš podíl", permissibleOdds: "Povolený kurzový rozsah", oddsRange: "1.00 až 8.00",
         pkgSuffix: "balíček", simCapital: "simulovaného kapitálu k dispozici", mostPopular: "Nejoblíbenější",
         f1: "2 hodnoticí fáze", f2: "80% podíl na zisku", f3: "Max. velikost tiketu", f4: "Neomezený čas v partnerské fázi", f5: "Denní limit ztráty −4 % kapitálu",
         oneTime: "jednorázově", buy: "Koupit Challenge",
@@ -455,7 +455,7 @@ const FUNDLY_I18N = (() => {
         phase3Tag: "Cuenta de socio", phase3Name: "Fundly Partner",
         profitTarget: "Objetivo de beneficio", maxLossStatic: "Pérdida máx. (estática)", maxLossTrailing: "Pérdida máx. (dinámica)",
         maxDailyLoss: "Pérdida máx. diaria", timeLimit: "Límite de tiempo", days30: "30 días", unlimited: "Sin límite",
-        qualifyingEntries: "Tickets clasificatorios", yourShare: "Tu parte", permissibleOdds: "Rango de cuotas permitido",
+        qualifyingEntries: "Tickets clasificatorios", yourShare: "Tu parte", permissibleOdds: "Rango de cuotas permitido", oddsRange: "1.00 a 8.00",
         pkgSuffix: "paquete", simCapital: "de capital simulado a tu disposición", mostPopular: "Más popular",
         f1: "2 fases de evaluación", f2: "80% de reparto de rendimiento", f3: "Tamaño máx. de entrada", f4: "Tiempo ilimitado en la fase de socio", f5: "Límite de pérdida diaria −4% del capital",
         oneTime: "pago único", buy: "Comprar el Challenge",
@@ -665,7 +665,7 @@ const FUNDLY_I18N = (() => {
         phase3Tag: "Konto partnera", phase3Name: "Fundly Partner",
         profitTarget: "Cel zysku", maxLossStatic: "Maks. strata (statyczna)", maxLossTrailing: "Maks. strata (kroczącą)",
         maxDailyLoss: "Maks. strata dzienna", timeLimit: "Limit czasu", days30: "30 dni", unlimited: "Bez limitu",
-        qualifyingEntries: "Kwalifikujące zlecenia", yourShare: "Twój udział", permissibleOdds: "Dozwolony zakres kursów",
+        qualifyingEntries: "Kwalifikujące zlecenia", yourShare: "Twój udział", permissibleOdds: "Dozwolony zakres kursów", oddsRange: "1.00 do 8.00",
         pkgSuffix: "pakiet", simCapital: "symulowanego kapitału do Twojej dyspozycji", mostPopular: "Najpopularniejszy",
         f1: "2 etapy oceny", f2: "80% podziału zysku", f3: "Maks. wielkość wejścia", f4: "Nieograniczony czas w fazie partnera", f5: "Dzienny limit straty −4% kapitału",
         oneTime: "jednorazowo", buy: "Kup Challenge",
@@ -875,7 +875,7 @@ const FUNDLY_I18N = (() => {
         phase3Tag: "Partnerský účet", phase3Name: "Fundly Partner",
         profitTarget: "Cieľový zisk", maxLossStatic: "Max. strata (statická)", maxLossTrailing: "Max. strata (klesajúca)",
         maxDailyLoss: "Max. denná strata", timeLimit: "Časový limit", days30: "30 dní", unlimited: "Bez limitu",
-        qualifyingEntries: "Kvalifikačné tikety", yourShare: "Váš podiel", permissibleOdds: "Povolený kurzový rozsah",
+        qualifyingEntries: "Kvalifikačné tikety", yourShare: "Váš podiel", permissibleOdds: "Povolený kurzový rozsah", oddsRange: "1.00 až 8.00",
         pkgSuffix: "balíček", simCapital: "simulovaného kapitálu k dispozícii", mostPopular: "Najobľúbenejší",
         f1: "2 hodnotiace fázy", f2: "80% podiel na zisku", f3: "Max. veľkosť tiketu", f4: "Neobmedzený čas vo fáze partnera", f5: "Denný limit straty −4% kapitálu",
         oneTime: "jednorazovo", buy: "Kúpiť Challenge",
@@ -1084,7 +1084,7 @@ const FUNDLY_I18N = (() => {
         phase3Tag: "Partner számla", phase3Name: "Fundly Partner",
         profitTarget: "Profitcél", maxLossStatic: "Max. veszteség (statikus)", maxLossTrailing: "Max. veszteség (követő)",
         maxDailyLoss: "Max. napi veszteség", timeLimit: "Időkorlát", days30: "30 nap", unlimited: "Korlátlan",
-        qualifyingEntries: "Minősítő tételek", yourShare: "A te részesedésed", permissibleOdds: "Megengedett odds-tartomány",
+        qualifyingEntries: "Minősítő tételek", yourShare: "A te részesedésed", permissibleOdds: "Megengedett odds-tartomány", oddsRange: "1.00–8.00",
         pkgSuffix: "csomag", simCapital: "szimulált tőke áll rendelkezésedre", mostPopular: "Legnépszerűbb",
         f1: "2 értékelési fázis", f2: "80% teljesítmény-megosztás", f3: "Max. tételméret", f4: "Korlátlan idő a partner fázisban", f5: "Napi veszteséglimit −4% a tőkéből",
         oneTime: "egyszeri", buy: "Challenge megvásárlása",
@@ -1278,7 +1278,25 @@ const FUNDLY_I18N = (() => {
 
   function t(path) {
     const lang = getLang();
-    return resolve(DICT[lang], path) ?? resolve(DICT.en, path) ?? path;
+    // slovenčina: chybějící klíč (např. dashboard přeložený jen do češtiny) → česky, ne anglicky
+    return resolve(DICT[lang], path) ?? (lang === "sk" ? resolve(DICT.cs, path) : undefined) ?? resolve(DICT.en, path) ?? path;
+  }
+
+  // t() s proměnnými: tf("dash.x", { amount: "$375" }) — v textu {amount}
+  function tf(path, vars) {
+    return String(t(path)).replace(/\{(\w+)\}/g, (m, k) => (vars && vars[k] !== undefined ? vars[k] : m));
+  }
+
+  // další slovníky (js/i18n-dash.js, js/i18n-dash-js.js …) se přidávají sem: extend("cs", {...})
+  function extend(lang, obj) {
+    const merge = (a, b) => {
+      for (const [k, v] of Object.entries(b)) {
+        if (v && typeof v === "object" && !Array.isArray(v)) a[k] = merge(a[k] && typeof a[k] === "object" ? a[k] : {}, v);
+        else a[k] = v;
+      }
+      return a;
+    };
+    DICT[lang] = merge(DICT[lang] || {}, obj);
   }
 
   function getLang() {
@@ -1288,6 +1306,9 @@ const FUNDLY_I18N = (() => {
   function applyTranslations(lang) {
     document.documentElement.lang = lang;
     document.documentElement.dataset.lang = lang;
+    // titulek karty: <html data-i18n-doc-title="meta.index">
+    const docTitleKey = document.documentElement.getAttribute("data-i18n-doc-title");
+    if (docTitleKey) document.title = t(docTitleKey);
     document.querySelectorAll("[data-i18n]").forEach((el) => {
       el.textContent = t(el.getAttribute("data-i18n"));
     });
@@ -1296,6 +1317,9 @@ const FUNDLY_I18N = (() => {
     });
     document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
       el.setAttribute("placeholder", t(el.getAttribute("data-i18n-placeholder")));
+    });
+    document.querySelectorAll("[data-i18n-title]").forEach((el) => {
+      el.setAttribute("title", t(el.getAttribute("data-i18n-title")));
     });
     document.querySelectorAll("[data-i18n-aria-label]").forEach((el) => {
       el.setAttribute("aria-label", t(el.getAttribute("data-i18n-aria-label")));
@@ -1373,6 +1397,20 @@ const FUNDLY_I18N = (() => {
     }
   }
 
+  // titulky stránek (data-i18n-doc-title); ostatní jazyky → angličtina, sk → čeština
+  extend("en", { meta: {
+    index: "Fundly. Get simulated capital for your sports analytics, up to $100,000",
+    getStarted: "Get Started | Fundly — Simulated Capital for Sports Analysts",
+    checkout: "Checkout | Fundly",
+    dashboard: "Dashboard | Fundly",
+  } });
+  extend("cs", { meta: {
+    index: "Fundly. Simulovaný kapitál pro tvou sportovní analytiku, až $100 000",
+    getStarted: "Začni | Fundly — simulovaný kapitál pro sportovní analytiky",
+    checkout: "Pokladna | Fundly",
+    dashboard: "Dashboard | Fundly",
+  } });
+
   detectAndApply();
 
   // Switcher: delegated change listener, works for any select.lang-switch
@@ -1381,7 +1419,7 @@ const FUNDLY_I18N = (() => {
     if (e.target.matches("select.lang-switch")) setLang(e.target.value);
   });
 
-  return { t, setLang, getLang, SUPPORTED, refresh: () => applyTranslations(getLang()) };
+  return { t, tf, extend, setLang, getLang, SUPPORTED, refresh: () => applyTranslations(getLang()) };
 })();
 
 // Exposed only as window.t (never a bare top-level `t`) — a page-wide
@@ -1390,4 +1428,5 @@ const FUNDLY_I18N = (() => {
 // injected embedded-checkout loader), which throws a SyntaxError and
 // silently breaks the payment gateway from ever rendering.
 window.t = FUNDLY_I18N.t;
+window.tf = FUNDLY_I18N.tf;
 window.FUNDLY_I18N = FUNDLY_I18N;

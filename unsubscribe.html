@@ -7,8 +7,8 @@
   <meta name="robots" content="noindex" />
   <meta name="theme-color" content="#020204" />
   <link rel="icon" type="image/png" href="assets/logo.png" />
-  <link rel="stylesheet" href="css/style.css?v=20261115a" />
-  <link rel="stylesheet" href="css/legal.css?v=20261115a" />
+  <link rel="stylesheet" href="css/style.css?v=20261115e" />
+  <link rel="stylesheet" href="css/legal.css?v=20261115e" />
 </head>
 <body>
   <header class="nav scrolled">
@@ -17,7 +17,7 @@
         <img src="assets/logo.png" alt="" width="24" height="24" />
         fundly
       </a>
-      <div class="nav-cta"><a class="btn btn-ghost" href="./">Back to home</a></div>
+      <div class="nav-cta"><a class="btn btn-ghost" href="./" data-legal="back">Back to home</a></div>
     </div>
   </header>
 
@@ -27,23 +27,46 @@
       <p id="unsubText" style="margin:14px 0 24px">Stop receiving Fundly promotional emails?</p>
       <button class="btn btn-primary" id="unsubBtn" type="button">Yes, unsubscribe me</button>
       <p class="auth-note mt" id="unsubNote" hidden></p>
-      <p style="margin-top:28px;font-size:.8125rem;color:var(--text-muted)">You'll still receive service emails about your account (payments, closed accounts, security). Changed your mind? Write to <a href="mailto:support@fundly.games">support@fundly.games</a>.</p>
+      <p id="unsubFoot" style="margin-top:28px;font-size:.8125rem;color:var(--text-muted)">You'll still receive service emails about your account (payments, closed accounts, security). Changed your mind? Write to <a href="mailto:support@fundly.games">support@fundly.games</a>.</p>
     </div>
   </main>
 
-  <script src="js/config.js?v=20261115a"></script>
+  <script src="js/config.js?v=20261115e"></script>
   <script>
     (function () {
+      // jazyk jako na zbytku webu (fundly:lang, jinak jazyk prohlížeče); sk/cs → česky
+      var lang = "en";
+      try { lang = localStorage.getItem("fundly:lang") || (navigator.language || "en").slice(0, 2); } catch (e) { /* */ }
+      var CS = lang === "cs" || lang === "sk";
+      var T = CS ? {
+        title: "Odhlášení z e-mailů", text: "Přestat dostávat propagační e-maily od Fundly?", btn: "Ano, odhlásit mě",
+        foot: "Servisní e-maily o tvém účtu (platby, uzavřené účty, zabezpečení) ti budou chodit dál. Rozmyslel(a) sis to? Napiš na ",
+        incomplete: "Odkaz pro odhlášení je neúplný. Použij odkaz z e-mailu nebo napiš na support@fundly.games.",
+        ask: function (e) { return "Přestat posílat propagační e-maily na " + e + "?"; },
+        done: "Jsi odhlášen(a)", doneText: "Propagační e-maily ti už posílat nebudeme.", fail: "Odhlášení se nepodařilo.",
+      } : {
+        title: "Unsubscribe", text: "Stop receiving Fundly promotional emails?", btn: "Yes, unsubscribe me",
+        foot: "You'll still receive service emails about your account (payments, closed accounts, security). Changed your mind? Write to ",
+        incomplete: "This unsubscribe link is incomplete. Please use the link from the email or write to support@fundly.games.",
+        ask: function (e) { return "Stop sending promotional emails to " + e + "?"; },
+        done: "You're unsubscribed", doneText: "We won't send you promotional emails anymore.", fail: "Could not unsubscribe.",
+      };
+      if (CS) { document.documentElement.lang = "cs"; document.title = "Odhlášení z e-mailů | Fundly"; }
+      document.getElementById("unsubTitle").textContent = T.title;
+      document.getElementById("unsubText").textContent = T.text;
+      var footEl = document.getElementById("unsubFoot");
+      if (footEl) footEl.firstChild.textContent = T.foot;
       var q = new URLSearchParams(location.search);
       var email = q.get("e") || "", token = q.get("t") || "";
       var btn = document.getElementById("unsubBtn"), note = document.getElementById("unsubNote");
+      btn.textContent = T.btn;
       if (!email || !token) {
         btn.hidden = true;
-        note.textContent = "This unsubscribe link is incomplete. Please use the link from the email or write to support@fundly.games.";
+        note.textContent = T.incomplete;
         note.className = "auth-note mt error"; note.hidden = false;
         return;
       }
-      document.getElementById("unsubText").textContent = "Stop sending promotional emails to " + email + "?";
+      document.getElementById("unsubText").textContent = T.ask(email);
       btn.addEventListener("click", async function () {
         btn.disabled = true;
         try {
@@ -52,16 +75,17 @@
             body: JSON.stringify({ email: email, token: token }),
           });
           var data = await res.json().catch(function () { return {}; });
-          if (!res.ok) throw new Error(data.error || "Could not unsubscribe.");
-          document.getElementById("unsubTitle").textContent = "You're unsubscribed";
-          document.getElementById("unsubText").textContent = "We won't send you promotional emails anymore.";
+          if (!res.ok) throw new Error(CS ? T.fail : (data.error || T.fail));
+          document.getElementById("unsubTitle").textContent = T.done;
+          document.getElementById("unsubText").textContent = T.doneText;
           btn.hidden = true; note.hidden = true;
         } catch (e) {
-          note.textContent = e.message || "Could not unsubscribe.";
+          note.textContent = e.message || T.fail;
           note.className = "auth-note mt error"; note.hidden = false; btn.disabled = false;
         }
       });
     })();
   </script>
+  <script src="js/legal-lang.js?v=20261115e"></script>
 </body>
 </html>
