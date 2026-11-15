@@ -19,6 +19,7 @@
   <link rel="stylesheet" href="css/tools.css?v=20261116a" /><!-- Nástroje + Deník tipů (js/tools.js, js/journal.js) -->
   <link rel="stylesheet" href="css/academy.css?v=20261116a" />
   <link rel="stylesheet" href="css/analytics.css?v=20261116a" />
+  <link rel="stylesheet" href="css/odds-watch.css?v=20261116a" />
   <!-- Měření (Meta Pixel, Microsoft Clarity, Google Analytics): tady jen fronty volání.
        Skutečné skripty načte js/consent.js AŽ po souhlasu s cookies (zákon č. 127/2005 Sb.). -->
   <script>
@@ -329,6 +330,7 @@
             <button class="filter-chip" id="qLive" aria-pressed="false"><span class="live-dot" aria-hidden="true"></span><span data-i18n="dash.live">LIVE</span></button>
             <button class="filter-chip" id="qToday" data-i18n="dash.today" aria-pressed="false">Today</button>
             <button class="filter-chip" id="qHigh" data-i18n="dash.high_odds" aria-pressed="false">High odds</button>
+            <button class="filter-chip" id="qWatched" aria-pressed="false"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3.2l2.7 5.5 6.1.9-4.4 4.3 1 6.1L12 17.1 6.6 20l1-6.1-4.4-4.3 6.1-.9z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><span data-i18n="ow.watched">Watched</span><span class="ow-count" id="qWatchedCount" hidden></span></button>
             <button class="filter-chip" id="betRefresh" style="margin-left:auto">
               <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M12 7A5 5 0 112.8 4.2M2.5 1.5v3h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
               <span data-i18n="dash.refresh">Refresh</span>
@@ -937,6 +939,7 @@
   <script src="js/i18n-dash.js?v=20261116a"></script>
   <script src="js/i18n-dash-js.js?v=20261116a"></script>
   <script src="js/portfolio.js?v=20261116a"></script>
+  <script src="js/odds-watch.js?v=20261116a"></script>
   <script src="js/journal.js?v=20261116a"></script>
   <script src="js/tools.js?v=20261116a"></script>
   <script src="js/dashboard.js?v=20261116a"></script>

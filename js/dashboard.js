@@ -1649,6 +1649,10 @@ function visibleEvents() {
   if (filters.high) {
     list = list.filter((m) => m.odds.some((o) => o !== null && o >= 2.5 && o <= ODDS_MAX));
   }
+  // odds-watch: chip "Sledované" (#qWatched) nastavuje filters.watched — viz js/odds-watch.js
+  if (filters.watched && window.FundlyOddsWatch) {
+    list = list.filter((m) => FundlyOddsWatch.isWatched(m.id));
+  }
   return list;
 }
 
@@ -1930,6 +1934,9 @@ function renderMatchDetail(m) {
       else openGroups.delete(d.dataset.mk);
     });
   });
+
+  // odds-watch: tlačítko "Sledovat" + graf vývoje kurzu pod hlavičkou detailu (js/odds-watch.js)
+  if (window.FundlyOddsWatch) FundlyOddsWatch.mountDetail(m);
 }
 
 function renderMatches() {
@@ -1950,9 +1957,13 @@ function renderMatches() {
 // jeden řádek zápasu v seznamu (sdílí renderMatches a živý patch jednoho řádku)
 function matchRowHtml(m) {
     const extra = m.markets.length - 1;
+  // odds-watch: hvězdička "Sledovat" + zvýraznění sledovaného řádku (js/odds-watch.js) — je přímo
+  // v HTML řádku, takže přežije překreslení i živý patch jednoho řádku (patchLiveView)
+  const ow = window.FundlyOddsWatch;
   return `
-  <div class="match" data-match="${m.id}">
+  <div class="match${ow ? ow.rowClass(m) : ""}" data-match="${m.id}">
     <div class="match-head" role="button" tabindex="0" aria-label="${ftf("dashjs.bet.openDetail", { home: m.home, away: m.away })}">
+      ${ow ? ow.starHtml(m) : ""}
       <div class="m-info">
         <div class="m-league">${m.league}</div>
         <div class="m-teams">${m.home} – ${m.away}</div>
