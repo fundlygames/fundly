@@ -25,6 +25,11 @@
   function dismissedRecently() {
     try { return Date.now() - Number(localStorage.getItem(DISMISS_KEY) || 0) < DISMISS_MS; } catch (e) { return false; }
   }
+  // Neotravovat nováčky: banner až od 3. návštěvy (počítá se jedno načtení stránky = návštěva)
+  var VISITS_KEY = "fundly:visits";
+  var visits = 0;
+  try { visits = Number(localStorage.getItem(VISITS_KEY) || 0) + 1; localStorage.setItem(VISITS_KEY, String(visits)); } catch (e) { visits = 0; }
+  function earlyVisit() { return visits < 3; }
   function isPhone() { return window.matchMedia && window.matchMedia("(max-width: 900px)").matches; }
 
   var T = {
@@ -66,7 +71,9 @@
   }
 
   function show(mode) {
-    if (banner || standalone() || inApp || dismissedRecently() || !isPhone()) return;
+    if (banner || standalone() || inApp || dismissedRecently() || !isPhone() || earlyVisit()) return;
+    // nepřekrývat jiné okno / lištu cookies
+    if (document.querySelector(".cookie-bar, .modal-backdrop:not([hidden]), .tour-card, .share-backdrop:not([hidden])")) return;
     css();
     var t = tr();
     banner = document.createElement("div");
@@ -87,12 +94,12 @@
   window.addEventListener("beforeinstallprompt", function (e) {
     e.preventDefault();
     deferred = e;
-    setTimeout(function () { show("prompt"); }, 4000);
+    setTimeout(function () { show("prompt"); }, 15000);
   });
   window.addEventListener("appinstalled", function () { deferred = null; hide(false); });
 
   // iOS never fires beforeinstallprompt — show the manual hint instead (Safari and iOS Chrome both support it)
-  if (isIOS && !standalone()) window.addEventListener("load", function () { setTimeout(function () { show("ios"); }, 4000); });
+  if (isIOS && !standalone()) window.addEventListener("load", function () { setTimeout(function () { show("ios"); }, 15000); });
 
   window.FundlyPWA = {
     // callable from any button (e.g. a future "Install app" entry in Settings)
@@ -102,6 +109,14 @@
       p.prompt();
       return p.userChoice.then(function (c) { hide(c && c.outcome !== "accepted"); return c && c.outcome === "accepted"; });
     },
-    canInstall: function () { return !!deferred; }
+    canInstall: function () { return !!deferred; },
+    available: function () { return !standalone() && !inApp && (!!deferred || isIOS); },
+    // ruční nabídka z menu "Více" (iOS: návod, Android: systémový dialog)
+    offer: function () {
+      if (standalone()) return false;
+      if (deferred) { window.FundlyPWA.install(); return true; }
+      if (isIOS) { try { localStorage.removeItem(DISMISS_KEY); } catch (e) { /* */ } visits = 99; show("ios"); return true; }
+      return false;
+    }
   };
 })();

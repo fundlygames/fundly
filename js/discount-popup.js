@@ -34,10 +34,32 @@
     document.body.style.overflow = "";
   }
 
+  // přihlášený hráč (uložená relace) slevu nepotřebuje — žádné vyskakovací okno
+  let signedIn = false;
+  try { signedIn = Object.keys(localStorage).some((k) => /^sb-.+-auth-token$/.test(k)); } catch (e) { /* */ }
+  if (signedIn) return;
+
   document.addEventListener("mouseout", (e) => {
     if (!e.relatedTarget && e.clientY <= 0) showDiscountModal();
   });
-  setTimeout(showDiscountModal, MIN_DELAY_MS);
+  // Telefon (bez myši): ne po 5 s natvrdo, ale až když návštěvník stránku opravdu čte —
+  // aspoň 25 s na stránce a doscrolloval přes polovinu. Jinak okno vůbec nevyskočí.
+  const touch = window.matchMedia && window.matchMedia("(hover: none)").matches;
+  if (touch) {
+    const TOUCH_DELAY_MS = 25000;
+    const start = Date.now();
+    const onScroll = () => {
+      const doc = document.documentElement;
+      const read = (window.scrollY + window.innerHeight) / Math.max(1, doc.scrollHeight);
+      if (Date.now() - start >= TOUCH_DELAY_MS && read >= 0.5) {
+        window.removeEventListener("scroll", onScroll);
+        showDiscountModal();
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+  } else {
+    setTimeout(showDiscountModal, MIN_DELAY_MS);
+  }
 
   document.getElementById("discountClose").addEventListener("click", closeDiscountModal);
   modal.addEventListener("click", (e) => { if (e.target === modal) closeDiscountModal(); });

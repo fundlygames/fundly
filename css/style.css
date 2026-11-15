@@ -1312,3 +1312,5 @@ footer {
   box-shadow: inset 0 0 0 1px var(--line), var(--shadow-float);
   background: #000; object-fit: contain;
 }
+.auth-magic { width: 100%; margin-top: 8px; }
+.auth-magic[hidden] { display: none; }

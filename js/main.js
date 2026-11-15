@@ -206,6 +206,28 @@ function setAuthMode(mode) {
   authNote.hidden = true;
   const forgotRow = document.getElementById("authForgotRow");
   if (forgotRow) forgotRow.hidden = mode !== "login";
+  const magic = document.getElementById("authMagic");
+  if (magic) magic.hidden = mode !== "login";
+}
+
+// Přihlášení odkazem z e-mailu — bez hesla (heslo stačí nevyplnit). Na telefonu nejrychlejší cesta.
+document.getElementById("authMagic")?.addEventListener("click", () => {
+  const emailEl = document.getElementById("authEmail");
+  if (!emailEl.checkValidity() || !emailEl.value.trim()) { emailEl.reportValidity(); emailEl.focus(); return; }
+  if (typeof FundlyAuth === "undefined") return;
+  const btn = document.getElementById("authMagic");
+  btn.disabled = true;
+  FundlyAuth.signInWithEmail(emailEl.value.trim()).then(({ error }) => {
+    btn.disabled = false;
+    authNote.textContent = error ? FundlyAuth.errorText(error) : tr("forms.magicSent");
+    authNote.className = error ? "auth-note error" : "auth-note";
+    authNote.hidden = false;
+  }).catch(() => { btn.disabled = false; authNote.textContent = tr("forms.loginFailed"); authNote.className = "auth-note error"; authNote.hidden = false; });
+});
+
+// Už přihlášený (uložená relace Supabase) → "Přihlásit se" vede rovnou do dashboardu, bez formuláře
+function hasStoredSession() {
+  try { return Object.keys(localStorage).some((k) => /^sb-.+-auth-token$/.test(k) && localStorage.getItem(k)); } catch (e) { return false; }
 }
 
 function openAuth(mode) {
@@ -244,6 +266,10 @@ document.addEventListener("click", (e) => {
   }
   const trigger = e.target.closest("[data-auth]");
   if (trigger) {
+    if (trigger.dataset.auth === "login" && typeof fundlyBackendEnabled === "function" && fundlyBackendEnabled() && hasStoredSession()) {
+      window.location.href = "dashboard";
+      return;
+    }
     // Sign-up = purchase: with the backend we redirect into the checkout wizard.
     if (trigger.dataset.auth === "register" && typeof fundlyBackendEnabled === "function" && fundlyBackendEnabled()) {
       window.location.href = "checkout?package=" + encodeURIComponent(activeKey);

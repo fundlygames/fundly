@@ -255,7 +255,7 @@ FUNDLY_I18N.extend("cs", { dash: {
   "profit": "Zisk",
   "roi": "ROI",
   "win_rate": "Úspěšnost",
-  "build_your_buffer_first_then_withdraw_yo": "Nejdřív si vytvoř rezervu, pak vybírej zisky.",
+  "build_your_buffer_first_then_withdraw_yo": "Nejdřív si vytvoř rezervu, pak žádej o odměny.",
   "your_vault_opens_with_a_partner_account": "Tvůj trezor se otevře s účtem Partner",
   "80_of_every_profit_payouts_within_7_days": "80 % z každého zisku, odměny do 7 dní od schválení.",
   "how_it_works": "Jak to funguje",

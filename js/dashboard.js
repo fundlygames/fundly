@@ -131,6 +131,49 @@ const views = ["prehled", "vykon", "sazeni", "zebricek", "vyplaty", "affiliate",
 // (Leaderboard/Affiliate/Academy/Profile) — otevře se přes #dnavMoreBtn.
 const MORE_SHEET_VIEWS = ["zebricek", "affiliate", "novinky", "nastroje", "akademie", "profil"];
 
+// Odměny ve fázi 1/2: krokový ukazatel Fáze 1 → Fáze 2 → Partner místo nepoužitelného formuláře.
+// Na Partner účtu se ukáže původní formulář žádosti, podmínky a historie.
+function renderRewardsLock() {
+  const view = document.getElementById("view-vyplaty");
+  const card = document.getElementById("wdLockCard");
+  const state = Portfolio.get();
+  if (!view || !card || !state) return;
+  const locked = state.phase !== "funded";
+  view.classList.toggle("wd-locked", locked);
+  card.hidden = !locked;
+  if (!locked) return;
+  const target = Portfolio.phaseTarget(state);
+  const profit = state.balance - state.phaseBaseline;
+  const pct = target > 0 ? Math.max(0, Math.min(100, Math.round((profit / target) * 100))) : 0;
+  const cur = state.phase === 2 ? 2 : 1;
+  const step = (n, key) => {
+    const cls = n < cur ? "done" : n === cur ? "now" : "";
+    return `<li class="${cls}"><span class="wl-dot">${n < cur ? "✓" : n}</span><span><b>${esc(ft(`dashjs.rewardsLock.s${n}`))}</b><small>${esc(ft(`dashjs.rewardsLock.s${n}d`))}</small></span></li>`;
+  };
+  card.innerHTML = `
+    <h3>${esc(ft("dashjs.rewardsLock.title"))}</h3>
+    <ol class="wl-steps">${step(1)}${step(2)}${step(3)}</ol>
+    <p class="t-small">${esc(state.pendingPhase ? ftf("dashjs.rewardsLock.pending", { n: cur }) : ftf("dashjs.rewardsLock.now", { n: cur, pct }))}</p>
+    <div class="progress"><span style="width:${state.pendingPhase ? 100 : pct}%"></span></div>
+    <button type="button" class="btn btn-primary" data-view-link="sazeni" style="margin-top:14px;width:100%">${esc(ft("dashjs.rewardsLock.cta"))}</button>`;
+}
+
+// Přepínání sekcí přes historii prohlížeče: tlačítko Zpět na telefonu vrátí na předchozí
+// sekci (dřív zavřelo celý dashboard) a adresa dashboard#novinky otevře rovnou Novinky.
+const ROUTABLE_VIEWS = new Set([...views, "noaccount"]);
+function goView(name) {
+  showView(name);
+  try {
+    if (!history.state || history.state.view !== name) history.pushState({ view: name }, "", "#" + name);
+  } catch (e) { /* bez history API jen přepnutí */ }
+}
+window.addEventListener("popstate", (e) => {
+  let v = (e.state && e.state.view) || location.hash.slice(1);
+  if (v === "prehled" && document.body.classList.contains("limited")) v = "noaccount";
+  if (ROUTABLE_VIEWS.has(v)) showView(v);
+  else if (!location.hash || location.hash === "#") showView(document.body.classList.contains("limited") ? "noaccount" : "prehled");
+});
+
 function closeMoreSheet() {
   const sheet = document.getElementById("dnavMoreSheet");
   const btn = document.getElementById("dnavMoreBtn");
@@ -164,6 +207,7 @@ function showView(name) {
     if (preview) preview.hidden = !window.__noRealAccount;
   }
   if (name === "profil" && typeof renderBadges === "function") renderBadges(Portfolio.get());
+  if (name === "vyplaty") renderRewardsLock();
   if (name === "vyplaty" && typeof loadPayoutHistory === "function") loadPayoutHistory();
   if (name === "affiliate" && typeof loadAffiliateStats === "function") loadAffiliateStats();
   if (name === "zebricek" && typeof loadLeaderboard === "function") loadLeaderboard();
@@ -287,14 +331,17 @@ document.addEventListener("click", (e) => {
   if (moreBtn) {
     const sheet = document.getElementById("dnavMoreSheet");
     const open = sheet.hidden;
+    const pwaRow = sheet.querySelector("[data-pwa-offer]");
+    if (pwaRow) pwaRow.hidden = !(window.FundlyPWA && window.FundlyPWA.available && window.FundlyPWA.available());
     sheet.hidden = !open;
     moreBtn.setAttribute("aria-expanded", String(open));
     return;
   }
+  if (e.target.closest("[data-pwa-offer]")) { closeMoreSheet(); window.FundlyPWA?.offer?.(); return; }
   const nav = e.target.closest("[data-view]");
-  if (nav) { showView(nav.dataset.view); return; }
+  if (nav) { goView(nav.dataset.view); return; }
   const link = e.target.closest("[data-view-link]");
-  if (link) { showView(link.dataset.viewLink); return; }
+  if (link) { goView(link.dataset.viewLink); return; }
   if (!e.target.closest("#dnavMoreSheet")) closeMoreSheet();
 });
 
@@ -3772,3 +3819,10 @@ document.addEventListener("fundly:lang-changed", () => {
     });
   });
 });
+
+// úvodní sekce z adresy (dashboard#novinky) + výchozí stav historie
+(function initialRoute() {
+  const v = location.hash.slice(1);
+  try { history.replaceState({ view: ROUTABLE_VIEWS.has(v) ? v : "prehled" }, ""); } catch (e) { /* */ }
+  if (ROUTABLE_VIEWS.has(v) && v !== "prehled") setTimeout(() => showView(v), 0);
+})();
