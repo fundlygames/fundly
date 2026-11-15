@@ -427,3 +427,6 @@ FUNDLY_I18N.extend("cs", { dashjs: {
     affFail: "Affiliate statistiky se nepodařilo načíst.",
   },
 } });
+// tlačítko resetu během přesměrování na platbu (oprava #97)
+FUNDLY_I18N.extend("en", { dashjs: { reset: { opening: "Opening the payment…" } } });
+FUNDLY_I18N.extend("cs", { dashjs: { reset: { opening: "Otevírám platbu…" } } });

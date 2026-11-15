@@ -7,6 +7,12 @@
   const PROMO = { code: "NEWFUNDLY", percent: 30 };
   const LANG_KEY = "fundly:lang";
   const DISMISS_KEY = "fundly:promoDismissed:" + PROMO.code;
+  // Hráč s aktivním účtem (aktivní Challenge / Partner / čeká na schválení) slevový kód
+  // nepotřebuje — dashboard tenhle příznak nastaví / smaže (setActivePlayer), platí na celém webu.
+  const ACTIVE_KEY = "fundly:activePlayer";
+  const safeGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+  const safeSet = (k, v) => { try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { /* */ } };
+  let barEl = null;
 
   const TEXT = {
     en: { line: "Use code <span class=\"promo-code\">{code}</span> for {pct}% off any package", close: "Dismiss" },
@@ -27,7 +33,7 @@
   }
 
   function init() {
-    if (localStorage.getItem(DISMISS_KEY)) return;
+    if (barEl || safeGet(DISMISS_KEY) || safeGet(ACTIVE_KEY) === "1") return;
 
     const bar = document.createElement("div");
     bar.className = "promo-bar";
@@ -43,6 +49,7 @@
     bar.appendChild(lineEl);
     bar.appendChild(closeBtn);
     document.body.insertBefore(bar, document.body.firstChild);
+    barEl = bar;
 
     function render() {
       const t = TEXT[getLang()];
@@ -56,11 +63,24 @@
     document.addEventListener("fundly:lang-changed", render);
 
     closeBtn.addEventListener("click", () => {
-      localStorage.setItem(DISMISS_KEY, "1");
-      bar.remove();
-      updateHeight(null);
+      safeSet(DISMISS_KEY, "1");
+      hide();
     });
   }
+
+  function hide() {
+    if (barEl) barEl.remove();
+    barEl = null;
+    updateHeight(null);
+  }
+
+  window.FundlyPromo = {
+    // true = hráč má aktivní účet → lištu schovat (a nezobrazovat ani na dalších stránkách)
+    setActivePlayer(active) {
+      safeSet(ACTIVE_KEY, active ? "1" : null);
+      if (active) hide(); else if (document.body) init();
+    },
+  };
 
   if (document.body) init();
   else document.addEventListener("DOMContentLoaded", init);
