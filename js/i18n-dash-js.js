@@ -450,6 +450,38 @@ FUNDLY_I18N.extend("cs", { dashjs: { news: {
   allSports: "Všechny sporty", more: "Načíst další", readOn: "Číst na {source}",
   sport: { football: "Fotbal", hockey: "Hokej", tennis: "Tenis", basketball: "Basketbal", mma: "MMA a box", motorsport: "Motorsport", esports: "Esporty", amfootball: "Americký fotbal", other: "Ostatní" },
 } } });
+// Odznaky: nové odznaky (série disciplíny, deník, akademie, měsíc v plusu) + nápovědy, jak je získat.
+FUNDLY_I18N.extend("en", { dashjs: {
+  badge: { discipline7: "7 days of discipline", discipline21: "21 days of discipline", journal10: "Analyst's journal", academy: "Academy graduate", greenMonth: "Month in the plus" },
+  badgeHint: {
+    firstWin: "Your first successful tip.", row5: "5 successful tips in a row.", row10: "10 successful tips in a row.",
+    accExpert: "Place a combo tip.", phase1: "Pass Phase 1.", phase2: "Pass Phase 2.", partner: "Become a Fundly Partner.",
+    bets100: "Place 100 tips.", hunter: "A successful tip at odds of 5.00 or more.", ironHand: "Come back from close to the max-loss floor.",
+    firstPayout: "Receive your first reward.", ambassador: "Coming soon.",
+    discipline7: "7 tipping days in a row with every entry ≤ 1 % of capital and at most 5 tips a day.",
+    discipline21: "21 tipping days in a row with every entry ≤ 1 % of capital and at most 5 tips a day.",
+    journal10: "Write a journal note (\"Why this tip?\") on 10 tips.",
+    academy: "Pass all 8 Academy quizzes.",
+    greenMonth: "Finish a month in the plus with at least 10 settled tips.",
+  },
+  discNext: "Next badge at {n} days in a row (record {best})",
+} });
+FUNDLY_I18N.extend("cs", { dashjs: {
+  badge: { firstWin: "První úspěšný tip", discipline7: "7 dní disciplíny", discipline21: "21 dní disciplíny", journal10: "Deník analytika", academy: "Absolvent akademie", greenMonth: "Měsíc v plusu" },
+  badgeHint: {
+    firstWin: "Tvůj první úspěšný tip.", row5: "5 úspěšných tipů v řadě.", row10: "10 úspěšných tipů v řadě.",
+    accExpert: "Podej kombinovaný tip.", phase1: "Splň Fázi 1.", phase2: "Splň Fázi 2.", partner: "Staň se Fundly Partnerem.",
+    bets100: "Podej 100 tipů.", hunter: "Úspěšný tip s kurzem 5,00 a vyšším.", ironHand: "Vrať se zpátky z blízkosti hranice max. ztráty.",
+    firstPayout: "Získej první odměnu.", ambassador: "Připravujeme.",
+    discipline7: "7 tipovacích dní v řadě, kdy žádný vklad nepřesáhne 1 % kapitálu a podáš nejvýš 5 tipů denně.",
+    discipline21: "21 tipovacích dní v řadě, kdy žádný vklad nepřesáhne 1 % kapitálu a podáš nejvýš 5 tipů denně.",
+    journal10: "Napiš poznámku do deníku („Proč tento tip?“) k 10 tipům.",
+    academy: "Splň všech 8 kvízů v Akademii.",
+    greenMonth: "Uzavři měsíc v plusu aspoň s 10 vyhodnocenými tipy.",
+  },
+  momentum: { wins: "🔥 {n}× úspěšný tip v řadě", losses: "{n}× neúspěšný tip v řadě" },
+  discNext: "Další odznak při {n} dnech v řadě (rekord {best})",
+} });
 // Statické texty (data-i18n) i18n.js přeložil hned při načtení — ještě BEZ slovníků dashboardu
 // (načítají se až po něm), takže by místo překladu zůstaly klíče. Po načtení obou slovníků přeložit znovu.
 if (typeof FUNDLY_I18N !== "undefined" && FUNDLY_I18N.refresh) FUNDLY_I18N.refresh();

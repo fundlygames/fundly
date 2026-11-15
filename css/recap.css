@@ -1,0 +1,49 @@
+/* Fundly — měsíční přehled (Výkon → Měsíc, js/recap.js), sdílecí karta (js/share-card.js),
+   série disciplíny a sdílení odznaků v Profilu. */
+
+#recapRoot[hidden] { display: none; }
+.rc-months { margin-bottom: 12px; flex-wrap: wrap; }
+.rc-hero { background: radial-gradient(120% 140% at 0% 0%, rgb(var(--accent-rgb) / .10), transparent 60%), var(--surface-1); }
+.rc-hero-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.rc-kicker { font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+.rc-title { font-size: 1.5rem; font-weight: 800; margin: 4px 0 0; }
+.rc-hero .btn { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; font-size: .875rem; }
+.rc-big { font-size: 1.125rem; font-weight: 800; margin-bottom: 4px; overflow-wrap: anywhere; }
+.rc-tip-net { font-size: 1.25rem; font-weight: 800; margin-top: 6px; }
+.k-row .n.green, .rc-tip-net.green { color: var(--accent); }
+.k-row .n.red { color: var(--red, #ff6b6b); }
+
+/* tlačítko Sdílet v hlavičce Přehledu */
+.share-btn { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; font-size: .8125rem; }
+@media (max-width: 560px) { .share-btn span { display: none; } .share-btn { padding: 0 10px; } }
+
+/* odznaky: odemčené jsou tlačítka (sdílení) */
+button.badge-tile { font: inherit; font-size: .6875rem; font-weight: 600; border: 0; cursor: pointer; transition: transform .15s ease; }
+button.badge-tile.unlocked:hover { transform: translateY(-2px); }
+button.badge-tile:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.disc-streak { margin: 4px 0 14px; display: flex; flex-direction: column; gap: 6px; }
+.disc-streak-row { display: flex; justify-content: space-between; gap: 12px; font-size: .875rem; }
+.disc-streak-row b { color: var(--accent); }
+.disc-streak .t-meta { margin: 0; font-size: .75rem; color: var(--text-muted); }
+
+/* modal sdílecí karty */
+.share-backdrop { align-items: flex-start; overflow-y: auto; }
+.share-modal { max-width: 440px; margin: auto 0; }
+.share-modal-title { font-size: 1.125rem; font-weight: 800; margin: 0 40px 14px 0; }
+.share-preview {
+  border-radius: 14px;
+  overflow: hidden;
+  background: #050607;
+  box-shadow: inset 0 0 0 1px var(--line);
+  aspect-ratio: 1080 / 1920;
+  max-height: 62vh;
+  margin: 0 auto 14px;
+}
+.share-preview img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.share-loading { display: flex; align-items: center; justify-content: center; height: 100%; min-height: 120px; color: var(--text-muted); font-size: .875rem; padding: 16px; text-align: center; }
+.share-actions { display: flex; gap: 8px; }
+.share-actions .btn { flex: 1; height: 42px; }
+.share-actions .btn[hidden] { display: none; }
+.share-hint { margin: 10px 0 0; font-size: .75rem; color: var(--text-muted); }
+.rc-months { display: flex; gap: 6px; }
+.rc-months button { flex: 0 0 auto; padding: 0 16px; }

@@ -103,7 +103,8 @@
     newsFilters: { cs: ["Zdroje", "Filtruj zprávy podle webu, ze kterého pocházejí."], en: ["Sources", "Filter the news by the website they come from."] },
     newsList: { cs: ["Zprávy", "Klikni na titulek — celý článek se otevře na webu zdroje."], en: ["Headlines", "Click a headline — the full article opens on the source website."] },
     acadHead: { cs: ["Akademie", "Projdi si lekce, než začneš — ušetří ti to zbytečné chyby."], en: ["Academy", "Go through the lessons before you start — they'll save you from avoidable mistakes."] },
-    profTabs: { cs: ["Sekce profilu", "Přepínej mezi profilem, odznaky, doporučeními, nastavením a podporou."], en: ["Profile sections", "Switch between profile, badges, referrals, settings and support."] },
+    perfTabs: { cs: ["Přehled, Analýza a Měsíc", "Analýza ukáže, kde vyděláváš a kde ztrácíš. Měsíc je tvůj měsíční přehled — nejlepší sport a tip, srovnání s minulým měsícem a karta ke sdílení na Instagram."], en: ["Overview, Analytics and Month", "Analytics shows where you gain and where you lose. Month is your monthly recap — best sport and tip, comparison with last month and a card to share on Instagram."] },
+    profTabs: { cs: ["Sekce profilu", "Přepínej mezi profilem, odznaky, doporučeními, nastavením a podporou. Odznaky sbíráš za disciplínu, deník i akademii — odemčený odznak můžeš sdílet."], en: ["Profile sections", "Switch between profile, badges, referrals, settings and support. Badges reward discipline, your journal and the Academy — share any badge you unlock."] },
     affCodes: { cs: ["Tvoje kódy", "Kódy, se kterými kamarádi nakupují — a co ti přinesly."], en: ["Your codes", "Codes your friends buy with — and what they earned you."] },
     affRefs: { cs: ["Doporučení hráči", "Kdo si koupil balíček s tvým kódem."], en: ["Referred players", "Who bought a package with your code."] },
   };
@@ -132,7 +133,7 @@
   const SECTIONS = {
     prehled: [{ id: "balance", target: ["#balanceCard"] }, { id: "stats", target: ["#ovStatGrid"] }, { id: "recent", target: ["#recentTicketsPanel"] }, { id: "limits", target: ["#ovLimity", "#ovTabs"] }],
     sazeni: [{ id: "bank", target: [".bank-bar", "#bankBalance"] }, { id: "sports", target: ["#sportTabs"] }, { id: "filters", target: ["#betFiltersPanel"] }, { id: "matches", target: ["#matchList .match", "#matchList"] }, { id: "slip", target: ["#slipPanel", "#mobileSlipBar"] }],
-    vykon: [{ id: "perfStats", target: ["#vykonStatGrid"] }, { id: "perfBreak", target: ["#vykonBreakdown"] }, { id: "perfDaily", target: ["#vykonDailyTable"] }],
+    vykon: [{ id: "perfTabs", target: [".an-tabs"] }, { id: "perfStats", target: ["#vykonStatGrid"] }, { id: "perfBreak", target: ["#vykonBreakdown"] }, { id: "perfDaily", target: ["#vykonDailyTable"] }],
     vyplaty: [{ id: "rwForm", target: ["#wdForm"] }, { id: "rwConds", target: ["#wdConds"] }, { id: "rwHist", target: ["#wdHistory"] }],
     novinky: [{ id: "newsFilters", target: ["#newsFilters"] }, { id: "newsList", target: ["#newsList .news-item", "#newsList"] }],
     akademie: [{ id: "acadHead", target: ["#view-akademie .dash-head"] }],

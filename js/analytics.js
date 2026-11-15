@@ -460,20 +460,24 @@
   // ------------------------------------------------------------------
   // záložky Přehled / Analýza uvnitř #view-vykon
   // ------------------------------------------------------------------
+  // záložka "month" = měsíční přehled (js/recap.js, #recapRoot)
   let active = "overview";
   function setTab(tab) {
-    active = tab === "analytics" ? "analytics" : "overview";
+    active = tab === "analytics" || tab === "month" ? tab : "overview";
     const view = document.getElementById("view-vykon");
     const root = document.getElementById("analyticsRoot");
+    const recap = document.getElementById("recapRoot");
     if (!view || !root) return;
-    view.classList.toggle("an-mode", active === "analytics");
+    view.classList.toggle("an-mode", active !== "overview");
     root.hidden = active !== "analytics";
+    if (recap) recap.hidden = active !== "month";
     view.querySelectorAll("[data-an-tab]").forEach((b) => {
       const on = b.dataset.anTab === active;
       b.classList.toggle("active", on);
       b.setAttribute("aria-selected", String(on));
     });
     if (active === "analytics") render();
+    if (active === "month" && window.FundlyRecap) window.FundlyRecap.render();
   }
 
   document.addEventListener("click", (e) => {
@@ -490,14 +494,15 @@
   });
 
   // odkaz z týdenního e-mailu: dashboard#analytics → rovnou Výkon → Analýza
+  // dashboard#month (měsíční blok v e-mailu) → Výkon → Měsíc
   function deepLink() {
-    if (location.hash !== "#analytics") return;
+    if (location.hash !== "#analytics" && location.hash !== "#month") return;
     if (document.body.classList.contains("limited")) return;
     if (typeof showView === "function") showView("vykon");
-    setTab("analytics");
+    setTab(location.hash === "#month" ? "month" : "analytics");
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(deepLink, 0));
   else setTimeout(deepLink, 0);
 
-  window.FundlyAnalytics = { compute, render, setTab };
+  window.FundlyAnalytics = { compute, render, setTab, insightText };
 })();
