@@ -755,8 +755,12 @@ const Portfolio = (() => {
   // být vždy k dispozici, pak se HT trh vrátí jako push (nikdy neuhádneme).
   // Trhy, které neumíme spolehlivě vyhodnotit, vrací "push" (vklad zpět)
   // místo hádání výsledku.
+  // shodně se supabase/functions/_shared/settle.ts SPORT_MARKETS (skóre zdroje v jiné jednotce než linie trhu)
+  const SPORT_MARKETS = { "mixed-martial-arts": ["ML"], mma: ["ML"], "table-tennis": ["ML", "Spread"], darts: ["ML"], wrestling: ["ML"] };
   function settleSelection(sel, scores) {
     const market = sel.marketName;
+    const allowed = SPORT_MARKETS[sel.sport];
+    if (allowed && !allowed.includes(market)) return "push"; // nejde spravedlivě vyhodnotit → vklad zpět
     const isHt = HT_MARKETS.has(market);
     const period = isHt ? scores.p1 : scores.ft;
     if (!period || typeof period.home !== "number" || typeof period.away !== "number") return "push";
