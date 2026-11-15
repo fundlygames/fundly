@@ -412,6 +412,8 @@
     all: '<path d="M2 9l10-5 10 5-10 5z" fill="currentColor"/><path d="M6 11.2V16c0 1.4 2.7 3 6 3s6-1.6 6-3v-4.8l-6 3z" fill="currentColor" opacity=".75"/><path d="M21 9.5V15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
   };
   function renderHeader() {
+    // odznak "Absolvent akademie" v Profilu (js/dashboard.js) — postup se mohl změnit
+    setTimeout(() => document.dispatchEvent(new CustomEvent("fundly:academy-progress")), 0);
     const b = badgeState(progress);
     const label = document.getElementById("acadProgressLabel");
     if (label) label.textContent = trf("progress", { n: b.n, total: LESSONS.length });
@@ -609,6 +611,7 @@
     renderLive();
   }
 
+  window.FundlyAcademy = { allPassed: () => countPassed(progress) >= LESSONS.length, passed: () => countPassed(progress), total: LESSONS.length };
   translateStatic();
   progress = mergeAll(readLocal(LS_KEY));
   renderAll();

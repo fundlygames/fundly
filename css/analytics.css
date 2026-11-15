@@ -1,7 +1,7 @@
 /* Fundly — Výkon → záložka Analýza (js/analytics.js). Jen HTML/CSS pruhy, žádná knihovna grafů. */
 
 /* záložka Analýza: v sekci Výkon se schová původní obsah (zůstane hlavička + záložky) */
-#view-vykon.an-mode > :not(.dash-head):not(.an-tabs):not(#analyticsRoot) { display: none !important; }
+#view-vykon.an-mode > :not(.dash-head):not(.an-tabs):not(#analyticsRoot):not(#recapRoot) { display: none !important; }
 .an-tabs { margin: 0 0 10px; max-width: 360px; }
 #analyticsRoot[hidden] { display: none; }
 

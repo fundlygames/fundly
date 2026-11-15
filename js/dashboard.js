@@ -508,6 +508,12 @@ const BADGES = [
   ["dashjs.badge.hunter", "b-lovecky", "b-lovecky"],
   ["dashjs.badge.ironHand", "b-zelezna-ruka", "b-zelezna-ruka"],
   ["dashjs.badge.firstPayout", "b-prvni-vyber", "b-prvni-vyber"],
+  // série disciplíny / deník / akademie / měsíc v plusu — výpočty v js/recap.js (RecapCore)
+  ["dashjs.badge.discipline7", "b-disciplina-7", "b-disciplina-7"],
+  ["dashjs.badge.discipline21", "b-disciplina-21", "b-disciplina-21"],
+  ["dashjs.badge.journal10", "b-dennik", "b-dennik"],
+  ["dashjs.badge.academy", "b-akademie", "b-akademie"],
+  ["dashjs.badge.greenMonth", "b-mesic-plus", "b-mesic-plus"],
   // Ambassador vyžaduje systém doporučení hráčů, který zatím neexistuje
   // (affiliate systém dnes slouží jen content creatorům/promo kódům) — zůstává uzamčený.
   ["dashjs.badge.ambassador", "b-ambasador", null],
@@ -539,6 +545,8 @@ function computeBadgeUnlocks(state) {
   const span = dd.trailing ? state.hwm - dd.floor : state.cap - dd.floor;
   const hadCloseCall = span > 0 && (state.equityHistory || []).some((p) => (p.balance - dd.floor) / span <= 0.1);
   const recovered = span > 0 && dd.pct > 50;
+  const rc = window.FundlyRecap && window.FundlyRecap.core;
+  const disc = rc ? rc.disciplineStreak(state.tickets, state.cap) : { current: 0, best: 0 };
   return {
     "b-prvni-vitezstvi": wonCount >= 1,
     "b-5-v-rade": streaks.bestWin >= 5,
@@ -551,6 +559,11 @@ function computeBadgeUnlocks(state) {
     "b-lovecky": hasLongOddsWin,
     "b-zelezna-ruka": hadCloseCall && recovered,
     "b-prvni-vyber": !!state.hasPayout,
+    "b-disciplina-7": disc.best >= 7,
+    "b-disciplina-21": disc.best >= 21,
+    "b-dennik": !!rc && rc.journalCount(state.tickets) >= 10,
+    "b-akademie": !!(window.FundlyAcademy && window.FundlyAcademy.allPassed()),
+    "b-mesic-plus": !!rc && rc.hasGreenMonth(state.tickets, state.cap),
   };
 }
 
@@ -561,13 +574,72 @@ function renderBadges(state) {
   const unlockedCount = BADGES.filter(([, , key]) => key && unlocks[key]).length;
   const countEl = document.getElementById("badgeCount");
   if (countEl) countEl.textContent = `${unlockedCount} / ${BADGES.length}`;
+  // odemčený odznak jde sdílet (js/share-card.js) — tlačítko; zamčený jen dlaždice s nápovědou
   badgeGrid.innerHTML = BADGES.map(([nameKey, img, key]) => {
-    const name = ft(nameKey);
+    const name = esc(ft(nameKey));
+    const hint = esc(ft(nameKey.replace("dashjs.badge.", "dashjs.badgeHint.")));
     const unlocked = key ? !!unlocks[key] : false;
-    return `<div class="badge-tile ${unlocked ? "unlocked" : ""}" title="${name}">
+    const tip = hint && !hint.startsWith("dashjs.") ? `${name} — ${hint}` : name;
+    return unlocked
+      ? `<button type="button" class="badge-tile unlocked" title="${tip}" data-share="badge" data-badge-key="${img}" data-badge-name="${name}">
       <img src="assets/badges/${img}.png" alt="" />${name}
-    </div>`;
+    </button>`
+      : `<button type="button" class="badge-tile" title="${tip}" data-badge-hint="${hint && !hint.startsWith("dashjs.") ? hint : ""}" data-badge-name="${name}">
+      <img src="assets/badges/${img}.png" alt="" />${name}
+    </button>`;
   }).join("");
+  renderDisciplineStreak(state);
+  announceNewBadges(state, unlocks);
+}
+
+// zamčený odznak: ťuknutí ukáže, jak ho získat (title na telefonu nefunguje)
+document.addEventListener("click", (e) => {
+  const tile = e.target.closest && e.target.closest("[data-badge-hint]");
+  if (!tile || !tile.dataset.badgeHint) return;
+  // jen dočasná bublina — showToast() by nápovědu zapsal i do zvonečku notifikací
+  const layer = document.getElementById("toastLayer");
+  if (!layer) return;
+  layer.querySelectorAll(".toast-hint").forEach((x) => x.remove());
+  const el = document.createElement("div");
+  el.className = "toast toast-pend toast-hint";
+  el.innerHTML = `<div class="toast-title">${esc(tile.dataset.badgeName)}</div><div class="toast-detail">${esc(tile.dataset.badgeHint)}</div>`;
+  layer.appendChild(el);
+  requestAnimationFrame(() => el.classList.add("in"));
+  setTimeout(() => { el.classList.remove("in"); setTimeout(() => el.remove(), 300); }, 3800);
+});
+
+// série disciplíny nad mřížkou odznaků (pravidla dne: js/recap.js)
+function renderDisciplineStreak(state) {
+  const el = document.getElementById("discStreak");
+  const rc = window.FundlyRecap && window.FundlyRecap.core;
+  if (!el || !rc || !state) return;
+  const d = rc.disciplineStreak(state.tickets, state.cap);
+  const next = d.best >= 21 ? null : d.best >= 7 ? 21 : 7;
+  const pct = next ? Math.min(100, Math.round((d.current / next) * 100)) : 100;
+  el.innerHTML = `<div class="disc-streak-row">
+      <span>${esc(ft("rc.streakNow"))}</span>
+      <b>${esc(window.FundlyRecap.plural("rc.streakDays", d.current))}</b>
+    </div>
+    <div class="progress"><span style="width:${pct}%"></span></div>
+    <p class="t-meta">${esc(next ? ftf("dashjs.discNext", { n: next, best: d.best }) : ftf("rc.streakBest", { n: d.best }))} · ${esc(ft("rc.discHelp"))}</p>
+    <p class="t-meta">${esc(ft("share.badgeHint"))}</p>`;
+}
+
+// Oznámení nově odemčených odznaků (i mimo vyhodnocení tipů — podání tipu, kvíz v akademii).
+// Pamatuje si už ohlášené odznaky pro účet v localStorage; první načtení na zařízení (nebo
+// placeholder bez accountId) jen uloží stav bez toastů, ať se po obnově ze serveru neohlásí vše.
+function announceNewBadges(state, unlocks) {
+  if (!state || !state.accountId) return;
+  const key = `fundly:badges-seen:${state.accountId}`;
+  let seen = null;
+  try { seen = JSON.parse(localStorage.getItem(key) || "null"); } catch (e) { seen = null; }
+  const now = BADGES.filter(([, , k]) => k && unlocks[k]).map(([, , k]) => k);
+  if (Array.isArray(seen)) {
+    const fresh = BADGES.filter(([, , k]) => k && unlocks[k] && !seen.includes(k));
+    fresh.slice(0, 3).forEach(([nameKey]) => showToast("badge", ft("dashjs.toast.newBadge"), ft(nameKey)));
+  }
+  const merged = [...new Set([...(Array.isArray(seen) ? seen : []), ...now])];
+  try { localStorage.setItem(key, JSON.stringify(merged)); } catch (e) { /* bez localStorage bez oznámení */ }
 }
 
 // ---------- overview: momentum/streak under the header ----------
@@ -598,11 +670,12 @@ function renderMomentum(state) {
 const hadLocalPortfolioBeforeBoot = !!Portfolio.get();
 Portfolio.ensure("advanced");
 renderBadges(Portfolio.get());
+// akademie (js/academy.js) načte postup ze Supabase až po startu → odznak "Absolvent akademie"
+document.addEventListener("fundly:academy-progress", () => renderBadges(Portfolio.get()));
 
 async function refreshAfterSettlement() {
   const beforeState = Portfolio.get();
   const beforeStatus = beforeState ? Object.fromEntries(beforeState.tickets.map((t) => [t.id, t.status])) : {};
-  const beforeUnlocks = beforeState ? computeBadgeUnlocks(beforeState) : {};
 
   await Portfolio.checkSettlements();
 
@@ -613,12 +686,7 @@ async function refreshAfterSettlement() {
         celebrateTicket(t);
       }
     });
-    const afterUnlocks = computeBadgeUnlocks(afterState);
-    BADGES.forEach(([name, , key]) => {
-      if (key && afterUnlocks[key] && !beforeUnlocks[key]) {
-        showToast("badge", ft("dashjs.toast.newBadge"), ft(name));
-      }
-    });
+    // nové odznaky ohlásí renderBadges() → announceNewBadges()
     renderBadges(afterState);
     renderMomentum(afterState);
     // právě teď splnil cíl fáze — betting se pozastaví, dokud to neschválí admin
@@ -2256,6 +2324,7 @@ function renderSlip() {
     // (přesně to hlásili — vsaď, hned se odhlas, tiket zmizel). Okamžitý
     // push tu mezeru zkracuje z několika sekund na jednotky stovek ms.
     if (typeof pushAccountSnapshot === "function") pushAccountSnapshot();
+    renderBadges(Portfolio.get()); // série disciplíny / deník — odznak může přibýt už podáním tipu
     setTimeout(() => {
       slip = [];
       renderMatches();

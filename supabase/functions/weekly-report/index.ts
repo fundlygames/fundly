@@ -12,6 +12,10 @@
 //   {"dry_run":true,"account_id":"…"}     → náhled jednoho účtu vč. HTML e-mailu
 //   {"test_to":"x@y.cz","account_id":"…"} → pošle report účtu na zadanou adresu (bez logu,
 //                                           ignoruje opt-out i "už odesláno"; předmět s [TEST])
+//   + {"monthly":true}                     → vynutí měsíční blok i mimo první týden měsíce (test/náhled)
+// Měsíční přehled: v prvním e-mailu měsíce (pondělí 1.–7. den UTC) navíc blok „Tvůj <měsíc>"
+//   za celý předchozí měsíc (_shared/monthly-recap.ts). Ten týden dostanou e-mail i účty, které
+//   měly vyhodnocené tipy jen v minulém měsíci (ne v posledních 7 dnech).
 // Idempotence: weekly_report_log (account_id, week_start) — week_start = pondělí (UTC) týdne,
 //   do kterého spadá začátek období (teď − 7 dní). Řádek se zapíše před odesláním a při
 //   selhání se smaže → opakovaný běh v tomtéž týdnu už nic znovu nepošle.
@@ -43,6 +47,7 @@ import { weeklyUnsubscribeUrl } from "../_shared/unsubscribe.ts";
 import { type PhaseAccount, provenPhaseProfit, targetProfit } from "../_shared/phase-expiry.ts";
 import { isSettledTip, mondayUtc, type ReportTicket, weeklyStats } from "../_shared/weekly-report-stats.ts";
 import { weeklyReportHtml, weeklyReportSubject } from "../_shared/weekly-report-email.ts";
+import { isMonthlyRun, monthlyRecap, previousMonthRange } from "../_shared/monthly-recap.ts";
 
 const SITE_URL = Deno.env.get("SITE_URL") ?? "https://fundly.games";
 const DAY_MS = 86400000;
@@ -76,6 +81,10 @@ serve(async (req) => {
     const fromIso = new Date(fromMs).toISOString();
     const historyIso = new Date(fromMs - 7 * DAY_MS).toISOString(); // kvůli "vklad po prohraném tipu"
     const weekStart = mondayUtc(fromMs);
+    const monthly = isMonthlyRun(toMs) || body.monthly === true;
+    const monthRange = previousMonthRange(toMs);
+    // měsíční běh potřebuje tipy vyhodnocené od začátku předminulého měsíce (srovnání)
+    const settledFromIso = monthly ? new Date(Math.min(fromMs, monthRange.prevFromMs)).toISOString() : fromIso;
 
     // ---------- účty ----------
     let accQuery = supabase.from("challenge_accounts").select(ACCOUNT_COLS);
@@ -97,7 +106,7 @@ serve(async (req) => {
       for (let from = 0; ; from += 1000) {
         const { data, error } = await supabase.from("tickets").select(TICKET_COLS)
           .in("account_id", ids)
-          .or(`settled_at.gte."${fromIso}",placed_at.gte."${historyIso}"`)
+          .or(`settled_at.gte."${settledFromIso}",placed_at.gte."${historyIso}"`)
           .order("placed_at", { ascending: true })
           .range(from, from + 999);
         if (error) throw error;
@@ -110,7 +119,8 @@ serve(async (req) => {
     }
 
     const inWindow = (t: Row) => isSettledTip(t) && !!t.settled_at && Date.parse(t.settled_at) >= fromMs;
-    const eligible = accounts.filter((a) => testTo || (byAccount.get(a.id) ?? []).some(inWindow));
+    const inMonth = (t: Row) => isSettledTip(t) && !!t.settled_at && Date.parse(t.settled_at) >= monthRange.fromMs && Date.parse(t.settled_at) < monthRange.toMs;
+    const eligible = accounts.filter((a) => testTo || (byAccount.get(a.id) ?? []).some((t) => inWindow(t) || (monthly && inMonth(t))));
 
     // ---------- už odesláno tento týden ----------
     const alreadySent = new Set<string>();
@@ -138,6 +148,7 @@ serve(async (req) => {
       const cap = Number(a.capital) > 0 ? Number(a.capital) : (pkg?.cap ?? 0);
       const tix = byAccount.get(a.id) ?? [];
       const stats = weeklyStats(tix, cap, fromMs, toMs);
+      const recap = monthly ? monthlyRecap(tix, cap, monthRange) : null;
       const phase = a.state === "funded" || Number(a.phase) >= 3 ? 3 : Number(a.phase) || 1;
 
       // postup k cíli fáze: zisk z tipů od začátku fáze (stejně jako account-maintenance)
@@ -157,8 +168,10 @@ serve(async (req) => {
         phase, stats, fromMs, toMs, progress,
         dashboardLink: `${SITE_URL}/dashboard#analytics`,
         unsubscribeLink,
+        monthly: recap,
+        monthLink: `${SITE_URL}/dashboard#month`,
       }, lang);
-      const subject = weeklyReportSubject(stats, lang);
+      const subject = weeklyReportSubject(stats, lang, recap);
 
       const item: Record<string, unknown> = {
         who, account_id: a.id, lang, phase, tips: stats.tips,
@@ -169,6 +182,7 @@ serve(async (req) => {
         worst: stats.worst ? `${stats.worst.dim}:${stats.worst.key}` : null,
         discipline: stats.discipline.note.kind,
         progress, subject,
+        monthly: recap ? { month: recap.key, tips: recap.cur.tips, roi: Math.round(recap.cur.roi * 1000) / 10, best_sport: recap.bestSport?.key ?? null } : null,
       };
       items.push(item);
 
@@ -182,7 +196,7 @@ serve(async (req) => {
         const r = await sendEmail({ to: testTo, subject: `[TEST] ${subject}`, html, headers });
         item.sent = r.sent;
         if (r.error) item.error = r.error;
-        if (!stats.tips) item.warning = "no settled tips in the last 7 days";
+        if (!stats.tips && !recap) item.warning = "no settled tips in the last 7 days";
         if (r.sent) sent++;
         else failed++;
         continue;
@@ -207,6 +221,7 @@ serve(async (req) => {
       ok: true,
       mode: testTo ? "test" : dryRun ? "dry_run" : "live",
       week_start: weekStart,
+      monthly: monthly ? monthRange.key : null,
       period: { from: fromIso, to: new Date(toMs).toISOString() },
       accounts: accounts.length,
       eligible: eligible.length,

@@ -3,6 +3,7 @@
 // v node --experimental-strip-types). Jazyk: "cs" (i pro sk) nebo cokoli jiného = anglicky.
 // Slovník (cs): tip/tipy, odměna, vklad — nikdy "tiket", "výplata", "sázka", "výhra".
 import { BAND_LABELS, type Segment, type WeeklyStats } from "./weekly-report-stats.ts";
+import type { MonthlyRecap } from "./monthly-recap.ts";
 
 const OPERATOR = "Grindit LLC · Sharjah Media City, Sharjah, UAE · Reg. 2541536";
 const isCs = (lang?: string | null) => lang === "cs";
@@ -126,9 +127,88 @@ export interface WeeklyReportParams {
   progress: { profit: number; target: number } | null;
   dashboardLink: string;
   unsubscribeLink: string;
+  /** měsíční přehled (první e-mail v měsíci) — viz _shared/monthly-recap.ts */
+  monthly?: MonthlyRecap | null;
+  /** odkaz na dashboard#month */
+  monthLink?: string;
 }
 
-export function weeklyReportSubject(st: WeeklyStats, lang: string): string {
+const MONTHS_CS = ["leden", "únor", "březen", "duben", "květen", "červen", "červenec", "srpen", "září", "říjen", "listopad", "prosinec"];
+/** "říjen" / "October" z klíče "YYYY-MM" */
+export function monthLabel(key: string, lang: string): string {
+  const [y, m] = key.split("-").map(Number);
+  if (isCs(lang)) return MONTHS_CS[m - 1] ?? key;
+  return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString("en-GB", { month: "long", timeZone: "UTC" });
+}
+
+/** blok „Tvůj měsíc" — tipy, úspěšnost, ROI, výsledek, nejlepší sport a tip, kde ztrácel(a), srovnání */
+function monthlyHtml(r: MonthlyRecap, link: string, lang: string): string {
+  const cs = isCs(lang);
+  const st = r.cur;
+  const green = "#14f195", red = "#ff9d9d", muted = "#a0a0ab";
+  const colorOf = (v: number) => (v > 0 ? green : v < 0 ? red : "#e8e8ec");
+  const name = monthLabel(r.key, lang);
+  const title = cs ? `Tvůj ${name} ve Fundly` : `Your ${name} on Fundly`;
+  const mini = (label: string, value: string, color = "#e8e8ec") => `
+          <td width="25%" style="padding:4px;vertical-align:top;text-align:center">
+            <div style="color:${color};font-size:17px;font-weight:700">${value}</div>
+            <div style="color:#7a7a86;font-size:10px;text-transform:uppercase;letter-spacing:.04em;margin-top:2px">${label}</div>
+          </td>`;
+  const profit = st.profitPctOfCap === null ? "–" : pct(st.profitPctOfCap / 100, lang, true, 1);
+  const lines: string[] = [];
+  if (r.bestSport) {
+    const sp = segPhrase(r.bestSport, lang);
+    lines.push(cs
+      ? `Nejlepší sport: <b style="color:#e8e8ec">${esc(sp)}</b> — ROI ${pct(r.bestSport.roi, lang)} z ${r.bestSport.n} ${tipsWord(r.bestSport.n, lang)}.`
+      : `Best sport: <b style="color:#e8e8ec">${esc(sp)}</b> — ROI ${pct(r.bestSport.roi, lang)} from ${r.bestSport.n} ${tipsWord(r.bestSport.n, lang)}.`);
+  }
+  if (r.bestTip) {
+    const what = r.bestTip.match.startsWith("×") ? (cs ? `kombinace ${r.bestTip.match}` : `combo ${r.bestTip.match}`) : r.bestTip.match;
+    const odds = r.bestTip.odds > 0 ? (cs ? `, kurz ${r.bestTip.odds.toFixed(2).replace(".", ",")}` : `, odds ${r.bestTip.odds.toFixed(2)}`) : "";
+    lines.push(cs
+      ? `Nejlepší tip: <b style="color:#e8e8ec">${esc(what)}</b>${r.bestTip.pick ? ` (${esc(r.bestTip.pick)})` : ""}${odds} — <b style="color:${green}">${money(r.bestTip.net, lang, true)}</b>.`
+      : `Best tip: <b style="color:#e8e8ec">${esc(what)}</b>${r.bestTip.pick ? ` (${esc(r.bestTip.pick)})` : ""}${odds} — <b style="color:${green}">${money(r.bestTip.net, lang, true)}</b>.`);
+  }
+  if (st.worst) lines.push(segSentence(st.worst, "worst", lang));
+  if (r.prev) {
+    const prevName = monthLabel(
+      (() => { const [y, m] = r.key.split("-").map(Number); const d = new Date(Date.UTC(y, m - 2, 1)); return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`; })(),
+      lang,
+    );
+    const pp = (v: number) => {
+      const r1 = Math.round(v * 1000) / 10;
+      const shown = Math.abs(r1).toFixed(1);
+      return `<b style="color:${colorOf(r1)}">${r1 > 0 ? "+" : r1 < 0 ? "−" : ""}${cs ? shown.replace(".", ",") + " p. b." : shown + " pp"}</b>`;
+    };
+    const wr = st.winRate !== null && r.prev.winRate !== null ? st.winRate - r.prev.winRate : null;
+    lines.push(cs
+      ? `Oproti předchozímu měsíci (${prevName}): ROI ${pp(st.roi - r.prev.roi)}${wr !== null ? `, úspěšnost ${pp(wr)}` : ""}.`
+      : `Compared with ${prevName}: ROI ${pp(st.roi - r.prev.roi)}${wr !== null ? `, win rate ${pp(wr)}` : ""}.`);
+  }
+  return `
+      <div style="border:1px solid #14f19540;background:#0f1a15;border-radius:12px;padding:16px;margin:6px 0 14px">
+        <div style="color:${green};font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">${cs ? "Měsíční přehled" : "Monthly recap"}</div>
+        <div style="color:#fff;font-size:17px;font-weight:700;margin-bottom:10px">${esc(title)}</div>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:0 0 10px">
+          <tr>
+            ${mini(cs ? "Tipy" : "Tips", String(st.tips))}
+            ${mini(cs ? "Úspěšnost" : "Win rate", st.winRate === null ? "–" : pct(st.winRate, lang, false))}
+            ${mini("ROI", pct(st.roi, lang), colorOf(st.roi))}
+            ${mini(cs ? "Z kapitálu" : "Of capital", profit, colorOf(st.net))}
+          </tr>
+        </table>
+        ${lines.map((l) => `<p style="color:${muted};font-size:13px;line-height:1.6;margin:0 0 6px">${l}</p>`).join("")}
+        <a href="${esc(link)}" style="display:inline-block;color:${green};font-weight:700;font-size:13px;text-decoration:none;margin-top:6px">${cs ? "Zobrazit a sdílet můj měsíc →" : "View and share my month →"}</a>
+      </div>`;
+}
+
+export function weeklyReportSubject(st: WeeklyStats, lang: string, monthly?: MonthlyRecap | null): string {
+  if (monthly) {
+    const name = monthLabel(monthly.key, lang);
+    return isCs(lang)
+      ? `Tvůj ${name} ve Fundly: ROI ${pct(monthly.cur.roi, lang)}, ${monthly.cur.tips} ${tipsWord(monthly.cur.tips, lang)} + týdenní přehled`
+      : `Your ${name} on Fundly: ROI ${pct(monthly.cur.roi, lang)}, ${monthly.cur.tips} ${tipsWord(monthly.cur.tips, lang)} + weekly report`;
+  }
   return isCs(lang)
     ? `Tvůj týden ve Fundly: ROI ${pct(st.roi, lang)}, ${st.tips} ${tipsWord(st.tips, lang)}`
     : `Your Fundly week: ROI ${pct(st.roi, lang)}, ${st.tips} ${tipsWord(st.tips, lang)}`;
@@ -216,10 +296,13 @@ export function weeklyReportHtml(p: WeeklyReportParams, lang: string = "en"): st
       <div style="color:#14f195;font-weight:700;font-size:18px;margin-bottom:16px">fundly</div>
       <h2 style="color:#fff;font-size:18px;margin:0 0 4px">${t.h}</h2>
       <p style="color:#7a7a86;font-size:12px;margin:0 0 12px">${esc(p.pkgName)} · ${phaseLabel} · ${periodLabel(p.fromMs, p.toMs, lang)}</p>
-      <p style="color:${muted};font-size:14px;line-height:1.6;margin:0 0 16px">${t.intro}</p>
-      ${grid}
+      <p style="color:${muted};font-size:14px;line-height:1.6;margin:0 0 16px">${!st.tips && p.monthly
+        ? (cs ? "Za posledních 7 dní nemáš vyhodnocené tipy — tady je přehled celého minulého měsíce." : "No settled tips in the last 7 days — here is your recap of last month.")
+        : t.intro}</p>
+      ${p.monthly ? monthlyHtml(p.monthly, p.monthLink ?? p.dashboardLink, lang) : ""}
+      ${st.tips ? grid : ""}
       ${progress}
-      ${insights}
+      ${st.tips ? insights : ""}
       <a href="${esc(p.dashboardLink)}" style="display:inline-block;background:#14f195;color:#020204;font-weight:700;text-decoration:none;padding:12px 24px;border-radius:10px;margin-top:10px">${t.btn}</a>
       <hr style="border:none;border-top:1px solid #ffffff1a;margin:24px 0 16px" />
       <p style="color:#5a5a66;font-size:11px;line-height:1.6;margin:0">${OPERATOR}<br />${t.q}<br />${t.why} <a href="${esc(p.unsubscribeLink)}" style="color:#7a7a86">${t.unsub}</a></p>

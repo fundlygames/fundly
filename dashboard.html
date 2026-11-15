@@ -13,13 +13,14 @@
   <meta name="apple-mobile-web-app-title" content="Fundly" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   <link rel="icon" type="image/png" href="assets/logo.png" />
-  <link rel="stylesheet" href="css/style.css?v=20261116d" />
-  <link rel="stylesheet" href="css/dashboard.css?v=20261116d" />
-  <link rel="stylesheet" href="css/certificate.css?v=20261116d" />
-  <link rel="stylesheet" href="css/tools.css?v=20261116d" /><!-- Nástroje + Deník tipů (js/tools.js, js/journal.js) -->
-  <link rel="stylesheet" href="css/academy.css?v=20261116d" />
-  <link rel="stylesheet" href="css/analytics.css?v=20261116d" />
-  <link rel="stylesheet" href="css/odds-watch.css?v=20261116d" />
+  <link rel="stylesheet" href="css/style.css?v=20261116e" />
+  <link rel="stylesheet" href="css/dashboard.css?v=20261116e" />
+  <link rel="stylesheet" href="css/certificate.css?v=20261116e" />
+  <link rel="stylesheet" href="css/tools.css?v=20261116e" /><!-- Nástroje + Deník tipů (js/tools.js, js/journal.js) -->
+  <link rel="stylesheet" href="css/academy.css?v=20261116e" />
+  <link rel="stylesheet" href="css/analytics.css?v=20261116e" />
+  <link rel="stylesheet" href="css/recap.css?v=20261116e" />
+  <link rel="stylesheet" href="css/odds-watch.css?v=20261116e" />
   <!-- Měření (Meta Pixel, Microsoft Clarity, Google Analytics): tady jen fronty volání.
        Skutečné skripty načte js/consent.js AŽ po souhlasu s cookies (zákon č. 127/2005 Sb.). -->
   <script>
@@ -32,10 +33,10 @@
     fbq('track', 'PageView');
     window.clarity = window.clarity || function(){(window.clarity.q = window.clarity.q || []).push(arguments)};
   </script>
-  <script src="js/consent.js?v=20261116d"></script>
+  <script src="js/consent.js?v=20261116e"></script>
   <!-- backend (Supabase/Whop) — defer, page works without it too (demo mode) -->
-  <script defer src="js/config.js?v=20261116d"></script>
-  <script defer src="js/whop.js?v=20261116d"></script>
+  <script defer src="js/config.js?v=20261116e"></script>
+  <script defer src="js/whop.js?v=20261116e"></script>
 </head>
 <body class="with-sidebar">
 
@@ -143,6 +144,10 @@
           <span class="spacer"></span>
           <span class="chip-momentum" id="ovMomentum" hidden></span>
           <span class="chip-phase" id="ovPhaseChip">Phase 1</span>
+          <button type="button" class="btn btn-ghost share-btn" data-share="progress" title="Share" data-i18n-title="share.title">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 9V1.5M4 4.5l3-3 3 3M2.5 8v3.5h9V8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span data-i18n="share.btn">Share</span>
+          </button>
         </div>
 
         <div class="ov-layout">
@@ -167,6 +172,7 @@
             <div class="panel act-panel" id="pendingApprovalPanel" hidden>
               <h3 data-i18n="dash.phase_target_reached">Phase target reached 🎯</h3>
               <p class="t-small" id="pendingApprovalText">You cleared this phase's target. Betting is paused while our team reviews and approves the move to the next phase — you'll get an e-mail as soon as it's confirmed.</p>
+              <button type="button" class="btn btn-primary" data-share="progress" style="margin-top:12px" data-i18n="share.title">Share your result</button>
             </div>
 
             <!-- certifikát po splnění Fáze 2 — JS: js/certificate.js -->
@@ -228,6 +234,7 @@
         <div class="subtabs an-tabs" role="tablist" aria-label="Performance sections" data-i18n-aria-label="an.tabsLabel">
           <button type="button" class="active" data-an-tab="overview" role="tab" aria-selected="true" data-i18n="an.tabOverview">Overview</button>
           <button type="button" data-an-tab="analytics" role="tab" aria-selected="false" data-i18n="an.tabAnalytics">Analytics</button>
+          <button type="button" data-an-tab="month" role="tab" aria-selected="false" data-i18n="rc.tab">Month</button>
         </div>
 
         <div class="stat-grid" style="margin-top:0" id="vykonStatGrid"><!-- JS: renderVykon() --></div>
@@ -270,6 +277,7 @@
         </div>
 
         <div id="analyticsRoot" hidden><!-- JS: js/analytics.js --></div>
+        <div id="recapRoot" hidden><!-- JS: js/recap.js --></div>
       </section>
 
       <!-- ============ BETTING ============ -->
@@ -773,7 +781,8 @@
         <!-- ---- Badges ---- -->
         <div class="profile-sub" data-psec="badges" hidden>
           <div class="panel">
-            <h3><span data-i18n="dash.badges_2">Badges ·</span> <span style="color:var(--text-muted);font-weight:500" id="badgeCount">0 / 12</span></h3>
+            <h3><span data-i18n="dash.badges_2">Badges ·</span> <span style="color:var(--text-muted);font-weight:500" id="badgeCount">0 / 17</span></h3>
+            <div class="disc-streak" id="discStreak"><!-- JS: renderDisciplineStreak() --></div>
             <div class="badges" id="badgeGrid"><!-- JS --></div>
           </div>
         </div>
@@ -934,22 +943,24 @@
 
   <div id="toastLayer" class="toast-layer" aria-live="polite"></div>
 
-  <script src="js/packages.js?v=20261116d"></script>
-  <script src="js/i18n.js?v=20261116d"></script>
-  <script src="js/i18n-dash.js?v=20261116d"></script>
-  <script src="js/i18n-dash-js.js?v=20261116d"></script>
-  <script src="js/portfolio.js?v=20261116d"></script>
-  <script src="js/odds-watch.js?v=20261116d"></script>
-  <script src="js/journal.js?v=20261116d"></script>
-  <script src="js/tools.js?v=20261116d"></script>
-  <script src="js/dashboard.js?v=20261116d"></script>
-  <script src="js/analytics.js?v=20261116d"></script>
-  <script src="js/tour.js?v=20261116d"></script>
-  <script src="js/certificate.js?v=20261116d"></script>
-  <script src="js/academy.js?v=20261116d"></script>
-  <script src="js/promo-banner.js?v=20261116d"></script>
-  <script src="js/track.js?v=20261116d"></script>
-  <script src="js/pwa.js?v=20261116d"></script>
-  <script src="js/telegram-widget.js?v=20261116d"></script>
+  <script src="js/packages.js?v=20261116e"></script>
+  <script src="js/i18n.js?v=20261116e"></script>
+  <script src="js/i18n-dash.js?v=20261116e"></script>
+  <script src="js/i18n-dash-js.js?v=20261116e"></script>
+  <script src="js/portfolio.js?v=20261116e"></script>
+  <script src="js/odds-watch.js?v=20261116e"></script>
+  <script src="js/journal.js?v=20261116e"></script>
+  <script src="js/tools.js?v=20261116e"></script>
+  <script src="js/recap.js?v=20261116e"></script>
+  <script src="js/dashboard.js?v=20261116e"></script>
+  <script src="js/analytics.js?v=20261116e"></script>
+  <script src="js/tour.js?v=20261116e"></script>
+  <script src="js/certificate.js?v=20261116e"></script>
+  <script src="js/share-card.js?v=20261116e"></script>
+  <script src="js/academy.js?v=20261116e"></script>
+  <script src="js/promo-banner.js?v=20261116e"></script>
+  <script src="js/track.js?v=20261116e"></script>
+  <script src="js/pwa.js?v=20261116e"></script>
+  <script src="js/telegram-widget.js?v=20261116e"></script>
 </body>
 </html>
