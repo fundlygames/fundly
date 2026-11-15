@@ -31,6 +31,20 @@ function saneStr(v: unknown, max: number): string | null {
   if (v == null) return null;
   return String(v).slice(0, max);
 }
+// Deník tipů (migrace 041): poznámka max. 280 znaků, štítky jen z whitelistu
+// (stejný seznam je v js/journal.js a v check constraintu migrace 041).
+const NOTE_MAX = 280;
+const NOTE_TAGS = ["form", "injuries", "stats", "oddsvalue", "motivation", "home", "gut", "other"];
+function saneNote(v: unknown): string | null {
+  if (typeof v !== "string") return null;
+  const s = Array.from(v.replace(/\u0000/g, "").trim()).slice(0, NOTE_MAX).join("").trim();
+  return s || null;
+}
+function saneNoteTags(v: unknown): string[] | null {
+  if (!Array.isArray(v)) return null;
+  const tags = NOTE_TAGS.filter((t) => v.includes(t));
+  return tags.length ? tags : null;
+}
 function saneDate(v: unknown): string | null {
   if (!v) return null;
   const d = new Date(String(v));
@@ -102,6 +116,8 @@ serve(async (req) => {
         placed_at: saneDate(t.placedAt) ?? new Date().toISOString(),
         settled_at: saneDate(t.settledAt),
         payout: saneNumber(t.payout),
+        note: saneNote(t.note),
+        note_tags: saneNoteTags(t.noteTags),
       };
     }).filter((r) => r.client_ticket_id && r.selections.length);
 
@@ -111,11 +127,14 @@ serve(async (req) => {
     // (cron) ho mohl vyhodnotit dřív, než klient stihl re-syncnout svou
     // ještě-pending verzi. Existující nepending stav vždy vyhrává.
     const ids = draftRows.map((r) => r.client_ticket_id) as string[];
-    const { data: existingRows } = await supabase
+    const { data: existingRows, error: existingError } = await supabase
       .from("tickets")
-      .select("client_ticket_id, status, payout, settled_at, selections, stake, combined_odds, placed_at, first_start_time, admission_note")
+      .select("client_ticket_id, status, payout, settled_at, selections, stake, combined_odds, placed_at, first_start_time, admission_note, note, note_tags")
       .eq("account_id", account.id)
       .in("client_ticket_id", ids);
+    // Chyba čtení (např. ještě nenasazená migrace 041) NESMÍ znamenat "server tikety nezná" —
+    // jinak by se všechny už uložené tikety znovu kontrolovaly jako nové a mohly se stornovat.
+    if (existingError) throw existingError;
     const existingByTicket = new Map((existingRows ?? []).map((r) => [r.client_ticket_id, r]));
 
     // Klientovo tvrzení "won"/"lost"/"push" pro tiket, co server ještě jako
@@ -188,6 +207,9 @@ serve(async (req) => {
         const frozen = {
           selections: existing.selections, stake: existing.stake, combined_odds: existing.combined_odds,
           placed_at: existing.placed_at, first_start_time: existing.first_start_time, admission_note: existing.admission_note,
+          // Deník tipů: poznámka nic neovlivňuje, klient ji smí doplnit/změnit; když ji
+          // nepošle (starší klient, tiket mimo 50 nejnovějších), zůstane uložená
+          note: r.note ?? existing.note ?? null, note_tags: r.note_tags ?? existing.note_tags ?? null,
         };
         if (existing.status !== "pending") {
           const voided = typeof existing.admission_note === "string" && existing.admission_note.startsWith("voided:");

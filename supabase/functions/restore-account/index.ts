@@ -53,12 +53,17 @@ serve(async (req) => {
     // "teď" — tenhle bug hráči, co si dashboard otevřel až pár dní po
     // nákupu, posouval 30denní okno fáze o ty dny navíc (nahlášeno 21.9.).
 
-    const { data: tickets } = await supabase
+    // note, note_tags = Deník tipů (migrace 041). Kdyby migrace ještě nebyla nasazená,
+    // obnova tiketů nesmí selhat — zkusíme to znovu bez nich.
+    const TICKET_COLS = "client_ticket_id, selections, stake, combined_odds, status, placed_at, settled_at, payout";
+    const loadTickets = (cols: string) => supabase
       .from("tickets")
-      .select("client_ticket_id, selections, stake, combined_odds, status, placed_at, settled_at, payout")
+      .select(cols)
       .eq("account_id", account.id)
       .order("placed_at", { ascending: false })
       .limit(500);
+    let { data: tickets, error: ticketsError } = await loadTickets(`${TICKET_COLS}, note, note_tags`);
+    if (ticketsError) ({ data: tickets } = await loadTickets(TICKET_COLS));
 
     return jsonResponse({ ok: true, account, tickets: tickets ?? [] });
   } catch (err) {

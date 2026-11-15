@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="css/style.css?v=20261115h" />
   <link rel="stylesheet" href="css/dashboard.css?v=20261115h" />
   <link rel="stylesheet" href="css/certificate.css" />
+  <link rel="stylesheet" href="css/tools.css?v=20261115h" /><!-- Nástroje + Deník tipů (js/tools.js, js/journal.js) -->
   <!-- Měření (Meta Pixel, Microsoft Clarity, Google Analytics): tady jen fronty volání.
        Skutečné skripty načte js/consent.js AŽ po souhlasu s cookies (zákon č. 127/2005 Sb.). -->
   <script>
@@ -100,6 +101,10 @@
       <button class="dnav-link" data-view="novinky">
         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><rect x="1.75" y="2.5" width="11.5" height="10" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M4 5.5h7M4 8h7M4 10.5h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
         <span data-i18n="dash.news">News</span>
+      </button>
+      <button class="dnav-link" data-view="nastroje">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><rect x="2.5" y="1.5" width="10" height="12" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M4.75 4h5.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M5 7.25h.01M7.5 7.25h.01M10 7.25h.01M5 10h.01M7.5 10h.01M10 10h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span data-i18n="tools.nav">Tools</span>
       </button>
       <button class="dnav-link" data-view="akademie">
         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 3.5A1.5 1.5 0 013.5 2H13v10H3.5A1.5 1.5 0 002 13.5v-10z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M2 13.5A1.5 1.5 0 013.5 12H13M5.5 5.5h5M5.5 8h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
@@ -492,6 +497,23 @@
         <p class="t-meta" style="margin-top:14px" data-i18n="dash.news_note">Headlines and links come from the public RSS feeds of the listed websites. Fundly is not the author of the articles.</p>
       </section>
 
+      <!-- ============ NÁSTROJE (kalkulačky js/tools.js + deník tipů js/journal.js) ============ -->
+      <section class="dash-view" id="view-nastroje" hidden>
+        <div class="dash-head">
+          <div>
+            <h1 data-i18n="tools.title">Tools</h1>
+            <p data-i18n="tools.sub">Odds calculators and your tip journal. Everything is calculated right in your browser.</p>
+          </div>
+          <button class="btn btn-ghost limited-only" data-view-link="noaccount" type="button" data-i18n="dash.back_to_accounts">← Back to your accounts</button>
+        </div>
+        <div class="subtabs" style="margin-top:0" role="tablist" id="toolsTabs">
+          <button class="active" type="button" role="tab" aria-selected="true" data-tools-tab="calc" data-i18n="tools.tabCalc">Calculators</button>
+          <button type="button" role="tab" aria-selected="false" data-tools-tab="journal" data-i18n="tools.tabJournal">Tip journal</button>
+        </div>
+        <div id="toolsCalc"><!-- JS: FundlyTools.render() --></div>
+        <div id="toolsJournal" hidden><!-- JS: FundlyJournal.render() --></div>
+      </section>
+
       <!-- ============ ACADEMY ============ -->
       <section class="dash-view" id="view-akademie" hidden>
         <div class="dash-head">
@@ -796,6 +818,10 @@
       <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><rect x="1.75" y="2.5" width="11.5" height="10" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M4 5.5h7M4 8h7M4 10.5h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
       <span data-i18n="dash.news">News</span>
     </button>
+    <button data-view="nastroje">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><rect x="2.5" y="1.5" width="10" height="12" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M4.75 4h5.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M5 7.25h.01M7.5 7.25h.01M10 7.25h.01M5 10h.01M7.5 10h.01M10 10h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <span data-i18n="tools.nav">Tools</span>
+    </button>
     <button data-view="akademie">
       <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 3.5A1.5 1.5 0 013.5 2H13v10H3.5A1.5 1.5 0 002 13.5v-10z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M2 13.5A1.5 1.5 0 013.5 12H13M5.5 5.5h5M5.5 8h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
       <span data-i18n="dash.academy">Academy</span>
@@ -813,6 +839,8 @@
   <script src="js/i18n-dash.js?v=20261115h"></script>
   <script src="js/i18n-dash-js.js?v=20261115h"></script>
   <script src="js/portfolio.js?v=20261115h"></script>
+  <script src="js/journal.js?v=20261115h"></script>
+  <script src="js/tools.js?v=20261115h"></script>
   <script src="js/dashboard.js?v=20261115h"></script>
   <script src="js/tour.js?v=20261115l"></script>
   <script src="js/certificate.js"></script>

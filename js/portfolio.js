@@ -317,6 +317,9 @@ const Portfolio = (() => {
         settledAt: t.settled_at,
         payout: t.payout == null ? null : Number(t.payout),
         selections: t.selections || [],
+        // Deník tipů (migrace 041) — starší tikety / server bez sloupců pole nemají
+        ...(t.note ? { note: String(t.note) } : {}),
+        ...(Array.isArray(t.note_tags) && t.note_tags.length ? { noteTags: t.note_tags.map(String) } : {}),
       })),
       // historii equity server nedrží — graf se od obnovy dál doplňuje nanovo,
       // zůstatek/pravidla jsou ale plně přesné.
@@ -656,7 +659,8 @@ const Portfolio = (() => {
     return { ok: true, state, amount, combinedOdds, flags, warning: worstCaseWarning };
   }
 
-  function placeBet(selections, stake, extraFlags) {
+  // journal = volitelný záznam do Deníku tipů { note, tags } (js/journal.js, migrace 041)
+  function placeBet(selections, stake, extraFlags, journal) {
     const evaluated = evaluateBet(selections, stake, extraFlags);
     if (!evaluated.ok) return evaluated;
     const { state, amount, combinedOdds, flags, warning } = evaluated;
@@ -684,6 +688,13 @@ const Portfolio = (() => {
       })),
     };
     if (flags.length) ticket.flags = flags;
+    // Deník tipů: poznámka max. 280 znaků + důvody (whitelist hlídá journal.js i sync-tickets)
+    if (journal) {
+      const note = typeof journal.note === "string" ? Array.from(journal.note.trim()).slice(0, 280).join("").trim() : "";
+      const tags = Array.isArray(journal.tags) ? [...new Set(journal.tags.filter((x) => typeof x === "string"))].slice(0, 8) : [];
+      if (note) ticket.note = note;
+      if (tags.length) ticket.noteTags = tags;
+    }
     state.balance -= amount;
     state.tickets.unshift(ticket);
     state.equityHistory.push({ t: now, balance: state.balance });

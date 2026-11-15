@@ -123,11 +123,12 @@ document.addEventListener("click", (e) => {
 });
 
 // ---------- section switching ----------
-const views = ["prehled", "vykon", "sazeni", "zebricek", "vyplaty", "affiliate", "novinky", "akademie", "profil"];
+// "nastroje" = Nástroje (kalkulačky + deník tipů, js/tools.js + js/journal.js)
+const views = ["prehled", "vykon", "sazeni", "zebricek", "vyplaty", "affiliate", "novinky", "nastroje", "akademie", "profil"];
 
 // "More" sheet na mobilu: sekce, co se nevejdou do spodní lišty
 // (Leaderboard/Affiliate/Academy/Profile) — otevře se přes #dnavMoreBtn.
-const MORE_SHEET_VIEWS = ["zebricek", "affiliate", "novinky", "akademie", "profil"];
+const MORE_SHEET_VIEWS = ["zebricek", "affiliate", "novinky", "nastroje", "akademie", "profil"];
 
 function closeMoreSheet() {
   const sheet = document.getElementById("dnavMoreSheet");
@@ -166,6 +167,7 @@ function showView(name) {
   if (name === "affiliate" && typeof loadAffiliateStats === "function") loadAffiliateStats();
   if (name === "zebricek" && typeof loadLeaderboard === "function") loadLeaderboard();
   if (name === "novinky") loadNews();
+  if (name === "nastroje" && window.FundlyTools) window.FundlyTools.onShow(); // js/tools.js
 }
 
 // ---------- Novinky: sportovní zprávy (edge funkce sports-news, cache 15 min) ----------
@@ -722,7 +724,7 @@ async function pushAccountSnapshot() {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({
-          tickets: state.tickets.slice(0, 200).map((t) => ({
+          tickets: state.tickets.slice(0, 200).map((t, i) => ({
             id: t.id,
             selections: t.selections,
             stake: t.stake,
@@ -731,6 +733,10 @@ async function pushAccountSnapshot() {
             placedAt: t.placedAt,
             settledAt: t.settledAt,
             payout: t.payout,
+            // Deník tipů (migrace 041): poznámku posíláme jen u 50 nejnovějších tiketů
+            // (keepalive tělo má limit 64 kB); starší už server má a bez pole je nepřepíše.
+            ...(i < 50 && t.note ? { note: t.note } : {}),
+            ...(i < 50 && Array.isArray(t.noteTags) && t.noteTags.length ? { noteTags: t.noteTags } : {}),
           })),
         }),
         keepalive: true,
@@ -2093,6 +2099,7 @@ function renderSlip() {
       <input class="input" id="stakeInput" type="number" min="5" max="${maxStake}" value="${Math.min(80, maxStake)}" />
     </div>
     <div class="slip-total"><span>${ft("dashjs.common.potentialWin")}</span><b class="green" id="potWin"></b></div>
+    ${window.FundlyJournal ? window.FundlyJournal.slipFieldsHtml() : "" /* Deník tipů: "Proč tento tip?" — text drží js/journal.js, překreslení ho nesmaže */}
     <button class="btn btn-primary" style="width:100%" id="placeBet">${ft("dashjs.slip.placeBet")}</button>
     <p class="auth-note mt" id="betNote" hidden></p>`;
 
@@ -2161,7 +2168,9 @@ function renderSlip() {
       const valueBets = await fetchValueBets();
       if (slip.some((s) => isValueBetSelection(valueBets, s))) flags = ["value"];
     } catch (e) { /* value-bets endpoint unavailable → skip silently */ }
-    const result = Portfolio.placeBet(slip, Number(stakeInput.value), flags);
+    // Deník tipů (js/journal.js): volitelná poznámka + důvody se uloží s tiketem
+    const journalEntry = window.FundlyJournal ? window.FundlyJournal.draft() : null;
+    const result = Portfolio.placeBet(slip, Number(stakeInput.value), flags, journalEntry);
     if (!result.ok) {
       btn.disabled = false;
       note.textContent = result.error;
@@ -2175,6 +2184,7 @@ function renderSlip() {
     note.className = result.warning ? "auth-note mt warn" : "auth-note mt";
     note.hidden = false;
     btn.disabled = true;
+    if (window.FundlyJournal) window.FundlyJournal.clearDraft(); // Deník tipů: poznámka patří k právě podanému tipu
     // Ne scheduleAccountSync() (2-7s debounce): sázka je přesně ten
     // okamžik, kdy je nejvyšší šance, že hráč hned zavře kartu/odhlásí se
     // (přesně to hlásili — vsaď, hned se odhlas, tiket zmizel). Okamžitý
