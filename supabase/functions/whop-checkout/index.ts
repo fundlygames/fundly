@@ -131,8 +131,9 @@ serve(async (req) => {
       }
     }
 
-    // Company kontext nese samotný API klíč — company_id se do body NEPOSÍLÁ
-    // (Whop by odpověděl "Cannot provide company_id for this configuration").
+    // Company kontext nese samotný API klíč — company_id se na nejvyšší úroveň body NEPOSÍLÁ
+    // (Whop by odpověděl "Cannot provide company_id for this configuration"); inline plán
+    // (reset, sleva z doporučení) ho ale v body.plan mít musí ("Missing plan.company_id").
     if (!Deno.env.get("WHOP_COMPANY_ID")) throw new Error("WHOP_COMPANY_ID is not set");
 
     // Přednostně existující plan z Whop dashboardu (env WHOP_PLAN_<KEY>),
@@ -178,11 +179,14 @@ serve(async (req) => {
       body.plan_id = planId;
     } else {
       body.plan = {
+        // inline plán company_id vyžaduje (na nejvyšší úrovni body ho Whop naopak odmítá)
+        company_id: Deno.env.get("WHOP_COMPANY_ID"),
         currency: pkg.currency,
         initial_price: finalPrice,
         plan_type: "one_time",
-        title: (pkg.key === "activation" ? "Fundly Activation Fee" : resetAccountId ? `Fundly ${pkg.name} Reset` : `Fundly ${pkg.name}`)
-          + (discount ? ` (-${discount.pct}% ${discount.kind === "voucher" ? "referral voucher" : "friend discount"})` : ""),
+        // Whop: title max. 30 znaků (druh slevy je v metadatech referral_kind)
+        title: ((pkg.key === "activation" ? "Fundly Activation Fee" : resetAccountId ? `Fundly ${pkg.name} Reset` : `Fundly ${pkg.name}`)
+          + (discount ? ` -${discount.pct}%` : "")).slice(0, 30),
         product: {
           external_identifier: pkg.key === "activation" ? "fundly-activation" : "fundly-challenge",
           title: pkg.key === "activation" ? "Fundly Activation Fee" : "Fundly Challenge",
