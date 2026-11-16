@@ -55,6 +55,8 @@
       "padding:12px 14px;border-radius:16px;background:#0b0b10;border:1px solid rgba(20,241,149,.35);box-shadow:0 10px 30px rgba(0,0,0,.55);" +
       "font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;color:#e8e8ee;max-width:520px;margin:0 auto}" +
       ".fpwa.fpwa-lift{bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}" +
+      // plovoucí lišta tiketu (.mobile-slip-bar) je nad spodním menu — banner nad ni, ať ji nezakrývá
+      "body:has(.mobile-slip-bar:not([hidden])) .fpwa.fpwa-lift{bottom:calc(env(safe-area-inset-bottom,0px) + 132px)}" +
       ".fpwa img{width:44px;height:44px;border-radius:11px;flex:none}" +
       ".fpwa .fpwa-t{flex:1;min-width:0;font-size:13px;line-height:1.4;color:#a9a9b8}" +
       ".fpwa .fpwa-t b{color:#fff}" +
