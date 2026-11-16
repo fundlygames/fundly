@@ -1,11 +1,15 @@
 // whop-checkout — vytvoří Whop checkout configuration a vrátí hosted checkout URL.
-// POST { packageKey, email } → { checkoutUrl }
+// POST { packageKey, email, reset?, referralCode?, tracking? }
+//   → { checkoutUrl, sessionId, planId, discount, referralStatus }
+// discount = sleva z programu „Pozvi kamaráda" (_shared/referral.ts), kterou server sám
+// ověřil a promítl do ceny: { kind: "voucher" | "referral", pct, listPrice, price } nebo null.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders, handleCors, jsonResponse } from "../_shared/cors.ts";
 import { packageByKey, whopPlanId, resetPrice } from "../_shared/packages.ts";
 import { whopFetch } from "../_shared/whop.ts";
 import { launchCapacity, soldCount, isInvited } from "../_shared/capacity.ts";
+import { resolveCheckoutDiscount, discountedPrice, type CheckoutDiscount, type ReferralStatus } from "../_shared/referral.ts";
 
 const SITE_URL = Deno.env.get("SITE_URL") ?? "https://fundly.games";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -29,7 +33,7 @@ serve(async (req) => {
   }
 
   try {
-    const { packageKey, email, reset, tracking } = await req.json();
+    const { packageKey, email, reset, tracking, referralCode } = await req.json();
 
     const pkg = packageByKey(String(packageKey ?? ""));
     if (!pkg) return jsonResponse({ error: "Neznámý balíček." }, 400);
@@ -38,6 +42,15 @@ serve(async (req) => {
     }
 
     let resetAccountId: string | null = null;
+    let discount: CheckoutDiscount | null = null;
+    let referralStatus: ReferralStatus = null;
+
+    // klientovo IP protéká metadaty až do webhooku (Whop server-to-server
+    // volání nese jen IP Whopu, ne zákazníka) — používá ho risk-scoring
+    // pro SHARED_DEVICE_IP mezi účty.
+    const checkoutIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+      ?? req.headers.get("cf-connecting-ip")
+      ?? null;
 
     // Aktivační poplatek (funded účet) je doplatek existujícího účtu, ne
     // nový nákup, proto se obě kontroly níž přeskakují jen pro něj.
@@ -99,6 +112,23 @@ serve(async (req) => {
           return jsonResponse({ error: "Launch spots are full.", code: "SOLD_OUT" }, 409);
         }
       }
+
+      // „Pozvi kamaráda": voucher doporučitele nebo sleva pozvaného kamaráda — vše ověřuje
+      // server (kód, sebe sama, nový zákazník, jednou na e-mail, nevyužitý voucher). Chyba
+      // tady nesmí shodit prodej: nákup pak proběhne bez slevy.
+      try {
+        const r = await resolveCheckoutDiscount(supabase, {
+          email: String(email),
+          packageKey: pkg.key,
+          referralCode,
+          isReset: !!resetAccountId,
+          ip: checkoutIp,
+        });
+        discount = r.discount;
+        referralStatus = r.referralStatus;
+      } catch (e) {
+        console.error("whop-checkout: sleva z doporučení se nepodařila ověřit, pokračuji bez ní:", e);
+      }
     }
 
     // Company kontext nese samotný API klíč — company_id se do body NEPOSÍLÁ
@@ -108,12 +138,6 @@ serve(async (req) => {
     // Přednostně existující plan z Whop dashboardu (env WHOP_PLAN_<KEY>),
     // jinak inline plan s cenou ze serverové mapy balíčků. Balíčky jsou
     // jednorázové (one-time fee), activation taktéž.
-    // klientovo IP protéká metadaty až do webhooku (Whop server-to-server
-    // volání nese jen IP Whopu, ne zákazníka) — používá ho risk-scoring
-    // pro SHARED_DEVICE_IP mezi účty.
-    const checkoutIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
-      ?? req.headers.get("cf-connecting-ip")
-      ?? null;
 
     // Meta atribuce z prohlížeče (fbp/fbc/UA/URL + ID nákupu pro deduplikaci) protéká
     // metadaty do whop-webhook, který z toho skládá server-side Purchase (CAPI).
@@ -131,8 +155,11 @@ serve(async (req) => {
       for (const k of ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "landing"]) put(k, clip(at[k], 100));
     }
 
-    // reset má vlastní (nižší) cenu, proto nikdy nepoužije pevný Whop plán balíčku
-    const planId = resetAccountId ? null : whopPlanId(pkg.key);
+    // reset i sleva z doporučení mají vlastní (nižší) cenu, proto nikdy nepoužijí pevný
+    // Whop plán balíčku — cenu po slevě nese inline plán, klient ji nemůže změnit
+    const basePrice = resetAccountId ? resetPrice(pkg) : pkg.price;
+    const finalPrice = discount ? discountedPrice(basePrice, discount.pct) : basePrice;
+    const planId = resetAccountId || discount ? null : whopPlanId(pkg.key);
     const body: Record<string, unknown> = {
       // po zaplacení Whop přesměruje zpět na dashboard
       redirect_url: `${SITE_URL}/dashboard.html?paid=1`,
@@ -141,6 +168,9 @@ serve(async (req) => {
         email: String(email).trim(),
         ...(resetAccountId ? { reset_account_id: resetAccountId } : {}),
         ...(checkoutIp ? { checkout_ip: checkoutIp } : {}),
+        ...(discount ? { referral_kind: discount.kind, referral_discount_pct: String(discount.pct) } : {}),
+        ...(discount?.voucherId ? { referral_voucher_id: discount.voucherId } : {}),
+        ...(discount?.attributionId ? { referral_attribution_id: discount.attributionId } : {}),
         ...trackingMeta,
       },
     };
@@ -149,9 +179,10 @@ serve(async (req) => {
     } else {
       body.plan = {
         currency: pkg.currency,
-        initial_price: resetAccountId ? resetPrice(pkg) : pkg.price,
+        initial_price: finalPrice,
         plan_type: "one_time",
-        title: pkg.key === "activation" ? "Fundly Activation Fee" : resetAccountId ? `Fundly ${pkg.name} Reset` : `Fundly ${pkg.name}`,
+        title: (pkg.key === "activation" ? "Fundly Activation Fee" : resetAccountId ? `Fundly ${pkg.name} Reset` : `Fundly ${pkg.name}`)
+          + (discount ? ` (-${discount.pct}% ${discount.kind === "voucher" ? "referral voucher" : "friend discount"})` : ""),
         product: {
           external_identifier: pkg.key === "activation" ? "fundly-activation" : "fundly-challenge",
           title: pkg.key === "activation" ? "Fundly Activation Fee" : "Fundly Challenge",
@@ -191,6 +222,8 @@ serve(async (req) => {
       checkoutUrl,
       sessionId: checkout.id ?? null,
       planId: planId ?? checkout.plan?.id ?? null,
+      discount: discount ? { kind: discount.kind, pct: discount.pct, listPrice: basePrice, price: finalPrice } : null,
+      referralStatus,
     });
   } catch (err) {
     console.error("whop-checkout error:", err);

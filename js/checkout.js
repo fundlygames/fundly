@@ -18,6 +18,9 @@
     email: "",
     checkoutUrl: null,
     paymentRunning: false,
+    // „Pozvi kamaráda": odpověď whop-checkout pro aktuální balíček + e-mail
+    // { pkg, discount: { kind, pct, listPrice, price } | null, status }
+    ref: null,
   };
 
   // Package preset from URL (?package=elite), fallback to Advanced.
@@ -168,16 +171,43 @@
       </div>`;
   }
 
+  // ---------- „Pozvi kamaráda": sleva ověřená serverem (whop-checkout) ----------
+  // Jen zobrazení — skutečnou cenu nese Whop plán, který s ní založil server (js/referral.js má texty).
+  function refState() {
+    return state.ref && state.ref.pkg === state.pkg ? state.ref : null;
+  }
+  function refDiscount() {
+    const r = refState();
+    return r && r.discount ? r.discount : null;
+  }
+  function shownPriceOf(p) {
+    const d = refDiscount();
+    const base = d ? d.price : p.price;
+    return promoActive() ? promoPrice(base) : base;
+  }
+  function wasHtmlOf(p) {
+    return promoActive() || refDiscount() ? `<span class="was">${usd(p.price)}</span> ` : "";
+  }
+  function refTagHtml() {
+    const R = window.FundlyReferral;
+    if (!R) return "";
+    const r = refState();
+    // server už odpověděl → jen jeho verdikt; jinak (před zadáním e-mailu) "sleva při platbě", je-li uložený kód
+    const tag = r ? R.checkoutTag(r.discount, r.status || "none") : R.checkoutTag(null, null);
+    return tag ? `<span class="price-promo-tag"${tag.muted ? ' style="opacity:.7"' : ""}>${tag.text}</span>` : "";
+  }
+
   // ---------- condensed checkout action row (selected package, right above Continue) ----------
   function renderCheckoutRow() {
     const p = pkg();
-    const shownPrice = promoActive() ? promoPrice(p.price) : p.price;
-    const wasHtml = promoActive() ? `<span class="was">${usd(p.price)}</span> ` : "";
+    const shownPrice = shownPriceOf(p);
+    const wasHtml = wasHtmlOf(p);
     $("coCheckoutRow").innerHTML = `
       <div class="co-checkout-pkg">
         <span class="nm">${p.name}</span>
         <span class="cap">${usd(p.cap)} ${t("packages.simCapital")}</span>
         ${promoActive() ? `<span class="price-promo-tag">${t("packages.promoTag").replace("{pct}", PROMO.percent).replace("{code}", PROMO.code)}</span>` : ""}
+        ${refTagHtml()}
       </div>
       <div class="co-checkout-price">
         <span class="v">${wasHtml}${usd(shownPrice)}</span>
@@ -192,14 +222,15 @@
     const p = pkg();
     const m = meta();
     const check = `<svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-    const shownPrice = promoActive() ? promoPrice(p.price) : p.price;
-    const wasHtml = promoActive() ? `<span class="was">${usd(p.price)}</span> ` : "";
+    const shownPrice = shownPriceOf(p);
+    const wasHtml = wasHtmlOf(p);
     $("summaryPanel").innerHTML = `
       <div class="sum-hero">
         <div class="sum-hero-lbl">${t("co.totalDueToday")}</div>
         <div class="sum-hero-price">${wasHtml}${usd(shownPrice)}</div>
         <div class="sum-hero-note">${p.name} · ${usd(p.cap)} ${t("packages.simCapital")}</div>
         ${promoActive() ? `<span class="price-promo-tag">${t("packages.promoTag").replace("{pct}", PROMO.percent).replace("{code}", PROMO.code)}</span>` : ""}
+        ${refTagHtml()}
       </div>
       <div class="sum-split">
         <div class="sum-split-bar"><div class="sum-split-fill" style="width:${m.profitSplit}%"></div></div>
@@ -458,6 +489,7 @@
     pay.key = null;
     pay.session = null;
     pay.ready = false;
+    state.ref = null;
     whopMount.innerHTML = "";
     whopMount.classList.remove("is-loading");
     payLoading.hidden = false;
@@ -593,6 +625,10 @@
       .then((data) => {
         if (pay.key !== key) return data; // superseded while the request was in flight
         state.checkoutUrl = data.checkoutUrl;
+        // server-verified referral discount (or why a friend's link didn't apply) → show it
+        state.ref = { pkg: pkgKey, discount: data.discount || null, status: data.referralStatus || null };
+        renderCheckoutRow();
+        renderSummary();
         if (!data.sessionId || !data.planId) throw new Error(t("co.errInvalidGatewayResponse"));
         mountWhopEmbed(data.sessionId, data.planId, email);
         return data;

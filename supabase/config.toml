@@ -116,3 +116,6 @@ verify_jwt = false
 
 [functions.push-dispatch]
 verify_jwt = false
+
+[functions.referral-get]
+verify_jwt = false

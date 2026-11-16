@@ -76,6 +76,24 @@ const ATTRIBUTION_TTL_MS = 30 * 86400000;
 function getAttribution() {
   try { return JSON.parse(localStorage.getItem(ATTRIBUTION_KEY) || "null"); } catch (e) { return null; }
 }
+// „Pozvi kamaráda": kód z odkazu doporučitele (?ref=KÓD) se pamatuje 30 dní (poslední odkaz
+// vyhrává) a posílá se do whop-checkout, který ho ověří a případně dá 10 % slevu
+// (supabase/functions/_shared/referral.ts). Klient slevu nikdy nepočítá sám.
+const REFERRAL_KEY = "fundly:ref";
+(function captureReferral() {
+  try {
+    const ref = new URLSearchParams(window.location.search).get("ref");
+    const code = ref ? ref.trim().toUpperCase() : "";
+    if (/^[A-Z0-9]{4,16}$/.test(code)) localStorage.setItem(REFERRAL_KEY, JSON.stringify({ code, at: Date.now() }));
+  } catch (e) { /* localStorage nedostupné — sleva z doporučení se jen neuplatní */ }
+})();
+function getReferralCode() {
+  try {
+    const r = JSON.parse(localStorage.getItem(REFERRAL_KEY) || "null");
+    if (!r || !r.code || Date.now() - (r.at || 0) > ATTRIBUTION_TTL_MS) return null;
+    return String(r.code);
+  } catch (e) { return null; }
+}
 function readCookie(name) {
   const m = document.cookie.match(new RegExp("(?:^|; )" + name + "=([^;]*)"));
   return m ? decodeURIComponent(m[1]) : null;
@@ -105,14 +123,19 @@ function trackingContext() {
 
 const FundlyCheckout = {
   // Creates a Whop checkout session via the edge function and returns the whole
-  // response ({ checkoutUrl, sessionId, planId }) without redirecting — for embedded checkout.
+  // response ({ checkoutUrl, sessionId, planId, discount, referralStatus }) without
+  // redirecting — for embedded checkout. discount = server-verified referral discount or null.
   async createSession(packageKey, email, opts) {
     let res;
     try {
       res = await fetch(`${FUNDLY_SUPABASE_URL}/functions/v1/whop-checkout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ packageKey, email, tracking: trackingContext(), ...(opts && opts.reset ? { reset: true } : {}) }),
+        body: JSON.stringify({
+          packageKey, email, tracking: trackingContext(),
+          ...(opts && opts.reset ? { reset: true } : {}),
+          ...(getReferralCode() ? { referralCode: getReferralCode() } : {}),
+        }),
       });
     } catch (networkErr) {
       // raw fetch() failure (offline, flaky mobile connection, tab was
