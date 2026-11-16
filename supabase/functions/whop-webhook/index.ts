@@ -9,6 +9,7 @@ import { markRedeemed } from "../_shared/capacity.ts";
 import { sendEmail, purchaseConfirmedHtml, subjects } from "../_shared/email.ts";
 import { userLang } from "../_shared/user-lang.ts";
 import { secureUserForPurchase } from "../_shared/mailbox.ts";
+import { applyPaidReferral, revokeReferralForPayment } from "../_shared/referral.ts";
 
 const SITE_URL = Deno.env.get("SITE_URL") ?? "https://fundly.games";
 
@@ -233,6 +234,17 @@ serve(async (req) => {
           break;
         }
 
+        // „Pozvi kamaráda": spotřebovat použitý voucher / zaplatit doporučení a vystavit
+        // doporučiteli voucher (idempotentní, viz _shared/referral.ts). Best-effort — chyba
+        // nesmí zablokovat založení zaplaceného účtu níž.
+        if (metadata.referral_voucher_id || metadata.referral_attribution_id) {
+          try {
+            await applyPaidReferral(supabase, { paymentId: String(data.id), email: String(email), metadata });
+          } catch (e) {
+            console.error("referral zpracování selhalo:", data.id, e);
+          }
+        }
+
         // Meta Conversions API — autoritativní Purchase event (server-side, nejde
         // obejít ad-blockerem). Best-effort, na chybu se platba nečeká.
         // Stejné ID nákupu, které poslal prohlížeč (fbq Purchase po návratu z platby),
@@ -392,6 +404,22 @@ serve(async (req) => {
 
       case "payment.failed": {
         await insertPayment(supabase, data, "failed");
+        break;
+      }
+
+      // Refundace platby pozvaného kamaráda → doporučení se zruší a nevyužitý voucher
+      // doporučitele stáhne. Tvar payloadu se mezi verzemi Whop API liší, id platby čteme
+      // defenzivně (refund objekt nese payment, payment.refunded je platba sama).
+      case "refund.created":
+      case "payment.refunded": {
+        const paymentId = data.payment?.id ?? data.payment_id ?? (event.type === "payment.refunded" ? data.id : null);
+        if (paymentId) {
+          try {
+            await revokeReferralForPayment(supabase, String(paymentId));
+          } catch (e) {
+            console.error("referral revoke selhal:", paymentId, e);
+          }
+        }
         break;
       }
 

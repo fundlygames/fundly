@@ -13,14 +13,14 @@
   <meta name="apple-mobile-web-app-title" content="Fundly" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   <link rel="icon" type="image/png" href="assets/logo.png" />
-  <link rel="stylesheet" href="css/style.css?v=20261116k" />
-  <link rel="stylesheet" href="css/dashboard.css?v=20261116k" />
-  <link rel="stylesheet" href="css/certificate.css?v=20261116k" />
-  <link rel="stylesheet" href="css/tools.css?v=20261116k" /><!-- Nástroje + Deník tipů (js/tools.js, js/journal.js) -->
-  <link rel="stylesheet" href="css/academy.css?v=20261116k" />
-  <link rel="stylesheet" href="css/analytics.css?v=20261116k" />
-  <link rel="stylesheet" href="css/recap.css?v=20261116k" />
-  <link rel="stylesheet" href="css/odds-watch.css?v=20261116k" />
+  <link rel="stylesheet" href="css/style.css?v=20261116l" />
+  <link rel="stylesheet" href="css/dashboard.css?v=20261116l" />
+  <link rel="stylesheet" href="css/certificate.css?v=20261116l" />
+  <link rel="stylesheet" href="css/tools.css?v=20261116l" /><!-- Nástroje + Deník tipů (js/tools.js, js/journal.js) -->
+  <link rel="stylesheet" href="css/academy.css?v=20261116l" />
+  <link rel="stylesheet" href="css/analytics.css?v=20261116l" />
+  <link rel="stylesheet" href="css/recap.css?v=20261116l" />
+  <link rel="stylesheet" href="css/odds-watch.css?v=20261116l" />
   <!-- Měření (Meta Pixel, Microsoft Clarity, Google Analytics): tady jen fronty volání.
        Skutečné skripty načte js/consent.js AŽ po souhlasu s cookies (zákon č. 127/2005 Sb.). -->
   <script>
@@ -33,10 +33,10 @@
     fbq('track', 'PageView');
     window.clarity = window.clarity || function(){(window.clarity.q = window.clarity.q || []).push(arguments)};
   </script>
-  <script src="js/consent.js?v=20261116k"></script>
+  <script src="js/consent.js?v=20261116l"></script>
   <!-- backend (Supabase/Whop) — defer, page works without it too (demo mode) -->
-  <script defer src="js/config.js?v=20261116k"></script>
-  <script defer src="js/whop.js?v=20261116k"></script>
+  <script defer src="js/config.js?v=20261116l"></script>
+  <script defer src="js/whop.js?v=20261116l"></script>
 </head>
 <body class="with-sidebar">
 
@@ -179,6 +179,9 @@
 
             <!-- certifikát po splnění Fáze 2 — JS: js/certificate.js -->
             <div class="panel act-panel cert-promo" id="certPromo" hidden></div>
+
+            <!-- nový hráč bez tipů: průvodce prvním tipem — js renderFirstTip() -->
+            <div class="panel first-tip-card" id="firstTipCard" hidden></div>
 
             <div class="balance-card" id="balanceCard"><!-- JS: renderPrehled() (incl. equity chart) --></div>
 
@@ -358,6 +361,9 @@
 
         <p class="match-count" id="matchCountRow"><span data-i18n="dash.matches">Matches:</span> <b id="matchCount">–</b></p>
 
+        <!-- průvodce prvním tipem: nápověda k dalšímu kroku (jen dokud hráč nepodal první tip) -->
+        <div class="first-tip-hint" id="firstTipHint" hidden></div>
+
         <div class="bet-layout">
           <div class="panel" style="padding:6px 4px">
             <div id="matchList"><!-- JS --></div>
@@ -365,6 +371,7 @@
           <aside class="panel slip" id="slipPanel">
             <h3 data-i18n="dash.ticket">Ticket</h3>
             <div id="slipBody"><!-- JS --></div>
+            <div id="pushAsk" hidden><!-- JS: js/push.js FundlyPush.afterTip() --></div>
           </aside>
         </div>
       </section>
@@ -800,16 +807,8 @@
         <!-- ---- Leaderboard & referrals ---- -->
         <div class="profile-sub" data-psec="leaderboard" hidden>
           <div class="two-col">
-            <div class="panel">
-              <h3 data-i18n="dash.invite_your_friends">Invite your friends</h3>
-              <p class="t-small" data-i18n="dash.for_every_friend_who_buys_a_package_you">For every friend who buys a package, you get 5 % cashback to your challenge balance.</p>
-              <div class="ref-stats">
-                <div><div class="num">0</div><div class="lbl" data-i18n="dash.invited">Invited</div></div>
-                <div><div class="num green">0</div><div class="lbl" data-i18n="dash.active">Active</div></div>
-                <div><div class="num green">$0</div><div class="lbl" data-i18n="dash.bonus">Bonus</div></div>
-              </div>
-              <p class="t-meta" style="margin-top:10px"><span data-i18n="dash.live_stats_are_in_the">Live stats are in the</span> <a href="#" data-view-link="affiliate" style="color:var(--accent);font-weight:600" data-i18n="dash.affiliate_tab">Affiliate tab</a>.</p>
-            </div>
+            <!-- program „Pozvi kamaráda" — JS: js/referral.js (edge funkce referral-get) -->
+            <div class="panel" id="refPanel" style="grid-column:1/-1"></div>
             <!-- Leaderboard opt-in temporarily hidden (see dnav-link
                  data-view="zebricek" above for the full explanation) — the
                  rest of this tab (referral stats) stays visible. -->
@@ -839,6 +838,7 @@
         <!-- ---- Settings ---- -->
         <div class="profile-sub" data-psec="settings" hidden>
           <div id="settingsSlot"><!-- JS: renderSettingsPanel("s") --></div>
+          <div id="pushSettingsSlot"><!-- JS: js/push.js --></div>
         </div>
 
         <!-- ---- Support ---- -->
@@ -968,24 +968,26 @@
 
   <div id="toastLayer" class="toast-layer" aria-live="polite"></div>
 
-  <script src="js/packages.js?v=20261116k"></script>
-  <script src="js/i18n.js?v=20261116k"></script>
-  <script src="js/i18n-dash.js?v=20261116k"></script>
-  <script src="js/i18n-dash-js.js?v=20261116k"></script>
-  <script src="js/portfolio.js?v=20261116k"></script>
-  <script src="js/odds-watch.js?v=20261116k"></script>
-  <script src="js/journal.js?v=20261116k"></script>
-  <script src="js/tools.js?v=20261116k"></script>
-  <script src="js/recap.js?v=20261116k"></script>
-  <script src="js/dashboard.js?v=20261116k"></script>
-  <script src="js/analytics.js?v=20261116k"></script>
-  <script src="js/tour.js?v=20261116k"></script>
-  <script src="js/certificate.js?v=20261116k"></script>
-  <script src="js/share-card.js?v=20261116k"></script>
-  <script src="js/academy.js?v=20261116k"></script>
-  <script src="js/promo-banner.js?v=20261116k"></script>
-  <script src="js/track.js?v=20261116k"></script>
-  <script src="js/pwa.js?v=20261116k"></script>
-  <script src="js/telegram-widget.js?v=20261116k"></script>
+  <script src="js/packages.js?v=20261116l"></script>
+  <script src="js/i18n.js?v=20261116l"></script>
+  <script src="js/i18n-dash.js?v=20261116l"></script>
+  <script src="js/i18n-dash-js.js?v=20261116l"></script>
+  <script src="js/portfolio.js?v=20261116l"></script>
+  <script src="js/odds-watch.js?v=20261116l"></script>
+  <script src="js/journal.js?v=20261116l"></script>
+  <script src="js/tools.js?v=20261116l"></script>
+  <script src="js/recap.js?v=20261116l"></script>
+  <script src="js/dashboard.js?v=20261116l"></script>
+  <script src="js/analytics.js?v=20261116l"></script>
+  <script src="js/tour.js?v=20261116l"></script>
+  <script src="js/certificate.js?v=20261116l"></script>
+  <script src="js/share-card.js?v=20261116l"></script>
+  <script src="js/academy.js?v=20261116l"></script>
+  <script src="js/referral.js?v=20261116l"></script>
+  <script src="js/promo-banner.js?v=20261116l"></script>
+  <script src="js/track.js?v=20261116l"></script>
+  <script src="js/pwa.js?v=20261116l"></script>
+  <script src="js/push.js?v=20261116l"></script>
+  <script src="js/telegram-widget.js?v=20261116l"></script>
 </body>
 </html>

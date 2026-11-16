@@ -296,6 +296,9 @@
     css();
     const host = document.querySelector("#view-prehled .ov-main");
     if (!host || document.querySelector(".tour-inline")) return;
+    // nový hráč bez tipů má v Přehledu průvodce prvním tipem — prohlídku nabídneme až příště
+    const ftc = document.getElementById("firstTipCard");
+    if (ftc && !ftc.hidden) return;
     const u = UI[lang()];
     const card = document.createElement("div");
     card.className = "panel tour-inline";
