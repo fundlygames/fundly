@@ -800,16 +800,8 @@
         <!-- ---- Leaderboard & referrals ---- -->
         <div class="profile-sub" data-psec="leaderboard" hidden>
           <div class="two-col">
-            <div class="panel">
-              <h3 data-i18n="dash.invite_your_friends">Invite your friends</h3>
-              <p class="t-small" data-i18n="dash.for_every_friend_who_buys_a_package_you">For every friend who buys a package, you get 5 % cashback to your challenge balance.</p>
-              <div class="ref-stats">
-                <div><div class="num">0</div><div class="lbl" data-i18n="dash.invited">Invited</div></div>
-                <div><div class="num green">0</div><div class="lbl" data-i18n="dash.active">Active</div></div>
-                <div><div class="num green">$0</div><div class="lbl" data-i18n="dash.bonus">Bonus</div></div>
-              </div>
-              <p class="t-meta" style="margin-top:10px"><span data-i18n="dash.live_stats_are_in_the">Live stats are in the</span> <a href="#" data-view-link="affiliate" style="color:var(--accent);font-weight:600" data-i18n="dash.affiliate_tab">Affiliate tab</a>.</p>
-            </div>
+            <!-- program „Pozvi kamaráda" — JS: js/referral.js (edge funkce referral-get) -->
+            <div class="panel" id="refPanel" style="grid-column:1/-1"></div>
             <!-- Leaderboard opt-in temporarily hidden (see dnav-link
                  data-view="zebricek" above for the full explanation) — the
                  rest of this tab (referral stats) stays visible. -->
@@ -983,6 +975,7 @@
   <script src="js/certificate.js?v=20261116k"></script>
   <script src="js/share-card.js?v=20261116k"></script>
   <script src="js/academy.js?v=20261116k"></script>
+  <script src="js/referral.js?v=20261116k"></script>
   <script src="js/promo-banner.js?v=20261116k"></script>
   <script src="js/track.js?v=20261116k"></script>
   <script src="js/pwa.js?v=20261116k"></script>

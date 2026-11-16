@@ -562,9 +562,8 @@ const BADGES = [
   ["dashjs.badge.journal10", "b-dennik", "b-dennik"],
   ["dashjs.badge.academy", "b-akademie", "b-akademie"],
   ["dashjs.badge.greenMonth", "b-mesic-plus", "b-mesic-plus"],
-  // Ambassador vyžaduje systém doporučení hráčů, který zatím neexistuje
-  // (affiliate systém dnes slouží jen content creatorům/promo kódům) — zůstává uzamčený.
-  ["dashjs.badge.ambassador", "b-ambasador", null],
+  // Ambasador: aspoň jeden pozvaný kamarád si koupil balíček (program „Pozvi kamaráda", js/referral.js)
+  ["dashjs.badge.ambassador", "b-ambasador", "b-ambasador"],
 ];
 
 function computeStreaks(state) {
@@ -612,6 +611,7 @@ function computeBadgeUnlocks(state) {
     "b-dennik": !!rc && rc.journalCount(state.tickets) >= 10,
     "b-akademie": !!(window.FundlyAcademy && window.FundlyAcademy.allPassed()),
     "b-mesic-plus": !!rc && rc.hasGreenMonth(state.tickets, state.cap),
+    "b-ambasador": !!(window.FundlyReferral && window.FundlyReferral.ambassador()),
   };
 }
 

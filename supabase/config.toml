@@ -113,3 +113,6 @@ verify_jwt = false
 
 [functions.weekly-report]
 verify_jwt = false
+
+[functions.referral-get]
+verify_jwt = false
