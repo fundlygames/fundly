@@ -24,6 +24,7 @@ import { isValidAdminKey } from "../_shared/admin.ts";
 import { settleSelection, type Selection } from "../_shared/settle.ts";
 import { customEventResult, isCustomEventId } from "../_shared/custom-events.ts";
 import { finalScore, halfScore } from "../_shared/final-score.ts";
+import { notifyDailyLimit, notifySettledTickets, type SettledForPush } from "../_shared/push.ts";
 
 const API_BASE = "https://api.odds-api.io/v3";
 const MAX_EVENTS_PER_RUN = 300;
@@ -116,6 +117,7 @@ serve(async (req) => {
 
     let settledCount = 0;
     let staleCount = 0;
+    const pushQueue: SettledForPush[] = []; // web push: jen tipy, které opravdu vyhodnotil tenhle běh
     const nowIso = new Date().toISOString();
 
     for (const ticket of tickets) {
@@ -169,20 +171,39 @@ serve(async (req) => {
         payout = Math.round(stake * factor);
       }
 
-      const { error } = await supabase
+      const { data: updated, error } = await supabase
         .from("tickets")
         .update({ status, payout, settled_at: nowIso })
         .eq("id", ticket.id)
-        .eq("status", "pending"); // pojistka proti souběžnému zápisu
+        .eq("status", "pending") // pojistka proti souběžnému zápisu
+        .select("id");
       if (!error) { settledCount++; if (status === "lost" && ticket.account_id) lostAccounts.add(ticket.account_id); }
+      // push jen když řádek opravdu přepsal tenhle běh (klient ho mezitím nevyřídil sám)
+      if (!error && updated?.length) {
+        pushQueue.push({ id: ticket.id, account_id: ticket.account_id, status, stake: ticket.stake, payout, selections });
+      }
     }
 
     // prohraný tiket může přesáhnout limit ztráty, i když hráč dashboard už nikdy neotevře
+    const closedAccounts = new Set<string>();
     for (const accountId of lostAccounts) {
-      await enforceLossLimits(supabase, accountId).catch((e) => console.error("enforceLossLimits:", e));
+      const reason = await enforceLossLimits(supabase, accountId).catch((e) => { console.error("enforceLossLimits:", e); return null; });
+      if (reason) closedAccounts.add(accountId);
     }
 
-    return jsonResponse({ ok: true, checked: tickets.length, events: eventIds.length, settled: settledCount });
+    // web push (no-op bez VAPID secrets): výsledky tipů, pak varování u denního limitu ztráty
+    let pushed = 0;
+    try {
+      pushed = await notifySettledTickets(supabase, pushQueue);
+      for (const accountId of lostAccounts) {
+        if (closedAccounts.has(accountId)) continue; // limit překročený → účet zavřený, žádné varování
+        if (await notifyDailyLimit(supabase, accountId)) pushed++;
+      }
+    } catch (e) {
+      console.error("settle-tickets push:", e);
+    }
+
+    return jsonResponse({ ok: true, checked: tickets.length, events: eventIds.length, settled: settledCount, pushed });
   } catch (err) {
     console.error("settle-tickets error:", err);
     return jsonResponse(

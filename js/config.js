@@ -5,6 +5,9 @@
 
 const FUNDLY_SUPABASE_URL = "https://siruaytogfsgujpwzcsb.supabase.co";
 const FUNDLY_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpcnVheXRvZ2ZzZ3VqcHd6Y3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5NDc0NjcsImV4cCI6MjEwMTUyMzQ2N30.Ba7wOT_qh2Z69c3h77dC0n3_nux4Wj0vXPREGsjQLw8";
+// Web push (js/push.js): VEŘEJNÝ VAPID klíč. Soukromý klíč žije jen v secretu edge funkcí
+// (VAPID_PRIVATE_KEY) — páry musí sedět, jinak push služby zprávy odmítnou.
+const FUNDLY_VAPID_PUBLIC_KEY = "BNIXnNuBbhVIbG8Rr7j9ggkgJeAVe4ObyXoHWtZph6Q96TtTcJ87jgkTWfgKeYE2jHJ1KsiShQM7JeL5mPED8bY";
 
 // Dokud nejsou placeholdery nahrazené, běží web v čistě lokálním (demo) režimu.
 function fundlyBackendEnabled() {
