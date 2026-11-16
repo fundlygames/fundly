@@ -202,6 +202,7 @@ function showView(name) {
   if (name === "prehled" && typeof renderPrehled === "function") renderPrehled();
   if (name === "vykon" && typeof renderVykon === "function") renderVykon();
   if (name === "sazeni" && typeof renderBankBar === "function") renderBankBar();
+  if (name === "sazeni") renderFirstTipHint();
   if (name === "sazeni") {
     const preview = document.getElementById("previewModePanel");
     if (preview) preview.hidden = !window.__noRealAccount;
@@ -2288,11 +2289,17 @@ function renderSlip() {
   updateMobileSlipBar();
   if (!slip.length) {
     slipBody.innerHTML = `<p class="slip-empty"><img src="assets/fan-1.jpg" alt="" />${ft("dashjs.slip.empty")}</p>`;
+    renderFirstTipHint();
     return;
   }
   const portfolio = Portfolio.ensure("advanced");
   const maxStake = Portfolio.ruleMeta(portfolio).maxStake;
   const totalOdds = slip.reduce((a, s) => a * s.odds, 1);
+  // Rychlé vklady v % kapitálu (1,5 % = max. vklad); výchozí vklad 1 % kapitálu. Číslo jde dál napsat ručně.
+  const capital = Number(portfolio.cap) || 0;
+  const presetAmt = (pct) => Math.max(5, Math.min(maxStake, Math.round(capital * pct / 100)));
+  const PRESETS = [0.5, 1, 1.5];
+  const defaultStake = capital > 0 ? presetAmt(1) : Math.min(80, maxStake);
   slipBody.innerHTML = `
     ${slip.map((s) => `
       <div class="slip-item">
@@ -2308,7 +2315,10 @@ function renderSlip() {
     <div class="slip-total"><span>${ft("dashjs.slip.totalOdds")}</span><b>${totalOdds.toFixed(2)}</b></div>
     <div class="field">
       <label for="stakeInput">${ftf("dashjs.slip.entrySizeMax", { max: usd(maxStake) })}</label>
-      <input class="input" id="stakeInput" type="number" min="5" max="${maxStake}" value="${Math.min(80, maxStake)}" />
+      <div class="stake-presets" role="group" aria-label="${esc(ft("dashjs.slip.presets"))}">
+        ${capital > 0 ? PRESETS.map((p) => `<button type="button" class="stake-preset" data-stake="${presetAmt(p)}"><b>${p.toLocaleString(uiLocale())} %</b><small>${usd(presetAmt(p))}</small></button>`).join("") : ""}
+      </div>
+      <input class="input" id="stakeInput" type="number" inputmode="decimal" min="5" max="${maxStake}" value="${defaultStake}" />
     </div>
     <div class="slip-total"><span>${ft("dashjs.common.potentialWin")}</span><b class="green" id="potWin"></b></div>
     ${window.FundlyJournal ? window.FundlyJournal.slipFieldsHtml() : "" /* Deník tipů: "Proč tento tip?" — text drží js/journal.js, překreslení ho nesmaže */}
@@ -2345,9 +2355,18 @@ function renderSlip() {
       note.hidden = true;
     }
   };
-  stakeInput.addEventListener("input", () => { updateWin(); updateBetNote(); });
+  const markPreset = () => {
+    slipBody.querySelectorAll(".stake-preset").forEach((b) => b.classList.toggle("active", Number(b.dataset.stake) === Number(stakeInput.value)));
+  };
+  slipBody.querySelectorAll(".stake-preset").forEach((b) => b.addEventListener("click", () => {
+    stakeInput.value = b.dataset.stake;
+    stakeInput.dispatchEvent(new Event("input"));
+  }));
+  stakeInput.addEventListener("input", () => { updateWin(); updateBetNote(); markPreset(); });
   updateWin();
   updateBetNote();
+  markPreset();
+  renderFirstTipHint();
 
   document.getElementById("placeBet").addEventListener("click", async () => {
     const note = document.getElementById("betNote");
@@ -3392,7 +3411,39 @@ function renderRecentTickets(state) {
   }).join("");
 }
 
+// ---------- průvodce prvním tipem ----------
+// Nový hráč (účet bez jediného tipu) se po nákupu často zasekne. V Přehledu dostane kartu se 3 kroky
+// a tlačítkem "Vybrat zápas"; v sekci Tipy pak nad zápasy vidí, co udělat teď (klepni na kurz →
+// vklad 1 % je předvyplněný → Podat tip). Zmizí s prvním podaným tipem.
+function firstTipActive() {
+  const st = Portfolio.get();
+  return !!st && !window.__noRealAccount && !document.body.classList.contains("limited")
+    && !st.pendingPhase && st.phase !== "funded" && (st.tickets || []).length === 0;
+}
+function renderFirstTip() {
+  const card = document.getElementById("firstTipCard");
+  if (!card) return;
+  const on = firstTipActive();
+  card.hidden = !on;
+  if (!on) { card.innerHTML = ""; return; }
+  const steps = ["s1", "s2", "s3"].map((k, i) => `<li><span class="ft-n">${i + 1}</span><span>${esc(ft(`dashjs.firstTip.${k}`))}</span></li>`).join("");
+  card.innerHTML = `
+    <div class="ft-head"><b>${esc(ft("dashjs.firstTip.title"))}</b><span>${esc(ft("dashjs.firstTip.sub"))}</span></div>
+    <ol class="ft-steps">${steps}</ol>
+    <button type="button" class="btn btn-primary" data-view-link="sazeni" style="width:100%">${esc(ft("dashjs.firstTip.cta"))}</button>`;
+}
+function renderFirstTipHint() {
+  const hint = document.getElementById("firstTipHint");
+  if (!hint) return;
+  const on = firstTipActive();
+  hint.hidden = !on;
+  if (!on) return;
+  const step = slip.length ? "hint2" : "hint1";
+  hint.innerHTML = `<span class="ft-n">${slip.length ? 2 : 1}</span><span>${esc(ft(`dashjs.firstTip.${step}`))}</span>`;
+}
+
 function renderPrehled() {
+  renderFirstTip();
   const view = document.getElementById("view-prehled");
   if (!view) return;
   const state = Portfolio.ensure("advanced");

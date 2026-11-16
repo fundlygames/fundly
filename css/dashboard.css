@@ -1523,3 +1523,25 @@ body.limited .limited-only { display: inline-flex; }
 .sport-menu button:hover { background: #ffffff0d; color: var(--text-primary); }
 .sport-menu button.active { background: var(--accent-tint); color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent-border-soft); }
 .sport-picker .ic-letter { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 6px; background: #ffffff14; font-weight: 800; font-size: .75rem; }
+
+/* rychlé vklady v tipu (0,5 / 1 / 1,5 % kapitálu) — číslo jde dál napsat ručně */
+.stake-presets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-bottom: 8px; }
+.stake-presets:empty { display: none; }
+.stake-preset { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 8px 4px; border-radius: var(--d-r-sm); border: 0; cursor: pointer; font: inherit; background: #ffffff08; color: var(--text-secondary); box-shadow: inset 0 0 0 1px var(--line); }
+.stake-preset b { font-size: .875rem; color: var(--text-primary); }
+.stake-preset small { font-size: .75rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.stake-preset:hover { box-shadow: inset 0 0 0 1px var(--accent-border-soft); }
+.stake-preset.active { background: var(--accent-tint); box-shadow: inset 0 0 0 1px var(--accent-border-soft); }
+.stake-preset.active b { color: var(--accent); }
+
+/* průvodce prvním tipem */
+.first-tip-card { box-shadow: inset 0 0 0 1px var(--accent-border-soft); background: radial-gradient(120% 140% at 0% 0%, rgb(var(--accent-rgb) / .12), transparent 60%), var(--surface-1); margin-bottom: 12px; }
+.first-tip-card .ft-head { display: flex; flex-direction: column; gap: 2px; margin-bottom: 12px; }
+.first-tip-card .ft-head b { font-size: 1.0625rem; }
+.first-tip-card .ft-head span { font-size: .8125rem; color: var(--text-muted); }
+.ft-steps { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.ft-steps li { display: flex; align-items: center; gap: 10px; font-size: .875rem; }
+.ft-n { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: .75rem; font-weight: 800; background: var(--accent); color: var(--primary-ink, #04140c); }
+.first-tip-hint { display: flex; align-items: center; gap: 10px; padding: 12px 14px; margin-bottom: 10px; border-radius: var(--d-r); background: var(--accent-tint); box-shadow: inset 0 0 0 1px var(--accent-border-soft); font-size: .875rem; font-weight: 600; }
+.first-tip-hint[hidden] { display: none; }
+@media (max-width: 1023px) { #view-prehled .first-tip-card { order: -3; } }
