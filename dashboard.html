@@ -371,6 +371,7 @@
           <aside class="panel slip" id="slipPanel">
             <h3 data-i18n="dash.ticket">Ticket</h3>
             <div id="slipBody"><!-- JS --></div>
+            <div id="pushAsk" hidden><!-- JS: js/push.js FundlyPush.afterTip() --></div>
           </aside>
         </div>
       </section>
@@ -845,6 +846,7 @@
         <!-- ---- Settings ---- -->
         <div class="profile-sub" data-psec="settings" hidden>
           <div id="settingsSlot"><!-- JS: renderSettingsPanel("s") --></div>
+          <div id="pushSettingsSlot"><!-- JS: js/push.js --></div>
         </div>
 
         <!-- ---- Support ---- -->
@@ -992,6 +994,7 @@
   <script src="js/promo-banner.js?v=20261116l"></script>
   <script src="js/track.js?v=20261116l"></script>
   <script src="js/pwa.js?v=20261116l"></script>
+  <script src="js/push.js?v=20261116l"></script>
   <script src="js/telegram-widget.js?v=20261116l"></script>
 </body>
 </html>

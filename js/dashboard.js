@@ -2416,6 +2416,7 @@ function renderSlip() {
     note.hidden = false;
     btn.disabled = true;
     if (window.FundlyJournal) window.FundlyJournal.clearDraft(); // Deník tipů: poznámka patří k právě podanému tipu
+    if (window.FundlyPush) window.FundlyPush.afterTip(); // js/push.js: nabídka upozornění (jen po podaném tipu, nikdy při načtení)
     // Ne scheduleAccountSync() (2-7s debounce): sázka je přesně ten
     // okamžik, kdy je nejvyšší šance, že hráč hned zavře kartu/odhlásí se
     // (přesně to hlásili — vsaď, hned se odhlas, tiket zmizel). Okamžitý
