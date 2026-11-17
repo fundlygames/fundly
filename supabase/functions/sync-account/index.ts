@@ -92,7 +92,7 @@ serve(async (req) => {
       return Number.isNaN(d.getTime()) ? null : d.toISOString();
     }
     const hwm = saneNumber(body.hwm, 1e8);
-    const phaseBaseline = saneNumber(body.phaseBaseline, 1e8);
+    // body.phaseBaseline se záměrně NEpřebírá — začátek fáze je serverová pravda (viz serverBaseline níž).
     const phaseStartedAt = saneDate(body.phaseStartedAt);
     const dayStartDate = body.dayStartDate ? String(body.dayStartDate).slice(0, 10) : null;
     const dayStartBalance = saneNumber(body.dayStartBalance, 1e8);
@@ -208,7 +208,7 @@ serve(async (req) => {
     let clientState = state;
     if (state === "breached" && (account.phase === 1 || account.phase === 2) && account.state !== "breached") {
       const serverReason = lossLimitBreach(
-        { capital: account.capital, phase: account.phase, state: account.state, phase_started_at: account.phase_started_at, phase_baseline: account.phase_baseline },
+        { capital: account.capital, phase: account.phase, state: account.state, phase_started_at: account.phase_started_at, phase_baseline: account.phase === 1 ? account.capital : account.phase_baseline },
         (ticketAgg ?? []) as { stake: number; payout: number | null; status: string; placed_at: string; settled_at: string | null }[],
         Date.now(),
       );
@@ -266,6 +266,10 @@ serve(async (req) => {
     // touhle odpovědí — u účtu s delší historií tím uměla natáhnout odezvu
     // na 2+ s, což byl přesně ten prostor, kde hráč stihl zavřít kartu dřív,
     // než se stihl uložit nový tiket ("vsaď → hned se odhlas → tiket zmizel").
+    const capNum = Number(account.capital);
+    const serverBaseline = account.phase === 1 && Number.isFinite(capNum) && capNum > 0 && Number(account.phase_baseline) !== capNum
+      ? capNum
+      : null;
     const { error: updateError } = await supabase
       .from("challenge_accounts")
       .update({
@@ -285,7 +289,11 @@ serve(async (req) => {
         ...(hwm != null ? { hwm } : {}),
         // fáze/baseline/den se při čekání na schválení nesmí přepsat klientem
         // (approve-phase je nastaví na fresh hodnoty při schválení)
-        ...(account.state !== "pending_approval" && phaseBaseline != null ? { phase_baseline: phaseBaseline } : {}),
+        // Začátek fáze (phase_baseline) určuje jen server: fáze 1 = kapitál balíčku, další fáze
+        // nastavuje approve-phase. Dřív se přebíral z prohlížeče — Starter tak dostal začátek 25 000
+        // z výchozího stavu jiného balíčku a hráč by si zvýšeným začátkem mohl obejít serverovou
+        // kontrolu max. ztráty (_shared/loss-limits.ts počítá zůstatek od phase_baseline).
+        ...(serverBaseline != null ? { phase_baseline: serverBaseline } : {}),
         // Začátek fáze je serverová pravda: nastaví ho nákup (whop-webhook) a schválení
         // další fáze (approve-phase). Klient ho smí dodat JEN když sloupec ještě chybí —
         // jinak by si hráč mohl 30denní lhůtu (viz _shared/phase-expiry.ts) kdykoli

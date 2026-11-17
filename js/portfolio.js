@@ -245,7 +245,13 @@ const Portfolio = (() => {
   function get() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : null;
+      const state = raw ? JSON.parse(raw) : null;
+      // fáze 1 vždy začíná na kapitálu balíčku (stejně jako server v sync-account) — starší stav
+      // v prohlížeči mohl mít začátek z jiného balíčku (Starter s 25 000)
+      if (state && state.phase === 1 && Number(state.cap) > 0 && state.phaseBaseline !== state.cap) {
+        state.phaseBaseline = state.cap;
+      }
+      return state;
     } catch (e) { return null; }
   }
 
