@@ -395,6 +395,17 @@ function showToast(kind, title, detail) {
   const layer = document.getElementById("toastLayer");
   Notifications.push(kind, title, detail);
   if (!layer) return;
+  // Najvýš jedna bublina naráz (např. obnova účtu na novém telefonu jich jinak vystřelí několik
+  // přes sebe a zakryjí horní lištu). Další se jen připočtou jako „+N v 🔔" — v seznamu
+  // upozornění (Notifications.push výš) jsou všechny.
+  const open = layer.querySelector(".toast:not(.out)");
+  if (open) {
+    open._more = (open._more || 0) + 1;
+    let more = open.querySelector(".toast-more");
+    if (!more) { more = document.createElement("div"); more.className = "toast-more"; open.appendChild(more); }
+    more.textContent = ftf("dashjs.toast.more", { n: open._more });
+    return;
+  }
   const el = document.createElement("div");
   el.className = `toast toast-${kind}`;
   el.innerHTML = `<div class="toast-title">${title}</div>${detail ? `<div class="toast-detail">${detail}</div>` : ""}`;
@@ -402,6 +413,7 @@ function showToast(kind, title, detail) {
   requestAnimationFrame(() => el.classList.add("in"));
   setTimeout(() => {
     el.classList.remove("in");
+    el.classList.add("out");
     setTimeout(() => el.remove(), 300);
   }, 4200);
 }
@@ -3478,6 +3490,11 @@ function renderPrehled() {
   const toGoal = Math.max(0, target - profit);
   const daysLeft = Portfolio.daysRemaining(state);
   const s = Portfolio.summary(state);
+  // dlaždice Zisk = totéž co „v této fázi" i „Do cíle" (zůstatek − začátek fáze), ne součet tipů ze
+  // všech fází — dřív si čísla po postupu do další fáze odporovala. Otevřené vklady jsou ze zůstatku
+  // už odečtené, proto je pod číslem vysvětlíme.
+  const phaseProfit = profit;
+  const openStakes = state.tickets.filter((t) => t.status === "pending").reduce((a, t) => a + (Number(t.stake) || 0), 0);
 
   // hero block: micro-label, big balance, delta row, chips, equity chart
   const deltaPct = state.phaseBaseline > 0 ? (profit / state.phaseBaseline) * 100 : 0;
@@ -3499,8 +3516,9 @@ function renderPrehled() {
 
   document.getElementById("ovStatGrid").innerHTML = `
     <div class="dstat">
-      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M1.5 11.5l4-4 3 3 5-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>${ft("dashjs.ov.profit")}</div>
-      <div class="val ${s.netProfit >= 0 ? "green" : ""}">${s.netProfit >= 0 ? "+" : ""}${usd(s.netProfit)}</div>
+      <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M1.5 11.5l4-4 3 3 5-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>${ft("dashjs.ov.phaseProfit")}</div>
+      <div class="val ${phaseProfit >= 0 ? "green" : ""}">${phaseProfit >= 0 ? "+" : ""}${usd(phaseProfit)}</div>
+      ${openStakes > 0 ? `<div class="dstat-sub">${ftf("dashjs.ov.openStakes", { amount: usd(openStakes) })}</div>` : ""}
     </div>
     <div class="dstat">
       <div class="lbl"><span class="ic-chip"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.8"/><circle cx="7" cy="7" r="2" fill="currentColor"/></svg></span>${ft("dashjs.ov.toTarget")}</div>

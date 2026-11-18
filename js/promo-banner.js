@@ -23,6 +23,29 @@
     es: { line: "Usa el código <span class=\"promo-code\">{code}</span> y obtén {pct}% de descuento en cualquier paquete", close: "Cerrar" },
   };
 
+  // Pozvánka od kamaráda (?ref=KÓD, uloží js/whop.js do "fundly:ref", platí 30 dní): místo obecné
+  // lišty řekne, že návštěvník má 10 % slevu navíc. Skutečnou slevu ověřuje a počítá jen server
+  // (whop-checkout); NEWFUNDLY se na zlevněnou cenu uplatní také (ověřeno v pokladně Whop).
+  const REF_KEY = "fundly:ref";
+  const REF_TTL_MS = 30 * 24 * 3600 * 1000;
+  const REF_PCT = 10;
+  const REF_TEXT = {
+    en: "A friend invited you: <b>{ref}% off</b> your first package — plus code <span class=\"promo-code\">{code}</span> for another {pct}%",
+    cs: "Pozvánka od kamaráda: <b>{ref}% sleva</b> na první balíček — a s kódem <span class=\"promo-code\">{code}</span> dalších {pct}%",
+    sk: "Pozvánka od kamaráta: <b>{ref}% zľava</b> na prvý balíček — a s kódom <span class=\"promo-code\">{code}</span> ďalších {pct}%",
+    pl: "Zaproszenie od znajomego: <b>{ref}% zniżki</b> na pierwszy pakiet — a z kodem <span class=\"promo-code\">{code}</span> kolejne {pct}%",
+    hu: "Egy barátod meghívott: <b>{ref}% kedvezmény</b> az első csomagra — a(z) <span class=\"promo-code\">{code}</span> kóddal további {pct}%",
+    es: "Un amigo te invitó: <b>{ref}% de descuento</b> en tu primer paquete — y con el código <span class=\"promo-code\">{code}</span> otro {pct}%",
+  };
+  function hasReferral() {
+    try {
+      const fromUrl = new URLSearchParams(window.location.search).get("ref");
+      if (fromUrl && /^[A-Za-z0-9]{4,16}$/.test(fromUrl.trim())) return true; // whop.js (defer) ho uloží až po nás
+      const r = JSON.parse(safeGet(REF_KEY) || "null");
+      return !!(r && r.code && Date.now() - (r.at || 0) <= REF_TTL_MS);
+    } catch (e) { return false; }
+  }
+
   function getLang() {
     const lang = localStorage.getItem(LANG_KEY) || document.documentElement.dataset.lang || document.documentElement.lang || "en";
     return TEXT[lang] ? lang : "en";
@@ -33,7 +56,8 @@
   }
 
   function init() {
-    if (barEl || safeGet(DISMISS_KEY) || safeGet(ACTIVE_KEY) === "1") return;
+    const referral = hasReferral();
+    if (barEl || safeGet(ACTIVE_KEY) === "1" || safeGet(referral ? DISMISS_KEY + ":ref" : DISMISS_KEY)) return;
 
     const bar = document.createElement("div");
     bar.className = "promo-bar";
@@ -53,7 +77,8 @@
 
     function render() {
       const t = TEXT[getLang()];
-      lineEl.innerHTML = t.line.replace("{code}", PROMO.code).replace("{pct}", PROMO.percent);
+      const line = referral ? REF_TEXT[getLang()].replace("{ref}", REF_PCT) : t.line;
+      lineEl.innerHTML = line.replace("{code}", PROMO.code).replace("{pct}", PROMO.percent);
       closeBtn.setAttribute("aria-label", t.close);
       updateHeight(bar);
     }
@@ -63,7 +88,7 @@
     document.addEventListener("fundly:lang-changed", render);
 
     closeBtn.addEventListener("click", () => {
-      safeSet(DISMISS_KEY, "1");
+      safeSet(referral ? DISMISS_KEY + ":ref" : DISMISS_KEY, "1");
       hide();
     });
   }
