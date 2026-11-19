@@ -197,7 +197,7 @@ const FUNDLY_I18N = (() => {
         contactUnavailable: "Support is temporarily unavailable — please email us directly.", contactFailed: "The message could not be sent.", discountFailed: "Could not send the code.",
         previewFailed: "Could not create the account.", previewExisting: "This e-mail already has an account — we've sent you a sign-in link, check your inbox.",
         showPassword: "Show password", hidePassword: "Hide password", errRate: "Too many attempts. Please wait a moment and try again.", errSamePassword: "The new password must be different from your current one.",
-        errWeakPassword: "The password must be at least 8 characters long.", errNetwork: "Network error. Please try again.", signInFirst: "Please sign in first.",
+        errWeakPassword: "The password must be at least 8 characters long.", errNetwork: "We couldn't reach our server. Check your internet connection and try again in a minute.", signInFirst: "Please sign in first.",
         wdTitle: "New withdrawal request", wdNotice: "Withdrawals are only available on a Partner account. Complete Phase 1 and Phase 2 first.", wdAmount: "Amount to withdraw ($)",
         wdMeta: "Min. $10 · Max. $4,000 per request", wdMethod: "Payout method", wdChoose: "Choose a method", wdBank: "Bank transfer", wdCrypto: "Crypto", wdSubmit: "Submit for approval",
         wdMin: "The minimum withdrawal is $10.", wdMax: "The maximum withdrawal per request is $4,000.", wdPick: "Choose a payout method.", wdSubmitted: "Your withdrawal request was submitted for approval.",
@@ -406,7 +406,7 @@ const FUNDLY_I18N = (() => {
         contactUnavailable: "Podpora je dočasně nedostupná — napište nám prosím přímo e-mailem.", contactFailed: "Zprávu se nepodařilo odeslat.", discountFailed: "Kód se nepodařilo odeslat.",
         previewFailed: "Účet se nepodařilo vytvořit.", previewExisting: "Tento e-mail už má účet — poslali jsme vám přihlašovací odkaz, zkontrolujte schránku.",
         showPassword: "Zobrazit heslo", hidePassword: "Skrýt heslo", errRate: "Příliš mnoho pokusů. Chvíli počkejte a zkuste to znovu.", errSamePassword: "Nové heslo se musí lišit od současného.",
-        errWeakPassword: "Heslo musí mít alespoň 8 znaků.", errNetwork: "Chyba sítě. Zkuste to prosím znovu.", signInFirst: "Nejprve se prosím přihlaste.", wdTitle: "Nová žádost o odměnu",
+        errWeakPassword: "Heslo musí mít alespoň 8 znaků.", errNetwork: "Nepodařilo se spojit se serverem. Zkontroluj připojení k internetu a zkus to za chvilku znovu.", signInFirst: "Nejprve se prosím přihlaste.", wdTitle: "Nová žádost o odměnu",
         wdNotice: "Odměny jsou dostupné jen na Partner účtu. Nejprve dokončete fázi 1 a fázi 2.", wdAmount: "Částka odměny ($)", wdMeta: "Min. 10 $ · Max. 4 000 $ na jednu žádost",
         wdMethod: "Způsob odměny", wdChoose: "Vyberte způsob", wdBank: "Bankovní převod", wdCrypto: "Krypto", wdSubmit: "Odeslat ke schválení", wdMin: "Minimální odměna je 10 $.",
         wdMax: "Maximální odměna na jednu žádost je 4 000 $.", wdPick: "Vyberte způsob odměny.", wdSubmitted: "Vaše žádost o odměnu byla odeslána ke schválení.",
@@ -615,7 +615,7 @@ const FUNDLY_I18N = (() => {
         mfaBad: "Código incorrecto. Inténtalo de nuevo.", contactSent: "Mensaje enviado: te responderemos por correo.", contactUnavailable: "El soporte no está disponible temporalmente: escríbenos directamente por correo.",
         contactFailed: "No se pudo enviar el mensaje.", discountFailed: "No se pudo enviar el código.", previewFailed: "No se pudo crear la cuenta.", previewExisting: "Este correo ya tiene una cuenta: te hemos enviado un enlace de acceso, revisa tu bandeja de entrada.",
         showPassword: "Mostrar contraseña", hidePassword: "Ocultar contraseña", errRate: "Demasiados intentos. Espera un momento e inténtalo de nuevo.", errSamePassword: "La nueva contraseña debe ser distinta de la actual.",
-        errWeakPassword: "La contraseña debe tener al menos 8 caracteres.", errNetwork: "Error de red. Inténtalo de nuevo.", signInFirst: "Primero inicia sesión.",
+        errWeakPassword: "La contraseña debe tener al menos 8 caracteres.", errNetwork: "No pudimos conectar con el servidor. Revisa tu conexión a internet e inténtalo de nuevo en un momento.", signInFirst: "Primero inicia sesión.",
         wdTitle: "Nueva solicitud de retiro", wdNotice: "Los retiros solo están disponibles en una cuenta Partner. Completa antes la fase 1 y la fase 2.", wdAmount: "Importe a retirar ($)",
         wdMeta: "Mín. 10 $ · Máx. 4 000 $ por solicitud", wdMethod: "Método de pago", wdChoose: "Elige un método", wdBank: "Transferencia bancaria", wdCrypto: "Cripto",
         wdSubmit: "Enviar para aprobación", wdMin: "El retiro mínimo es de 10 $.", wdMax: "El retiro máximo por solicitud es de 4 000 $.", wdPick: "Elige un método de pago.",
@@ -825,7 +825,7 @@ const FUNDLY_I18N = (() => {
         contactUnavailable: "Wsparcie jest chwilowo niedostępne — napisz do nas bezpośrednio e-mailem.", contactFailed: "Nie udało się wysłać wiadomości.", discountFailed: "Nie udało się wysłać kodu.",
         previewFailed: "Nie udało się utworzyć konta.", previewExisting: "Ten e-mail ma już konto — wysłaliśmy link do logowania, sprawdź skrzynkę.", showPassword: "Pokaż hasło",
         hidePassword: "Ukryj hasło", errRate: "Zbyt wiele prób. Odczekaj chwilę i spróbuj ponownie.", errSamePassword: "Nowe hasło musi różnić się od obecnego.",
-        errWeakPassword: "Hasło musi mieć co najmniej 8 znaków.", errNetwork: "Błąd sieci. Spróbuj ponownie.", signInFirst: "Najpierw się zaloguj.", wdTitle: "Nowa prośba o wypłatę",
+        errWeakPassword: "Hasło musi mieć co najmniej 8 znaków.", errNetwork: "Nie udało się połączyć z serwerem. Sprawdź połączenie z internetem i spróbuj ponownie za chwilę.", signInFirst: "Najpierw się zaloguj.", wdTitle: "Nowa prośba o wypłatę",
         wdNotice: "Wypłaty są dostępne tylko na koncie Partner. Najpierw ukończ fazę 1 i fazę 2.", wdAmount: "Kwota do wypłaty ($)", wdMeta: "Min. 10 $ · Maks. 4 000 $ na jedną prośbę",
         wdMethod: "Metoda wypłaty", wdChoose: "Wybierz metodę", wdBank: "Przelew bankowy", wdCrypto: "Krypto", wdSubmit: "Wyślij do zatwierdzenia", wdMin: "Minimalna wypłata to 10 $.",
         wdMax: "Maksymalna wypłata na jedną prośbę to 4 000 $.", wdPick: "Wybierz metodę wypłaty.", wdSubmitted: "Twoja prośba o wypłatę została wysłana do zatwierdzenia.",
@@ -1035,7 +1035,7 @@ const FUNDLY_I18N = (() => {
         contactUnavailable: "Podpora je dočasne nedostupná — napíšte nám prosím priamo e-mailom.", contactFailed: "Správu sa nepodarilo odoslať.", discountFailed: "Kód sa nepodarilo odoslať.",
         previewFailed: "Účet sa nepodarilo vytvoriť.", previewExisting: "Tento e-mail už má účet — poslali sme vám prihlasovací odkaz, skontrolujte schránku.", showPassword: "Zobraziť heslo",
         hidePassword: "Skryť heslo", errRate: "Príliš veľa pokusov. Chvíľu počkajte a skúste to znova.", errSamePassword: "Nové heslo musí byť odlišné od súčasného.",
-        errWeakPassword: "Heslo musí mať aspoň 8 znakov.", errNetwork: "Chyba siete. Skúste to prosím znova.", signInFirst: "Najprv sa prosím prihláste.", wdTitle: "Nová žiadosť o odmenu",
+        errWeakPassword: "Heslo musí mať aspoň 8 znakov.", errNetwork: "Nepodarilo sa spojiť so serverom. Skontroluj pripojenie na internet a skús to o chvíľu znova.", signInFirst: "Najprv sa prosím prihláste.", wdTitle: "Nová žiadosť o odmenu",
         wdNotice: "Odmeny sú dostupné len na Partner účte. Najprv dokončite fázu 1 a fázu 2.", wdAmount: "Suma odmeny ($)", wdMeta: "Min. 10 $ · Max. 4 000 $ na jednu žiadosť",
         wdMethod: "Spôsob odmeny", wdChoose: "Vyberte spôsob", wdBank: "Bankový prevod", wdCrypto: "Krypto", wdSubmit: "Odoslať na schválenie", wdMin: "Minimálna odmena je 10 $.",
         wdMax: "Maximálna odmena na jednu žiadosť je 4 000 $.", wdPick: "Vyberte spôsob odmeny.", wdSubmitted: "Vaša žiadosť o odmenu bola odoslaná na schválenie.",
@@ -1245,7 +1245,7 @@ const FUNDLY_I18N = (() => {
         contactFailed: "Az üzenetet nem sikerült elküldeni.", discountFailed: "A kódot nem sikerült elküldeni.", previewFailed: "A fiókot nem sikerült létrehozni.",
         previewExisting: "Ehhez az e-mail-címhez már tartozik fiók — küldtünk egy bejelentkezési linket, nézd meg a postaládádat.", showPassword: "Jelszó megjelenítése",
         hidePassword: "Jelszó elrejtése", errRate: "Túl sok próbálkozás. Várj egy kicsit, majd próbáld újra.", errSamePassword: "Az új jelszónak különböznie kell a jelenlegitől.",
-        errWeakPassword: "A jelszónak legalább 8 karakter hosszúnak kell lennie.", errNetwork: "Hálózati hiba. Kérjük, próbáld újra.", signInFirst: "Kérjük, előbb jelentkezz be.",
+        errWeakPassword: "A jelszónak legalább 8 karakter hosszúnak kell lennie.", errNetwork: "Nem sikerült kapcsolódni a szerverhez. Ellenőrizd az internetkapcsolatot, és próbáld újra egy perc múlva.", signInFirst: "Kérjük, előbb jelentkezz be.",
         wdTitle: "Új kifizetési kérelem", wdNotice: "A kifizetések csak Partner fiókon érhetők el. Előbb teljesítsd az 1. és a 2. fázist.", wdAmount: "Kifizetendő összeg ($)",
         wdMeta: "Min. 10 $ · Max. 4 000 $ kérelmenként", wdMethod: "Kifizetési mód", wdChoose: "Válassz módot", wdBank: "Banki átutalás", wdCrypto: "Kripto", wdSubmit: "Elküldés jóváhagyásra",
         wdMin: "A minimális kifizetés 10 $.", wdMax: "A kérelmenkénti maximális kifizetés 4 000 $.", wdPick: "Válassz kifizetési módot.", wdSubmitted: "A kifizetési kérelmedet elküldtük jóváhagyásra.",
@@ -1428,5 +1428,17 @@ const FUNDLY_I18N = (() => {
 // injected embedded-checkout loader), which throws a SyntaxError and
 // silently breaks the payment gateway from ever rendering.
 window.t = FUNDLY_I18N.t;
+// Chyba pro člověka: technické hlášky prohlížeče ("Failed to fetch", Safari "Load failed",
+// Firefox "NetworkError…", timeout) → přeložená věta; jinak vlastní (už přeložený) text
+// chyby, a když žádný není, `fallback`.
+window.fundlyErrorText = function (err, fallback) {
+  const msg = String((err && err.message) || (typeof err === "string" ? err : "") || "");
+  const name = String((err && err.name) || "");
+  if (/failed to fetch|load failed|networkerror|network request failed|fetch failed|network connection was lost|internet connection appears to be offline|timed? ?out|aborted/i.test(msg) ||
+      name === "AbortError" || name === "AuthRetryableFetchError" || (name === "TypeError" && /fetch|load/i.test(msg))) {
+    return FUNDLY_I18N.t("forms.errNetwork");
+  }
+  return msg || fallback || FUNDLY_I18N.t("forms.errNetwork");
+};
 window.tf = FUNDLY_I18N.tf;
 window.FUNDLY_I18N = FUNDLY_I18N;

@@ -87,7 +87,7 @@
       note.className = "auth-note";
       note.hidden = false;
     } catch (err) {
-      note.textContent = err.message || (typeof t === "function" ? t("forms.discountFailed") : "Could not send the code.");
+      note.textContent = (typeof fundlyErrorText === "function" ? fundlyErrorText(err, (typeof t === "function" ? t("forms.discountFailed") : "Could not send the code.")) : (err.message || (typeof t === "function" ? t("forms.discountFailed") : "Could not send the code.")));
       note.className = "auth-note error";
       note.hidden = false;
       btn.disabled = false;

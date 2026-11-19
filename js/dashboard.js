@@ -1070,7 +1070,7 @@ async function startAccountReset(pkgKey, btn, note) {
     window.location.href = data.checkoutUrl;
     setTimeout(release, 8000); // přesměrování neproběhlo (zablokované / zrušené) → znovu použitelné
   } catch (err) {
-    note.textContent = err.message || ft("dashjs.common.gatewayError");
+    note.textContent = (typeof fundlyErrorText === "function" ? fundlyErrorText(err, ft("dashjs.common.gatewayError")) : (err.message || ft("dashjs.common.gatewayError")));
     note.className = "auth-note mt error";
     note.hidden = false;
     release();
@@ -1129,7 +1129,7 @@ function showActivationPanel(email) {
       window.location.href = data.checkoutUrl;
     } catch (err) {
       const note = document.getElementById("activationNote");
-      note.textContent = err.message || ft("dashjs.common.gatewayError");
+      note.textContent = (typeof fundlyErrorText === "function" ? fundlyErrorText(err, ft("dashjs.common.gatewayError")) : (err.message || ft("dashjs.common.gatewayError")));
       note.className = "auth-note mt error";
       note.hidden = false;
       btn.disabled = false;
@@ -3026,7 +3026,7 @@ if (supportForm) {
       note.className = "auth-note mt";
       note.hidden = false;
     } catch (err) {
-      note.textContent = err.message || ft("forms.contactFailed");
+      note.textContent = (typeof fundlyErrorText === "function" ? fundlyErrorText(err, ft("forms.contactFailed")) : (err.message || ft("forms.contactFailed")));
       note.className = "auth-note mt error";
       note.hidden = false;
     } finally {

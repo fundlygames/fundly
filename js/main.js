@@ -438,7 +438,7 @@ if (contactForm) {
       note.className = "auth-note mt";
       note.hidden = false;
     } catch (err) {
-      note.textContent = err.message || tr("forms.contactFailed");
+      note.textContent = (typeof fundlyErrorText === "function" ? fundlyErrorText(err, tr("forms.contactFailed")) : (err.message || tr("forms.contactFailed")));
       note.className = "auth-note mt error";
       note.hidden = false;
     } finally {
@@ -577,7 +577,7 @@ if (heroEl) heroSentinel.observe(heroEl);
       if (typeof gtag === "function") gtag("event", "sign_up", { method: "preview" });
       window.location.href = "dashboard";
     } catch (err) {
-      note.textContent = err.message || tr("forms.previewFailed");
+      note.textContent = (typeof fundlyErrorText === "function" ? fundlyErrorText(err, tr("forms.previewFailed")) : (err.message || tr("forms.previewFailed")));
       note.className = "auth-note error";
       note.hidden = false;
       btn.disabled = false;

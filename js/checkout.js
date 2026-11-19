@@ -65,7 +65,7 @@
       waitlistForm.hidden = true;
       waitlistDone.hidden = false;
     } catch (err) {
-      waitlistErr.textContent = err.message;
+      waitlistErr.textContent = (typeof fundlyErrorText === "function" ? fundlyErrorText(err, t("co.errJoinWaitlist")) : (err.message || t("co.errJoinWaitlist")));
       waitlistErr.hidden = false;
       btn.disabled = false;
     }
