@@ -11,7 +11,7 @@ import { handleCors, jsonResponse } from "../_shared/cors.ts";
 import { computeServerRiskSignals, watchStatusFor } from "../_shared/risk.ts";
 import { sendEmail, accountClosedHtml, pendingApprovalAdminHtml, subjects } from "../_shared/email.ts";
 import { userLang } from "../_shared/user-lang.ts";
-import { packageByKey, resetPrice } from "../_shared/packages.ts";
+import { packageByKey, resetPrice, currencyForLang } from "../_shared/packages.ts";
 import { enforceLossLimits } from "../_shared/loss-enforce.ts";
 import { lossLimitBreach } from "../_shared/loss-limits.ts";
 import { markMailboxProven } from "../_shared/mailbox.ts";
@@ -319,7 +319,7 @@ serve(async (req) => {
         .then((lang) => sendEmail({
           to: String(account.email),
           subject: subjects.accountClosed(lang),
-          html: accountClosedHtml(pkg.name, breachReason ?? "Loss limit exceeded", `${SITE_URL}/dashboard`, resetPrice(pkg), lang),
+          html: accountClosedHtml(pkg.name, breachReason ?? "Loss limit exceeded", `${SITE_URL}/dashboard`, resetPrice(pkg, currencyForLang(lang)), lang),
         }))
         .then((r) => { if (!r.sent) console.error("account-closed e-mail selhal:", r.error); })
         .catch((e) => console.error("account-closed e-mail error:", e));

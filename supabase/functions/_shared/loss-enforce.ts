@@ -4,7 +4,7 @@
 // účet neuchrání. Vypínač: secret LOSS_LIMIT_ENFORCE=false (jen zaloguje "would close").
 import { sendEmail, accountClosedHtml, subjects } from "./email.ts";
 import { userLang } from "./user-lang.ts";
-import { packageByKey, resetPrice } from "./packages.ts";
+import { packageByKey, resetPrice, currencyForLang } from "./packages.ts";
 import { isExcludedFromExpiry } from "./phase-expiry.ts";
 import { lossLimitBreach, type LossAccount, type LossTicket } from "./loss-limits.ts";
 
@@ -47,7 +47,7 @@ export async function enforceLossLimits(supabase: any, accountId: string, dryRun
       .then((lang) => sendEmail({
         to: String(acc.email),
         subject: subjects.accountClosed(lang),
-        html: accountClosedHtml(pkg.name, reason, `${SITE_URL}/dashboard`, resetPrice(pkg), lang),
+        html: accountClosedHtml(pkg.name, reason, `${SITE_URL}/dashboard`, resetPrice(pkg, currencyForLang(lang)), lang),
       }))
       .then((r) => { if (!r.sent) console.error("account-closed e-mail selhal:", r.error); })
       .catch((e) => console.error("account-closed e-mail error:", e));

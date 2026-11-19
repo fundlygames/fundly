@@ -6,6 +6,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { handleCors, jsonResponse } from "../_shared/cors.ts";
+import { toUsd } from "../_shared/fx.ts";
 
 const MAX_TICKETS_SHOWN = 5; // display cap dle zadání
 
@@ -90,7 +91,8 @@ serve(async (req) => {
       const mine = conversions.filter(
         (p: any) => String(p.promo_code).toUpperCase() === String(c.code).toUpperCase(),
       );
-      const revenue = mine.reduce((a: number, p: any) => a + (Number(p.amount) || 0), 0);
+      // platby z českého webu jsou v Kč → provize se počítá z částky přepočtené na USD
+      const revenue = mine.reduce((a: number, p: any) => a + toUsd(Number(p.amount) || 0, String(p.currency ?? "usd")), 0);
       return {
         code: c.code,
         planKey: c.plan_key,

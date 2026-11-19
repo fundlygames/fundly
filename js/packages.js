@@ -14,13 +14,33 @@ function promoPrice(price) {
   return Math.round(price * (1 - PROMO.percent / 100));
 }
 
+// price = USD, priceCzk = cena pro český web (Kč). Ceny v Kč jsou zvolené tak, aby
+// po slevě NEWFUNDLY −30 % (počítá ji Whop) vyšly těsně pod kulatou hranici:
+// 980 / 2 940 / 5 950 / 9 940 / 19 880 Kč. Zrcadlí supabase/functions/_shared/packages.ts.
+// Kapitál účtu (cap) zůstává v USD pro všechny jazyky.
 const PACKAGES = [
-  { key: "starter",  name: "Starter",  cap: 2000,   price: 70 },
-  { key: "standard", name: "Standard", cap: 10000,  price: 199 },
-  { key: "advanced", name: "Advanced", cap: 25000,  price: 400, top: true },
-  { key: "pro",      name: "Pro",      cap: 50000,  price: 700 },
-  { key: "elite",    name: "Elite",    cap: 100000, price: 1250 },
+  { key: "starter",  name: "Starter",  cap: 2000,   price: 70,   priceCzk: 1400 },
+  { key: "standard", name: "Standard", cap: 10000,  price: 199,  priceCzk: 4200 },
+  { key: "advanced", name: "Advanced", cap: 25000,  price: 400,  priceCzk: 8500, top: true },
+  { key: "pro",      name: "Pro",      cap: 50000,  price: 700,  priceCzk: 14200 },
+  { key: "elite",    name: "Elite",    cap: 100000, price: 1250, priceCzk: 28400 },
 ];
+
+// Měna cen: český web platí v Kč, ostatní jazyky v USD. Server (whop-checkout)
+// dostane stejnou měnu a cenu si vezme ze své vlastní mapy.
+function siteCurrency() {
+  const l = (document.documentElement.lang || "en").slice(0, 2).toLowerCase();
+  return l === "cs" ? "czk" : "usd";
+}
+function pkgPrice(pkg, cur) {
+  return (cur || siteCurrency()) === "czk" && pkg.priceCzk ? pkg.priceCzk : pkg.price;
+}
+// Formát ceny v měně webu: "1 400 Kč" / "$70".
+function fmtPrice(n, cur) {
+  const v = Math.round(Number(n) || 0);
+  if ((cur || siteCurrency()) === "czk") return v.toLocaleString("cs-CZ") + "\u00a0Kč";
+  return "$" + v.toLocaleString("en-US");
+}
 
 // Neplatný/neznámý package_key (poškozená data, testovací/admin řádek,
 // překlep) spadne na PACKAGES[0] — nejmenší a nejlevnější balíček. Dřív
@@ -53,6 +73,6 @@ function packageMeta(pkg) {
     qualifyingTickets: 5,
     qualifyingTicketProfitPct: 0.5,
     payoutBufferPct: 5,
-    resetFee: Math.round(pkg.price * 0.4),
+    resetFee: Math.round(pkgPrice(pkg) * 0.4), // v měně webu (fmtPrice)
   };
 }

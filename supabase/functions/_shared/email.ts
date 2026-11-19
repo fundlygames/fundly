@@ -7,6 +7,7 @@
 // Jazyky: šablony pro hráče mají poslední parametr `lang` (výchozí "en", takže staré
 // volání funguje beze změny). "cs" = česky (i pro slovenské hráče), cokoli jiného = anglicky.
 // Jazyk hráče zjistí _shared/user-lang.ts (userLang); předměty jsou v `subjects` níže.
+import { formatPrice } from "./packages.ts";
 
 export async function sendEmail(params: {
   to: string;
@@ -126,7 +127,7 @@ export function accountClosedHtml(pkgName: string, reason: string, restartLink: 
     ? {
       h: `Tvůj účet ${pkgName} byl uzavřen`,
       reason: "Důvod:",
-      body: `Týká se to jen tvého simulovaného účtu — nic jiného. Novou Challenge můžeš začít kdykoli.${resetPrice ? ` Nebo restartuj svůj balíček ${pkgName} se zvýhodněným resetem: <b style="color:#e8e8ec">${money(resetPrice, lang)}</b> (40 % standardní ceny) — přihlas se do dashboardu a klikni na <b style="color:#e8e8ec">Resetovat můj účet</b>.` : " Restart stejného balíčku je zvýhodněný na 40 % standardní ceny."}`,
+      body: `Týká se to jen tvého simulovaného účtu — nic jiného. Novou Challenge můžeš začít kdykoli.${resetPrice ? ` Nebo restartuj svůj balíček ${pkgName} se zvýhodněným resetem: <b style="color:#e8e8ec">${formatPrice(resetPrice, "czk")}</b> (40 % standardní ceny) — přihlas se do dashboardu a klikni na <b style="color:#e8e8ec">Resetovat můj účet</b>.` : " Restart stejného balíčku je zvýhodněný na 40 % standardní ceny."}`,
       btn: resetPrice ? "Resetovat můj účet" : "Začít novou Challenge",
     }
     : {
@@ -335,7 +336,7 @@ export function phaseExpiryWarningHtml(p: {
         ? `Do cílového zisku (+${target}) ti teď chybí zhruba <b style="color:#ffffff">${money(p.remainingProfit, lang)}</b>.`
         : `Cílového zisku (+${target}) jsi už dosáhl(a) &mdash; ověř si, že máš i potřebné kvalifikační tipy.`,
       p1: `Tvůj účet ${p.pkgName} má na každou fázi časový limit 30 dní. Abys Fázi ${p.phase} splnil(a), musíš do jejího konce dosáhnout cílového zisku a mít potřebné kvalifikační tipy.`,
-      p2: `Pokud časový limit uplyne a fáze nebude splněná, účet se uzavře podle <a href="${p.rulesLink}" style="color:#14f195">pravidel Challenge</a>. Stejný balíček pak můžeš restartovat za zvýhodněnou cenu resetu ${money(p.resetPrice, lang)}.`,
+      p2: `Pokud časový limit uplyne a fáze nebude splněná, účet se uzavře podle <a href="${p.rulesLink}" style="color:#14f195">pravidel Challenge</a>. Stejný balíček pak můžeš restartovat za zvýhodněnou cenu resetu ${formatPrice(p.resetPrice, "czk")}.`,
       btn: "Otevřít můj dashboard",
       q: "Máš otázky? Stačí odpovědět na tento e-mail &mdash; čte ho skutečný člověk.",
       why: "Toto servisní upozornění dostáváš, protože máš aktivní účet Fundly. Fundly nabízí výhradně simulované účty, nepracuje se se skutečnými penězi.",

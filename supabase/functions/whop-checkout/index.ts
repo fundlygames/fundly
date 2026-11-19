@@ -1,12 +1,13 @@
 // whop-checkout — vytvoří Whop checkout configuration a vrátí hosted checkout URL.
-// POST { packageKey, email, reset?, referralCode?, tracking? }
-//   → { checkoutUrl, sessionId, planId, discount, referralStatus }
+// POST { packageKey, email, reset?, referralCode?, tracking?, currency? }
+//   → { checkoutUrl, sessionId, planId, discount, referralStatus, currency }
+// currency "czk" (český web) = cena v Kč z PACKAGES[].priceCzk přes inline plán; jinak USD.
 // discount = sleva z programu „Pozvi kamaráda" (_shared/referral.ts), kterou server sám
 // ověřil a promítl do ceny: { kind: "voucher" | "referral", pct, listPrice, price } nebo null.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders, handleCors, jsonResponse } from "../_shared/cors.ts";
-import { packageByKey, whopPlanId, resetPrice } from "../_shared/packages.ts";
+import { packageByKey, whopPlanId, resetPrice, priceIn } from "../_shared/packages.ts";
 import { whopFetch } from "../_shared/whop.ts";
 import { launchCapacity, soldCount, isInvited } from "../_shared/capacity.ts";
 import { resolveCheckoutDiscount, discountedPrice, type CheckoutDiscount, type ReferralStatus } from "../_shared/referral.ts";
@@ -33,7 +34,7 @@ serve(async (req) => {
   }
 
   try {
-    const { packageKey, email, reset, tracking, referralCode } = await req.json();
+    const { packageKey, email, reset, tracking, referralCode, currency } = await req.json();
 
     const pkg = packageByKey(String(packageKey ?? ""));
     if (!pkg) return jsonResponse({ error: "Neznámý balíček." }, 400);
@@ -158,15 +159,19 @@ serve(async (req) => {
 
     // reset i sleva z doporučení mají vlastní (nižší) cenu, proto nikdy nepoužijí pevný
     // Whop plán balíčku — cenu po slevě nese inline plán, klient ji nemůže změnit
-    const basePrice = resetAccountId ? resetPrice(pkg) : pkg.price;
+    // Měna: klient jen říká, kterou chce (cs web → "czk"); cenu bere server ze své mapy.
+    const priced = priceIn(pkg, currency);
+    const basePrice = resetAccountId ? resetPrice(pkg, priced.currency) : priced.price;
     const finalPrice = discount ? discountedPrice(basePrice, discount.pct) : basePrice;
-    const planId = resetAccountId || discount ? null : whopPlanId(pkg.key);
+    // Pevné Whop plány jsou v USD → cena v Kč (stejně jako reset a sleva) jde vždy inline plánem.
+    const planId = resetAccountId || discount || priced.currency !== pkg.currency ? null : whopPlanId(pkg.key);
     const body: Record<string, unknown> = {
       // po zaplacení Whop přesměruje zpět na dashboard
       redirect_url: `${SITE_URL}/dashboard.html?paid=1`,
       metadata: {
         package_key: pkg.key,
         email: String(email).trim(),
+        price_currency: priced.currency,
         ...(resetAccountId ? { reset_account_id: resetAccountId } : {}),
         ...(checkoutIp ? { checkout_ip: checkoutIp } : {}),
         ...(discount ? { referral_kind: discount.kind, referral_discount_pct: String(discount.pct) } : {}),
@@ -181,7 +186,7 @@ serve(async (req) => {
       body.plan = {
         // inline plán company_id vyžaduje (na nejvyšší úrovni body ho Whop naopak odmítá)
         company_id: Deno.env.get("WHOP_COMPANY_ID"),
-        currency: pkg.currency,
+        currency: priced.currency,
         initial_price: finalPrice,
         plan_type: "one_time",
         // Whop: title max. 30 znaků (druh slevy je v metadatech referral_kind)
@@ -228,6 +233,7 @@ serve(async (req) => {
       planId: planId ?? checkout.plan?.id ?? null,
       discount: discount ? { kind: discount.kind, pct: discount.pct, listPrice: basePrice, price: finalPrice } : null,
       referralStatus,
+      currency: priced.currency,
     });
   } catch (err) {
     console.error("whop-checkout error:", err);

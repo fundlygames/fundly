@@ -299,7 +299,7 @@ const FUNDLY_I18N = (() => {
       },
       cta: {
         heading: "Připraveni otestovat svou analytiku?", sub: "Otestujte své analytické schopnosti. Bez vlastního bankrollu, jen vaše dovednosti.",
-        start: "Spustit Challenge", from: "Od $49", oneTime: "Jednorázový poplatek", support: "Podpora 24/7",
+        start: "Spustit Challenge", from: "Od 980 Kč", oneTime: "Jednorázový poplatek", support: "Podpora 24/7",
       },
       contact: {
         heading: "Ozvěte se nám", sub: "Dotaz na balíček, odměnu nebo váš účet? Napište nám.",
