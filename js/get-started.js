@@ -20,8 +20,8 @@
       fbq("track", "InitiateCheckout", {
         content_ids: [active],
         content_name: p.name,
-        currency: "USD",
-        value: p.price,
+        currency: siteCurrency().toUpperCase(),
+        value: pkgPrice(p),
       });
     }
     window.location.href = "checkout?package=" + encodeURIComponent(active);
@@ -37,7 +37,7 @@
         ${p.top ? `<span class="badge">TOP</span>` : ""}
         <span class="nm">${p.name}</span>
         <span class="cap">${usd(p.cap)}</span>
-        <span class="price">${promoActive() ? `<span class="was">${usd(p.price)}</span> ` : ""}${usd(promoActive() ? promoPrice(p.price) : p.price)} <span class="lbl">${t("packages.oneTime")}</span></span>
+        <span class="price">${promoActive() ? `<span class="was">${fmtPrice(pkgPrice(p))}</span> ` : ""}${fmtPrice(promoActive() ? promoPrice(pkgPrice(p)) : pkgPrice(p))} <span class="lbl">${t("packages.oneTime")}</span></span>
       </button>`).join("");
   }
 
@@ -70,13 +70,13 @@
     renderPkgGrid();
     renderDetails();
 
-    const shownPrice = promoActive() ? promoPrice(pkg.price) : pkg.price;
-    const wasHtml = promoActive() ? `<span class="was">${usd(pkg.price)}</span> ` : "";
+    const shownPrice = promoActive() ? promoPrice(pkgPrice(pkg)) : pkgPrice(pkg);
+    const wasHtml = promoActive() ? `<span class="was">${fmtPrice(pkgPrice(pkg))}</span> ` : "";
 
     $("gsSbSize").textContent = usd(pkg.cap);
-    $("gsSbPrice").innerHTML = wasHtml + usd(shownPrice);
+    $("gsSbPrice").innerHTML = wasHtml + fmtPrice(shownPrice);
     $("gsMbSize").textContent = usd(pkg.cap);
-    $("gsMbPrice").innerHTML = wasHtml + usd(shownPrice);
+    $("gsMbPrice").innerHTML = wasHtml + fmtPrice(shownPrice);
     const promoNote = $("gsPromoNote");
     if (promoNote) promoNote.textContent = promoActive() ? t("packages.promoTag").replace("{pct}", PROMO.percent).replace("{code}", PROMO.code) : "";
   }

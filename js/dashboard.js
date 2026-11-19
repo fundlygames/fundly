@@ -1042,7 +1042,7 @@ function showLimitedDashboard(accounts) {
 function resetOfferText(pkgKey) {
   const pkg = packageByKey(pkgKey);
   const price = packageMeta(pkg).resetFee;
-  return { pkg, price, text: ftf("dashjs.reset.offer", { name: pkg.name, price: usd(price), full: usd(pkg.price) }) };
+  return { pkg, price, text: ftf("dashjs.reset.offer", { name: pkg.name, price: fmtPrice(price), full: fmtPrice(pkgPrice(pkg)) }) };
 }
 
 // Tlačítko resetu šlo stisknout jen jednou: po kliknutí zůstalo "disabled" — když se hráč
@@ -1094,7 +1094,7 @@ function wireResetPanel(panelId, textId, btnId, noteId, pkgKey) {
   const offer = resetOfferText(pkgKey);
   document.getElementById(textId).textContent = offer.text;
   const btn = document.getElementById(btnId);
-  btn.textContent = ftf("dashjs.reset.btn", { price: usd(offer.price) });
+  btn.textContent = ftf("dashjs.reset.btn", { price: fmtPrice(offer.price) });
   btn.onclick = () => startAccountReset(pkgKey, btn, document.getElementById(noteId));
   panel.hidden = false;
 }
@@ -1255,13 +1255,14 @@ async function syncChallengeAccount() {
       // Hodnota = cena po slevě, kterou web ukazuje (promoPrice); skutečnou zaplacenou
       // částku klient nezná — přesnou hodnotu posílá server-side CAPI z webhooku,
       // které Meta spojí přes stejné eventID (deduplikace).
-      const paidValue = typeof promoActive === "function" && promoActive() ? promoPrice(pkg.price) : pkg.price;
+      const paidValue = typeof promoActive === "function" && promoActive() ? promoPrice(pkgPrice(pkg)) : pkgPrice(pkg);
+      const paidCurrency = siteCurrency().toUpperCase();
       let purchaseEventId = null;
       try { purchaseEventId = localStorage.getItem("fundly:purchaseEventId"); localStorage.removeItem("fundly:purchaseEventId"); } catch (e) { /* ignore */ }
       if (typeof fbq === "function") {
         fbq("track", "Purchase", {
           value: paidValue,
-          currency: "USD",
+          currency: paidCurrency,
           content_ids: [account.package_key],
           content_name: pkg.name,
           content_type: "product",
@@ -1271,8 +1272,8 @@ async function syncChallengeAccount() {
         gtag("event", "purchase", {
           transaction_id: account.id,
           value: paidValue,
-          currency: "USD",
-          items: [{ item_id: account.package_key, item_name: pkg.name, price: pkg.price, quantity: 1 }],
+          currency: paidCurrency,
+          items: [{ item_id: account.package_key, item_name: pkg.name, price: pkgPrice(pkg), quantity: 1 }],
         });
       }
     }
@@ -2948,7 +2949,9 @@ function renderAffiliate(data) {
         const tickets = r.ticketsCapped ? "5+" : String(r.tickets);
         const amt = r.currency === "eur"
           ? `${(Number(r.amount) || 0).toLocaleString("en-US")} €`
-          : usd(Number(r.amount) || 0);
+          : r.currency === "czk"
+            ? fmtPrice(Number(r.amount) || 0, "czk")
+            : usd(Number(r.amount) || 0);
         return `<tr>
           <td>${esc(r.email)}</td>
           <td>${esc(affPlanLabel(r.packageKey) || "?")}</td>

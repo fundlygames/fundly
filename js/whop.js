@@ -133,6 +133,8 @@ const FundlyCheckout = {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           packageKey, email, tracking: trackingContext(),
+          // měna webu (cs → Kč); cenu si server bere ze své mapy balíčků
+          currency: typeof siteCurrency === "function" ? siteCurrency() : "usd",
           ...(opts && opts.reset ? { reset: true } : {}),
           ...(getReferralCode() ? { referralCode: getReferralCode() } : {}),
         }),

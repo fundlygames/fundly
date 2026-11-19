@@ -18,7 +18,7 @@ import { jsonResponse } from "../_shared/cors.ts";
 import { isValidAdminKey } from "../_shared/admin.ts";
 import { sendEmail, accountClosedHtml, phaseExpiryWarningHtml, subjects, deadlineLabel } from "../_shared/email.ts";
 import { userLang } from "../_shared/user-lang.ts";
-import { packageByKey, resetPrice } from "../_shared/packages.ts";
+import { packageByKey, resetPrice, currencyForLang } from "../_shared/packages.ts";
 import { enforceLossLimits } from "../_shared/loss-enforce.ts";
 import { type PhaseAccount, type PhaseTicket, isPhaseExpired, reachedPhaseTarget, provenPhaseProfit, targetProfit, phaseWarningDeadline, isExcludedFromExpiry, expiryReason, phaseDeadlineMs } from "../_shared/phase-expiry.ts";
 
@@ -105,7 +105,7 @@ serve(async (req) => {
         html: phaseExpiryWarningHtml({
           pkgName: pkg.name, phase: a.phase,
           deadlineLabel: deadlineLabel(deadline, lang),
-          daysLeft, remainingProfit, targetProfit: targetProfit(a), resetPrice: resetPrice(pkg),
+          daysLeft, remainingProfit, targetProfit: targetProfit(a), resetPrice: resetPrice(pkg, currencyForLang(lang)),
           dashboardLink: `${SITE_URL}/dashboard`, rulesLink: `${SITE_URL}/rules`,
         }, lang),
       });
@@ -140,7 +140,7 @@ serve(async (req) => {
           .then((lang) => sendEmail({
             to: String(acc.email),
             subject: subjects.accountClosed(lang),
-            html: accountClosedHtml(pkg.name, reason, `${SITE_URL}/dashboard`, resetPrice(pkg), lang),
+            html: accountClosedHtml(pkg.name, reason, `${SITE_URL}/dashboard`, resetPrice(pkg, currencyForLang(lang)), lang),
           }))
           .then((r) => { if (!r.sent) console.error("account-closed e-mail selhal:", r.error); })
           .catch((e) => console.error("account-closed e-mail error:", e));
@@ -165,7 +165,7 @@ serve(async (req) => {
             .then((lang) => sendEmail({
               to: String(acc.email),
               subject: subjects.accountClosed(lang),
-              html: accountClosedHtml(pkg.name, reason, `${SITE_URL}/dashboard`, resetPrice(pkg), lang),
+              html: accountClosedHtml(pkg.name, reason, `${SITE_URL}/dashboard`, resetPrice(pkg, currencyForLang(lang)), lang),
             }))
             .then((r) => { if (!r.sent) console.error("account-closed e-mail selhal:", r.error); })
             .catch((e) => console.error("account-closed e-mail error:", e));

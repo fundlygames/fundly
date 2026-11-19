@@ -116,7 +116,7 @@
         ${p.top ? '<span class="top-badge">TOP</span>' : ""}
         <span class="pkg-ring" style="--pct:${pct}%"><span class="pkg-ring-inner">${usdShort(p.cap)}</span></span>
         <span class="nm">${p.name}</span>
-        <span class="price">${promoActive() ? `<span class="was">${usd(p.price)}</span> ` : ""}${usd(promoActive() ? promoPrice(p.price) : p.price)} <span class="lbl">${t("packages.oneTime")}</span></span>
+        <span class="price">${promoActive() ? `<span class="was">${fmtPrice(pkgPrice(p))}</span> ` : ""}${fmtPrice(promoActive() ? promoPrice(pkgPrice(p)) : pkgPrice(p))} <span class="lbl">${t("packages.oneTime")}</span></span>
       </button>`;
     }).join("");
   }
@@ -174,7 +174,7 @@
   // ---------- „Pozvi kamaráda": sleva ověřená serverem (whop-checkout) ----------
   // Jen zobrazení — skutečnou cenu nese Whop plán, který s ní založil server (js/referral.js má texty).
   function refState() {
-    return state.ref && state.ref.pkg === state.pkg ? state.ref : null;
+    return state.ref && state.ref.pkg === state.pkg && state.ref.cur === siteCurrency() ? state.ref : null;
   }
   function refDiscount() {
     const r = refState();
@@ -182,11 +182,11 @@
   }
   function shownPriceOf(p) {
     const d = refDiscount();
-    const base = d ? d.price : p.price;
+    const base = d ? d.price : pkgPrice(p);
     return promoActive() ? promoPrice(base) : base;
   }
   function wasHtmlOf(p) {
-    return promoActive() || refDiscount() ? `<span class="was">${usd(p.price)}</span> ` : "";
+    return promoActive() || refDiscount() ? `<span class="was">${fmtPrice(pkgPrice(p))}</span> ` : "";
   }
   function refTagHtml() {
     const R = window.FundlyReferral;
@@ -210,11 +210,11 @@
         ${refTagHtml()}
       </div>
       <div class="co-checkout-price">
-        <span class="v">${wasHtml}${usd(shownPrice)}</span>
+        <span class="v">${wasHtml}${fmtPrice(shownPrice)}</span>
         <span class="lbl">${t("co.oneTimeFee")}</span>
       </div>`;
     $("coMbPkg").textContent = p.name;
-    $("coMbPrice").innerHTML = wasHtml + usd(shownPrice);
+    $("coMbPrice").innerHTML = wasHtml + fmtPrice(shownPrice);
   }
 
   // ---------- summary (right column) ----------
@@ -227,7 +227,7 @@
     $("summaryPanel").innerHTML = `
       <div class="sum-hero">
         <div class="sum-hero-lbl">${t("co.totalDueToday")}</div>
-        <div class="sum-hero-price">${wasHtml}${usd(shownPrice)}</div>
+        <div class="sum-hero-price">${wasHtml}${fmtPrice(shownPrice)}</div>
         <div class="sum-hero-note">${p.name} · ${usd(p.cap)} ${t("packages.simCapital")}</div>
         ${promoActive() ? `<span class="price-promo-tag">${t("packages.promoTag").replace("{pct}", PROMO.percent).replace("{code}", PROMO.code)}</span>` : ""}
         ${refTagHtml()}
@@ -237,12 +237,12 @@
         <div class="sum-split-lbl"><span>${t("stats.split")}</span><b>${m.profitSplit}% ${t("co.yours")}</b></div>
       </div>
       <div class="sum-row"><span class="k">${t("co.maxEntrySize")}</span><span class="v">${usd(m.maxStake)}</span></div>
-      <p class="sum-recur">${usd(shownPrice)} ${t("co.todaySuffix")} ${t("co.recurLine")}</p>
+      <p class="sum-recur">${fmtPrice(shownPrice)} ${t("co.todaySuffix")} ${t("co.recurLine")}</p>
       <ul class="sum-feats">
         <li>${check}${t("co.featPhases")}</li>
         <li>${check}${t("co.featPartner")}</li>
         <li>${check}${t("co.featWithdraw")}</li>
-        <li>${check}${t("co.featResetPrefix")} ${usd(m.resetFee)} ${t("co.featResetSuffix")}</li>
+        <li>${check}${t("co.featResetPrefix")} ${fmtPrice(m.resetFee)} ${t("co.featResetSuffix")}</li>
         <li>${check}${t("co.featSports")}</li>
       </ul>
       <p class="sum-note">${t("co.oneTimeNoSub")}<br />${t("co.simDisclosure")}</p>
@@ -299,8 +299,8 @@
         fbq("track", "AddPaymentInfo", {
           content_ids: [state.pkg],
           content_name: pkg().name,
-          currency: "USD",
-          value: pkg().price,
+          currency: siteCurrency().toUpperCase(),
+          value: pkgPrice(pkg()),
         });
       }
       startPayment();
@@ -312,8 +312,8 @@
       fbq("track", "InitiateCheckout", {
         content_ids: [state.pkg],
         content_name: pkg().name,
-        currency: "USD",
-        value: pkg().price,
+        currency: siteCurrency().toUpperCase(),
+        value: pkgPrice(pkg()),
       });
     }
     goToStep(2);
@@ -462,7 +462,8 @@
   // spinner stays until Whop reports its content has rendered, and a "try
   // again" hint appears if that takes long.
   const pay = { key: null, session: null, ready: false, startedAt: 0, timer: null, handle: null };
-  const payKey = (pkgKey, email) => pkgKey + "|" + String(email).trim().toLowerCase();
+  // měna je součástí klíče: po přepnutí jazyka cs ↔ jiný se platba v Kč / USD založí znovu
+  const payKey = (pkgKey, email) => pkgKey + "|" + siteCurrency() + "|" + String(email).trim().toLowerCase();
 
   // Return URL after payment (the site also runs under the /fundly/ path on GitHub Pages).
   function returnUrl() {
@@ -582,7 +583,7 @@
         // completes in place, so send the buyer to the dashboard ourselves.
         onComplete: () => { window.location.href = returnUrl(); },
       };
-      // The site advertises the discounted price ($49 with NEWFUNDLY, ...) but the fixed
+      // The site advertises the discounted price ($49 / 980 Kč with NEWFUNDLY, ...) but the fixed
       // Whop plans charge list price — apply the code before the buyer sees the total.
       if (typeof promoActive === "function" && promoActive()) options.promoCode = PROMO.code;
       const group = window.WhopElements().checkout.create(options);
@@ -626,7 +627,7 @@
         if (pay.key !== key) return data; // superseded while the request was in flight
         state.checkoutUrl = data.checkoutUrl;
         // server-verified referral discount (or why a friend's link didn't apply) → show it
-        state.ref = { pkg: pkgKey, discount: data.discount || null, status: data.referralStatus || null };
+        state.ref = { pkg: pkgKey, cur: data.currency || "usd", discount: data.discount || null, status: data.referralStatus || null };
         renderCheckoutRow();
         renderSummary();
         if (!data.sessionId || !data.planId) throw new Error(t("co.errInvalidGatewayResponse"));
@@ -718,7 +719,11 @@
     renderCheckoutRow();
     renderSummary();
   }
-  document.addEventListener("fundly:lang-changed", renderAll);
+  document.addEventListener("fundly:lang-changed", () => {
+    renderAll();
+    // přepnutí cs ↔ jiný jazyk mění měnu platby → otevřená platba se musí založit znovu
+    if (state.step === 3) startPayment();
+  });
 
   renderAll();
   goToStep(1);

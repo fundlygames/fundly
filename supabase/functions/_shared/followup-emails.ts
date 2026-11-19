@@ -6,7 +6,7 @@
 // Ceny se berou z PACKAGES (nikdy natvrdo) a stejně tak reset — jen sleva
 // NEWFUNDLY (30 %) je tady konstanta, zrcadlí js/packages.js PROMO.percent.
 
-import { PACKAGES, resetPrice } from "./packages.ts";
+import { PACKAGES, resetPrice, priceIn, formatPrice, type PackageDef } from "./packages.ts";
 import { localizeReason } from "./email.ts";
 
 export type Lang = "en" | "pl" | "cs";
@@ -26,6 +26,10 @@ const PROMO_PCT = 30;
 const promo = (price: number) => Math.round(price * (1 - PROMO_PCT / 100));
 // cs: "$25 000" (mezera jako oddělovač tisíců, jako na webu); en/pl beze změny "$25,000"
 const usd = (n: number, lang?: Lang) => "$" + n.toLocaleString(lang === "cs" ? "cs-CZ" : "en-US");
+// Ceny balíčků: český e-mail v Kč (jako český web, js/packages.js siteCurrency), jinak USD.
+// Kapitál (cap) zůstává v USD přes usd().
+const curOf = (lang?: Lang) => (lang === "cs" ? "czk" : "usd");
+const pp = (pkg: PackageDef, lang?: Lang) => priceIn(pkg, curOf(lang)).price;
 
 function esc(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -148,6 +152,7 @@ function pick(lang: Lang) {
 export function renderFollowup(track: Track, step: number, ctx: FollowupContext): { subject: string; html: string } {
   const tr = pick(ctx.lang);
   const $ = (n: number) => usd(n, ctx.lang);
+  const $p = (n: number) => formatPrice(n, curOf(ctx.lang));
   const site = ctx.siteUrl;
   const starter = PACKAGES.starter, standard = PACKAGES.standard, advanced = PACKAGES.advanced;
 
@@ -158,7 +163,7 @@ export function renderFollowup(track: Track, step: number, ctx: FollowupContext)
         ctx,
         preheader: tr("Simulated capital up to $100,000. The most you can lose is the fee.", "Symulowany kapitał do $100 000. Maksymalnie tracisz opłatę.", "Simulovaný kapitál až $100 000. Nejvíc můžeš přijít o poplatek."),
         hero: { label: tr("Your code", "Twój kod", "Tvůj kód"), value: tr("30% OFF", "-30%", "-30 %"), chip: "NEWFUNDLY",
-          sub: tr(`Starter ${$(promo(starter.price))} instead of ${$(starter.price)}`, `Starter ${$(promo(starter.price))} zamiast ${$(starter.price)}`, `Starter za ${$(promo(starter.price))} místo ${$(starter.price)}`) },
+          sub: tr(`Starter ${$p(promo(pp(starter, ctx.lang)))} instead of ${$p(pp(starter, ctx.lang))}`, `Starter ${$p(promo(pp(starter, ctx.lang)))} zamiast ${$p(pp(starter, ctx.lang))}`, `Starter za ${$p(promo(pp(starter, ctx.lang)))} místo ${$p(pp(starter, ctx.lang))}`) },
         greeting: tr("Hi,", "Cześć,", "Ahoj,"),
         paragraphs: [tr("Here's the whole idea of Fundly in 30 seconds:", "Oto Fundly w 30 sekund:", "Tady je celý princip Fundly za 30 sekund:")],
         bullets: tr([
@@ -183,7 +188,7 @@ export function renderFollowup(track: Track, step: number, ctx: FollowupContext)
       return { subject, html: layout({
         ctx,
         preheader: tr("Rules, losses and rewards, answered straight.", "Zasady, straty i wypłaty, prosto i szczerze.", "Pravidla, ztráty a odměny, na rovinu."),
-        hero: { label: tr("Starter from", "Starter od", "Starter od"), value: $(promo(starter.price)), was: $(starter.price),
+        hero: { label: tr("Starter from", "Starter od", "Starter od"), value: $p(promo(pp(starter, ctx.lang))), was: $p(pp(starter, ctx.lang)),
           chip: "NEWFUNDLY", sub: tr("The most you can lose is the fee", "Najwięcej, co możesz stracić, to opłata", "Nejvíc můžeš přijít o poplatek") },
         greeting: tr("Hi,", "Cześć,", "Ahoj,"),
         paragraphs: [tr("The three questions we hear the most:", "Trzy pytania, które słyszymy najczęściej:", "Tři otázky, které slýcháme nejčastěji:")],
@@ -200,31 +205,31 @@ export function renderFollowup(track: Track, step: number, ctx: FollowupContext)
           `${b("Jaká jsou pravidla?")} Max. celková ztráta 10 %, max. denní ztráta 4 %, max. velikost tipu 1,5 % kapitálu, kurzy 1.00–8.00. 30 dní na fázi, žádné skryté háčky.`,
           `${b("Jak fungují odměny?")} Jakmile máš účet Fundly Partner, žádáš o odměny s podílem 80 %, a to po rychlém ověření totožnosti.`,
         ]),
-        cta: { label: tr("Start from ", "Zacznij od ", "Začít od ") + $(promo(starter.price)), url: `${site}/get-started` },
+        cta: { label: tr("Start from ", "Zacznij od ", "Začít od ") + $p(promo(pp(starter, ctx.lang))), url: `${site}/get-started` },
         secondary: { label: tr("Or try the free preview first", "Najpierw zobacz darmowy podgląd", "Nebo si nejdřív vyzkoušej náhled zdarma"), url: `${site}/` },
         outro: tr("Any other question? Just reply to this email.", "Każde pytanie? Odpowiedz na tę wiadomość.", "Máš jinou otázku? Stačí odpovědět na tento e-mail."),
       }) };
     }
     const subject = tr("Our last email: 50% off Advanced", "Ostatni e-mail: 50% zniżki na Advanced", "Náš poslední e-mail: 50% sleva na Advanced");
-    const half = Math.round(advanced.price / 2);
+    const half = Math.round(pp(advanced, ctx.lang) / 2);
     return { subject, html: layout({
       ctx,
-      preheader: tr(`$25,000 of simulated capital for ${$(half)} instead of ${$(advanced.price)}.`, `Symulowany kapitał $25 000 za ${$(half)} zamiast ${$(advanced.price)}.`, `${$(advanced.cap)} simulovaného kapitálu za ${$(half)} místo ${$(advanced.price)}.`),
+      preheader: tr(`$25,000 of simulated capital for ${$p(half)} instead of ${$p(pp(advanced, ctx.lang))}.`, `Symulowany kapitał $25 000 za ${$p(half)} zamiast ${$p(pp(advanced, ctx.lang))}.`, `${$(advanced.cap)} simulovaného kapitálu za ${$p(half)} místo ${$p(pp(advanced, ctx.lang))}.`),
       hero: { label: tr("Last offer", "Ostatnia oferta", "Poslední nabídka"), value: tr("50% OFF Advanced", "-50% Advanced", "-50 % Advanced"), chip: "LAST50",
-        sub: tr(`${$(half)} instead of ${$(advanced.price)}, $25,000 capital`, `${$(half)} zamiast ${$(advanced.price)}, kapitał $25 000`, `${$(half)} místo ${$(advanced.price)}, kapitál ${$(advanced.cap)}`) },
+        sub: tr(`${$p(half)} instead of ${$p(pp(advanced, ctx.lang))}, $25,000 capital`, `${$p(half)} zamiast ${$p(pp(advanced, ctx.lang))}, kapitał $25 000`, `${$p(half)} místo ${$p(pp(advanced, ctx.lang))}, kapitál ${$(advanced.cap)}`) },
       greeting: tr("Hi,", "Cześć,", "Ahoj,"),
       paragraphs: tr([
         "We don't like stuffing inboxes with promos, so this is the last one from us.",
         `If price was the hesitation, here's our best offer: code ${b("LAST50")} gives ${b("50% off the Advanced package")}.`,
-        `Prefer to start small? ${b("NEWFUNDLY")} still gives you Starter for ${b($(promo(starter.price)))}.`,
+        `Prefer to start small? ${b("NEWFUNDLY")} still gives you Starter for ${b($p(promo(pp(starter, ctx.lang))))}.`,
       ], [
         "Nie lubimy zasypywać skrzynek ofertami, więc to ostatnia wiadomość od nas.",
         `Jeśli wahała Cię cena, oto nasza najlepsza oferta: kod ${b("LAST50")} daje ${b("50% zniżki na pakiet Advanced")}.`,
-        `Wolisz zacząć od małego? ${b("NEWFUNDLY")} wciąż daje Starter za ${b($(promo(starter.price)))}.`,
+        `Wolisz zacząć od małego? ${b("NEWFUNDLY")} wciąż daje Starter za ${b($p(promo(pp(starter, ctx.lang))))}.`,
       ], [
         "Nemáme rádi zahlcené schránky, takže tohle je od nás poslední nabídka.",
         `Pokud tě brzdila cena, tady je naše nejlepší nabídka: kód ${b("LAST50")} ti dává ${b("50% slevu na balíček Advanced")}.`,
-        `Chceš začít s menším? ${b("NEWFUNDLY")} ti pořád dává Starter za ${b($(promo(starter.price)))}.`,
+        `Chceš začít s menším? ${b("NEWFUNDLY")} ti pořád dává Starter za ${b($p(promo(pp(starter, ctx.lang))))}.`,
       ]),
       cta: { label: tr("Claim my offer", "Skorzystaj z oferty", "Využít nabídku"), url: `${site}/get-started?package=advanced` },
       outro: tr("Good luck with your picks.", "Powodzenia z typami.", "Hodně štěstí s tipy."),
@@ -233,8 +238,8 @@ export function renderFollowup(track: Track, step: number, ctx: FollowupContext)
 
   // ---------- trasa B: spálený účet, speciální reset ----------
   const pkg = PACKAGES[ctx.packageKey ?? "starter"] ?? starter;
-  const reset = $(resetPrice(pkg));
-  const full = $(pkg.price);
+  const reset = $p(resetPrice(pkg, curOf(ctx.lang)));
+  const full = $p(pp(pkg, ctx.lang));
   const dashboard = `${site}/dashboard`;
   const closedDate = fmtDate(ctx.closedAt, ctx.lang);
   const reason = ctx.reason ? esc(localizeReason(ctx.reason, ctx.lang)) : "";
@@ -310,13 +315,13 @@ export function renderFollowup(track: Track, step: number, ctx: FollowupContext)
       greeting: tr("Hi,", "Cześć,", "Ahoj,"),
       paragraphs: tr([
         `This is our last reminder about your ${b("special reset")}: ${b(reset)} to restart ${esc(pkg.name)}, a fraction of a new purchase. It stays available in your dashboard.`,
-        `Want a bigger account this time? ${b("NEWFUNDLY")} gives 30% off any package, for example Standard ($10,000 simulated) for ${b($(promo(standard.price)))}.`,
+        `Want a bigger account this time? ${b("NEWFUNDLY")} gives 30% off any package, for example Standard ($10,000 simulated) for ${b($p(promo(pp(standard, ctx.lang))))}.`,
       ], [
         `To nasze ostatnie przypomnienie o Twoim ${b("specjalnym resecie")}: ${b(reset)} na restart pakietu ${esc(pkg.name)}, ułamek ceny nowego zakupu. Reset pozostaje dostępny w Twoim panelu.`,
-        `Chcesz tym razem większe konto? Kod ${b("NEWFUNDLY")} daje 30% zniżki na każdy pakiet, np. Standard ($10 000 symulowanego kapitału) za ${b($(promo(standard.price)))}.`,
+        `Chcesz tym razem większe konto? Kod ${b("NEWFUNDLY")} daje 30% zniżki na każdy pakiet, np. Standard ($10 000 symulowanego kapitału) za ${b($p(promo(pp(standard, ctx.lang))))}.`,
       ], [
         `Tohle je naše poslední připomínka tvého ${b("speciálního resetu")}: ${b(reset)} za restart balíčku ${esc(pkg.name)}, zlomek ceny nového nákupu. V dashboardu ti zůstává k dispozici.`,
-        `Chceš tentokrát větší účet? Kód ${b("NEWFUNDLY")} ti dává 30% slevu na jakýkoli balíček, například Standard (${$(standard.cap)} simulovaného kapitálu) za ${b($(promo(standard.price)))}.`,
+        `Chceš tentokrát větší účet? Kód ${b("NEWFUNDLY")} ti dává 30% slevu na jakýkoli balíček, například Standard (${$(standard.cap)} simulovaného kapitálu) za ${b($p(promo(pp(standard, ctx.lang))))}.`,
       ]),
       cta: { label: resetCta, url: dashboard },
       secondary: { label: tr("See packages", "Zobacz pakiety", "Zobrazit balíčky"), url: `${site}/get-started` },
@@ -334,9 +339,10 @@ export function renderFollowup(track: Track, step: number, ctx: FollowupContext)
 export function renderRecovery(ctx: FollowupContext): { subject: string; html: string } {
   const tr = pick(ctx.lang);
   const $ = (n: number) => usd(n, ctx.lang);
+  const $p = (n: number) => formatPrice(n, curOf(ctx.lang));
   const site = ctx.siteUrl;
   const pkg = PACKAGES[ctx.packageKey ?? ""] ?? PACKAGES.starter;
-  const price = promo(pkg.price);
+  const price = promo(pp(pkg, ctx.lang));
   const langParam = ctx.lang === "pl" || ctx.lang === "cs" ? `&lang=${ctx.lang}` : "";
   const link = `${site}/checkout?package=${encodeURIComponent(pkg.key)}&utm_source=email&utm_medium=recovery&utm_campaign=cart${langParam}`;
   const subject = tr(
@@ -347,7 +353,7 @@ export function renderRecovery(ctx: FollowupContext): { subject: string; html: s
   return { subject, html: layout({
     ctx,
     preheader: tr(`Your payment wasn't completed, nothing has been charged.`, `Płatność nie została dokończona, nic nie zostało pobrane.`, `Platba nebyla dokončena, nic ti nebylo strženo.`),
-    hero: { label: tr("Your order", "Twoje zamówienie", "Tvoje objednávka"), value: $(price), was: $(pkg.price),
+    hero: { label: tr("Your order", "Twoje zamówienie", "Tvoje objednávka"), value: $p(price), was: $p(pp(pkg, ctx.lang)),
       chip: "NEWFUNDLY", sub: tr(
         `${pkg.name} · $${pkg.cap.toLocaleString("en-US")} of simulated capital`,
         `${pkg.name} · $${pkg.cap.toLocaleString("en-US")} symulowanego kapitału`,
@@ -374,7 +380,7 @@ export function renderRecovery(ctx: FollowupContext): { subject: string; html: s
       `${b("Jednorázový poplatek")}, žádné předplatné, žádné skryté náklady. Víc než tuto částku nikdy neztratíš.`,
       `Platba se ti nenačítá v aplikaci Facebooku nebo Instagramu? Tento odkaz se otevře v běžném prohlížeči, kde funguje nejlépe.`,
     ]),
-    cta: { label: tr(`Complete my order for ${$(price)}`, `Dokończ zamówienie za ${$(price)}`, `Dokončit objednávku za ${$(price)}`), url: link },
+    cta: { label: tr(`Complete my order for ${$p(price)}`, `Dokończ zamówienie za ${$p(price)}`, `Dokončit objednávku za ${$p(price)}`), url: link },
     outro: tr(
       `Something didn't work, or have a question? ${b("Just reply to this email")}: a real person reads it and we'll sort it out.`,
       `Coś nie działało albo masz pytanie? ${b("Odpowiedz na tę wiadomość")}: czyta ją człowiek i to naprawimy.`,
