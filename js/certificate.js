@@ -166,22 +166,8 @@
     if (!logoPromise) {
       logoPromise = new Promise((resolve) => {
         const img = new Image();
-        // assets/logo.png má v pozadí zapečenou poloprůhlednou šedou šachovnici —
-        // pro certifikát ponechat jen zelenou značku
-        img.onload = () => {
-          try {
-            const c = document.createElement("canvas");
-            c.width = img.naturalWidth;
-            c.height = img.naturalHeight;
-            const x = c.getContext("2d");
-            x.drawImage(img, 0, 0);
-            const px = x.getImageData(0, 0, c.width, c.height);
-            const a = px.data;
-            for (let i = 0; i < a.length; i += 4) if (a[i + 1] - a[i] < 40) a[i + 3] = 0;
-            x.putImageData(px, 0, 0);
-            resolve(c);
-          } catch (e) { resolve(img); }
-        };
+        // nové logo (zeleno-fialový přechod) má čistě průhledné pozadí → kreslí se tak, jak je
+        img.onload = () => resolve(img);
         img.onerror = () => resolve(null);
         img.src = "assets/logo.png";
       });

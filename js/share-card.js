@@ -199,20 +199,8 @@
   const loadImg = (src) => new Promise((res) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src; });
   let logoP = null;
   function loadLogo() {
-    // stejně jako certifikát: assets/logo.png má zapečenou šedou šachovnici → ponechat jen zelenou značku
-    if (!logoP) logoP = loadImg("assets/logo.png").then((img) => {
-      if (!img) return null;
-      try {
-        const c = document.createElement("canvas");
-        c.width = img.naturalWidth; c.height = img.naturalHeight;
-        const x = c.getContext("2d");
-        x.drawImage(img, 0, 0);
-        const px = x.getImageData(0, 0, c.width, c.height);
-        for (let i = 0; i < px.data.length; i += 4) if (px.data[i + 1] - px.data[i] < 40) px.data[i + 3] = 0;
-        x.putImageData(px, 0, 0);
-        return c;
-      } catch (e) { return img; }
-    });
+    // nové logo (zeleno-fialový přechod) má čistě průhledné pozadí → kreslí se tak, jak je
+    if (!logoP) logoP = loadImg("assets/logo.png");
     return logoP;
   }
   async function ensureFonts() {
