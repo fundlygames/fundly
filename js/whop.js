@@ -238,7 +238,7 @@ const FundlyAuth = {
     if (/rate_limit/.test(code) || /rate limit|too many|security purposes|after \d+ seconds/i.test(msg)) return tr("forms.errRate");
     if (/same_password/.test(code) || /different from the old password/i.test(msg)) return tr("forms.errSamePassword");
     if (/weak_password/.test(code) || /at least \d+ char/i.test(msg)) return tr("forms.errWeakPassword");
-    if (/failed to fetch|networkerror|network request failed/i.test(msg)) return tr("forms.errNetwork");
+    if (/failed to fetch|load failed|networkerror|network request failed|fetch failed|timed? ?out/i.test(msg) || (err && err.name === "AuthRetryableFetchError")) return tr("forms.errNetwork");
     return msg;
   },
 
