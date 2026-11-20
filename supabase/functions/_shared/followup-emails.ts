@@ -126,7 +126,7 @@ function layout(l: Layout): string {
   <p style="margin:0;color:${C.white};font-weight:700">${esc(f.team)}</p>
 </td></tr>
 <tr><td style="padding:26px 30px 28px 30px"><div style="border-top:1px solid ${C.line};padding-top:16px;font-family:${FONT};font-size:11px;line-height:1.6;color:${C.muted}">
-  ${esc(f.why)}<br>Grindit LLC &middot; Sharjah Media City, Sharjah, UAE &middot; Reg. 2541536<br>
+  ${esc(f.why)}<br>Fundly s.r.o. &middot; Čenětická 2413/1a, 149 00 Praha 4, Czech Republic &middot; IČO 30237246<br>
   <a href="${esc(l.ctx.unsubscribeUrl)}" style="color:${C.muted};text-decoration:underline">${esc(f.unsub)}</a>
 </div></td></tr>
 </table></td></tr></table></body></html>`;

@@ -55,7 +55,7 @@
       brand: "Profesionální hodnoticí platforma pro sportovní analytiky. Až $100 000 simulovaného kapitálu a 80 % podíl z výkonu.",
       packages: "Balíčky", info: "Informace", how: "Jak to funguje", why: "Proč Fundly", faq: "Časté dotazy",
       support: "Podpora", contact: "Kontaktujte nás", telegram: "Chat na Telegramu", status: "Stav služby",
-      disclaimer: "Právní upozornění: Fundly.games provozuje společnost Grindit LLC (Sharjah Media City, Sharjah, SAE, reg. č. 2541536). Fundly Games není sázková kancelář, provozovatel hazardních her ani finanční instituce. Všechny služby, hodnoticí výzvy a metriky na této platformě slouží výhradně ke vzdělávacím a analytickým simulačním účelům a používají virtuální kredity s nulovou peněžní hodnotou. Poplatky za výzvy pokrývají licenci softwaru, vyhodnocování dat a přístup k analytické platformě.",
+      disclaimer: "Právní upozornění: Fundly.games provozuje společnost Fundly s.r.o. (Čenětická 2413/1a, 149 00 Praha 4, Česká republika, IČO 30237246). Fundly Games není sázková kancelář, provozovatel hazardních her ani finanční instituce. Všechny služby, hodnoticí výzvy a metriky na této platformě slouží výhradně ke vzdělávacím a analytickým simulačním účelům a používají virtuální kredity s nulovou peněžní hodnotou. Poplatky za výzvy pokrývají licenci softwaru, vyhodnocování dat a přístup k analytické platformě.",
       rights: "© 2026 Fundly. Všechna práva vyhrazena.",
       privacy: "Soukromí", terms: "Podmínky", rules: "Pravidla", disc: "Upozornění",
       refund: "Vrácení peněz", aml: "Zásady AML", restricted: "Vyloučené země", cookies: "Cookies",

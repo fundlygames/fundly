@@ -38,7 +38,7 @@ function resetHtml(actionLink: string, lang: Lang): string {
       <a href="${actionLink}" style="display:inline-block;background:#14f195;color:#020204;font-weight:700;text-decoration:none;padding:12px 24px;border-radius:10px">${x.btn}</a>
       <p style="color:#5a5a66;font-size:12px;line-height:1.6;margin:20px 0 0">${x.ignore}</p>
       <hr style="border:none;border-top:1px solid #ffffff1a;margin:20px 0" />
-      <p style="color:#5a5a66;font-size:11px;line-height:1.6;margin:0">Grindit LLC · Sharjah Media City, Sharjah, UAE · Reg. 2541536<br />${x.q} <a href="mailto:support@fundly.games" style="color:#7a7a86">support@fundly.games</a>.</p>
+      <p style="color:#5a5a66;font-size:11px;line-height:1.6;margin:0">Fundly s.r.o. · Čenětická 2413/1a, 149 00 Praha 4, Czech Republic · IČO 30237246<br />${x.q} <a href="mailto:support@fundly.games" style="color:#7a7a86">support@fundly.games</a>.</p>
     </div>
   </div>`;
 }
