@@ -56,7 +56,7 @@ export function csPlural(n: number, one: string, few: string, many: string): str
   return many;
 }
 
-const OPERATOR = "Grindit LLC · Sharjah Media City, Sharjah, UAE · Reg. 2541536";
+const OPERATOR = "Fundly s.r.o. · Čenětická 2413/1a, 149 00 Praha 4, Czech Republic · IČO 30237246";
 const SUPPORT_LINK = `<a href="mailto:support@fundly.games" style="color:#7a7a86">support@fundly.games</a>`;
 
 // Patička: "reply" = "Questions? Reply to this e-mail or reach us at …", "reach" = "Questions? Reach us at …".

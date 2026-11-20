@@ -5,7 +5,7 @@
 import { BAND_LABELS, type Segment, type WeeklyStats } from "./weekly-report-stats.ts";
 import type { MonthlyRecap } from "./monthly-recap.ts";
 
-const OPERATOR = "Grindit LLC · Sharjah Media City, Sharjah, UAE · Reg. 2541536";
+const OPERATOR = "Fundly s.r.o. · Čenětická 2413/1a, 149 00 Praha 4, Czech Republic · IČO 30237246";
 const isCs = (lang?: string | null) => lang === "cs";
 const esc = (v: unknown) => String(v ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]!));
 
