@@ -1489,10 +1489,11 @@ const EVENTS_PER_SPORT = 100;
 // pokrytí se standardním "ML"/"Spread"/"Totals" tvarem (ověřeno 9/9 ve
 // vzorku), stejnou logiku jako basketbal, a ikonu i marketing slib
 // (sports ticker v js/main.js) už měl přichystané.
+// pořadí = pořadí v nabídce; fotbal a hokej první — hlavní trh je Česko (Sparta, Slavia, Třinec…)
 const SPORTS = [
-  ["basketball", "Basketball", "basketbal"],
   ["football", "Football", "fotbal"],
   ["ice-hockey", "Hockey", "hokej"],
+  ["basketball", "Basketball", "basketbal"],
   // Esports (odds-api slug "esports": Counter-Strike, Dota 2, LoL, Valorant, Mobile Legends…) — přidáno 2026-11-04.
   // Skóre zápasu = vyhrané mapy (scores.home/away), takže ML/Spread/Totals se vyhodnocují stejně jako ostatní sporty;
   // remíza (BO2 1:1) u dvouvýsledkového ML vrací vklad (viz settleSelection).
@@ -1514,7 +1515,7 @@ function sportName(slug, fallback) {
   return v && v !== key ? v : fallback;
 }
 
-let activeSport = "basketball";
+let activeSport = "football";
 let slip = []; // {id, match, pick, odds}
 let sportEvents = []; // loaded matches of the active sport
 const filters = { q: "", date: "", league: "", odds: "", live: false, high: false };
@@ -1548,6 +1549,8 @@ const slipBody = document.getElementById("slipBody");
 // burying isn't an issue there, so only the pre-match view was broken.
 const PRIORITY_LEAGUES = {
   football: [
+    "czechia-1-liga",
+    "czechia-czech-cup",
     "england-premier-league",
     "spain-laliga",
     "italy-serie-a",
@@ -1570,9 +1573,17 @@ const PRIORITY_LEAGUES = {
   // reasonable representation in the generic pool, left alone; tennis in
   // particular has no single stable league slug to pin here (its ATP/WTA
   // events are one slug PER TOURNAMENT, changing every week).
-  basketball: ["international-euroleague"],
-  "ice-hockey": ["usa-nhl"],
+  basketball: ["czechia-nbl", "international-euroleague"],
+  "ice-hockey": ["czechia-extraliga", "usa-nhl"],
 };
+
+// Domácí (české) ligy vždy navrch nabídky i rychlých filtrů — lidé hned vidí Spartu, Slavii,
+// Třinec, Pardubice… místo exotických soutěží. Názvy přesně podle odds-api (/v3/leagues, 2026-11-20).
+const HOME_LEAGUES = ["Czechia - 1. Liga", "Czechia - Extraliga", "Czechia - Czech Cup", "Czechia - NBL"];
+function homeLeagueRank(name) {
+  const i = HOME_LEAGUES.indexOf(name);
+  return i === -1 ? HOME_LEAGUES.length : i;
+}
 
 // Sport jen z vlastních zápasů: event i kurzy jsou v jednom objektu (bookmaker "Fundly").
 // Živé sázení na ně není (nemají živý zdroj kurzů) — sázky končí začátkem zápasu.
@@ -1676,7 +1687,7 @@ async function loadSportEvents(sport, live) {
       };
     })
     .filter(Boolean)
-    .sort((a, b) => new Date(a.date) - new Date(b.date));
+    .sort((a, b) => homeLeagueRank(a.league) - homeLeagueRank(b.league) || new Date(a.date) - new Date(b.date));
 
   cacheSet(key, merged);
   return merged;
@@ -1769,7 +1780,7 @@ function refreshLeagueOptions() {
   const current = filters.league;
   const counts = {};
   sportEvents.forEach((m) => { if (m.league) counts[m.league] = (counts[m.league] || 0) + 1; });
-  const leagues = Object.keys(counts).sort((a, b) => counts[b] - counts[a] || a.localeCompare(b));
+  const leagues = Object.keys(counts).sort((a, b) => homeLeagueRank(a) - homeLeagueRank(b) || counts[b] - counts[a] || a.localeCompare(b));
   sel.innerHTML = `<option value="">${ft("dashjs.bet.allLeagues")}</option>` +
     leagues.map((l) => `<option value="${l.replace(/"/g, "&quot;")}">${l}</option>`).join("");
   sel.value = leagues.includes(current) ? current : "";

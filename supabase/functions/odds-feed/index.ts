@@ -23,14 +23,15 @@ const EVENTS_PER_SPORT = 100;
 // stejné jako PRIORITY_LEAGUES v js/dashboard.js (top ligy, které se v obecném výpisu ztrácejí)
 const PRIORITY_LEAGUES: Record<string, string[]> = {
   football: [
+    "czechia-1-liga", "czechia-czech-cup",
     "england-premier-league", "spain-laliga", "italy-serie-a", "germany-bundesliga", "france-ligue-1",
     "international-clubs-uefa-champions-league",
     "international-uefa-nations-league-league-a-gr-3", "international-uefa-nations-league-league-b-gr-4",
     "international-uefa-nations-league-league-c-gr-2", "international-uefa-nations-league-league-c-gr-3",
     "international-uefa-nations-league-league-c-gr-4", "international-uefa-nations-league-league-d-gr-2",
   ],
-  basketball: ["international-euroleague"],
-  "ice-hockey": ["usa-nhl"],
+  basketball: ["czechia-nbl", "international-euroleague"],
+  "ice-hockey": ["czechia-extraliga", "usa-nhl"],
 };
 // LIVE: kurzy se v živých zápasech mění zhruba každých ~25 s a odds-api je má čerstvé v mediánu ~9 s
 // (měřeno 14. 11.) → živý seznam max. LIVE_TTL_S starý. fresh=1 (kontrola tiketu těsně před
