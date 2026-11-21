@@ -1469,7 +1469,7 @@ const oddsOutsideTitle = () => ftf("dashjs.bet.oddsOutside", { min: ODDS_MIN.toF
 const EVENTS_PER_SPORT = 100;
 
 // Sporty s reálným pokrytím na současném odds-api plánu (max 2 bookmakery:
-// Bet365 + Sportsbet.com.au). Volejbal se záměrně vynechává — ověřeno
+// Bet365 + Tipsport.cz). Volejbal se záměrně vynechává — ověřeno
 // napříč oběma povolenými bookmakery: 0 zápasů s použitelnými kurzy.
 // Není to chyba fetchování, je to mez datového zdroje — jakmile bude plán
 // s víc bookmakery, přidá se zpátky.
@@ -1636,6 +1636,15 @@ async function fetchSportDirect(sport, live) {
   return { events, odds: chunks.flat() };
 }
 
+// Pořadí bookmakerů pro jeden zápas: nejdřív preferované (BOOKMAKERS), pak vlastní zápasy
+// (Fundly) a nakonec jakýkoli další, který zdroj u zápasu vrátil — změna výběru bookmakerů
+// na odds-api tak nikdy nevyprázdní nabídku jen kvůli zastaralému seznamu v klientovi.
+function bookmakerOrder(e) {
+  const pref = [...BOOKMAKERS, CUSTOM_BOOKMAKER];
+  const rest = Object.keys((e && e.bookmakers) || {}).filter((b) => !pref.includes(b));
+  return [...pref, ...rest];
+}
+
 async function loadSportEvents(sport, live) {
   const key = live ? sport + ":live" : sport;
   const cached = cacheGet(key, live ? 60 * 1000 : CACHE_TTL);
@@ -1655,7 +1664,7 @@ async function loadSportEvents(sport, live) {
   // fallback napříč oběma povolenými bookmakery — první, co má pro daný
   // zápas použitelné ML kurzy, vyhrává (Bet365 má přednost, viz BOOKMAKERS)
   function pickBookmaker(e) {
-    for (const bm of [...BOOKMAKERS, CUSTOM_BOOKMAKER]) {
+    for (const bm of bookmakerOrder(e)) {
       const markets = (e.bookmakers && e.bookmakers[bm]) || [];
       const ml = markets.find((m) => m.name === "ML");
       const row = ml && ml.odds && ml.odds[0];
@@ -1933,7 +1942,7 @@ async function refreshSlipFromApi(items) {
 
       // aktuální kurz stejného výběru (první povolený bookmaker, který trh nabízí)
       let fresh = null, marketSeen = false;
-      for (const bm of [...BOOKMAKERS, CUSTOM_BOOKMAKER]) {
+      for (const bm of bookmakerOrder(ev)) {
         const market = ((ev.bookmakers && ev.bookmakers[bm]) || []).find((m) => m.name === item.marketName);
         if (!market || !Array.isArray(market.odds)) continue;
         marketSeen = true;

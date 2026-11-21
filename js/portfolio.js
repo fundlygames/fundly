@@ -6,11 +6,11 @@ const API_BASE = "https://api.odds-api.io/v3";
 // POZOR: klíč je v klientském JS viditelný, pro produkci patří za vlastní proxy.
 const API_KEY = "ce3091bbbb4c283c68c0d51cee36f37bd259db6d6931c81ec214e518cb79ae0b";
 // Plán odds-api.io je omezený na max 2 bookmakery zvolené na účtu (Bet365 +
-// Sportsbet.com.au) — pár sportů (hokej, MMA, volejbal) u obou nemá vůbec
-// žádná data, to je limit datového zdroje, ne chyba kódu. BOOKMAKERS je
+// Tipsport.cz; do 22. 11. 2026 Sportsbet.com.au — ten neměl české soutěže ani Oktagon
+// a MMA kurzy měl jen u ~1 % zápasů). Výběr na účtu jde měnit jen 1× za 12 h. BOOKMAKERS je
 // prioritní seznam pro fallback (loadSportEvents v dashboard.js), BOOKMAKER
 // zůstává pro místa, co čekají jediný bookmaker (value-bets endpoint).
-const BOOKMAKERS = ["Bet365", "Sportsbet.com.au"];
+const BOOKMAKERS = ["Bet365", "Tipsport.cz"];
 const BOOKMAKER = BOOKMAKERS[0];
 const CACHE_TTL = 5 * 60 * 1000; // 5 min, free tier má 100 requestů/hod
 
