@@ -1327,6 +1327,12 @@ const FUNDLY_I18N = (() => {
     document.querySelectorAll("select.lang-switch").forEach((sel) => {
       sel.value = lang;
     });
+    // obrázky s českou verzí (např. ukázky dashboardu s českými zápasy): <img src="x.jpg" data-src-cs="x-cs.jpg">
+    document.querySelectorAll("img[data-src-cs]").forEach((img) => {
+      if (!img.dataset.srcDefault) img.dataset.srcDefault = img.getAttribute("src");
+      const want = lang === "cs" || lang === "sk" ? img.dataset.srcCs : img.dataset.srcDefault;
+      if (img.getAttribute("src") !== want) img.setAttribute("src", want);
+    });
     document.dispatchEvent(new CustomEvent("fundly:lang-changed", { detail: { lang } }));
   }
 
