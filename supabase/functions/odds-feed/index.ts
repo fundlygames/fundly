@@ -42,7 +42,7 @@ const LIVE_RESCAN_S = 600; // jak často znovu projít VŠECHNY živé zápasy, 
 const STALE_MAX_S = 6 * 3600; // starší data už raději nevracet
 
 const apiKey = Deno.env.get("ODDS_API_KEY") ?? "";
-const BOOKMAKERS = (Deno.env.get("ODDS_API_BOOKMAKER") ?? "Bet365,Sportsbet.com.au").split(",").map((b) => b.trim()).join(",");
+const BOOKMAKERS = (Deno.env.get("ODDS_API_BOOKMAKER") ?? "Bet365,Tipsport.cz").split(",").map((b) => b.trim()).join(",");
 const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
 // Trhy, které dashboard umí vyhodnotit (= GRADEABLE_MARKETS v js/dashboard.js). odds-api
