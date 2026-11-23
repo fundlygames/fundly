@@ -1547,3 +1547,15 @@ body.limited .limited-only { display: inline-flex; }
 .first-tip-hint { display: flex; align-items: center; gap: 10px; padding: 12px 14px; margin-bottom: 10px; border-radius: var(--d-r); background: var(--accent-tint); box-shadow: inset 0 0 0 1px var(--accent-border-soft); font-size: .875rem; font-weight: 600; }
 .first-tip-hint[hidden] { display: none; }
 @media (max-width: 1023px) { #view-prehled .first-tip-card { order: -3; } }
+
+/* prepínač trhu v seznamu zápasů (Zápas · Dvojitá šance · Počet gólů · …) — vodorovně posuvný */
+.lm-tabs {
+  display: flex; gap: 8px; margin: 0 0 10px; overflow-x: auto; scrollbar-width: none;
+  touch-action: pan-x; -webkit-overflow-scrolling: touch;
+  -webkit-mask-image: linear-gradient(to right, black 0%, black 92%, transparent 100%);
+  mask-image: linear-gradient(to right, black 0%, black 92%, transparent 100%);
+}
+.lm-tabs[hidden] { display: none; }
+.lm-tabs::-webkit-scrollbar { display: none; }
+.lm-tabs .filter-chip { flex: 0 0 auto; height: 32px; white-space: nowrap; }
+.m-na { color: var(--text-muted); font-size: .8125rem; min-width: 60px; text-align: center; align-self: center; }

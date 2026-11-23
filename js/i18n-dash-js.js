@@ -64,6 +64,7 @@ FUNDLY_I18N.extend("en", { dashjs: {
     altAsian: "Asian handicap (alt. line)", alt1hAsian: "Handicap · 1st half (alt. line)",
   },
   pick: { over: "Over", under: "Under", yes: "Yes", no: "No", odd: "Odd", even: "Even" },
+  lm: { main: "Match", dc: "Double chance", goals: "Total goals", points: "Total points", btts: "Both teams score", spread: "Handicap", ht: "1st half", none: "–", aria: "Odds shown in the list" },
   bet: {
     allLeagues: "All leagues",
     finished: "{match}: this match has already finished.",
@@ -279,6 +280,7 @@ FUNDLY_I18N.extend("cs", { dashjs: {
     altAsian: "Asijský handicap (alt. linie)", alt1hAsian: "Handicap · 1. poločas (alt. linie)",
   },
   pick: { over: "Více", under: "Méně", yes: "Ano", no: "Ne", odd: "Lichý", even: "Sudý" },
+  lm: { main: "Zápas", dc: "Dvojitá šance", goals: "Počet gólů", points: "Počet bodů", btts: "Každý tým dá gól", spread: "Handicap", ht: "1. poločas", none: "–", aria: "Kurzy zobrazené v seznamu" },
   bet: {
     allLeagues: "Všechny ligy",
     finished: "{match}: tento zápas už skončil.",

@@ -2011,7 +2011,7 @@ function marketRowButtons(m, marketName, row, ri) {
 
 // toggles list chrome when a detail is open
 function setBetChrome(hidden) {
-  ["betFiltersPanel", "sportTabs", "matchCountRow"].forEach((id) => {
+  ["betFiltersPanel", "sportTabs", "matchCountRow", "listMarkets"].forEach((id) => {
     const el = document.getElementById(id);
     if (el) el.hidden = hidden;
   });
@@ -2097,6 +2097,13 @@ function patchLiveView(changedIds) {
     if (!row) continue; // zápas není vidět (filtr) — nic
     const m = sportEvents.find((x) => String(x.id) === id);
     if (!m) continue;
+    if (listMarket !== "main") { // vedlejší trh v seznamu → překreslit celý řádek
+      if (liveInteractionActive()) return false;
+      const tmp = document.createElement("div");
+      tmp.innerHTML = matchRowHtml(m).trim();
+      if (tmp.firstElementChild) row.replaceWith(tmp.firstElementChild);
+      continue;
+    }
     const fields = ["home", "draw", "away"];
     for (let i = 0; i < 3; i++) {
       const val = m.odds[i];
@@ -2187,11 +2194,83 @@ function renderMatchDetail(m) {
   if (window.FundlyOddsWatch) FundlyOddsWatch.mountDetail(m);
 }
 
+// ---------- prepínač trhu v seznamu (jako „Zápas · Počet gólů · Handicap…“ u Tipsportu) ----------
+// Kurzy v řádku seznamu podle zvoleného trhu; "main" = 1X2 / vítěz (m.odds). U trhů s linkou
+// (góly, handicap) se ukáže nejvyrovnanější linka zápasu — ta, kterou bookmaker nabízí jako hlavní.
+const LIST_MARKETS = [
+  { key: "main" },
+  { key: "dc", names: ["Double Chance"], fields: ["1X", "12", "X2"] },
+  { key: "totals", names: ["Goals Over/Under", "Totals"], fields: ["over", "under"], line: true },
+  { key: "btts", names: ["Both Teams To Score"], fields: ["yes", "no"] },
+  { key: "spread", names: ["Spread"], fields: ["home", "away"], line: true },
+  { key: "ht", names: ["ML HT", "Half Time Result"], fields: ["home", "draw", "away"] },
+];
+const GOAL_SPORTS = new Set(["football", "ice-hockey", "handball", "futsal", "water-polo"]);
+let listMarket = "main";
+function listMarketLabel(def) {
+  if (def.key === "totals") return ft(GOAL_SPORTS.has(activeSport) ? "dashjs.lm.goals" : "dashjs.lm.points");
+  return ft("dashjs.lm." + def.key);
+}
+function listMarketPick(m, def) {
+  for (const name of def.names || []) {
+    const mk = m.markets.find((x) => x.name === name);
+    if (!mk) continue;
+    let best = -1, bestGap = Infinity;
+    mk.odds.forEach((row, ri) => {
+      if (!def.fields.every((f) => row[f] != null && !Number.isNaN(parseFloat(row[f])))) return;
+      if (def.line && row.hdp == null) return;
+      // bez linky = první platný řádek; s linkou = nejmenší rozdíl kurzů (hlavní linka)
+      const gap = def.line ? Math.abs(parseFloat(row[def.fields[0]]) - parseFloat(row[def.fields[1]])) : 0;
+      if (gap < bestGap) { bestGap = gap; best = ri; }
+    });
+    if (best >= 0) return { name, ri: best, row: mk.odds[best] };
+  }
+  return null;
+}
+function renderListMarketTabs() {
+  const el = document.getElementById("listMarkets");
+  if (!el) return;
+  const avail = LIST_MARKETS.filter((d) => d.key === "main" || sportEvents.some((m) => listMarketPick(m, d)));
+  if (!avail.some((d) => d.key === listMarket)) listMarket = "main";
+  el.hidden = avail.length < 2 || !!detailMatch;
+  el.setAttribute("aria-label", ft("dashjs.lm.aria"));
+  el.innerHTML = avail.map((d) => `<button type="button" class="filter-chip" data-lm="${d.key}" aria-pressed="${d.key === listMarket}">${listMarketLabel(d)}</button>`).join("");
+}
+document.getElementById("listMarkets")?.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-lm]");
+  if (!b || b.dataset.lm === listMarket) return;
+  listMarket = b.dataset.lm;
+  renderMatches();
+});
+// tlačítka kurzů řádku pro zvolený (vedlejší) trh seznamu
+function listMarketButtons(m) {
+  const def = LIST_MARKETS.find((d) => d.key === listMarket);
+  const p = def && listMarketPick(m, def);
+  if (!p) return `<span class="m-na" title="${ft("dashjs.bet.noMoreMarkets")}">${ft("dashjs.lm.none")}</span>`;
+  return def.fields.map((f) => {
+    const val = parseFloat(p.row[f]);
+    const id = `${m.id}|${p.name}|${p.ri}|${f}`;
+    const sel = slip.some((s) => s.id === id);
+    const out = !oddPlayable(val);
+    let lbl = pickLabel(f);
+    if (def.line) {
+      const h = Number(p.row.hdp);
+      const v = def.key === "spread" && f === "away" ? -h : h;
+      lbl = def.key === "spread" ? `${lbl} (${v > 0 ? "+" : ""}${v})` : `${lbl} ${h}`;
+    }
+    return `<button class="odd-btn ${sel ? "selected" : ""}" data-pick="${id}"
+      ${out ? `disabled title="${oddsOutsideTitle()}"` : ""}>
+      <small>${lbl}</small><b>${val.toFixed(2)}</b>
+    </button>`;
+  }).join("");
+}
+
 function renderMatches() {
   const m = detailMatch && sportEvents.find((x) => String(x.id) === String(detailMatch));
   if (m) { renderMatchDetail(m); return; }
   detailMatch = null;
   setBetChrome(false);
+  renderListMarketTabs();
 
   const list = visibleEvents();
   document.getElementById("matchCount").textContent = String(list.length);
@@ -2220,7 +2299,7 @@ function matchRowHtml(m) {
         <div class="m-time">${m.live ? `<span class="live">● LIVE${liveScore(m)}</span>${liveClock(m) ? ` · ${liveClock(m)}` : ""}` : fmtTime(m.date)}${extra > 0 ? ` · ${ftp("dashjs.bet.moreMarkets", extra)}` : ""}</div>
       </div>
       <div class="m-odds">
-        ${m.odds.map((o, i) => {
+        ${listMarket !== "main" ? listMarketButtons(m) : m.odds.map((o, i) => {
           if (o === null || Number.isNaN(o)) return "";
           const field = ["home", "draw", "away"][i];
           const id = `${m.id}|${m.main || "ML"}|0|${field}`;
