@@ -64,6 +64,10 @@ FUNDLY_I18N.extend("en", { dashjs: {
     altAsian: "Asian handicap (alt. line)", alt1hAsian: "Handicap · 1st half (alt. line)",
   },
   pick: { over: "Over", under: "Under", yes: "Yes", no: "No", odd: "Odd", even: "Even" },
+  ps: {
+    fundlyTitle: "What Fundly players pick", oddsTitle: "Chances by the odds", oddsSub: "bookmaker estimate, margin removed",
+    draw: "Draw", more: "Also popular:", tips: { one: "{n} tip", few: "{n} tips", other: "{n} tips" },
+  },
   mcat: { all: "All", main: "Match", goals: "Goals / points", halves: "Halves", hcp: "Handicaps" },
   lm: { main: "Match", dc: "Double chance", goals: "Total goals", points: "Total points", btts: "Both teams score", spread: "Handicap", ht: "1st half", none: "–", aria: "Odds shown in the list" },
   bet: {
@@ -281,6 +285,10 @@ FUNDLY_I18N.extend("cs", { dashjs: {
     altAsian: "Asijský handicap (alt. linie)", alt1hAsian: "Handicap · 1. poločas (alt. linie)",
   },
   pick: { over: "Více", under: "Méně", yes: "Ano", no: "Ne", odd: "Lichý", even: "Sudý" },
+  ps: {
+    fundlyTitle: "Co se sází na Fundly", oddsTitle: "Šance podle kurzů", oddsSub: "odhad bookmakerů, bez marže",
+    draw: "Remíza", more: "Další nejtipovanější:", tips: { one: "{n} tip", few: "{n} tipy", other: "{n} tipů" },
+  },
   mcat: { all: "Vše", main: "Zápas", goals: "Góly / body", halves: "Poločasy", hcp: "Handicapy" },
   lm: { main: "Zápas", dc: "Dvojitá šance", goals: "Počet gólů", points: "Počet bodů", btts: "Každý tým dá gól", spread: "Handicap", ht: "1. poločas", none: "–", aria: "Kurzy zobrazené v seznamu" },
   bet: {

@@ -2163,6 +2163,81 @@ const MARKET_CATS = {
 };
 let detailCat = "all";
 let detailCatFor = null;
+
+// ---------- „Co se sází“ v detailu zápasu (jako „Hlavní příležitosti“ u Tipsportu) ----------
+// Sloupce 1 / X / 2: tipy hráčů Fundly (RPC event_pick_stats, migrace 046 — jen souhrny, zápas až
+// od 3 tipů a 2 hráčů). Dokud tipy nejsou, ukáže se šance podle kurzů (převrácené kurzy bez marže)
+// a jasně se tak i jmenuje — nic se nevymýšlí.
+const pickStatsCache = new Map(); // eventId → { t, rows }
+async function loadPickStats(id) {
+  const c = pickStatsCache.get(id);
+  if (c && Date.now() - c.t < 120000) return c.rows;
+  if (typeof fundlyBackendEnabled !== "function" || !fundlyBackendEnabled() || !/^[\w-]{1,80}$/.test(id)) return [];
+  try {
+    if (typeof configReady === "function") await configReady();
+    const res = await fetch(`${FUNDLY_SUPABASE_URL}/rest/v1/rpc/event_pick_stats`, {
+      method: "POST",
+      headers: { apikey: FUNDLY_SUPABASE_ANON_KEY, Authorization: `Bearer ${FUNDLY_SUPABASE_ANON_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ p_event_ids: [id] }),
+    });
+    const rows = res.ok ? await res.json() : [];
+    pickStatsCache.set(id, { t: Date.now(), rows: Array.isArray(rows) ? rows : [] });
+    return pickStatsCache.get(id).rows;
+  } catch (e) {
+    return [];
+  }
+}
+function pickBarsHtml(m, parts, title, sub) {
+  const labels = m.odds[1] === null ? ["1", "2"] : ["1", "X", "2"];
+  const names = m.odds[1] === null ? [m.home, m.away] : [m.home, ft("dashjs.ps.draw"), m.away];
+  const max = Math.max(...parts.map((p) => p.pct));
+  return `<div class="ps-head"><b>${title}</b>${sub ? `<span>${sub}</span>` : ""}</div>
+    <div class="ps-bars">${parts.map((p, i) => `
+      <div class="ps-col${p.pct === max ? " top" : ""}">
+        <div class="ps-track"><div class="ps-fill" style="height:${Math.max(4, p.pct)}%"></div></div>
+        <div class="ps-pct">${p.pct} %</div>
+        <div class="ps-lbl"><b>${labels[i]}</b> ${esc(names[i])}</div>
+        ${p.note ? `<div class="ps-note">${p.note}</div>` : ""}
+      </div>`).join("")}</div>`;
+}
+function oddsChanceParts(m) {
+  const inv = m.odds.filter((o) => o !== null && o > 1).map((o) => 1 / o);
+  const sum = inv.reduce((a, b) => a + b, 0);
+  if (!sum || inv.length < 2) return null;
+  const pct = inv.map((v) => Math.round((v / sum) * 100));
+  return pct.map((p) => ({ pct: p }));
+}
+async function paintPickStats(m) {
+  const box = document.getElementById("pickStats");
+  if (!box || box.dataset.ev !== String(m.id)) return;
+  const main = m.main || "ML";
+  const rows = await loadPickStats(String(m.id));
+  if (box.dataset.ev !== String(m.id) || !box.isConnected) return;
+  const fields = m.odds[1] === null ? ["home", "away"] : ["home", "draw", "away"];
+  const mainRows = rows.filter((r) => r.market === main && fields.includes(r.field));
+  const total = mainRows.reduce((a, r) => a + r.tips, 0);
+  let html = "";
+  if (total >= 3) {
+    const parts = fields.map((f) => {
+      const r = mainRows.find((x) => x.field === f);
+      const n = r ? r.tips : 0;
+      return { pct: Math.round((n / total) * 100), note: ftp("dashjs.ps.tips", n) + (r && r.stake ? ` · ${usd(Number(r.stake))}` : "") };
+    });
+    html = pickBarsHtml(m, parts, ft("dashjs.ps.fundlyTitle"), ftp("dashjs.ps.tips", total));
+    // další nejtipovanější výběry mimo hlavní trh (max. 3)
+    const other = rows.filter((r) => r.market !== main).sort((a, b) => b.tips - a.tips).slice(0, 3);
+    if (other.length) {
+      html += `<div class="ps-more"><span>${ft("dashjs.ps.more")}</span>${other.map((r) =>
+        `<em>${esc(marketLabel(r.market))}: ${esc(pickLabel(r.field))} · ${ftp("dashjs.ps.tips", r.tips)}</em>`).join("")}</div>`;
+    }
+  } else {
+    const parts = oddsChanceParts(m);
+    if (!parts) { box.hidden = true; return; }
+    html = pickBarsHtml(m, parts, ft("dashjs.ps.oddsTitle"), ft("dashjs.ps.oddsSub"));
+  }
+  box.innerHTML = html;
+  box.hidden = false;
+}
 function renderMatchDetail(m) {
   setBetChrome(true);
   if (!openGroups) openGroups = new Set(m.markets.slice(0, 3).map((mk) => mk.name));
@@ -2199,6 +2274,7 @@ function renderMatchDetail(m) {
       <div class="detail-teams">${m.home} <span>vs</span> ${m.away}</div>
       <div class="m-time">${m.live ? `<span class="live">● LIVE${liveScore(m)}</span>${liveClock(m) ? ` · ${liveClock(m)}` : ""} · ` : ""}${m.live ? "" : `${fmtTime(m.date)} · `}${ftp("dashjs.bet.markets", m.markets.length)}</div>
     </div>
+    <div class="ps-box" id="pickStats" data-ev="${esc(String(m.id))}" hidden></div>
     ${catChips}
     <div class="mk-accs">${groups || `<p class="bet-msg">${ft("dashjs.bet.noMoreMarkets")}</p>`}</div>`;
 
@@ -2225,6 +2301,7 @@ function renderMatchDetail(m) {
 
   // odds-watch: tlačítko "Sledovat" + graf vývoje kurzu pod hlavičkou detailu (js/odds-watch.js)
   if (window.FundlyOddsWatch) FundlyOddsWatch.mountDetail(m);
+  paintPickStats(m);
 }
 
 // ---------- prepínač trhu v seznamu (jako „Zápas · Počet gólů · Handicap…“ u Tipsportu) ----------
