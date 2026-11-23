@@ -2,7 +2,7 @@
 // které odds-api.io nenabízí. Event je uložený ve stejném tvaru jako odds-api,
 // kurzy pod bookmakerem "Fundly". ID vždy začíná "fx-", takže se nikdy nepletou
 // s číselnými ID z odds-api.
-import { finalScore, halfScore } from "./final-score.ts";
+import { finalScore, halfScore, regulationScore } from "./final-score.ts";
 export const CUSTOM_BOOKMAKER = "Fundly";
 
 export function isCustomEventId(id: unknown): boolean {
@@ -31,13 +31,14 @@ type Period = { home: number; away: number } | null;
 
 // Výsledek vlastního zápasu ve stejném tvaru, jaký vrací fetchEvent/fetchEventResult
 // v settle-tickets a settle-verify (found/status/ft/p1).
-export async function customEventResult(id: string): Promise<{ found: true; status: string; ft: Period; p1: Period } | { found: false }> {
+export async function customEventResult(id: string): Promise<{ found: true; status: string; ft: Period; p1: Period; reg?: Period } | { found: false }> {
   try {
     const ev = (await loadCustomEvents([id])).get(id);
     if (!ev) return { found: false };
     const periods = ev.scores && ev.scores.periods;
     const ft = finalScore(ev); // vč. prodloužení u sportů, kde to trhy tak počítají
     const p1 = halfScore(ev); // 1. poločas (u čtvrtin p1+p2)
+    const reg = regulationScore(ev); // řádná hrací doba (trh "3-Way Result")
     const hasFt = ft && typeof ft.home === "number" && typeof ft.away === "number";
     const hasP1 = p1 && typeof p1.home === "number" && typeof p1.away === "number";
     return {
@@ -45,6 +46,7 @@ export async function customEventResult(id: string): Promise<{ found: true; stat
       status: String(ev.status ?? ""),
       ft: hasFt ? { home: ft.home, away: ft.away } : null,
       p1: hasP1 ? { home: p1.home, away: p1.away } : null,
+      reg,
     };
   } catch {
     return { found: false };

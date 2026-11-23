@@ -1469,7 +1469,7 @@ const oddsOutsideTitle = () => ftf("dashjs.bet.oddsOutside", { min: ODDS_MIN.toF
 const EVENTS_PER_SPORT = 100;
 
 // Sporty s reálným pokrytím na současném odds-api plánu (max 2 bookmakery:
-// Bet365 + Tipsport.cz). Volejbal se záměrně vynechává — ověřeno
+// Bet365 + iFortuna CZ). Volejbal se záměrně vynechává — ověřeno
 // napříč oběma povolenými bookmakery: 0 zápasů s použitelnými kurzy.
 // Není to chyba fetchování, je to mez datového zdroje — jakmile bude plán
 // s víc bookmakery, přidá se zpátky.
@@ -1663,12 +1663,16 @@ async function loadSportEvents(sport, live) {
 
   // fallback napříč oběma povolenými bookmakery — první, co má pro daný
   // zápas použitelné ML kurzy, vyhrává (Bet365 má přednost, viz BOOKMAKERS)
+  // Hlavní trh řádku = "ML"; když ho nemá žádný bookmaker, záloha "3-Way Result" (1X2 v základní
+  // hrací době — iFortuna CZ dává u hokeje jen ten, bez zálohy by český hokej z nabídky zmizel).
   function pickBookmaker(e) {
-    for (const bm of bookmakerOrder(e)) {
-      const markets = (e.bookmakers && e.bookmakers[bm]) || [];
-      const ml = markets.find((m) => m.name === "ML");
-      const row = ml && ml.odds && ml.odds[0];
-      if (row && row.home && row.away) return { bookmaker: bm, markets, row };
+    for (const main of MAIN_MARKETS) {
+      for (const bm of bookmakerOrder(e)) {
+        const markets = (e.bookmakers && e.bookmakers[bm]) || [];
+        const mk = markets.find((m) => m.name === main);
+        const row = mk && mk.odds && mk.odds[0];
+        if (row && row.home && row.away && gradeableMarket(activeSport, main)) return { bookmaker: bm, markets, row, main };
+      }
     }
     return null;
   }
@@ -1678,7 +1682,7 @@ async function loadSportEvents(sport, live) {
       const base = baseById[e.id] || {};
       const picked = pickBookmaker(e);
       if (!picked) return null;
-      const { bookmaker, markets, row } = picked;
+      const { bookmaker, markets, row, main } = picked;
       return {
         id: e.id,
         home: e.home,
@@ -1689,6 +1693,7 @@ async function loadSportEvents(sport, live) {
         clock: base.clock || null,   // { minute, period, running, statusDetail }
         scores: base.scores || null, // { home, away } (případně periods.ft apod.)
         bookmaker,
+        main, // název trhu, ze kterého jsou kurzy v řádku seznamu ("ML" / "3-Way Result")
         odds: [parseFloat(row.home), row.draw ? parseFloat(row.draw) : null, parseFloat(row.away)],
         markets: markets
           .filter((m) => Array.isArray(m.odds) && m.odds.length && gradeableMarket(activeSport, m.name))
@@ -1739,6 +1744,7 @@ const MARKET_LABELS = {
   "Alternative 1st Half Goal Line": "dashjs.market.alt1hGoalLine",
   "Alternative Asian Handicap": "dashjs.market.altAsian",
   "Alternative 1st Half Asian Handicap": "dashjs.market.alt1hAsian",
+  "3-Way Result": "dashjs.market.threeWay",
 };
 // Trhy, co skutečně umíme vyhodnotit (viz settleSelection v js/portfolio.js —
 // obě sady MUSÍ zůstat v souladu). Zápas může nabízet desítky dalších trhů
@@ -1755,7 +1761,10 @@ const GRADEABLE_MARKETS = new Set([
   "European Handicap", "Draw No Bet",
   "Double Chance", "Double Chance HT",
   "Odd/Even", "Odd/Even HT", "Odd/Even 2H",
+  "3-Way Result",
 ]);
+// hlavní trh řádku seznamu podle priority (viz pickBookmaker v loadSportEvents)
+const MAIN_MARKETS = ["ML", "3-Way Result"];
 // Trhy podle sportu: u MMA, stolního tenisu, šipek a wrestlingu hlásí zdroj výsledků skóre v jiné
 // jednotce než linie trhu (např. stolní tenis: sety vs. počet bodů) — nabízíme jen trhy, které jdou
 // spravedlivě vyhodnotit. Shodně se supabase/functions/_shared/settle.ts SPORT_MARKETS.
@@ -2088,7 +2097,7 @@ function patchLiveView(changedIds) {
     for (let i = 0; i < 3; i++) {
       const val = m.odds[i];
       const has = val !== null && !Number.isNaN(val);
-      const btn = row.querySelector(`[data-pick="${CSS.escape(`${m.id}|ML|0|${fields[i]}`)}"]`);
+      const btn = row.querySelector(`[data-pick="${CSS.escape(`${m.id}|${m.main || "ML"}|0|${fields[i]}`)}"]`);
       if (has !== !!btn) { // kurz zmizel / přibyl → překreslit jen tenhle řádek (ne celý seznam)
         if (liveInteractionActive()) return false; // hráč právě kliká → počkat (requestLiveRender)
         const tmp = document.createElement("div");
@@ -2208,7 +2217,7 @@ function matchRowHtml(m) {
         ${m.odds.map((o, i) => {
           if (o === null || Number.isNaN(o)) return "";
           const field = ["home", "draw", "away"][i];
-          const id = `${m.id}|ML|0|${field}`;
+          const id = `${m.id}|${m.main || "ML"}|0|${field}`;
           const sel = slip.some((s) => s.id === id);
           const out = !oddPlayable(o);
           const lbl = m.odds[1] === null ? (i === 0 ? "1" : "2") : ["1", "X", "2"][i];
@@ -2650,6 +2659,16 @@ let liveOddsBusy = false;
 function applyLiveRow(m, row, withMarkets) {
   if (!m || row.bookie !== m.bookmaker) return false;
   let changed = false;
+  if (m.main && m.main !== "ML") {
+    // řádek stojí na záložním trhu (3-Way Result) — živý snímek nese jen ML, kurzy řádku
+    // tedy bereme z jeho vlastního trhu, a to jen když přijde plný seznam trhů
+    if (!withMarkets || !Array.isArray(row.markets)) return false;
+    m.markets = row.markets.filter((mk) => Array.isArray(mk.odds) && mk.odds.length && gradeableMarket(activeSport, mk.name)).slice(0, 14);
+    const mk = m.markets.find((x) => x.name === m.main);
+    const r = mk && mk.odds[0];
+    m.odds = r && r.home && r.away ? [parseFloat(r.home), r.draw ? parseFloat(r.draw) : null, parseFloat(r.away)] : [null, null, null];
+    return true;
+  }
   const ml = row.ml && row.ml.home && row.ml.away ? row.ml : null;
   const next = ml
     ? [parseFloat(ml.home), ml.draw ? parseFloat(ml.draw) : null, parseFloat(ml.away)]

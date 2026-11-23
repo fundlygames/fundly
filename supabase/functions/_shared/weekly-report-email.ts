@@ -17,7 +17,7 @@ const SPORTS: Record<string, [string, string]> = {
 };
 const MARKETS: Record<string, [string, string]> = {
   "ML": ["Match winner", "Vítěz zápasu"], "Draw No Bet": ["Draw no bet", "Bez remízy"],
-  "Double Chance": ["Double chance", "Dvojitá šance"], "Spread": ["Asian handicap", "Asijský handicap"],
+  "Double Chance": ["Double chance", "Dvojitá šance"], "3-Way Result": ["Result in regular time", "Výsledek v základní hrací době"], "Spread": ["Asian handicap", "Asijský handicap"],
   "European Handicap": ["European handicap", "Evropský handicap"], "Totals": ["Total points (over / under)", "Počet bodů (více / méně)"],
   "Goals Over/Under": ["Goals (over / under)", "Počet gólů (více / méně)"], "Both Teams To Score": ["Both teams to score", "Oba týmy skórují"],
   "Spread HT": ["Handicap · 1st half", "Handicap · 1. poločas"], "Totals HT": ["Total · 1st half", "Počet gólů/bodů · 1. poločas"],

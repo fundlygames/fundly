@@ -55,7 +55,7 @@ FUNDLY_I18N.extend("en", { dashjs: {
     "mixed-martial-arts": "MMA", wrestling: "Wrestling",
   },
   market: {
-    ml: "Match winner", dnb: "Draw no bet", dc: "Double chance", dcHt: "Double chance · 1st half",
+    ml: "Match winner", threeWay: "Result in regular time", dnb: "Draw no bet", dc: "Double chance", dcHt: "Double chance · 1st half",
     spread: "Asian handicap", euroHcp: "European handicap", totals: "Total points (over / under)",
     goalsOu: "Goals (over / under)", btts: "Both teams to score", spreadHt: "Handicap · 1st half",
     totalsHt: "Total · 1st half", winnerHt: "Winner · 1st half", oddEven: "Total goals odd / even",
@@ -270,7 +270,7 @@ FUNDLY_I18N.extend("cs", { dashjs: {
     "mixed-martial-arts": "MMA", wrestling: "Wrestling",
   },
   market: {
-    ml: "Vítěz zápasu", dnb: "Bez remízy", dc: "Dvojitá šance", dcHt: "Dvojitá šance · 1. poločas",
+    ml: "Vítěz zápasu", threeWay: "Výsledek v základní hrací době", dnb: "Bez remízy", dc: "Dvojitá šance", dcHt: "Dvojitá šance · 1. poločas",
     spread: "Asijský handicap", euroHcp: "Evropský handicap", totals: "Počet bodů (více / méně)",
     goalsOu: "Počet gólů (více / méně)", btts: "Oba týmy skórují", spreadHt: "Handicap · 1. poločas",
     totalsHt: "Počet gólů/bodů · 1. poločas", winnerHt: "Vítěz · 1. poločas", oddEven: "Počet gólů lichý / sudý",

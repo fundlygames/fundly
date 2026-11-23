@@ -6,11 +6,12 @@ const API_BASE = "https://api.odds-api.io/v3";
 // POZOR: klíč je v klientském JS viditelný, pro produkci patří za vlastní proxy.
 const API_KEY = "ce3091bbbb4c283c68c0d51cee36f37bd259db6d6931c81ec214e518cb79ae0b";
 // Plán odds-api.io je omezený na max 2 bookmakery zvolené na účtu (Bet365 +
-// Tipsport.cz; do 22. 11. 2026 Sportsbet.com.au — ten neměl české soutěže ani Oktagon
-// a MMA kurzy měl jen u ~1 % zápasů). Výběr na účtu jde měnit jen 1× za 12 h. BOOKMAKERS je
+// iFortuna CZ od 23. 11. 2026 — celé karty UFC i Oktagon; předtím Tipsport.cz, jehož MMA
+// odds-api nestahuje, a do 22. 11. Sportsbet.com.au). Srovnání viz docs/odds-analysis/.
+// Výběr na účtu jde měnit jen 1× za 12 h. BOOKMAKERS je
 // prioritní seznam pro fallback (loadSportEvents v dashboard.js), BOOKMAKER
 // zůstává pro místa, co čekají jediný bookmaker (value-bets endpoint).
-const BOOKMAKERS = ["Bet365", "Tipsport.cz"];
+const BOOKMAKERS = ["Bet365", "iFortuna CZ"];
 const BOOKMAKER = BOOKMAKERS[0];
 const CACHE_TTL = 5 * 60 * 1000; // 5 min, free tier má 100 requestů/hod
 
@@ -755,6 +756,8 @@ const Portfolio = (() => {
   ]);
   const ODD_EVEN_MARKETS = new Set(["Odd/Even", "Odd/Even HT", "Odd/Even 2H"]);
   const DOUBLE_CHANCE_MARKETS = new Set(["Double Chance", "Double Chance HT"]);
+  // 1X2 v ZÁKLADNÍ hrací době (hokej, basketbal, házená) — shodně s _shared/settle.ts
+  const THREE_WAY_MARKETS = new Set(["3-Way Result"]);
 
   // Vyhodnotí jeden výběr tiketu. `scores` = { ft: {home,away}, p1:
   // {home,away}|null } — p1 (poločas) je potřeba jen pro HT trhy a nemusí
@@ -768,10 +771,15 @@ const Portfolio = (() => {
     const allowed = SPORT_MARKETS[sel.sport];
     if (allowed && !allowed.includes(market)) return "push"; // nejde spravedlivě vyhodnotit → vklad zpět
     const isHt = HT_MARKETS.has(market);
-    const period = isHt ? scores.p1 : scores.ft;
+    const period = isHt ? scores.p1 : THREE_WAY_MARKETS.has(market) ? (scores.reg || scores.ft) : scores.ft;
     if (!period || typeof period.home !== "number" || typeof period.away !== "number") return "push";
     const finalHome = period.home, finalAway = period.away;
     const total = finalHome + finalAway;
+
+    if (THREE_WAY_MARKETS.has(market)) {
+      const winner = finalHome === finalAway ? "draw" : finalHome > finalAway ? "home" : "away";
+      return sel.field === winner ? "won" : "lost";
+    }
 
     if (ML_MARKETS.has(market)) {
       if (finalHome === finalAway) {
@@ -872,6 +880,13 @@ const Portfolio = (() => {
     return { home: afterOt.home, away: afterOt.away };
   }
 
+  // řádná hrací doba (bez prodloužení) pro "3-Way Result" — = regulationScore v _shared/final-score.ts
+  function regScoreOf(ev) {
+    const periods = (ev && ev.scores && ev.scores.periods) || {};
+    const reg = periods.ft || (ev && ev.scores) || null;
+    return reg && typeof reg.home === "number" && typeof reg.away === "number" ? { home: reg.home, away: reg.away } : null;
+  }
+
   // 1. poločas pro HT trhy — MUSÍ odpovídat halfScore v _shared/final-score.ts.
   // Basketbal / americký fotbal se čtvrtinami: p1 + p2; formát s poločasy a ostatní sporty: p1.
   function halfScoreOf(ev) {
@@ -955,7 +970,7 @@ const Portfolio = (() => {
         const ft = finalScoreOf(ev);
         if (!ft || typeof ft.home !== "number" || typeof ft.away !== "number") return "push";
         const p1 = halfScoreOf(ev);
-        return settleSelection(s, { ft, p1: p1 || null });
+        return settleSelection(s, { ft, p1: p1 || null, reg: regScoreOf(ev) });
       });
       if (results.some((r) => r === null)) return;
 

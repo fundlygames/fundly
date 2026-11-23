@@ -23,7 +23,7 @@ import { jsonResponse } from "../_shared/cors.ts";
 import { isValidAdminKey } from "../_shared/admin.ts";
 import { settleSelection, type Selection } from "../_shared/settle.ts";
 import { customEventResult, isCustomEventId } from "../_shared/custom-events.ts";
-import { finalScore, halfScore } from "../_shared/final-score.ts";
+import { finalScore, halfScore, regulationScore } from "../_shared/final-score.ts";
 import { notifyDailyLimit, notifySettledTickets, type SettledForPush } from "../_shared/push.ts";
 
 const API_BASE = "https://api.odds-api.io/v3";
@@ -43,7 +43,7 @@ type TicketRow = {
 type Period = { home: number; away: number } | null;
 // gone = event nenalezen (odds-api.io drží historii jen ~24-48h, pak
 // event navždy zmizí, i pro dávno skončené zápasy — ověřeno naostro).
-type EventResult = { found: true; status: string; ft: Period; p1: Period } | { found: false };
+type EventResult = { found: true; status: string; ft: Period; p1: Period; reg?: Period } | { found: false };
 
 // Bezpečnostní práh: pokud je event nenalezený A poslední výběr tiketu
 // začal před víc než 30 hodinami (bezpečná rezerva před ~24-48h, kdy
@@ -62,6 +62,7 @@ async function fetchEvent(id: string, apiKey: string): Promise<EventResult> {
     const periods = ev.scores && ev.scores.periods;
     const ft = finalScore(ev); // vč. prodloužení u sportů, kde to trhy tak počítají
     const p1 = halfScore(ev); // 1. poločas (u čtvrtin p1+p2)
+    const reg = regulationScore(ev); // řádná hrací doba (trh "3-Way Result")
     const hasFt = ft && typeof ft.home === "number" && typeof ft.away === "number";
     const hasP1 = p1 && typeof p1.home === "number" && typeof p1.away === "number";
     return {
@@ -69,6 +70,7 @@ async function fetchEvent(id: string, apiKey: string): Promise<EventResult> {
       status: ev.status,
       ft: hasFt ? { home: ft.home, away: ft.away } : null,
       p1: hasP1 ? { home: p1.home, away: p1.away } : null,
+      reg,
     };
   } catch {
     return { found: false };
@@ -151,7 +153,7 @@ serve(async (req) => {
           return stale ? "push" : null;
         }
         if (!ev.ft) return "push"; // settled, ale bez čitelného skóre → vklad zpět
-        return settleSelection(s, { ft: ev.ft, p1: ev.p1 });
+        return settleSelection(s, { ft: ev.ft, p1: ev.p1, reg: ev.reg });
       });
       if (results.some((r) => r === null)) continue; // ještě není kompletně rozhodnuto
       if (hadStaleFallback) staleCount++;
