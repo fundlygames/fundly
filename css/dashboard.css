@@ -1580,3 +1580,4 @@ body.limited .limited-only { display: inline-flex; }
 .ps-more em { font-style: normal; color: var(--text-primary); }
 .bet-layout > .panel { min-width: 0; } /* posuvné chipy (.lm-tabs) nesmí roztáhnout sloupec */
 .lm-tabs { min-width: 0; max-width: 100%; }
+.m-venue { display: flex; align-items: center; gap: 5px; font-size: .75rem; color: var(--text-muted); margin-top: 2px; }

@@ -72,6 +72,20 @@
     // basketbal
     "USA - NBA": ["NBA", "NBA"], "International - Euroleague": ["Euroliga", "Euroliga"], "Czechia - NBL": ["Česká NBL", "Česká NBL"],
   };
+  // Místo konání velkých turnajů (odds-api ho nedává) — klíč = název soutěže z odds-api.
+  // Doplňuje se ručně a JEN z ověřených zdrojů (web pořadatele / ESPN), ať tu nic nevymýšlíme.
+  //   Oktagon 99: oktagonmma.com (5. 12. 2026, Westfalenhalle Dortmund)
+  //   UFC FN Adesanya vs. Magomedov: ESPN fightcenter / bet365 news (5. 12. 2026, ANB Arena Rijád)
+  const VENUES = {
+    "Oktagon - Oktagon 99": { venue: "Westfalenhalle", city: ["Dortmund, Německo", "Dortmund, Nemecko", "Dortmund, Germany"] },
+    "UFC - UFC Fight Night: Adesanya vs. Magomedov": { venue: "ANB Arena", city: ["Rijád, Saúdská Arábie", "Rijád, Saudská Arábia", "Riyadh, Saudi Arabia"] },
+  };
+  function venue(name) {
+    const v = VENUES[name];
+    if (!v) return null;
+    const l = lang();
+    return `${v.venue} · ${v.city[l === "cs" ? 0 : l === "sk" ? 1 : 2]}`;
+  }
   function lang() { try { return FUNDLY_I18N.getLang(); } catch (e) { return "en"; } }
   function display(name) {
     if (!name) return name;
@@ -83,5 +97,5 @@
     if (t && ADJ[t[0]]) return `${t[1]}. ${ADJ[t[0]][i]} liga`;
     return name;
   }
-  window.FundlyLeagues = { display };
+  window.FundlyLeagues = { display, venue };
 })();

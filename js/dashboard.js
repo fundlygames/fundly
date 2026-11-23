@@ -1807,6 +1807,11 @@ function oddPlayable(v) {
 // zobrazovaný název soutěže (cs/sk: „1. anglická liga“ — js/league-names.js); interně se dál
 // pracuje s původním názvem z odds-api (filtry, řazení, tikety)
 function leagueName(name) { return window.FundlyLeagues ? FundlyLeagues.display(name) : name; }
+// jména jednotlivců z odds-api jsou „Příjmení, Jméno“ (MMA, tenis, šipky…) → „Jméno Příjmení“
+function teamName(name) {
+  const mm = /^([^,]+),\s*(.+)$/.exec(String(name || ""));
+  return mm ? `${mm[2]} ${mm[1]}` : name;
+}
 
 // fills the league select + quick chips from the loaded matches (top leagues
 // first, by match count)
@@ -2204,7 +2209,7 @@ async function loadPickStats(id) {
 }
 function pickBarsHtml(m, parts, title, sub) {
   const labels = m.odds[1] === null ? ["1", "2"] : ["1", drawMark(), "2"];
-  const names = m.odds[1] === null ? [m.home, m.away] : [m.home, ft("dashjs.ps.draw"), m.away];
+  const names = m.odds[1] === null ? [teamName(m.home), teamName(m.away)] : [teamName(m.home), ft("dashjs.ps.draw"), teamName(m.away)];
   const max = Math.max(...parts.map((p) => p.pct));
   return `<div class="ps-head"><b>${title}</b>${sub ? `<span>${sub}</span>` : ""}</div>
     <div class="ps-bars">${parts.map((p, i) => `
@@ -2286,7 +2291,8 @@ function renderMatchDetail(m) {
     </div>
     <div class="detail-head">
       <div class="m-league">${leagueName(m.league)}</div>
-      <div class="detail-teams">${m.home} <span>vs</span> ${m.away}</div>
+      <div class="detail-teams">${teamName(m.home)} <span>vs</span> ${teamName(m.away)}</div>
+      ${window.FundlyLeagues && FundlyLeagues.venue(m.league) ? `<div class="m-venue"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0119 9.5C19 14.8 12 21 12 21z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="9.5" r="2.5" stroke="currentColor" stroke-width="2"/></svg> ${esc(FundlyLeagues.venue(m.league))}</div>` : ""}
       <div class="m-time">${m.live ? `<span class="live">● LIVE${liveScore(m)}</span>${liveClock(m) ? ` · ${liveClock(m)}` : ""} · ` : ""}${m.live ? "" : `${fmtTime(m.date)} · `}${ftp("dashjs.bet.markets", m.markets.length)}</div>
     </div>
     <div class="ps-box" id="pickStats" data-ev="${esc(String(m.id))}" hidden></div>
@@ -2420,7 +2426,7 @@ function matchRowHtml(m) {
       ${ow ? ow.starHtml(m) : ""}
       <div class="m-info">
         <div class="m-league">${leagueName(m.league)}</div>
-        <div class="m-teams">${m.home} – ${m.away}</div>
+        <div class="m-teams">${teamName(m.home)} – ${teamName(m.away)}</div>
         <div class="m-time">${m.live ? `<span class="live">● LIVE${liveScore(m)}</span>${liveClock(m) ? ` · ${liveClock(m)}` : ""}` : fmtTime(m.date)}${extra > 0 ? ` · ${ftp("dashjs.bet.moreMarkets", extra)}` : ""}</div>
       </div>
       <div class="m-odds">
@@ -2464,7 +2470,7 @@ function resolvePick(id) {
     pick = `${marketLabel(marketName)}${hdp}: ${pickLabel(field)}`;
   }
   return {
-    id, match: `${m.home} – ${m.away}`, pick, odds,
+    id, match: `${teamName(m.home)} – ${teamName(m.away)}`, pick, odds,
     eventId: m.id, // číslo z odds-api, text "fx-…" u vlastních zápasů
     sport: activeSport,
     league: m.league,
