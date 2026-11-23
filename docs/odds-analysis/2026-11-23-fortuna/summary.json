@@ -1,0 +1,8388 @@
+{
+ "label": "fortuna",
+ "bookmakers": [
+  "Bet365",
+  "iFortuna CZ"
+ ],
+ "selectedOnAccount": {
+  "bookmakers": [
+   "Bet365",
+   "iFortuna CZ"
+  ],
+  "count": 2
+ },
+ "generatedAt": "2026-11-23T09:12:59.519983+00:00",
+ "days": 14,
+ "sports": {
+  "football": {
+   "events": 5003,
+   "liveEvents": 4,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 516,
+     "coveragePct": 10.3,
+     "liveWithOdds": 2,
+     "leaguesWithOdds": 135,
+     "byTimeToStart": {
+      "live": [
+       4,
+       2
+      ],
+      "<24h": [
+       175,
+       136
+      ],
+      "1-3d": [
+       482,
+       143
+      ],
+      "3-7d": [
+       2783,
+       185
+      ],
+      "7d+": [
+       1559,
+       50
+      ]
+     },
+     "marketsPerEventAvg": 53.1,
+     "marketsPerEventMedian": 59.0,
+     "marketsPerEventMax": 95,
+     "distinctMarkets": 99,
+     "mainMarketMarginAvgPct": 9.12,
+     "topMarkets": [
+      [
+       "ML",
+       516,
+       100.0
+      ],
+      [
+       "Spread",
+       516,
+       100.0
+      ],
+      [
+       "Totals",
+       516,
+       100.0
+      ],
+      [
+       "Correct Score",
+       516,
+       100.0
+      ],
+      [
+       "Goals Over/Under",
+       514,
+       99.6
+      ],
+      [
+       "ML HT",
+       514,
+       99.6
+      ],
+      [
+       "Totals HT",
+       514,
+       99.6
+      ],
+      [
+       "Correct Score HT",
+       514,
+       99.6
+      ],
+      [
+       "Double Chance HT",
+       514,
+       99.6
+      ],
+      [
+       "First Team To Score",
+       513,
+       99.4
+      ],
+      [
+       "Odd/Even",
+       513,
+       99.4
+      ],
+      [
+       "Odd/Even HT",
+       512,
+       99.2
+      ],
+      [
+       "Spread HT",
+       511,
+       99.0
+      ],
+      [
+       "Half Time / Full Time",
+       511,
+       99.0
+      ],
+      [
+       "Odd/Even 2H",
+       510,
+       98.8
+      ],
+      [
+       "Draw No Bet",
+       497,
+       96.3
+      ],
+      [
+       "Double Chance",
+       492,
+       95.3
+      ],
+      [
+       "Both Teams To Score 2H",
+       422,
+       81.8
+      ],
+      [
+       "Both Teams To Score",
+       421,
+       81.6
+      ],
+      [
+       "Specials",
+       421,
+       81.6
+      ],
+      [
+       "European Handicap HT",
+       421,
+       81.6
+      ],
+      [
+       "Both Teams To Score HT",
+       421,
+       81.6
+      ],
+      [
+       "ML 2H",
+       420,
+       81.4
+      ],
+      [
+       "Half With Most Goals",
+       420,
+       81.4
+      ],
+      [
+       "Last Team To Score",
+       420,
+       81.4
+      ],
+      [
+       "Totals 2H",
+       420,
+       81.4
+      ],
+      [
+       "European Handicap",
+       419,
+       81.2
+      ],
+      [
+       "Away Team Exact Goals",
+       419,
+       81.2
+      ],
+      [
+       "Odd/Even Away",
+       419,
+       81.2
+      ],
+      [
+       "Home Team Exact Goals",
+       419,
+       81.2
+      ],
+      [
+       "Away Team Highest Scoring Half",
+       419,
+       81.2
+      ],
+      [
+       "Team Total Home",
+       418,
+       81.0
+      ],
+      [
+       "Team Total Away",
+       418,
+       81.0
+      ],
+      [
+       "Exact 2nd Half Goals",
+       418,
+       81.0
+      ],
+      [
+       "Exact 1st Half Goals",
+       418,
+       81.0
+      ],
+      [
+       "Teams to Score",
+       418,
+       81.0
+      ],
+      [
+       "Odd/Even Home",
+       418,
+       81.0
+      ],
+      [
+       "Home Team Highest Scoring Half",
+       417,
+       80.8
+      ],
+      [
+       "Number of Goals In Match",
+       417,
+       80.8
+      ],
+      [
+       "Clean Sheet Away",
+       416,
+       80.6
+      ]
+     ],
+     "allMarkets": [
+      "1st Half Corners",
+      "Alternative Corners",
+      "Anytime Goalscorer",
+      "Away Team Exact Goals",
+      "Away Team Highest Scoring Half",
+      "Bookings Spread",
+      "Bookings Totals",
+      "Bookings Totals Away",
+      "Bookings Totals Home",
+      "Both Teams To Score",
+      "Both Teams To Score 2H",
+      "Both Teams To Score HT",
+      "Clean Sheet Away",
+      "Clean Sheet Home",
+      "Corner Handicap",
+      "Corners",
+      "Corners Race",
+      "Corners Spread",
+      "Corners Totals",
+      "Corners Totals Away",
+      "Corners Totals HT",
+      "Corners Totals Home",
+      "Correct Score",
+      "Correct Score HT",
+      "Double Chance",
+      "Double Chance HT",
+      "Draw No Bet",
+      "European Handicap",
+      "European Handicap HT",
+      "Exact 1st Half Goals",
+      "Exact 2nd Half Goals",
+      "Exact Total Goals",
+      "First 10 Minutes (00:00 - 09:59)",
+      "First Goalscorer",
+      "First Match Corner",
+      "First Team To Score",
+      "Goal Method",
+      "Goalkeeper Saves",
+      "Goals Over/Under",
+      "Half Time / Full Time",
+      "Half With Most Goals",
+      "Home Team Exact Goals",
+      "Home Team Highest Scoring Half",
+      "Last Goalscorer",
+      "Last Match Corner",
+      "Last Team To Score",
+      "ML",
+      "ML 2H",
+      "ML HT",
+      "Method of Victory",
+      "Multi Scorers",
+      "Multicorners",
+      "Number of Cards In Match",
+      "Number of Goals In Match",
+      "Odd/Even",
+      "Odd/Even 2H",
+      "Odd/Even Away",
+      "Odd/Even HT",
+      "Odd/Even Home",
+      "Player Cards",
+      "Player Fouls",
+      "Player Headed Shots on Target",
+      "Player Passes",
+      "Player Shots",
+      "Player Shots on Target",
+      "Player Shots on Target Outside Box",
+      "Player Tackles",
+      "Player To Assist",
+      "Player To Be Fouled",
+      "Player To Score or Assist",
+      "Player to be Booked",
+      "Specials",
+      "Spread",
+      "Spread HT",
+      "Team Goalscorer",
+      "Team To Score 2nd Goal",
+      "Team To Score 3rd Goal",
+      "Team Total Away",
+      "Team Total Home",
+      "Teams to Score",
+      "Time of First Corner",
+      "To Qualify",
+      "Total Corners",
+      "Total Offsides",
+      "Total Offsides Away",
+      "Total Offsides Home",
+      "Total Shots",
+      "Total Shots Away",
+      "Total Shots Home",
+      "Total Shots on Target",
+      "Total Shots on Target Away",
+      "Total Shots on Target Home",
+      "Total Tackles",
+      "Total Tackles Away",
+      "Total Tackles Home",
+      "Totals",
+      "Totals 2H",
+      "Totals HT",
+      "Winning Margin"
+     ],
+     "leagues": [
+      [
+       "England - Championship",
+       35,
+       24
+      ],
+      [
+       "England - Premier League",
+       26,
+       21
+      ],
+      [
+       "International Clubs - UEFA Champions League",
+       18,
+       18
+      ],
+      [
+       "International Clubs - UEFA Conference League",
+       18,
+       18
+      ],
+      [
+       "International Clubs - UEFA Europa League",
+       18,
+       18
+      ],
+      [
+       "England - League One",
+       28,
+       16
+      ],
+      [
+       "Spain - LaLiga",
+       15,
+       15
+      ],
+      [
+       "England - League Two",
+       26,
+       14
+      ],
+      [
+       "Scotland - Premiership",
+       18,
+       14
+      ],
+      [
+       "Italy - Serie A",
+       13,
+       13
+      ],
+      [
+       "England - National League",
+       26,
+       12
+      ],
+      [
+       "England Amateur - National League North",
+       27,
+       12
+      ],
+      [
+       "Egypt - Premier League",
+       10,
+       10
+      ],
+      [
+       "England Amateur - National League South",
+       23,
+       10
+      ],
+      [
+       "Italy - Serie B",
+       24,
+       10
+      ],
+      [
+       "Japan - J.League 2",
+       26,
+       10
+      ],
+      [
+       "Netherlands - Eredivisie",
+       10,
+       10
+      ],
+      [
+       "France - Ligue 1",
+       10,
+       10
+      ],
+      [
+       "Saudi Arabia - Saudi Professional League",
+       18,
+       9
+      ],
+      [
+       "Germany - Bundesliga",
+       15,
+       9
+      ],
+      [
+       "Portugal - Liga Portugal",
+       9,
+       9
+      ],
+      [
+       "International Clubs - AFC Champions League Elite, West Region",
+       8,
+       8
+      ],
+      [
+       "Greece - Super League",
+       8,
+       8
+      ],
+      [
+       "International Clubs - AFC Champions League Elite, East Region",
+       16,
+       8
+      ],
+      [
+       "Japan - J.League",
+       23,
+       7
+      ],
+      [
+       "Scotland - Championship",
+       7,
+       7
+      ],
+      [
+       "Tunisia - Ligue 2, Group A",
+       7,
+       6
+      ],
+      [
+       "Brazil - Brasileiro Serie A",
+       24,
+       6
+      ],
+      [
+       "Austria - Bundesliga",
+       7,
+       6
+      ],
+      [
+       "Northern Ireland - Premiership",
+       12,
+       6
+      ],
+      [
+       "Chile - Primera Division",
+       8,
+       6
+      ],
+      [
+       "Jordan - U20 League",
+       12,
+       5
+      ],
+      [
+       "USA - MLS, Playoffs",
+       10,
+       5
+      ],
+      [
+       "Scotland - League Two",
+       5,
+       5
+      ],
+      [
+       "Scotland - League One",
+       5,
+       5
+      ],
+      [
+       "Kenya - Super League",
+       10,
+       4
+      ],
+      [
+       "England Amateur - Southern League, Premier Division South",
+       27,
+       4
+      ],
+      [
+       "Saudi Arabia - U21 Elite League",
+       25,
+       3
+      ],
+      [
+       "Albania - Kategoria e Pare",
+       15,
+       3
+      ],
+      [
+       "UAE - U21 Cup",
+       3,
+       3
+      ],
+      [
+       "Netherlands - Eerste Divisie",
+       18,
+       3
+      ],
+      [
+       "Northern Ireland - Reserve League",
+       3,
+       3
+      ],
+      [
+       "England Amateur - Isthmian League, Premier Division",
+       29,
+       3
+      ],
+      [
+       "Australia - A-League",
+       3,
+       3
+      ],
+      [
+       "Argentina - Primera B Nacional, Promotion Playoff",
+       3,
+       3
+      ],
+      [
+       "Kosovo - Superliga U19",
+       2,
+       2
+      ],
+      [
+       "Ethiopia - Premier League Women",
+       2,
+       2
+      ],
+      [
+       "Ukraine - Premier League",
+       18,
+       2
+      ],
+      [
+       "Israel - U19 Premier League",
+       20,
+       2
+      ],
+      [
+       "Bulgaria - Vtora Liga",
+       18,
+       2
+      ],
+      [
+       "Oman - Omani League",
+       8,
+       2
+      ],
+      [
+       "Argentina - Primera Division A, Women, Clausura",
+       3,
+       2
+      ],
+      [
+       "Italy - Primavera 1",
+       17,
+       2
+      ],
+      [
+       "Saudi Arabia - Division 1",
+       18,
+       2
+      ],
+      [
+       "Portugal - U23 Liga Next Gen",
+       18,
+       2
+      ],
+      [
+       "Algeria - Ligue 1",
+       19,
+       2
+      ],
+      [
+       "Sweden - Allsvenskan",
+       10,
+       2
+      ],
+      [
+       "Bolivia - Division Profesional",
+       18,
+       2
+      ],
+      [
+       "Uruguay - Primera Division, Clausura",
+       2,
+       2
+      ],
+      [
+       "France - Ligue 2",
+       9,
+       2
+      ],
+      [
+       "Argentina - Primera LPF, Clausura Playoffs",
+       4,
+       2
+      ],
+      [
+       "Paraguay - Division de Honor, Clausura",
+       14,
+       2
+      ],
+      [
+       "Jamaica - Premier League",
+       17,
+       2
+      ],
+      [
+       "England Amateur - Southern League, Premier Division Central",
+       27,
+       2
+      ],
+      [
+       "Colombia - Liga DIMAYOR, Finalizacion, Group B",
+       6,
+       2
+      ],
+      [
+       "Argentina - Primera LPF, Reserves, Clausura, Playoffs",
+       4,
+       2
+      ],
+      [
+       "Colombia - Liga DIMAYOR, Finalizacion, Group A",
+       6,
+       2
+      ],
+      [
+       "Ecuador - Serie A, Relegation Round",
+       3,
+       2
+      ],
+      [
+       "England - FA Cup",
+       2,
+       2
+      ],
+      [
+       "India - Delhi Premier League",
+       1,
+       1
+      ],
+      [
+       "Myanmar - National League",
+       13,
+       1
+      ],
+      [
+       "India - Bangalore Super Division",
+       26,
+       1
+      ],
+      [
+       "Turkiye Amateur - U19 PAF Ligi",
+       14,
+       1
+      ],
+      [
+       "Maldives - Premier League",
+       1,
+       1
+      ],
+      [
+       "Singapore - Premier League 2",
+       5,
+       1
+      ],
+      [
+       "Denmark - Future Cup U21",
+       1,
+       1
+      ],
+      [
+       "Argentina - Youth League U20",
+       1,
+       1
+      ],
+      [
+       "North Macedonia - 1. MFL",
+       16,
+       1
+      ],
+      [
+       "Greece - Super League 2",
+       18,
+       1
+      ],
+      [
+       "Denmark - U19 Ligaen",
+       15,
+       1
+      ],
+      [
+       "Mozambique - Mocambola",
+       4,
+       1
+      ],
+      [
+       "Slovenia - U19 League",
+       1,
+       1
+      ],
+      [
+       "Slovenia - 2nd SNL",
+       2,
+       1
+      ],
+      [
+       "England Amateur - U21 Professional Development League",
+       11,
+       1
+      ],
+      [
+       "India - IFL",
+       10,
+       1
+      ],
+      [
+       "Tunisia - Ligue 2, Group B",
+       7,
+       1
+      ],
+      [
+       "India - League Women",
+       1,
+       1
+      ],
+      [
+       "Romania - Liga 2",
+       22,
+       1
+      ],
+      [
+       "Bulgaria - Parva Liga",
+       11,
+       1
+      ],
+      [
+       "Slovenia - PrvaLiga",
+       9,
+       1
+      ],
+      [
+       "Turkiye - Super Lig",
+       13,
+       1
+      ],
+      [
+       "Turkiye - 1. Lig",
+       12,
+       1
+      ],
+      [
+       "Cyprus - 1st Division",
+       15,
+       1
+      ],
+      [
+       "Croatia - HNL",
+       8,
+       1
+      ],
+      [
+       "Germany Amateur - Bundesliga, Women",
+       1,
+       1
+      ],
+      [
+       "Poland - 1. Liga",
+       15,
+       1
+      ],
+      [
+       "Denmark - Superligaen",
+       7,
+       1
+      ],
+      [
+       "Brazil - Paraense Women",
+       1,
+       1
+      ],
+      [
+       "Austria Amateur - Bundesliga Women",
+       1,
+       1
+      ],
+      [
+       "Poland - Ekstraklasa",
+       13,
+       1
+      ],
+      [
+       "Romania - Superliga",
+       11,
+       1
+      ],
+      [
+       "Argentina - Primera C, Promotion Playoffs",
+       3,
+       1
+      ],
+      [
+       "Paraguay - Reserve League",
+       1,
+       1
+      ],
+      [
+       "Hungary - NB II",
+       9,
+       1
+      ],
+      [
+       "Spain - Primera Division Femenina",
+       1,
+       1
+      ],
+      [
+       "England Amateur - U21 Premier League Cup, Group D",
+       2,
+       1
+      ],
+      [
+       "Portugal - Campeonato Nacional, Women",
+       1,
+       1
+      ],
+      [
+       "England Amateur - U21 Premier League Cup, Group B",
+       2,
+       1
+      ],
+      [
+       "England Amateur - U21 Premier League Cup, Group C",
+       2,
+       1
+      ],
+      [
+       "England Amateur - U21 Premier League Cup, Group E",
+       2,
+       1
+      ],
+      [
+       "England Amateur - U21 Premier League Cup, Group F",
+       2,
+       1
+      ],
+      [
+       "England Amateur - U21 Premier League Cup, Group G",
+       2,
+       1
+      ],
+      [
+       "Spain - LaLiga 2",
+       13,
+       1
+      ],
+      [
+       "Italy - Serie C, Group B",
+       15,
+       1
+      ],
+      [
+       "England - Isthmian Cup",
+       1,
+       1
+      ],
+      [
+       "England Amateur - Southern League, Division One South",
+       13,
+       1
+      ],
+      [
+       "France - Ligue 3",
+       10,
+       1
+      ],
+      [
+       "Italy - Serie C, Group A",
+       14,
+       1
+      ],
+      [
+       "Ireland - Munster Senior League",
+       1,
+       1
+      ],
+      [
+       "Costa Rica - Liga de Ascenso, Promotion Playoffs",
+       1,
+       1
+      ],
+      [
+       "Colombia - Torneo DIMAYOR, Clausura, Final",
+       2,
+       1
+      ],
+      [
+       "Costa Rica - Primera Division, Apertura",
+       6,
+       1
+      ],
+      [
+       "Mexico - Liga Primera Premier, Group Stage",
+       9,
+       1
+      ],
+      [
+       "India - Super League",
+       10,
+       1
+      ],
+      [
+       "England - EFL Trophy, Northern Group E",
+       1,
+       1
+      ],
+      [
+       "England - EFL Trophy, Southern Group A",
+       1,
+       1
+      ],
+      [
+       "England - EFL Trophy, Northern Group G",
+       1,
+       1
+      ],
+      [
+       "England - EFL Trophy, Northern Group A",
+       1,
+       1
+      ],
+      [
+       "England Amateur - Northern Premier League, Premier Division",
+       15,
+       1
+      ],
+      [
+       "Chile - Copa Chile, Knockout stage",
+       1,
+       1
+      ],
+      [
+       "Spain - Segunda Federacion, Group V",
+       10,
+       1
+      ],
+      [
+       "Mexico - Liga Premier Serie A",
+       12,
+       1
+      ],
+      [
+       "International Clubs - CONMEBOL Libertadores, Knockout stage",
+       1,
+       1
+      ],
+      [
+       "Argentina - Copa Argentina",
+       1,
+       1
+      ],
+      [
+       "Ethiopia - Higher League Women",
+       1,
+       1
+      ]
+     ]
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 562,
+     "coveragePct": 11.2,
+     "liveWithOdds": 1,
+     "leaguesWithOdds": 119,
+     "byTimeToStart": {
+      "live": [
+       4,
+       1
+      ],
+      "<24h": [
+       175,
+       93
+      ],
+      "1-3d": [
+       482,
+       113
+      ],
+      "3-7d": [
+       2783,
+       283
+      ],
+      "7d+": [
+       1559,
+       72
+      ]
+     },
+     "marketsPerEventAvg": 2.0,
+     "marketsPerEventMedian": 2.0,
+     "marketsPerEventMax": 3,
+     "distinctMarkets": 3,
+     "mainMarketMarginAvgPct": 7.99,
+     "topMarkets": [
+      [
+       "ML",
+       562,
+       100.0
+      ],
+      [
+       "Double Chance",
+       545,
+       97.0
+      ],
+      [
+       "Draw No Bet",
+       11,
+       2.0
+      ]
+     ],
+     "allMarkets": [
+      "Double Chance",
+      "Draw No Bet",
+      "ML"
+     ],
+     "leagues": [
+      [
+       "England - Championship",
+       35,
+       24
+      ],
+      [
+       "Italy - Serie B",
+       24,
+       22
+      ],
+      [
+       "England - Premier League",
+       26,
+       21
+      ],
+      [
+       "International Clubs - UEFA Champions League",
+       18,
+       18
+      ],
+      [
+       "International Clubs - UEFA Conference League",
+       18,
+       18
+      ],
+      [
+       "International Clubs - UEFA Europa League",
+       18,
+       18
+      ],
+      [
+       "Spain - LaLiga",
+       15,
+       15
+      ],
+      [
+       "Germany - Bundesliga",
+       15,
+       15
+      ],
+      [
+       "Scotland - Premiership",
+       18,
+       14
+      ],
+      [
+       "Italy - Serie A",
+       13,
+       13
+      ],
+      [
+       "Romania - Liga 2",
+       22,
+       12
+      ],
+      [
+       "England Amateur - National League North",
+       27,
+       12
+      ],
+      [
+       "Russia - Premier League",
+       12,
+       12
+      ],
+      [
+       "Romania - Superliga",
+       11,
+       11
+      ],
+      [
+       "Spain - LaLiga 2",
+       13,
+       11
+      ],
+      [
+       "Poland - Ekstraklasa",
+       13,
+       10
+      ],
+      [
+       "England Amateur - National League South",
+       23,
+       10
+      ],
+      [
+       "Netherlands - Eredivisie",
+       10,
+       10
+      ],
+      [
+       "France - Ligue 1",
+       10,
+       10
+      ],
+      [
+       "Sweden - Allsvenskan",
+       10,
+       9
+      ],
+      [
+       "England - National League",
+       26,
+       9
+      ],
+      [
+       "Germany - 2. Bundesliga",
+       14,
+       9
+      ],
+      [
+       "Belgium - First Division A",
+       9,
+       9
+      ],
+      [
+       "Portugal - Liga Portugal",
+       9,
+       9
+      ],
+      [
+       "International Clubs - AFC Champions League Elite, West Region",
+       8,
+       8
+      ],
+      [
+       "Turkiye - Super Lig",
+       13,
+       8
+      ],
+      [
+       "Brazil - Brasileiro Serie A",
+       24,
+       8
+      ],
+      [
+       "International Clubs - AFC Champions League Elite, East Region",
+       16,
+       8
+      ],
+      [
+       "Poland - Puchar Polski",
+       8,
+       8
+      ],
+      [
+       "Indonesia - Indonesia Super League",
+       17,
+       8
+      ],
+      [
+       "Czechia - 1. Liga",
+       12,
+       8
+      ],
+      [
+       "Germany - DFB Pokal",
+       8,
+       8
+      ],
+      [
+       "Poland - 1. Liga",
+       15,
+       7
+      ],
+      [
+       "Denmark - Superligaen",
+       7,
+       7
+      ],
+      [
+       "Japan - J.League",
+       23,
+       7
+      ],
+      [
+       "Norway - Eliteserien",
+       10,
+       7
+      ],
+      [
+       "Croatia - HNL",
+       8,
+       6
+      ],
+      [
+       "Austria - Bundesliga",
+       7,
+       6
+      ],
+      [
+       "Slovakia - Superliga",
+       9,
+       6
+      ],
+      [
+       "Switzerland - Super League",
+       6,
+       6
+      ],
+      [
+       "Belarus - Vysshaya League",
+       8,
+       5
+      ],
+      [
+       "Slovenia - PrvaLiga",
+       9,
+       4
+      ],
+      [
+       "USA - MLS, Playoffs",
+       10,
+       4
+      ],
+      [
+       "England - League One",
+       28,
+       4
+      ],
+      [
+       "Egypt - Premier League",
+       10,
+       3
+      ],
+      [
+       "Netherlands - Eerste Divisie",
+       18,
+       3
+      ],
+      [
+       "Poland - II Liga",
+       17,
+       3
+      ],
+      [
+       "Saudi Arabia - Saudi Professional League",
+       18,
+       3
+      ],
+      [
+       "Republic of Korea - K-League 1, Relegation Round",
+       6,
+       3
+      ],
+      [
+       "Republic of Korea - K-League 1, Championship Round",
+       3,
+       3
+      ],
+      [
+       "Argentina - Primera B Nacional, Promotion Playoff",
+       3,
+       3
+      ],
+      [
+       "Italy - Coppa Italia",
+       3,
+       3
+      ],
+      [
+       "Ukraine - Premier League",
+       18,
+       2
+      ],
+      [
+       "Oman - Omani League",
+       8,
+       2
+      ],
+      [
+       "Greece - Super League 2",
+       18,
+       2
+      ],
+      [
+       "Argentina - Primera Division A, Women, Clausura",
+       3,
+       2
+      ],
+      [
+       "Italy - Primavera 1",
+       17,
+       2
+      ],
+      [
+       "Saudi Arabia - Division 1",
+       18,
+       2
+      ],
+      [
+       "Portugal - U23 Liga Next Gen",
+       18,
+       2
+      ],
+      [
+       "Algeria - Ligue 1",
+       19,
+       2
+      ],
+      [
+       "Bolivia - Division Profesional",
+       18,
+       2
+      ],
+      [
+       "Uruguay - Primera Division, Clausura",
+       2,
+       2
+      ],
+      [
+       "France - Ligue 2",
+       9,
+       2
+      ],
+      [
+       "Paraguay - Division de Honor, Clausura",
+       14,
+       2
+      ],
+      [
+       "Jamaica - Premier League",
+       17,
+       2
+      ],
+      [
+       "Russia - Russian Cup, Group 4",
+       2,
+       2
+      ],
+      [
+       "Slovakia - Slovensky Pohar",
+       2,
+       2
+      ],
+      [
+       "Russia - Russian Cup, Group 3",
+       2,
+       2
+      ],
+      [
+       "England - League Two",
+       26,
+       2
+      ],
+      [
+       "Myanmar - National League",
+       13,
+       1
+      ],
+      [
+       "Singapore - Premier League 2",
+       5,
+       1
+      ],
+      [
+       "North Macedonia - 1. MFL",
+       16,
+       1
+      ],
+      [
+       "Bulgaria - Vtora Liga",
+       18,
+       1
+      ],
+      [
+       "Denmark - U19 Ligaen",
+       15,
+       1
+      ],
+      [
+       "Mozambique - Mocambola",
+       4,
+       1
+      ],
+      [
+       "Slovenia - 2nd SNL",
+       2,
+       1
+      ],
+      [
+       "England Amateur - U21 Professional Development League",
+       11,
+       1
+      ],
+      [
+       "India - IFL",
+       10,
+       1
+      ],
+      [
+       "Russia - 1. Liga",
+       22,
+       1
+      ],
+      [
+       "Greece - Super League",
+       8,
+       1
+      ],
+      [
+       "Bulgaria - Parva Liga",
+       11,
+       1
+      ],
+      [
+       "Turkiye - 1. Lig",
+       12,
+       1
+      ],
+      [
+       "Cyprus - 1st Division",
+       15,
+       1
+      ],
+      [
+       "Germany Amateur - Bundesliga, Women",
+       1,
+       1
+      ],
+      [
+       "Austria Amateur - Bundesliga Women",
+       1,
+       1
+      ],
+      [
+       "Argentina - Primera C, Promotion Playoffs",
+       3,
+       1
+      ],
+      [
+       "Hungary - NB II",
+       9,
+       1
+      ],
+      [
+       "Spain - Primera Division Femenina",
+       1,
+       1
+      ],
+      [
+       "England Amateur - U21 Premier League Cup, Group D",
+       2,
+       1
+      ],
+      [
+       "Portugal - Campeonato Nacional, Women",
+       1,
+       1
+      ],
+      [
+       "England Amateur - U21 Premier League Cup, Group B",
+       2,
+       1
+      ],
+      [
+       "England Amateur - U21 Premier League Cup, Group C",
+       2,
+       1
+      ],
+      [
+       "England Amateur - U21 Premier League Cup, Group E",
+       2,
+       1
+      ],
+      [
+       "England Amateur - U21 Premier League Cup, Group F",
+       2,
+       1
+      ],
+      [
+       "England Amateur - U21 Premier League Cup, Group G",
+       2,
+       1
+      ],
+      [
+       "Italy - Serie C, Group B",
+       15,
+       1
+      ],
+      [
+       "France - Ligue 3",
+       10,
+       1
+      ],
+      [
+       "Italy - Serie C, Group A",
+       14,
+       1
+      ],
+      [
+       "Argentina - Primera LPF, Clausura Playoffs",
+       4,
+       1
+      ],
+      [
+       "Uruguay - Tercera Division, Reserves, Playoffs",
+       1,
+       1
+      ],
+      [
+       "Chile - Liga Segunda Division, Relegation Round",
+       4,
+       1
+      ],
+      [
+       "Costa Rica - Liga de Ascenso, Promotion Playoffs",
+       1,
+       1
+      ],
+      [
+       "Colombia - Torneo DIMAYOR, Clausura, Final",
+       2,
+       1
+      ],
+      [
+       "Costa Rica - Primera Division, Apertura",
+       6,
+       1
+      ],
+      [
+       "Mexico - Liga Primera Premier, Group Stage",
+       9,
+       1
+      ],
+      [
+       "India - Super League",
+       10,
+       1
+      ],
+      [
+       "South Africa - Premiership",
+       11,
+       1
+      ],
+      [
+       "Wales - Cymru Premier",
+       12,
+       1
+      ],
+      [
+       "Chile - Copa Chile, Knockout stage",
+       1,
+       1
+      ],
+      [
+       "Poland - III Liga, Group 1",
+       10,
+       1
+      ],
+      [
+       "Serbia - Super Liga",
+       8,
+       1
+      ],
+      [
+       "Russia - Russian Cup, Group 2",
+       2,
+       1
+      ],
+      [
+       "Russia - Russian Cup, Group 1",
+       2,
+       1
+      ],
+      [
+       "Australia - A-League",
+       3,
+       1
+      ],
+      [
+       "Uruguay - Primera Division, Playoffs",
+       1,
+       1
+      ],
+      [
+       "International Clubs - CONMEBOL Libertadores, Knockout stage",
+       1,
+       1
+      ],
+      [
+       "International - FIFA World Cup, Women, Quali., UEFA, Playoffs",
+       9,
+       1
+      ],
+      [
+       "Romania - Cupa Romaniei, Group C",
+       3,
+       1
+      ],
+      [
+       "Czechia - Czech Cup",
+       1,
+       1
+      ]
+     ]
+    }
+   },
+   "uncoveredLeagues": [
+    [
+     "France - Coupe de France",
+     46
+    ],
+    [
+     "Italy - Eccellenza",
+     36
+    ],
+    [
+     "Thailand - Thai League 3",
+     30
+    ],
+    [
+     "Turkiye - Turkiye Kupasi",
+     27
+    ],
+    [
+     "Kenya - Premier League",
+     25
+    ],
+    [
+     "Japan - J-League 3",
+     24
+    ],
+    [
+     "Thailand - Thai League 2",
+     23
+    ],
+    [
+     "Botswana - Premier League",
+     22
+    ],
+    [
+     "Rwanda - Premier League",
+     20
+    ],
+    [
+     "Egypt - 2. Division A",
+     20
+    ],
+    [
+     "Scotland - Scottish Cup",
+     20
+    ],
+    [
+     "Uganda - Premier League",
+     19
+    ],
+    [
+     "Germany Amateur - Regionalliga Bavaria",
+     19
+    ],
+    [
+     "San Marino - Campionato Sammarinese",
+     19
+    ],
+    [
+     "International Youth - UEFA Youth League",
+     18
+    ],
+    [
+     "England Amateur - Isthmian League, Division One South Central",
+     18
+    ],
+    [
+     "Germany Amateur - Regionalliga Southwest",
+     18
+    ],
+    [
+     "Vietnam - V-League 2",
+     18
+    ],
+    [
+     "Saudi Arabia - Second Division, Group 1",
+     18
+    ],
+    [
+     "Iraq - Stars League",
+     18
+    ],
+    [
+     "Germany Amateur - Regionalliga West",
+     18
+    ],
+    [
+     "Bulgaria - Treta Liga, Group North East",
+     17
+    ],
+    [
+     "Saudi Arabia - Second Division, Group 2",
+     17
+    ],
+    [
+     "Iran - Pro League",
+     17
+    ],
+    [
+     "Germany Amateur - Oberliga Hamburg",
+     17
+    ],
+    [
+     "Germany Amateur - Oberliga Rheinland-Pfalz/Saar",
+     17
+    ],
+    [
+     "Wales - Cymru Championship, North",
+     17
+    ],
+    [
+     "Netherlands - Tweede Divisie",
+     17
+    ],
+    [
+     "Iran - Azadegan League",
+     16
+    ],
+    [
+     "England Amateur - Southern League, Division One Central",
+     16
+    ],
+    [
+     "Spain - Division de Honor Juvenil - Grupo VI",
+     16
+    ],
+    [
+     "Uzbekistan - Superliga",
+     16
+    ],
+    [
+     "Croatia - Druga NL",
+     16
+    ],
+    [
+     "South Africa - Championship",
+     16
+    ],
+    [
+     "Germany - 3. Liga",
+     16
+    ],
+    [
+     "USA - NCAA Division I, National Championship, Women",
+     16
+    ],
+    [
+     "Wales - Cymru Championship, South",
+     16
+    ],
+    [
+     "Cyprus - 3rd Division",
+     16
+    ],
+    [
+     "Cyprus - 2nd Division",
+     16
+    ],
+    [
+     "Croatia - 3. NL",
+     16
+    ],
+    [
+     "Germany Amateur - Oberliga Baden-Wurttemberg",
+     16
+    ],
+    [
+     "Germany Amateur - Regionalliga North",
+     16
+    ],
+    [
+     "Netherlands - Derde Divisie, Group A",
+     16
+    ],
+    [
+     "Italy - Primavera 2, Girone A",
+     16
+    ],
+    [
+     "Italy - Primavera 2, Girone B",
+     16
+    ],
+    [
+     "England Amateur - Isthmian League, Division One North",
+     15
+    ],
+    [
+     "Switzerland - U19 Elite",
+     15
+    ],
+    [
+     "Georgia - Erovnuli Liga 2",
+     15
+    ],
+    [
+     "Israel - Liga Alef North",
+     15
+    ],
+    [
+     "Israel - Premier League",
+     15
+    ],
+    [
+     "Croatia - Prva NL",
+     15
+    ],
+    [
+     "Germany Amateur - Regionalliga Northeast",
+     15
+    ],
+    [
+     "Serbia - Srpska Liga, Vojvodina",
+     15
+    ],
+    [
+     "Germany Amateur - Hessenliga",
+     15
+    ],
+    [
+     "Greece - Gamma Ethniki, Group 3",
+     15
+    ],
+    [
+     "Bosnia and Herzegovina - Premijer Liga",
+     15
+    ],
+    [
+     "Armenia - First League",
+     14
+    ],
+    [
+     "Georgia - Erovnuli Liga",
+     14
+    ],
+    [
+     "Lebanon - Premier League",
+     14
+    ],
+    [
+     "Zambia - Super League, Group A",
+     14
+    ]
+   ]
+  },
+  "basketball": {
+   "events": 3889,
+   "liveEvents": 1,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 84,
+     "coveragePct": 2.2,
+     "liveWithOdds": 1,
+     "leaguesWithOdds": 21,
+     "byTimeToStart": {
+      "live": [
+       1,
+       1
+      ],
+      "<24h": [
+       155,
+       62
+      ],
+      "1-3d": [
+       519,
+       18
+      ],
+      "3-7d": [
+       1165,
+       3
+      ],
+      "7d+": [
+       2049,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 8.7,
+     "marketsPerEventMedian": 11.0,
+     "marketsPerEventMax": 13,
+     "distinctMarkets": 19,
+     "mainMarketMarginAvgPct": 5.64,
+     "topMarkets": [
+      [
+       "Spread",
+       84,
+       100.0
+      ],
+      [
+       "Totals",
+       84,
+       100.0
+      ],
+      [
+       "ML",
+       80,
+       95.2
+      ],
+      [
+       "Team Total Home",
+       74,
+       88.1
+      ],
+      [
+       "Team Total Away",
+       74,
+       88.1
+      ],
+      [
+       "Winning Margin",
+       53,
+       63.1
+      ],
+      [
+       "ML HT",
+       46,
+       54.8
+      ],
+      [
+       "Spread HT",
+       46,
+       54.8
+      ],
+      [
+       "Totals HT",
+       46,
+       54.8
+      ],
+      [
+       "Spread 1Q",
+       37,
+       44.0
+      ],
+      [
+       "Totals 1Q",
+       37,
+       44.0
+      ],
+      [
+       "ML 1Q",
+       37,
+       44.0
+      ],
+      [
+       "Player Props",
+       12,
+       14.3
+      ],
+      [
+       "Player First Rebound",
+       9,
+       10.7
+      ],
+      [
+       "Player First Assist",
+       9,
+       10.7
+      ],
+      [
+       "Odd/Even",
+       1,
+       1.2
+      ],
+      [
+       "Team Total Away HT",
+       1,
+       1.2
+      ],
+      [
+       "Odd/Even HT",
+       1,
+       1.2
+      ],
+      [
+       "Team Total Home HT",
+       1,
+       1.2
+      ]
+     ],
+     "allMarkets": [
+      "ML",
+      "ML 1Q",
+      "ML HT",
+      "Odd/Even",
+      "Odd/Even HT",
+      "Player First Assist",
+      "Player First Rebound",
+      "Player Props",
+      "Spread",
+      "Spread 1Q",
+      "Spread HT",
+      "Team Total Away",
+      "Team Total Away HT",
+      "Team Total Home",
+      "Team Total Home HT",
+      "Totals",
+      "Totals 1Q",
+      "Totals HT",
+      "Winning Margin"
+     ],
+     "leagues": [
+      [
+       "USA - NCAA",
+       1306,
+       30
+      ],
+      [
+       "USA - NBA",
+       77,
+       17
+      ],
+      [
+       "International - Euroleague",
+       20,
+       10
+      ],
+      [
+       "FIBA - Basketball Africa League",
+       4,
+       4
+      ],
+      [
+       "Iceland - Urvalsdeild, Women",
+       11,
+       4
+      ],
+      [
+       "Australia - WNBL",
+       14,
+       3
+      ],
+      [
+       "Israel - WBL, Women",
+       11,
+       2
+      ],
+      [
+       "Hong Kong - Division 1 Women",
+       1,
+       1
+      ],
+      [
+       "Romania - LNB, Women",
+       11,
+       1
+      ],
+      [
+       "Kazakhstan - National League",
+       6,
+       1
+      ],
+      [
+       "Greece - Womens Basketball League 1",
+       13,
+       1
+      ],
+      [
+       "Turkiye - TKBL, Women",
+       10,
+       1
+      ],
+      [
+       "Czech Republic - Cup Women",
+       1,
+       1
+      ],
+      [
+       "Serbia - KLS",
+       9,
+       1
+      ],
+      [
+       "Morocco - Division Excellence",
+       2,
+       1
+      ],
+      [
+       "Greece - Elite League",
+       15,
+       1
+      ],
+      [
+       "Serbia - 1. ZLS, Women",
+       13,
+       1
+      ],
+      [
+       "Poland - 1. Liga",
+       16,
+       1
+      ],
+      [
+       "Iceland - 1. Deild",
+       13,
+       1
+      ],
+      [
+       "Uruguay - Tercera de Ascenso",
+       2,
+       1
+      ],
+      [
+       "Philippines - UAAP Women",
+       1,
+       1
+      ]
+     ]
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 69,
+     "coveragePct": 1.8,
+     "liveWithOdds": 1,
+     "leaguesWithOdds": 10,
+     "byTimeToStart": {
+      "live": [
+       1,
+       1
+      ],
+      "<24h": [
+       155,
+       50
+      ],
+      "1-3d": [
+       519,
+       18
+      ],
+      "3-7d": [
+       1165,
+       0
+      ],
+      "7d+": [
+       2049,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 3.3,
+     "marketsPerEventMedian": 3,
+     "marketsPerEventMax": 4,
+     "distinctMarkets": 4,
+     "mainMarketMarginAvgPct": 6.83,
+     "topMarkets": [
+      [
+       "ML",
+       69,
+       100.0
+      ],
+      [
+       "Spread",
+       69,
+       100.0
+      ],
+      [
+       "3-Way Result",
+       67,
+       97.1
+      ],
+      [
+       "3-Way Result HT",
+       25,
+       36.2
+      ]
+     ],
+     "allMarkets": [
+      "3-Way Result",
+      "3-Way Result HT",
+      "ML",
+      "Spread"
+     ],
+     "leagues": [
+      [
+       "USA - NCAA",
+       1306,
+       40
+      ],
+      [
+       "USA - NBA",
+       77,
+       10
+      ],
+      [
+       "International - Euroleague",
+       20,
+       10
+      ],
+      [
+       "China - WCBA, Group A",
+       33,
+       3
+      ],
+      [
+       "Republic of Korea - WKBL",
+       12,
+       1
+      ],
+      [
+       "FIBA - Basketball Africa League",
+       4,
+       1
+      ],
+      [
+       "Romania - LNB, Women",
+       11,
+       1
+      ],
+      [
+       "Serbia - KLS",
+       9,
+       1
+      ],
+      [
+       "Greece - Elite League",
+       15,
+       1
+      ],
+      [
+       "Poland - 1. Liga",
+       16,
+       1
+      ]
+     ]
+    }
+   },
+   "uncoveredLeagues": [
+    [
+     "USA - NCAA, Women",
+     718
+    ],
+    [
+     "USA - NBA G League Tip-Off Tournament",
+     67
+    ],
+    [
+     "Japan - B League One",
+     48
+    ],
+    [
+     "Lithuania - NKL",
+     38
+    ],
+    [
+     "Puerto Rico - Superior Nacional",
+     30
+    ],
+    [
+     "Argentina - Liga Argentina, Conference North",
+     24
+    ],
+    [
+     "Serbia - 2. MLS",
+     24
+    ],
+    [
+     "Switzerland - NLB",
+     22
+    ],
+    [
+     "Italy - Serie A2",
+     21
+    ],
+    [
+     "Montenegro - I A MCKL",
+     19
+    ],
+    [
+     "Argentina - Liga Argentina, Conference South",
+     18
+    ],
+    [
+     "China - NBL",
+     18
+    ],
+    [
+     "Italy - Serie B, Group A",
+     18
+    ],
+    [
+     "Italy - Serie B, Group B",
+     18
+    ],
+    [
+     "Romania - Liga 1",
+     17
+    ],
+    [
+     "Japan - W League Premier",
+     16
+    ],
+    [
+     "Turkiye - TBL",
+     16
+    ],
+    [
+     "Portugal - Campeonato Nacional Liga Feminina",
+     16
+    ],
+    [
+     "Portugal - Proliga",
+     16
+    ],
+    [
+     "Spain - Liga Femenina, Women",
+     16
+    ],
+    [
+     "Japan - B League Premier",
+     16
+    ],
+    [
+     "Spain - Liga Femenina Challenge, Women",
+     15
+    ],
+    [
+     "Germany - Pro B, South",
+     15
+    ],
+    [
+     "Israel - National League",
+     14
+    ],
+    [
+     "Croatia - Prva Liga",
+     14
+    ],
+    [
+     "China - CBA",
+     14
+    ],
+    [
+     "Spain - Segunda FEB, Group A",
+     13
+    ],
+    [
+     "Spain - Segunda FEB, Group B",
+     13
+    ],
+    [
+     "Tunisia - National A League, Group A",
+     12
+    ],
+    [
+     "Argentina - Liga Femenina, Women, Apertura, Group B",
+     12
+    ],
+    [
+     "Russia - Premier League, Women",
+     12
+    ],
+    [
+     "Italy - A1 Women",
+     12
+    ],
+    [
+     "Finland - 1. Division",
+     12
+    ],
+    [
+     "Poland - Basket Liga, Women",
+     12
+    ],
+    [
+     "Italy - U19 NextGen Cup, Group A",
+     12
+    ],
+    [
+     "Italy - U19 NextGen Cup, Group B",
+     12
+    ],
+    [
+     "Sweden - Svenska Basketligan, Women",
+     12
+    ],
+    [
+     "Bosnia and Herzegovina - 1 Division, Women",
+     12
+    ],
+    [
+     "Austria - 2nd League",
+     12
+    ],
+    [
+     "France - LFB, Women",
+     12
+    ],
+    [
+     "Brazil - NBB",
+     12
+    ],
+    [
+     "Italy - Serie A2, Women, Group B",
+     11
+    ],
+    [
+     "Finland - 1. Division B",
+     11
+    ],
+    [
+     "France - U21 Espoirs Elite",
+     11
+    ],
+    [
+     "Czechia - 1. Liga, Group East",
+     11
+    ],
+    [
+     "International - Estonian-Latvian Basketball League",
+     11
+    ],
+    [
+     "Belarus - Championship, Group B",
+     10
+    ],
+    [
+     "Belarus - Championship, Group A",
+     10
+    ],
+    [
+     "Montenegro - I B MCKL",
+     10
+    ],
+    [
+     "Latvia - NBL, West",
+     10
+    ],
+    [
+     "Sweden - Superettan",
+     10
+    ],
+    [
+     "Turkiye - TB2L, Group B",
+     10
+    ],
+    [
+     "Czechia - 1. Liga, Group West",
+     10
+    ],
+    [
+     "Hungary - NB I, Women",
+     10
+    ],
+    [
+     "Turkiye - TB2L, Group A",
+     10
+    ],
+    [
+     "Turkiye - Super Lig, Women",
+     10
+    ],
+    [
+     "International - WBBL, Women",
+     10
+    ],
+    [
+     "Czechia - ZBL, Women",
+     10
+    ],
+    [
+     "England - SLB, Women",
+     10
+    ],
+    [
+     "Italy - Serie A2, Women, Group A",
+     10
+    ]
+   ]
+  },
+  "tennis": {
+   "events": 482,
+   "liveEvents": 12,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 147,
+     "coveragePct": 30.5,
+     "liveWithOdds": 5,
+     "leaguesWithOdds": 20,
+     "byTimeToStart": {
+      "live": [
+       12,
+       5
+      ],
+      "<24h": [
+       290,
+       92
+      ],
+      "1-3d": [
+       159,
+       49
+      ],
+      "3-7d": [
+       1,
+       1
+      ],
+      "7d+": [
+       20,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 5.5,
+     "marketsPerEventMedian": 5,
+     "marketsPerEventMax": 11,
+     "distinctMarkets": 20,
+     "mainMarketMarginAvgPct": 7.25,
+     "topMarkets": [
+      [
+       "ML",
+       145,
+       98.6
+      ],
+      [
+       "ML 1st Set",
+       136,
+       92.5
+      ],
+      [
+       "Set Betting",
+       120,
+       81.6
+      ],
+      [
+       "Correct Score 1st Set",
+       71,
+       48.3
+      ],
+      [
+       "Spread 1st Set",
+       71,
+       48.3
+      ],
+      [
+       "Totals (Games)",
+       71,
+       48.3
+      ],
+      [
+       "Spread (Games)",
+       71,
+       48.3
+      ],
+      [
+       "Totals 1st Set",
+       71,
+       48.3
+      ],
+      [
+       "Team Total (Aces) Away",
+       13,
+       8.8
+      ],
+      [
+       "Team Total (Aces) Home",
+       13,
+       8.8
+      ],
+      [
+       "Totals (Aces)",
+       13,
+       8.8
+      ],
+      [
+       "ML 2nd Set",
+       6,
+       4.1
+      ],
+      [
+       "Odd/Even",
+       5,
+       3.4
+      ],
+      [
+       "ML 3rd Set",
+       2,
+       1.4
+      ],
+      [
+       "ML Set 2 Game 3",
+       2,
+       1.4
+      ],
+      [
+       "ML Set 1 Game 1",
+       1,
+       0.7
+      ],
+      [
+       "ML Set 1 Game 2",
+       1,
+       0.7
+      ],
+      [
+       "ML Set 2 Game 6",
+       1,
+       0.7
+      ],
+      [
+       "ML Set 2 Game 4",
+       1,
+       0.7
+      ],
+      [
+       "ML Set 2 Game 2",
+       1,
+       0.7
+      ]
+     ],
+     "allMarkets": [
+      "Correct Score 1st Set",
+      "ML",
+      "ML 1st Set",
+      "ML 2nd Set",
+      "ML 3rd Set",
+      "ML Set 1 Game 1",
+      "ML Set 1 Game 2",
+      "ML Set 2 Game 2",
+      "ML Set 2 Game 3",
+      "ML Set 2 Game 4",
+      "ML Set 2 Game 6",
+      "Odd/Even",
+      "Set Betting",
+      "Spread (Games)",
+      "Spread 1st Set",
+      "Team Total (Aces) Away",
+      "Team Total (Aces) Home",
+      "Totals (Aces)",
+      "Totals (Games)",
+      "Totals 1st Set"
+     ],
+     "leagues": [
+      [
+       "WTA 125K - Buenos Aires, Argentina",
+       16,
+       14
+      ],
+      [
+       "Challenger - Ankara, Turkiye",
+       11,
+       11
+      ],
+      [
+       "Challenger - Hersonissos 4, Greece",
+       10,
+       10
+      ],
+      [
+       "Challenger - Florianopolis, Brazil, Qualifying",
+       11,
+       10
+      ],
+      [
+       "Challenger - Monastir 2, Tunisia",
+       10,
+       10
+      ],
+      [
+       "Challenger - San Salvador, El Salvador",
+       11,
+       10
+      ],
+      [
+       "Challenger - Florianopolis, Brazil",
+       11,
+       10
+      ],
+      [
+       "Challenger - San Salvador, El Salvador, Doubles",
+       7,
+       7
+      ],
+      [
+       "Challenger - Playford, Australia, Doubles",
+       7,
+       7
+      ],
+      [
+       "Challenger - Yokohama, Japan, Doubles",
+       7,
+       7
+      ],
+      [
+       "Challenger - Hersonissos 4, Greece, Doubles",
+       8,
+       7
+      ],
+      [
+       "Challenger - Hersonissos 4, Greece, Qualifying",
+       6,
+       6
+      ],
+      [
+       "Challenger - Monastir 2, Tunisia, Qualifying",
+       6,
+       6
+      ],
+      [
+       "Challenger - San Salvador, El Salvador, Qualifying",
+       6,
+       6
+      ],
+      [
+       "Challenger - Ankara, Turkiye, Doubles",
+       8,
+       6
+      ],
+      [
+       "Challenger - Ankara, Turkiye, Qualifying",
+       5,
+       5
+      ],
+      [
+       "Challenger - Playford, Australia",
+       12,
+       5
+      ],
+      [
+       "Challenger - Yokohama, Japan",
+       12,
+       5
+      ],
+      [
+       "Davis Cup - Finals, Playoffs",
+       4,
+       4
+      ],
+      [
+       "Tennis - ITF Women Ortisei - R1",
+       1,
+       1
+      ]
+     ]
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 195,
+     "coveragePct": 40.5,
+     "liveWithOdds": 9,
+     "leaguesWithOdds": 42,
+     "byTimeToStart": {
+      "live": [
+       12,
+       9
+      ],
+      "<24h": [
+       290,
+       123
+      ],
+      "1-3d": [
+       159,
+       62
+      ],
+      "3-7d": [
+       1,
+       1
+      ],
+      "7d+": [
+       20,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 5.0,
+     "marketsPerEventMedian": 5,
+     "marketsPerEventMax": 7,
+     "distinctMarkets": 7,
+     "mainMarketMarginAvgPct": 9.16,
+     "topMarkets": [
+      [
+       "ML",
+       195,
+       100.0
+      ],
+      [
+       "Correct Score",
+       184,
+       94.4
+      ],
+      [
+       "ML 1st Set",
+       180,
+       92.3
+      ],
+      [
+       "Spread",
+       162,
+       83.1
+      ],
+      [
+       "Spread (Games)",
+       103,
+       52.8
+      ],
+      [
+       "Correct Score 1st Set",
+       78,
+       40.0
+      ],
+      [
+       "Spread 1st Set",
+       71,
+       36.4
+      ]
+     ],
+     "allMarkets": [
+      "Correct Score",
+      "Correct Score 1st Set",
+      "ML",
+      "ML 1st Set",
+      "Spread",
+      "Spread (Games)",
+      "Spread 1st Set"
+     ],
+     "leagues": [
+      [
+       "WTA 125K - Buenos Aires, Argentina",
+       16,
+       15
+      ],
+      [
+       "Challenger - Playford, Australia",
+       12,
+       12
+      ],
+      [
+       "Challenger - Yokohama, Japan",
+       12,
+       12
+      ],
+      [
+       "Challenger - Ankara, Turkiye",
+       11,
+       10
+      ],
+      [
+       "Challenger - Hersonissos 4, Greece",
+       10,
+       10
+      ],
+      [
+       "Challenger - Florianopolis, Brazil, Qualifying",
+       11,
+       10
+      ],
+      [
+       "Challenger - Monastir 2, Tunisia",
+       10,
+       10
+      ],
+      [
+       "Challenger - San Salvador, El Salvador",
+       11,
+       10
+      ],
+      [
+       "Challenger - Florianopolis, Brazil",
+       11,
+       10
+      ],
+      [
+       "Challenger - Monastir 2, Tunisia, Doubles",
+       8,
+       8
+      ],
+      [
+       "Challenger - San Salvador, El Salvador, Doubles",
+       7,
+       7
+      ],
+      [
+       "Challenger - Playford, Australia, Doubles",
+       7,
+       7
+      ],
+      [
+       "Challenger - Hersonissos 4, Greece, Doubles",
+       8,
+       7
+      ],
+      [
+       "Challenger - Hersonissos 4, Greece, Qualifying",
+       6,
+       6
+      ],
+      [
+       "Challenger - Monastir 2, Tunisia, Qualifying",
+       6,
+       6
+      ],
+      [
+       "Challenger - San Salvador, El Salvador, Qualifying",
+       6,
+       6
+      ],
+      [
+       "Challenger - Yokohama, Japan, Doubles",
+       7,
+       6
+      ],
+      [
+       "Challenger - Ankara, Turkiye, Qualifying",
+       5,
+       4
+      ],
+      [
+       "Challenger - Ankara, Turkiye, Doubles",
+       8,
+       4
+      ],
+      [
+       "Davis Cup - Finals, Playoffs",
+       4,
+       4
+      ],
+      [
+       "Challenger - Florianopolis, Brazil, Doubles",
+       8,
+       3
+      ],
+      [
+       "UTR Women - UTR PTT Gyor Women 02, Group B",
+       10,
+       2
+      ],
+      [
+       "UTR Women - UTR PTT Barcelona Women 01, Group B",
+       10,
+       2
+      ],
+      [
+       "UTR Men - UTR PTT Gyor Men 03, Group A",
+       10,
+       2
+      ],
+      [
+       "UTR Men - UTR PTT Barcelona Men 01, Group A",
+       10,
+       2
+      ],
+      [
+       "UTR Men - UTR PTT Buenos Aires Men 01, Group D",
+       10,
+       2
+      ],
+      [
+       "UTR Men - UTR PTT Melbourne Men 05, Group B",
+       8,
+       2
+      ],
+      [
+       "UTR Women - UTR PTT Barcelona Women 01, Group D",
+       10,
+       2
+      ],
+      [
+       "UTR Men - UTR PTT Barcelona Men 01, Group B",
+       10,
+       1
+      ],
+      [
+       "UTR Men - UTR PTT Gyor Men 03, Group B",
+       10,
+       1
+      ],
+      [
+       "UTR Women - UTR PTT Barcelona Women 01, Group A",
+       10,
+       1
+      ],
+      [
+       "UTR Men - UTR PTT Gyor Men 03, Group D",
+       10,
+       1
+      ],
+      [
+       "UTR Men - UTR PTT Barcelona Men 01, Group C",
+       10,
+       1
+      ],
+      [
+       "UTR Women - UTR PTT Barcelona Women 01, Group C",
+       10,
+       1
+      ],
+      [
+       "Tennis - ITF Women Ortisei - R1",
+       1,
+       1
+      ],
+      [
+       "UTR Women - UTR PTT Buenos Aires Women 01, Group D",
+       6,
+       1
+      ],
+      [
+       "UTR Men - UTR PTT Melbourne Men 05, Group A",
+       8,
+       1
+      ],
+      [
+       "UTR Men - UTR PTT Melbourne Men 05, Group D",
+       8,
+       1
+      ],
+      [
+       "UTR Men - UTR PTT Melbourne Men 05, Group C",
+       8,
+       1
+      ],
+      [
+       "UTR Women - UTR PTT Melbourne Women 05, Group B",
+       6,
+       1
+      ],
+      [
+       "UTR Women - UTR PTT Gyor Women 02, Group A",
+       9,
+       1
+      ],
+      [
+       "UTR Women - UTR PTT Gyor Women 02, Group C",
+       10,
+       1
+      ]
+     ]
+    }
+   },
+   "uncoveredLeagues": [
+    [
+     "UTR Women - UTR PTT Gyor Women 02, Group D",
+     10
+    ],
+    [
+     "UTR Men - UTR PTT Buenos Aires Men 01, Group B",
+     10
+    ],
+    [
+     "UTR Men - UTR PTT Buenos Aires Men 01, Group C",
+     10
+    ],
+    [
+     "UTR Men - UTR PTT Buenos Aires Men 01, Group A",
+     10
+    ],
+    [
+     "UTR Men - UTR PTT Barcelona Men 01, Group D",
+     9
+    ],
+    [
+     "UTR Men - UTR PTT Gyor Men 03, Group C",
+     8
+    ],
+    [
+     "Exhibition - World Team Tennis",
+     8
+    ],
+    [
+     "Exhibition - World Team Tennis, Women",
+     8
+    ],
+    [
+     "UTR Women - UTR PTT Buenos Aires Women 01, Group A",
+     6
+    ],
+    [
+     "UTR Women - UTR PTT Buenos Aires Women 01, Group C",
+     6
+    ],
+    [
+     "UTR Women - UTR PTT Buenos Aires Women 01, Group B",
+     6
+    ],
+    [
+     "UTR Women - UTR PTT Melbourne Women 05, Group A",
+     6
+    ],
+    [
+     "UTR Women - UTR PTT Melbourne Women 05, Group D",
+     6
+    ],
+    [
+     "UTR Women - UTR PTT Melbourne Women 05, Group C",
+     6
+    ],
+    [
+     "Exhibition - World Team Tennis, Mixed Doubles",
+     4
+    ],
+    [
+     "UTR Men - UTR PTT College Station Men 02, 9-12 Playoff",
+     1
+    ]
+   ]
+  },
+  "baseball": {
+   "events": 232,
+   "liveEvents": 0,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0.0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {
+      "<24h": [
+       2,
+       0
+      ],
+      "1-3d": [
+       44,
+       0
+      ],
+      "3-7d": [
+       93,
+       0
+      ],
+      "7d+": [
+       93,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0.0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {
+      "<24h": [
+       2,
+       0
+      ],
+      "1-3d": [
+       44,
+       0
+      ],
+      "3-7d": [
+       93,
+       0
+      ],
+      "7d+": [
+       93,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    }
+   },
+   "uncoveredLeagues": [
+    [
+     "Mexico - Liga Mexicana del Pacifico",
+     60
+    ],
+    [
+     "Cuba - Serie Nacional",
+     40
+    ],
+    [
+     "Venezuela - LVBP",
+     39
+    ],
+    [
+     "Puerto Rico - La Pro",
+     29
+    ],
+    [
+     "Dominican Republic - LIDOM",
+     24
+    ],
+    [
+     "Nicaragua - LBPN",
+     24
+    ],
+    [
+     "Australia - ABL",
+     16
+    ]
+   ]
+  },
+  "american-football": {
+   "events": 137,
+   "liveEvents": 0,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 85,
+     "coveragePct": 62.0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 4,
+     "byTimeToStart": {
+      "<24h": [
+       1,
+       1
+      ],
+      "1-3d": [
+       3,
+       3
+      ],
+      "3-7d": [
+       115,
+       78
+      ],
+      "7d+": [
+       18,
+       3
+      ]
+     },
+     "marketsPerEventAvg": 4.1,
+     "marketsPerEventMedian": 4,
+     "marketsPerEventMax": 16,
+     "distinctMarkets": 16,
+     "mainMarketMarginAvgPct": 4.47,
+     "topMarkets": [
+      [
+       "Spread",
+       85,
+       100.0
+      ],
+      [
+       "Totals",
+       85,
+       100.0
+      ],
+      [
+       "ML",
+       84,
+       98.8
+      ],
+      [
+       "Winning Margin",
+       82,
+       96.5
+      ],
+      [
+       "Player Props",
+       2,
+       2.4
+      ],
+      [
+       "ML HT",
+       1,
+       1.2
+      ],
+      [
+       "Spread HT",
+       1,
+       1.2
+      ],
+      [
+       "Totals HT",
+       1,
+       1.2
+      ],
+      [
+       "Spread 1Q",
+       1,
+       1.2
+      ],
+      [
+       "Totals 1Q",
+       1,
+       1.2
+      ],
+      [
+       "Correct Score",
+       1,
+       1.2
+      ],
+      [
+       "ML 1Q",
+       1,
+       1.2
+      ],
+      [
+       "Totals 2H",
+       1,
+       1.2
+      ],
+      [
+       "Spread 2H",
+       1,
+       1.2
+      ],
+      [
+       "Player Tackles",
+       1,
+       1.2
+      ],
+      [
+       "ML 2H",
+       1,
+       1.2
+      ]
+     ],
+     "allMarkets": [
+      "Correct Score",
+      "ML",
+      "ML 1Q",
+      "ML 2H",
+      "ML HT",
+      "Player Props",
+      "Player Tackles",
+      "Spread",
+      "Spread 1Q",
+      "Spread 2H",
+      "Spread HT",
+      "Totals",
+      "Totals 1Q",
+      "Totals 2H",
+      "Totals HT",
+      "Winning Margin"
+     ],
+     "leagues": [
+      [
+       "USA - College",
+       71,
+       66
+      ],
+      [
+       "USA - NFL",
+       30,
+       17
+      ],
+      [
+       "USA - Pac-12 Conference Championship",
+       1,
+       1
+      ],
+      [
+       "USA - Atlantic Coast Conference Championship",
+       1,
+       1
+      ]
+     ]
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 88,
+     "coveragePct": 64.2,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 4,
+     "byTimeToStart": {
+      "<24h": [
+       1,
+       1
+      ],
+      "1-3d": [
+       3,
+       3
+      ],
+      "3-7d": [
+       115,
+       81
+      ],
+      "7d+": [
+       18,
+       3
+      ]
+     },
+     "marketsPerEventAvg": 1.1,
+     "marketsPerEventMedian": 1.0,
+     "marketsPerEventMax": 2,
+     "distinctMarkets": 2,
+     "mainMarketMarginAvgPct": 8.73,
+     "topMarkets": [
+      [
+       "ML",
+       88,
+       100.0
+      ],
+      [
+       "3-Way Result HT",
+       12,
+       13.6
+      ]
+     ],
+     "allMarkets": [
+      "3-Way Result HT",
+      "ML"
+     ],
+     "leagues": [
+      [
+       "USA - College",
+       71,
+       69
+      ],
+      [
+       "USA - NFL",
+       30,
+       17
+      ],
+      [
+       "USA - Pac-12 Conference Championship",
+       1,
+       1
+      ],
+      [
+       "USA - Atlantic Coast Conference Championship",
+       1,
+       1
+      ]
+     ]
+    }
+   },
+   "uncoveredLeagues": [
+    [
+     "USA - NCAA Division III, Playoffs",
+     16
+    ],
+    [
+     "USA - NCAA Division II, Playoffs",
+     8
+    ],
+    [
+     "USA - NCAA Division I, FCS, Playoffs",
+     8
+    ],
+    [
+     "USA - Conference USA Championship",
+     1
+    ],
+    [
+     "USA - Southwestern Athletic Conference Championship",
+     1
+    ]
+   ]
+  },
+  "ice-hockey": {
+   "events": 2121,
+   "liveEvents": 0,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 59,
+     "coveragePct": 2.8,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 14,
+     "byTimeToStart": {
+      "<24h": [
+       32,
+       13
+      ],
+      "1-3d": [
+       224,
+       46
+      ],
+      "3-7d": [
+       807,
+       0
+      ],
+      "7d+": [
+       1058,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 5.9,
+     "marketsPerEventMedian": 5,
+     "marketsPerEventMax": 11,
+     "distinctMarkets": 11,
+     "mainMarketMarginAvgPct": 6.61,
+     "topMarkets": [
+      [
+       "ML",
+       59,
+       100.0
+      ],
+      [
+       "Spread",
+       59,
+       100.0
+      ],
+      [
+       "Totals",
+       59,
+       100.0
+      ],
+      [
+       "Player Props",
+       34,
+       57.6
+      ],
+      [
+       "Anytime Goalscorer",
+       34,
+       57.6
+      ],
+      [
+       "Draw No Bet",
+       26,
+       44.1
+      ],
+      [
+       "Winning Margin",
+       26,
+       44.1
+      ],
+      [
+       "Correct Score",
+       26,
+       44.1
+      ],
+      [
+       "Exact Total Goals",
+       10,
+       16.9
+      ],
+      [
+       "To Score 3+ Goals",
+       8,
+       13.6
+      ],
+      [
+       "To Score 2+ Goals",
+       8,
+       13.6
+      ]
+     ],
+     "allMarkets": [
+      "Anytime Goalscorer",
+      "Correct Score",
+      "Draw No Bet",
+      "Exact Total Goals",
+      "ML",
+      "Player Props",
+      "Spread",
+      "To Score 2+ Goals",
+      "To Score 3+ Goals",
+      "Totals",
+      "Winning Margin"
+     ],
+     "leagues": [
+      [
+       "USA - AHL",
+       88,
+       10
+      ],
+      [
+       "USA - NHL",
+       104,
+       7
+      ],
+      [
+       "Finland - Liiga",
+       42,
+       7
+      ],
+      [
+       "Germany - DEL",
+       35,
+       7
+      ],
+      [
+       "Switzerland - National League",
+       37,
+       7
+      ],
+      [
+       "Slovakia - Extraliga",
+       29,
+       6
+      ],
+      [
+       "Czechia - Extraliga",
+       36,
+       6
+      ],
+      [
+       "Kazakhstan - Pro Hockey League",
+       27,
+       2
+      ],
+      [
+       "Czechia - U20 Extraliga Junioru",
+       38,
+       2
+      ],
+      [
+       "Czechia - University League",
+       16,
+       1
+      ],
+      [
+       "USA - ECHL",
+       95,
+       1
+      ],
+      [
+       "Czechia - 1st Liga",
+       36,
+       1
+      ],
+      [
+       "Sweden - SHL",
+       29,
+       1
+      ],
+      [
+       "Switzerland - Swiss League",
+       25,
+       1
+      ]
+     ]
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 91,
+     "coveragePct": 4.3,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 21,
+     "byTimeToStart": {
+      "<24h": [
+       32,
+       27
+      ],
+      "1-3d": [
+       224,
+       59
+      ],
+      "3-7d": [
+       807,
+       5
+      ],
+      "7d+": [
+       1058,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 1,
+     "marketsPerEventMedian": 1,
+     "marketsPerEventMax": 1,
+     "distinctMarkets": 1,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [
+      [
+       "3-Way Result",
+       91,
+       100.0
+      ]
+     ],
+     "allMarkets": [
+      "3-Way Result"
+     ],
+     "leagues": [
+      [
+       "Russia - KHL",
+       56,
+       15
+      ],
+      [
+       "USA - NHL",
+       104,
+       7
+      ],
+      [
+       "Czechia - Extraliga",
+       36,
+       7
+      ],
+      [
+       "Finland - Liiga",
+       42,
+       7
+      ],
+      [
+       "Germany - DEL",
+       35,
+       7
+      ],
+      [
+       "Switzerland - National League",
+       37,
+       7
+      ],
+      [
+       "Slovakia - Extraliga",
+       29,
+       6
+      ],
+      [
+       "Czechia - 1st Liga",
+       36,
+       6
+      ],
+      [
+       "Russia - VHL",
+       61,
+       5
+      ],
+      [
+       "Russia - MHL",
+       63,
+       4
+      ],
+      [
+       "Denmark - Superisligaen",
+       20,
+       4
+      ],
+      [
+       "Kazakhstan - Pro Hockey League",
+       27,
+       3
+      ],
+      [
+       "Belarus - Extraliga",
+       31,
+       3
+      ],
+      [
+       "Czechia - University League",
+       16,
+       2
+      ],
+      [
+       "Sweden - SHL",
+       29,
+       2
+      ],
+      [
+       "Russia - WHL, Women",
+       14,
+       1
+      ],
+      [
+       "USA - ECHL",
+       95,
+       1
+      ],
+      [
+       "USA - AHL",
+       88,
+       1
+      ],
+      [
+       "Poland - Superpuchar Polski",
+       1,
+       1
+      ],
+      [
+       "Sweden - SDHL",
+       21,
+       1
+      ],
+      [
+       "Poland - Ekstraliga",
+       26,
+       1
+      ]
+     ]
+    }
+   },
+   "uncoveredLeagues": [
+    [
+     "USA - College",
+     107
+    ],
+    [
+     "USA - NCAA, Women",
+     74
+    ],
+    [
+     "Canada - WHL",
+     59
+    ],
+    [
+     "Canada - OHL",
+     50
+    ],
+    [
+     "Canada - QMJHL",
+     44
+    ],
+    [
+     "Austria - ICE Hockey League",
+     41
+    ],
+    [
+     "USA - FPHL",
+     38
+    ],
+    [
+     "Germany - Oberliga Sud",
+     35
+    ],
+    [
+     "Finland - U20 SM-sarja",
+     34
+    ],
+    [
+     "Sweden - Hockey Allsvenskan",
+     34
+    ],
+    [
+     "Sweden - HockeyEttan Sodra",
+     33
+    ],
+    [
+     "Austria - U20i League",
+     33
+    ],
+    [
+     "USA - SPHL",
+     31
+    ],
+    [
+     "Switzerland - U21-Elit",
+     30
+    ],
+    [
+     "Sweden - HockeyEttan Norra",
+     29
+    ],
+    [
+     "International - Alps Hockey League",
+     28
+    ],
+    [
+     "Germany - DEL 2",
+     28
+    ],
+    [
+     "Slovakia - SHL",
+     26
+    ],
+    [
+     "Sweden - U20 Nationell, Sodra",
+     25
+    ],
+    [
+     "Slovakia - U20 Extraliga Juniorov",
+     25
+    ],
+    [
+     "France - Ligue Magnus",
+     25
+    ],
+    [
+     "Czechia - 2. Liga, West",
+     24
+    ],
+    [
+     "Czechia - 2. Liga, East",
+     24
+    ],
+    [
+     "Germany - Oberliga Nord",
+     24
+    ],
+    [
+     "England - Elite League",
+     23
+    ],
+    [
+     "France - Division 1",
+     23
+    ],
+    [
+     "Sweden - U20 Nationell, Norra",
+     22
+    ],
+    [
+     "Norway - U20 Elite",
+     20
+    ],
+    [
+     "Finland - Suomi Sarja",
+     20
+    ],
+    [
+     "Norway - EHL",
+     19
+    ],
+    [
+     "International - Erste Liga",
+     19
+    ],
+    [
+     "Finland - Mestis",
+     18
+    ],
+    [
+     "Finland - Auroraliiga, Women",
+     16
+    ],
+    [
+     "Latvia - Latvian Hockey League",
+     15
+    ],
+    [
+     "Norway - 1. Divisjon",
+     15
+    ],
+    [
+     "Italy - IHL",
+     15
+    ],
+    [
+     "International - Asia League",
+     12
+    ],
+    [
+     "Norway - Eliteserien, Women",
+     11
+    ],
+    [
+     "Slovakia - 2. SHL",
+     11
+    ],
+    [
+     "France - Coupe de France",
+     8
+    ],
+    [
+     "International - U20 World Championship, Div I, Group B",
+     6
+    ],
+    [
+     "USA - PWHL, Women",
+     6
+    ],
+    [
+     "Estonia - Hokiliiga",
+     4
+    ],
+    [
+     "International - Champions Hockey League, Knockout stage",
+     4
+    ],
+    [
+     "International - U20 World Championship, Div I, Group A",
+     3
+    ]
+   ]
+  },
+  "esports": {
+   "events": 115,
+   "liveEvents": 4,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 28,
+     "coveragePct": 24.3,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 5,
+     "byTimeToStart": {
+      "live": [
+       4,
+       0
+      ],
+      "<24h": [
+       49,
+       15
+      ],
+      "1-3d": [
+       31,
+       4
+      ],
+      "3-7d": [
+       13,
+       1
+      ],
+      "7d+": [
+       18,
+       8
+      ]
+     },
+     "marketsPerEventAvg": 8.8,
+     "marketsPerEventMedian": 7.0,
+     "marketsPerEventMax": 16,
+     "distinctMarkets": 20,
+     "mainMarketMarginAvgPct": 7.48,
+     "topMarkets": [
+      [
+       "ML",
+       28,
+       100.0
+      ],
+      [
+       "Map 1 Lines",
+       24,
+       85.7
+      ],
+      [
+       "Spread",
+       20,
+       71.4
+      ],
+      [
+       "1st Map Handicap",
+       19,
+       67.9
+      ],
+      [
+       "Map 2 Lines",
+       16,
+       57.1
+      ],
+      [
+       "1st Map Race to Rounds",
+       16,
+       57.1
+      ],
+      [
+       "1st Map Winning Margin",
+       16,
+       57.1
+      ],
+      [
+       "1st Map Correct Round Score",
+       16,
+       57.1
+      ],
+      [
+       "1st Map Rounds Handicap",
+       15,
+       53.6
+      ],
+      [
+       "Totals",
+       12,
+       42.9
+      ],
+      [
+       "2nd Map Handicap",
+       10,
+       35.7
+      ],
+      [
+       "2nd Map Rounds Handicap",
+       8,
+       28.6
+      ],
+      [
+       "2nd Map Race to Rounds",
+       8,
+       28.6
+      ],
+      [
+       "2nd Map Winning Margin",
+       8,
+       28.6
+      ],
+      [
+       "2nd Map Correct Round Score",
+       8,
+       28.6
+      ],
+      [
+       "Round Lines",
+       8,
+       28.6
+      ],
+      [
+       "1st Map ML",
+       4,
+       14.3
+      ],
+      [
+       "2nd Map ML",
+       4,
+       14.3
+      ],
+      [
+       "1st Map Total Kills",
+       4,
+       14.3
+      ],
+      [
+       "2nd Map Total Kills",
+       2,
+       7.1
+      ]
+     ],
+     "allMarkets": [
+      "1st Map Correct Round Score",
+      "1st Map Handicap",
+      "1st Map ML",
+      "1st Map Race to Rounds",
+      "1st Map Rounds Handicap",
+      "1st Map Total Kills",
+      "1st Map Winning Margin",
+      "2nd Map Correct Round Score",
+      "2nd Map Handicap",
+      "2nd Map ML",
+      "2nd Map Race to Rounds",
+      "2nd Map Rounds Handicap",
+      "2nd Map Total Kills",
+      "2nd Map Winning Margin",
+      "ML",
+      "Map 1 Lines",
+      "Map 2 Lines",
+      "Round Lines",
+      "Spread",
+      "Totals"
+     ],
+     "leagues": [
+      [
+       "Counter-Strike - PGL Major Singapore",
+       8,
+       8
+      ],
+      [
+       "Counter-Strike - ROG Journey Winter",
+       8,
+       8
+      ],
+      [
+       "Counter-Strike - Series 11 Closed Qualifier",
+       8,
+       6
+      ],
+      [
+       "Dota 2 - Season 9",
+       6,
+       4
+      ],
+      [
+       "Counter-Strike - Closed Qualifier: Series #15",
+       4,
+       2
+      ]
+     ]
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0.0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {
+      "live": [
+       4,
+       0
+      ],
+      "<24h": [
+       49,
+       0
+      ],
+      "1-3d": [
+       31,
+       0
+      ],
+      "3-7d": [
+       13,
+       0
+      ],
+      "7d+": [
+       18,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    }
+   },
+   "uncoveredLeagues": [
+    [
+     "Counter-Strike - Season 7",
+     9
+    ],
+    [
+     "Valorant - Convergence EMEA - DACH",
+     9
+    ],
+    [
+     "Counter-Strike - Season 59",
+     8
+    ],
+    [
+     "Counter-Strike - Season 14",
+     6
+    ],
+    [
+     "Counter-Strike - Contenders #11",
+     6
+    ],
+    [
+     "League of Legends - Red Bull League of Its Own",
+     5
+    ],
+    [
+     "Valorant - Americas Kickoff: LATAM South - Qualifier",
+     4
+    ],
+    [
+     "StarCraft 2 - Grand Finals",
+     4
+    ],
+    [
+     "Valorant - EMEA Kickoff: Türkiye - Qualifier",
+     4
+    ],
+    [
+     "Counter-Strike - Gamers Club Liga Série A November",
+     4
+    ],
+    [
+     "Valorant - Americas Kickoff: North America",
+     4
+    ],
+    [
+     "Valorant - Split Omega: Pro Division",
+     3
+    ],
+    [
+     "Dota 2 - Season 41",
+     3
+    ],
+    [
+     "Dota 2 - Southeast Asia season 20",
+     3
+    ],
+    [
+     "Counter-Strike - Season 4",
+     3
+    ],
+    [
+     "Valorant - Americas Kickoff: LATAM North - Qualifier",
+     2
+    ],
+    [
+     "Valorant - Pacific Kickoff: Oceania - Qualifier",
+     2
+    ],
+    [
+     "Rainbow Six - EML Challenger Circuit",
+     1
+    ],
+    [
+     "Valorant - EMEA Kickoff: Middle East & North Africa",
+     1
+    ]
+   ]
+  },
+  "darts": {
+   "events": 114,
+   "liveEvents": 0,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 15,
+     "coveragePct": 13.2,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 1,
+     "byTimeToStart": {
+      "<24h": [
+       15,
+       15
+      ],
+      "1-3d": [
+       30,
+       0
+      ],
+      "3-7d": [
+       31,
+       0
+      ],
+      "7d+": [
+       38,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 2.3,
+     "marketsPerEventMedian": 3,
+     "marketsPerEventMax": 3,
+     "distinctMarkets": 3,
+     "mainMarketMarginAvgPct": 7.47,
+     "topMarkets": [
+      [
+       "ML",
+       15,
+       100.0
+      ],
+      [
+       "Spread",
+       10,
+       66.7
+      ],
+      [
+       "Total Legs",
+       10,
+       66.7
+      ]
+     ],
+     "allMarkets": [
+      "ML",
+      "Spread",
+      "Total Legs"
+     ],
+     "leagues": [
+      [
+       "International - Modus Super Series International Pairs",
+       45,
+       15
+      ]
+     ]
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 15,
+     "coveragePct": 13.2,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 1,
+     "byTimeToStart": {
+      "<24h": [
+       15,
+       15
+      ],
+      "1-3d": [
+       30,
+       0
+      ],
+      "3-7d": [
+       31,
+       0
+      ],
+      "7d+": [
+       38,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 1,
+     "marketsPerEventMedian": 1,
+     "marketsPerEventMax": 1,
+     "distinctMarkets": 1,
+     "mainMarketMarginAvgPct": 9.02,
+     "topMarkets": [
+      [
+       "ML",
+       15,
+       100.0
+      ]
+     ],
+     "allMarkets": [
+      "ML"
+     ],
+     "leagues": [
+      [
+       "International - Modus Super Series International Pairs",
+       45,
+       15
+      ]
+     ]
+    }
+   },
+   "uncoveredLeagues": [
+    [
+     "International - WDF World Championship 2026",
+     46
+    ],
+    [
+     "International - WDF World Championship 2026, Women",
+     22
+    ],
+    [
+     "International - PDC World Youth Championship 2026",
+     1
+    ]
+   ]
+  },
+  "mixed-martial-arts": {
+   "events": 86,
+   "liveEvents": 0,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 2,
+     "coveragePct": 2.3,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 1,
+     "byTimeToStart": {
+      "3-7d": [
+       29,
+       0
+      ],
+      "7d+": [
+       57,
+       2
+      ]
+     },
+     "marketsPerEventAvg": 1,
+     "marketsPerEventMedian": 1.0,
+     "marketsPerEventMax": 1,
+     "distinctMarkets": 1,
+     "mainMarketMarginAvgPct": 4.34,
+     "topMarkets": [
+      [
+       "ML",
+       2,
+       100.0
+      ]
+     ],
+     "allMarkets": [
+      "ML"
+     ],
+     "leagues": [
+      [
+       "UFC - UFC Fight Night: Adesanya vs. Magomedov",
+       12,
+       2
+      ]
+     ]
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 19,
+     "coveragePct": 22.1,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 2,
+     "byTimeToStart": {
+      "3-7d": [
+       29,
+       0
+      ],
+      "7d+": [
+       57,
+       19
+      ]
+     },
+     "marketsPerEventAvg": 1,
+     "marketsPerEventMedian": 1,
+     "marketsPerEventMax": 1,
+     "distinctMarkets": 1,
+     "mainMarketMarginAvgPct": 8.0,
+     "topMarkets": [
+      [
+       "ML",
+       19,
+       100.0
+      ]
+     ],
+     "allMarkets": [
+      "ML"
+     ],
+     "leagues": [
+      [
+       "UFC - UFC Fight Night: Adesanya vs. Magomedov",
+       12,
+       12
+      ],
+      [
+       "Oktagon - Oktagon 99",
+       14,
+       7
+      ]
+     ]
+    }
+   },
+   "uncoveredLeagues": [
+    [
+     "Cage Warriors - Cage Warriors 215",
+     13
+    ],
+    [
+     "Cage Warriors - Cage Warriors 216",
+     13
+    ],
+    [
+     "EFC - EFC 140",
+     10
+    ],
+    [
+     "Cage Warriors - Cage Warriors 214",
+     9
+    ],
+    [
+     "RFA - RFA 35",
+     7
+    ],
+    [
+     "One Championship - ONE Samurai 6",
+     7
+    ],
+    [
+     "UFC",
+     1
+    ]
+   ],
+   "mmaEvents": [
+    {
+     "id": 76370252,
+     "date": "2026-11-27T17:30:00Z",
+     "league": "RFA - RFA 35",
+     "fight": "Hajek, Vladimir vs Oppenhauser, Bjorn",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76370254,
+     "date": "2026-11-27T17:50:00Z",
+     "league": "RFA - RFA 35",
+     "fight": "Jelinek, Michal vs Musil, Zdenek",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76438060,
+     "date": "2026-11-27T18:30:00Z",
+     "league": "RFA - RFA 35",
+     "fight": "Cingros, Filip vs Bursak, Michal",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76370258,
+     "date": "2026-11-27T18:50:00Z",
+     "league": "RFA - RFA 35",
+     "fight": "Dvoracek, Adam vs Hustoles, Lukas",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76370262,
+     "date": "2026-11-27T19:50:00Z",
+     "league": "RFA - RFA 35",
+     "fight": "Machmudov, Tagir vs Klasa, Kacper",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76882674,
+     "date": "2026-11-27T20:00:00Z",
+     "league": "Cage Warriors - Cage Warriors 214",
+     "fight": "Pagani, Michael vs Ali-Taleb, Yusuf",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76939902,
+     "date": "2026-11-27T20:00:00Z",
+     "league": "Cage Warriors - Cage Warriors 214",
+     "fight": "McHugh, Jake vs Yasnogorodsky, Lior",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76369478,
+     "date": "2026-11-27T20:00:00Z",
+     "league": "Cage Warriors - Cage Warriors 214",
+     "fight": "Woods, Nathanael vs Terenzio, Angelo",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76369480,
+     "date": "2026-11-27T20:00:00Z",
+     "league": "Cage Warriors - Cage Warriors 214",
+     "fight": "El Karchouh, Mohamed vs Kehoe, Kevin",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76153656,
+     "date": "2026-11-27T20:00:00Z",
+     "league": "Cage Warriors - Cage Warriors 214",
+     "fight": "Cerezo, Elsa vs Crozier, Chloe",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76153658,
+     "date": "2026-11-27T20:00:00Z",
+     "league": "Cage Warriors - Cage Warriors 214",
+     "fight": "O Neill, Jordan vs Bajo, Christopher",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76153660,
+     "date": "2026-11-27T20:00:00Z",
+     "league": "Cage Warriors - Cage Warriors 214",
+     "fight": "Pagliariccio, Tanio vs Wojtas, Igor",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76153662,
+     "date": "2026-11-27T20:00:00Z",
+     "league": "Cage Warriors - Cage Warriors 214",
+     "fight": "Loof, Alexander vs Ownsworth, Oscar",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76457160,
+     "date": "2026-11-27T20:00:00Z",
+     "league": "Cage Warriors - Cage Warriors 214",
+     "fight": "Rawlins, Craig vs Sheehan, Graham",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76370264,
+     "date": "2026-11-27T20:10:00Z",
+     "league": "RFA - RFA 35",
+     "fight": "Jakubik, Adam vs Koterba, Enrico",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76370268,
+     "date": "2026-11-27T20:50:00Z",
+     "league": "RFA - RFA 35",
+     "fight": "Gelnarova, Hanka vs Ambrusova, Silvia",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76882676,
+     "date": "2026-11-28T17:30:00Z",
+     "league": "Cage Warriors - Cage Warriors 215",
+     "fight": "Humphries, Jack vs Antonio, Joab",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76370926,
+     "date": "2026-11-28T17:30:00Z",
+     "league": "Cage Warriors - Cage Warriors 215",
+     "fight": "Cullen, Adam vs Andre, Jefferson",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76370928,
+     "date": "2026-11-28T17:30:00Z",
+     "league": "Cage Warriors - Cage Warriors 215",
+     "fight": "Vujakovic, Emile vs Mingaj, Mario",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76746280,
+     "date": "2026-11-28T17:30:00Z",
+     "league": "Cage Warriors - Cage Warriors 215",
+     "fight": "Stringer Teddy vs Catacoli, Stefano",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76154502,
+     "date": "2026-11-28T17:30:00Z",
+     "league": "Cage Warriors - Cage Warriors 215",
+     "fight": "Davies, Ieuan vs Vucenic, Jordan",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76154504,
+     "date": "2026-11-28T17:30:00Z",
+     "league": "Cage Warriors - Cage Warriors 215",
+     "fight": "Ingram, Shay vs Rossevatn, Steffen",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76154508,
+     "date": "2026-11-28T17:30:00Z",
+     "league": "Cage Warriors - Cage Warriors 215",
+     "fight": "Fletcher, Nathan vs Soares, Anderson",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76154510,
+     "date": "2026-11-28T17:30:00Z",
+     "league": "Cage Warriors - Cage Warriors 215",
+     "fight": "Dando, Charlie vs Walters, Jordan",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76154512,
+     "date": "2026-11-28T17:30:00Z",
+     "league": "Cage Warriors - Cage Warriors 215",
+     "fight": "Fields, Joe vs Faiddine, Samir",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76154514,
+     "date": "2026-11-28T17:30:00Z",
+     "league": "Cage Warriors - Cage Warriors 215",
+     "fight": "Sheldon, Ryan vs Rooney, Gary",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76154516,
+     "date": "2026-11-28T17:30:00Z",
+     "league": "Cage Warriors - Cage Warriors 215",
+     "fight": "Wilson, Connor vs Santos, Davi",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76154518,
+     "date": "2026-11-28T17:30:00Z",
+     "league": "Cage Warriors - Cage Warriors 215",
+     "fight": "MccLoughlin, Jack vs Corr, Jack",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76154520,
+     "date": "2026-11-28T17:30:00Z",
+     "league": "Cage Warriors - Cage Warriors 215",
+     "fight": "Guest, Branden vs Cartridge, Owen",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76651682,
+     "date": "2026-12-02T08:30:00Z",
+     "league": "One Championship - ONE Samurai 6",
+     "fight": "Sawada, Chihiro vs Nikolakakos, Anastasia",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76651684,
+     "date": "2026-12-02T08:30:00Z",
+     "league": "One Championship - ONE Samurai 6",
+     "fight": "Hiroba, Minowa vs Henrique, Fabio",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76651686,
+     "date": "2026-12-02T08:30:00Z",
+     "league": "One Championship - ONE Samurai 6",
+     "fight": "Orii, Taiga vs Hirayama, Ryo",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76748386,
+     "date": "2026-12-02T08:30:00Z",
+     "league": "One Championship - ONE Samurai 6",
+     "fight": "Wajima, Hiromi vs Siasarani, Mohammed",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76748388,
+     "date": "2026-12-02T08:30:00Z",
+     "league": "One Championship - ONE Samurai 6",
+     "fight": "Morita, Misaki vs Yoohanngoh, Kanyarat",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76748390,
+     "date": "2026-12-02T08:30:00Z",
+     "league": "One Championship - ONE Samurai 6",
+     "fight": "Okuwaki, Ryuya vs PK Saenchai, Thongpoon",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76748392,
+     "date": "2026-12-02T08:30:00Z",
+     "league": "One Championship - ONE Samurai 6",
+     "fight": "Shiratori, Taiju vs Tezuka, Shota",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76882530,
+     "date": "2026-12-03T13:00:00Z",
+     "league": "EFC - EFC 140",
+     "fight": "Botha, Boyka vs Shindano, Mutabi",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76470858,
+     "date": "2026-12-03T13:00:00Z",
+     "league": "EFC - EFC 140",
+     "fight": "Hlongwa, Mzwandile vs Lokolo, Roy",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76470860,
+     "date": "2026-12-03T13:00:00Z",
+     "league": "EFC - EFC 140",
+     "fight": "Mulumba, Kabongo Peter vs Venter, Sloan",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76940166,
+     "date": "2026-12-03T13:00:00Z",
+     "league": "EFC - EFC 140",
+     "fight": "Suzuki, Alexander vs Kambata, Jerry",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76940168,
+     "date": "2026-12-03T13:00:00Z",
+     "league": "EFC - EFC 140",
+     "fight": "Mngoma, Mpumelelo vs Sarkis, Devon",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76470862,
+     "date": "2026-12-03T17:00:00Z",
+     "league": "EFC - EFC 140",
+     "fight": "Lucky, Magekha vs Mayasi, Bruce",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76470864,
+     "date": "2026-12-03T17:00:00Z",
+     "league": "EFC - EFC 140",
+     "fight": "Seabi, Thapelo vs Molele, Tebatso",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76470866,
+     "date": "2026-12-03T17:00:00Z",
+     "league": "EFC - EFC 140",
+     "fight": "Hloka, Mpho vs Gwavava, Bryn",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76470868,
+     "date": "2026-12-03T17:00:00Z",
+     "league": "EFC - EFC 140",
+     "fight": "Mataya, Lewis vs Goncalves, Steven",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76369072,
+     "date": "2026-12-03T17:00:00Z",
+     "league": "EFC - EFC 140",
+     "fight": "Manyamala, Tumelo vs Santos, Brandon",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 13468588607,
+     "date": "2026-12-05T15:00:00Z",
+     "league": "UFC",
+     "fight": "Elves Brener vs Mateusz Rebecki",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76673204,
+     "date": "2026-12-05T15:00:00Z",
+     "league": "UFC - UFC Fight Night: Adesanya vs. Magomedov",
+     "fight": "Hussein, Abdul vs Sosa, Hecher",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": [
+       "ML"
+      ]
+     }
+    },
+    {
+     "id": 76673206,
+     "date": "2026-12-05T15:20:00Z",
+     "league": "UFC - UFC Fight Night: Adesanya vs. Magomedov",
+     "fight": "Rodrigues, Modestino vs Duclos, Matthieu Letho",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": [
+       "ML"
+      ]
+     }
+    },
+    {
+     "id": 76673208,
+     "date": "2026-12-05T15:40:00Z",
+     "league": "UFC - UFC Fight Night: Adesanya vs. Magomedov",
+     "fight": "Andrusca, Pavel vs Osmanli, Mahammadali",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": [
+       "ML"
+      ]
+     }
+    },
+    {
+     "id": 76673210,
+     "date": "2026-12-05T16:00:00Z",
+     "league": "UFC - UFC Fight Night: Adesanya vs. Magomedov",
+     "fight": "Tulio, Marco vs Park, Jun Yong",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": [
+       "ML"
+      ]
+     }
+    },
+    {
+     "id": 76673212,
+     "date": "2026-12-05T16:20:00Z",
+     "league": "UFC - UFC Fight Night: Adesanya vs. Magomedov",
+     "fight": "Satybaldiev, Uran vs Gnizditskiy, Ivan",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": [
+       "ML"
+      ]
+     }
+    },
+    {
+     "id": 76673214,
+     "date": "2026-12-05T16:40:00Z",
+     "league": "UFC - UFC Fight Night: Adesanya vs. Magomedov",
+     "fight": "Silva, Bruno vs Filho, Jafel",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": [
+       "ML"
+      ]
+     }
+    },
+    {
+     "id": 76882862,
+     "date": "2026-12-05T17:00:00Z",
+     "league": "Oktagon - Oktagon 99",
+     "fight": "Taha, Khalid vs Saldanha, Joao",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76882864,
+     "date": "2026-12-05T17:00:00Z",
+     "league": "Oktagon - Oktagon 99",
+     "fight": "Penaz, Matej vs Figueroa, Jonathan",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76882866,
+     "date": "2026-12-05T17:00:00Z",
+     "league": "Oktagon - Oktagon 99",
+     "fight": "Mousa, Ahmad vs Elmahdi, Zinedine",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76370832,
+     "date": "2026-12-05T17:00:00Z",
+     "league": "Oktagon - Oktagon 99",
+     "fight": "Zenuni, Altin vs Ciganik, Tomas",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": [
+       "ML"
+      ]
+     }
+    },
+    {
+     "id": 76370834,
+     "date": "2026-12-05T17:00:00Z",
+     "league": "Oktagon - Oktagon 99",
+     "fight": "Tuysuz, Murat vs Stanovsky, Jan",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": [
+       "ML"
+      ]
+     }
+    },
+    {
+     "id": 76370836,
+     "date": "2026-12-05T17:00:00Z",
+     "league": "Oktagon - Oktagon 99",
+     "fight": "AL, Emir-Can vs Havran, Adam",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76370838,
+     "date": "2026-12-05T17:00:00Z",
+     "league": "Oktagon - Oktagon 99",
+     "fight": "Gunduz, Ali vs Sultani, Abdullah",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": [
+       "ML"
+      ]
+     }
+    },
+    {
+     "id": 76370840,
+     "date": "2026-12-05T17:00:00Z",
+     "league": "Oktagon - Oktagon 99",
+     "fight": "Doussis, Marc vs Palasz, Adam",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76370842,
+     "date": "2026-12-05T17:00:00Z",
+     "league": "Oktagon - Oktagon 99",
+     "fight": "Vespaziani, Patrick vs Wagner, Nicolaj",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": [
+       "ML"
+      ]
+     }
+    },
+    {
+     "id": 76652862,
+     "date": "2026-12-05T17:00:00Z",
+     "league": "Oktagon - Oktagon 99",
+     "fight": "Uzun, Harun vs Stefanovic, Alexander",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76652864,
+     "date": "2026-12-05T17:00:00Z",
+     "league": "Oktagon - Oktagon 99",
+     "fight": "Tagner, Iwan vs Kabak, Bedirhan",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": [
+       "ML"
+      ]
+     }
+    },
+    {
+     "id": 76437432,
+     "date": "2026-12-05T17:00:00Z",
+     "league": "Oktagon - Oktagon 99",
+     "fight": "Ugur, Furkan vs Osmanov, Said",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76437434,
+     "date": "2026-12-05T17:00:00Z",
+     "league": "Oktagon - Oktagon 99",
+     "fight": "Eter, Moh vs Holecek, Tomas",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": [
+       "ML"
+      ]
+     }
+    },
+    {
+     "id": 76437436,
+     "date": "2026-12-05T17:00:00Z",
+     "league": "Oktagon - Oktagon 99",
+     "fight": "Aras, Kasim vs Flores, Ty",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": [
+       "ML"
+      ]
+     }
+    },
+    {
+     "id": 76673216,
+     "date": "2026-12-05T18:00:00Z",
+     "league": "UFC - UFC Fight Night: Adesanya vs. Magomedov",
+     "fight": "Tuchalov, Magomed vs Cutelaba, Ion",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": [
+       "ML"
+      ]
+     }
+    },
+    {
+     "id": 76673218,
+     "date": "2026-12-05T18:20:00Z",
+     "league": "UFC - UFC Fight Night: Adesanya vs. Magomedov",
+     "fight": "Santos, Mairon vs Abdullaev, Akbar",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": [
+       "ML"
+      ]
+     }
+    },
+    {
+     "id": 76939894,
+     "date": "2026-12-05T18:30:00Z",
+     "league": "Cage Warriors - Cage Warriors 216",
+     "fight": "Foote, Jack vs Bougamoun, Soufian",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76939896,
+     "date": "2026-12-05T18:30:00Z",
+     "league": "Cage Warriors - Cage Warriors 216",
+     "fight": "Bungard, Chris vs Aliu, Leon",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76939898,
+     "date": "2026-12-05T18:30:00Z",
+     "league": "Cage Warriors - Cage Warriors 216",
+     "fight": "Armes, Leon vs Akpan, Manny",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76939900,
+     "date": "2026-12-05T18:30:00Z",
+     "league": "Cage Warriors - Cage Warriors 216",
+     "fight": "Morris, Chris vs Gbolou, Morgann",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76673784,
+     "date": "2026-12-05T18:30:00Z",
+     "league": "Cage Warriors - Cage Warriors 216",
+     "fight": "Kamaran, Zanyar vs Holmes, Kai",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76673786,
+     "date": "2026-12-05T18:30:00Z",
+     "league": "Cage Warriors - Cage Warriors 216",
+     "fight": "Gilbert, Bailey vs Lopez, Julien",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76673788,
+     "date": "2026-12-05T18:30:00Z",
+     "league": "Cage Warriors - Cage Warriors 216",
+     "fight": "Pavey, Geoff vs Urquhart, Lewis",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76673790,
+     "date": "2026-12-05T18:30:00Z",
+     "league": "Cage Warriors - Cage Warriors 216",
+     "fight": "Abraham, Josh vs Haro, Miguel",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76673792,
+     "date": "2026-12-05T18:30:00Z",
+     "league": "Cage Warriors - Cage Warriors 216",
+     "fight": "Lee, Stevie vs Oliveira, Cristiano",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76673794,
+     "date": "2026-12-05T18:30:00Z",
+     "league": "Cage Warriors - Cage Warriors 216",
+     "fight": "Blair, Michael vs Paull, Thomas",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76673796,
+     "date": "2026-12-05T18:30:00Z",
+     "league": "Cage Warriors - Cage Warriors 216",
+     "fight": "Ahady, Milad vs O Sullivan, Alexander",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76673798,
+     "date": "2026-12-05T18:30:00Z",
+     "league": "Cage Warriors - Cage Warriors 216",
+     "fight": "Burlinson, Justin vs Nazarnia, Farshad",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76673800,
+     "date": "2026-12-05T18:30:00Z",
+     "league": "Cage Warriors - Cage Warriors 216",
+     "fight": "Hardwick, George vs Hughes, Gavin",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": []
+     }
+    },
+    {
+     "id": 76673220,
+     "date": "2026-12-05T18:40:00Z",
+     "league": "UFC - UFC Fight Night: Adesanya vs. Magomedov",
+     "fight": "Chokheli, Levan vs Dulatov, Islam",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": [
+       "ML"
+      ]
+     }
+    },
+    {
+     "id": 76673222,
+     "date": "2026-12-05T19:00:00Z",
+     "league": "UFC - UFC Fight Night: Adesanya vs. Magomedov",
+     "fight": "Spivac, Serghei vs Pinto, Mario",
+     "live": false,
+     "markets": {
+      "Bet365": [],
+      "iFortuna CZ": [
+       "ML"
+      ]
+     }
+    },
+    {
+     "id": 76673224,
+     "date": "2026-12-05T19:20:00Z",
+     "league": "UFC - UFC Fight Night: Adesanya vs. Magomedov",
+     "fight": "Machado Garry, Ian vs Amosov, Yaroslav",
+     "live": false,
+     "markets": {
+      "Bet365": [
+       "ML"
+      ],
+      "iFortuna CZ": [
+       "ML"
+      ]
+     }
+    },
+    {
+     "id": 76673226,
+     "date": "2026-12-05T19:50:00Z",
+     "league": "UFC - UFC Fight Night: Adesanya vs. Magomedov",
+     "fight": "Adesanya, Israel vs Magomedov, Sharabutdin",
+     "live": false,
+     "markets": {
+      "Bet365": [
+       "ML"
+      ],
+      "iFortuna CZ": [
+       "ML"
+      ]
+     }
+    }
+   ]
+  },
+  "boxing": {
+   "events": 32,
+   "liveEvents": 0,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 17,
+     "coveragePct": 53.1,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 1,
+     "byTimeToStart": {
+      "1-3d": [
+       1,
+       1
+      ],
+      "3-7d": [
+       5,
+       5
+      ],
+      "7d+": [
+       26,
+       11
+      ]
+     },
+     "marketsPerEventAvg": 1.6,
+     "marketsPerEventMedian": 1,
+     "marketsPerEventMax": 4,
+     "distinctMarkets": 4,
+     "mainMarketMarginAvgPct": 6.99,
+     "topMarkets": [
+      [
+       "ML",
+       17,
+       100.0
+      ],
+      [
+       "Fight to Go the Distance",
+       4,
+       23.5
+      ],
+      [
+       "Fight Outcome (5 Way)",
+       4,
+       23.5
+      ],
+      [
+       "Round Betting",
+       3,
+       17.6
+      ]
+     ],
+     "allMarkets": [
+      "Fight Outcome (5 Way)",
+      "Fight to Go the Distance",
+      "ML",
+      "Round Betting"
+     ],
+     "leagues": [
+      [
+       "International - Matchups",
+       18,
+       17
+      ]
+     ]
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0.0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {
+      "1-3d": [
+       1,
+       0
+      ],
+      "3-7d": [
+       5,
+       0
+      ],
+      "7d+": [
+       26,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    }
+   },
+   "uncoveredLeagues": [
+    [
+     "Bare Knuckle - BKFC Fight Night: Hershey",
+     13
+    ],
+    [
+     "Boxing Matches",
+     1
+    ]
+   ]
+  },
+  "handball": {
+   "events": 661,
+   "liveEvents": 1,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 34,
+     "coveragePct": 5.1,
+     "liveWithOdds": 1,
+     "leaguesWithOdds": 18,
+     "byTimeToStart": {
+      "live": [
+       1,
+       1
+      ],
+      "<24h": [
+       23,
+       12
+      ],
+      "1-3d": [
+       46,
+       17
+      ],
+      "3-7d": [
+       248,
+       4
+      ],
+      "7d+": [
+       343,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 5.8,
+     "marketsPerEventMedian": 7.0,
+     "marketsPerEventMax": 8,
+     "distinctMarkets": 8,
+     "mainMarketMarginAvgPct": 9.86,
+     "topMarkets": [
+      [
+       "3-Way Result",
+       30,
+       88.2
+      ],
+      [
+       "Spread",
+       29,
+       85.3
+      ],
+      [
+       "Totals",
+       29,
+       85.3
+      ],
+      [
+       "ML",
+       28,
+       82.4
+      ],
+      [
+       "Draw No Bet",
+       25,
+       73.5
+      ],
+      [
+       "Winning Margin",
+       20,
+       58.8
+      ],
+      [
+       "Team Total Home",
+       18,
+       52.9
+      ],
+      [
+       "Team Total Away",
+       18,
+       52.9
+      ]
+     ],
+     "allMarkets": [
+      "3-Way Result",
+      "Draw No Bet",
+      "ML",
+      "Spread",
+      "Team Total Away",
+      "Team Total Home",
+      "Totals",
+      "Winning Margin"
+     ],
+     "leagues": [
+      [
+       "Israel - Super League, Women",
+       10,
+       4
+      ],
+      [
+       "International - EHF Champions League, Main Round, Group 2",
+       6,
+       3
+      ],
+      [
+       "International - EHF Champions League, Main Round, Group 1",
+       6,
+       3
+      ],
+      [
+       "International - Asian Championship, Women, Group A",
+       10,
+       2
+      ],
+      [
+       "Serbia - Super Liga",
+       15,
+       2
+      ],
+      [
+       "International - EHF European League, Group C",
+       4,
+       2
+      ],
+      [
+       "International - EHF European League, Group D",
+       4,
+       2
+      ],
+      [
+       "International - EHF European League, Group E",
+       4,
+       2
+      ],
+      [
+       "International - EHF European League, Group G",
+       4,
+       2
+      ],
+      [
+       "International - EHF European League, Group H",
+       4,
+       2
+      ],
+      [
+       "International - EHF European League, Group A",
+       4,
+       2
+      ],
+      [
+       "International - EHF European League, Group B",
+       4,
+       2
+      ],
+      [
+       "International - Asian Championship, Women, Group B",
+       9,
+       1
+      ],
+      [
+       "Greece - Premier 1",
+       13,
+       1
+      ],
+      [
+       "Poland - Superliga",
+       13,
+       1
+      ],
+      [
+       "Sweden - Allsvenskan",
+       17,
+       1
+      ],
+      [
+       "Germany - 2. Bundesliga",
+       18,
+       1
+      ],
+      [
+       "International - EHF European League, Group F",
+       4,
+       1
+      ]
+     ]
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 33,
+     "coveragePct": 5.0,
+     "liveWithOdds": 1,
+     "leaguesWithOdds": 17,
+     "byTimeToStart": {
+      "live": [
+       1,
+       1
+      ],
+      "<24h": [
+       23,
+       8
+      ],
+      "1-3d": [
+       46,
+       19
+      ],
+      "3-7d": [
+       248,
+       5
+      ],
+      "7d+": [
+       343,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 1.7,
+     "marketsPerEventMedian": 2,
+     "marketsPerEventMax": 2,
+     "distinctMarkets": 2,
+     "mainMarketMarginAvgPct": 10.01,
+     "topMarkets": [
+      [
+       "ML",
+       32,
+       97.0
+      ],
+      [
+       "Spread",
+       24,
+       72.7
+      ]
+     ],
+     "allMarkets": [
+      "ML",
+      "Spread"
+     ],
+     "leagues": [
+      [
+       "Russia - Super League",
+       8,
+       4
+      ],
+      [
+       "International - EHF Champions League, Main Round, Group 2",
+       6,
+       3
+      ],
+      [
+       "International - EHF Champions League, Main Round, Group 1",
+       6,
+       3
+      ],
+      [
+       "Poland - Superliga",
+       13,
+       2
+      ],
+      [
+       "International - EHF European League, Group C",
+       4,
+       2
+      ],
+      [
+       "International - EHF European League, Group D",
+       4,
+       2
+      ],
+      [
+       "International - EHF European League, Group E",
+       4,
+       2
+      ],
+      [
+       "International - EHF European League, Group F",
+       4,
+       2
+      ],
+      [
+       "International - EHF European League, Group G",
+       4,
+       2
+      ],
+      [
+       "International - EHF European League, Group H",
+       4,
+       2
+      ],
+      [
+       "International - EHF European League, Group A",
+       4,
+       2
+      ],
+      [
+       "International - EHF European League, Group B",
+       4,
+       2
+      ],
+      [
+       "International - Asian Championship, Women, Group A",
+       10,
+       1
+      ],
+      [
+       "Greece - Premier 1",
+       13,
+       1
+      ],
+      [
+       "Sweden - Allsvenskan",
+       17,
+       1
+      ],
+      [
+       "Germany - 2. Bundesliga",
+       18,
+       1
+      ],
+      [
+       "Denmark - Handboldligaen",
+       13,
+       1
+      ]
+     ]
+    }
+   },
+   "uncoveredLeagues": [
+    [
+     "Spain - Division de Honor Plata",
+     19
+    ],
+    [
+     "Germany - Bundesliga",
+     19
+    ],
+    [
+     "International - European Cup",
+     18
+    ],
+    [
+     "Spain - Asobal",
+     16
+    ],
+    [
+     "France - LNH Starligue",
+     16
+    ],
+    [
+     "Japan - Japan Handball League",
+     15
+    ],
+    [
+     "Denmark - 1. Division",
+     14
+    ],
+    [
+     "Hungary - NB I/B",
+     14
+    ],
+    [
+     "Poland - Central League",
+     14
+    ],
+    [
+     "Norway - Eliteserien",
+     14
+    ],
+    [
+     "France - LNH Proligue",
+     14
+    ],
+    [
+     "International - Super Handball League",
+     14
+    ],
+    [
+     "Sweden - Handbollsligan",
+     13
+    ],
+    [
+     "Norway - 1. Division",
+     13
+    ],
+    [
+     "Romania - Liga Nationala",
+     12
+    ],
+    [
+     "Hungary - NB I",
+     12
+    ],
+    [
+     "Portugal - 1a Divisao",
+     12
+    ],
+    [
+     "Sweden - Allsvenskan, Women",
+     12
+    ],
+    [
+     "Czechia - Extraliga",
+     12
+    ],
+    [
+     "Bosnia and Herzegovina - Premijer Liga",
+     12
+    ],
+    [
+     "North Macedonia - Super Liga",
+     12
+    ],
+    [
+     "Israel - Division 1",
+     11
+    ],
+    [
+     "Iceland - Urvalsdeild",
+     11
+    ],
+    [
+     "Austria - HLA Challenge, Main Round, East",
+     11
+    ],
+    [
+     "Portugal - Divisao de Honra",
+     11
+    ],
+    [
+     "Slovakia - Extraliga",
+     10
+    ],
+    [
+     "Turkiye - Superlig",
+     10
+    ],
+    [
+     "Croatia - Premijer liga, Liga B",
+     9
+    ],
+    [
+     "Finland - SM-liiga, Regular season",
+     8
+    ],
+    [
+     "Belarus - Superliga, Division 1",
+     8
+    ],
+    [
+     "Croatia - Premijer liga, Liga A",
+     8
+    ],
+    [
+     "Estonia - Meistriliiga",
+     7
+    ],
+    [
+     "Switzerland - MNLA",
+     7
+    ],
+    [
+     "Spain - Division De Honor Oro, Women",
+     7
+    ],
+    [
+     "Austria - HLA Meisterliga",
+     6
+    ],
+    [
+     "Russia - Superliga, Women",
+     6
+    ],
+    [
+     "Poland - Central League, Women",
+     6
+    ],
+    [
+     "Austria - HLA Challenge, Main Round, West",
+     5
+    ],
+    [
+     "Norway - 1. Division, Women",
+     5
+    ],
+    [
+     "International - Golden League, Women",
+     4
+    ],
+    [
+     "International - EHF Euro, Women, Group C",
+     4
+    ],
+    [
+     "International - EHF Euro, Women, Group A",
+     4
+    ],
+    [
+     "International - EHF Euro, Women, Group B",
+     4
+    ],
+    [
+     "Finland - SM-liiga, Women",
+     4
+    ],
+    [
+     "International - EHF Euro, Women, Group D",
+     4
+    ],
+    [
+     "International - EHF Euro, Women, Group F",
+     4
+    ],
+    [
+     "International - Baltic Handball League",
+     4
+    ],
+    [
+     "Slovakia - Cup",
+     4
+    ],
+    [
+     "Romania - Divizia A, Women",
+     2
+    ],
+    [
+     "International - EHF Euro, Women, Group E",
+     2
+    ],
+    [
+     "Republic of Korea - H League",
+     2
+    ],
+    [
+     "Croatia - 1. HRL Women",
+     1
+    ],
+    [
+     "Denmark - 1. Division, Women",
+     1
+    ],
+    [
+     "Greece - A1, Women",
+     1
+    ],
+    [
+     "Portugal - Divisao de Honra, Women",
+     1
+    ],
+    [
+     "Austria - WHA Meisterliga, Women",
+     1
+    ],
+    [
+     "Portugal - 1. Divisao, Women",
+     1
+    ]
+   ]
+  },
+  "volleyball": {
+   "events": 1326,
+   "liveEvents": 0,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 23,
+     "coveragePct": 1.7,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 10,
+     "byTimeToStart": {
+      "<24h": [
+       19,
+       10
+      ],
+      "1-3d": [
+       142,
+       13
+      ],
+      "3-7d": [
+       547,
+       0
+      ],
+      "7d+": [
+       618,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 4.4,
+     "marketsPerEventMedian": 5,
+     "marketsPerEventMax": 5,
+     "distinctMarkets": 5,
+     "mainMarketMarginAvgPct": 7.09,
+     "topMarkets": [
+      [
+       "ML",
+       23,
+       100.0
+      ],
+      [
+       "Spread",
+       22,
+       95.7
+      ],
+      [
+       "Totals",
+       22,
+       95.7
+      ],
+      [
+       "Team Total Home",
+       17,
+       73.9
+      ],
+      [
+       "Team Total Away",
+       17,
+       73.9
+      ]
+     ],
+     "allMarkets": [
+      "ML",
+      "Spread",
+      "Team Total Away",
+      "Team Total Home",
+      "Totals"
+     ],
+     "leagues": [
+      [
+       "Poland - Liga Siatkowki",
+       21,
+       5
+      ],
+      [
+       "Brazil - Superliga, Women",
+       14,
+       5
+      ],
+      [
+       "China - China National Volleyball Championship, Women",
+       16,
+       4
+      ],
+      [
+       "Finland - Mestaruusliiga, Women",
+       16,
+       3
+      ],
+      [
+       "Kazakhstan - National League",
+       9,
+       1
+      ],
+      [
+       "Poland - Liga Siatkowki, Women",
+       11,
+       1
+      ],
+      [
+       "Israel - Premier League, Women",
+       12,
+       1
+      ],
+      [
+       "Brazil - Superliga",
+       16,
+       1
+      ],
+      [
+       "Republic of Korea - V League",
+       12,
+       1
+      ],
+      [
+       "Turkiye - First Division",
+       15,
+       1
+      ]
+     ]
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0.0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {
+      "<24h": [
+       19,
+       0
+      ],
+      "1-3d": [
+       142,
+       0
+      ],
+      "3-7d": [
+       547,
+       0
+      ],
+      "7d+": [
+       618,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    }
+   },
+   "uncoveredLeagues": [
+    [
+     "USA - NCAA, Women, Regular Season",
+     44
+    ],
+    [
+     "International - Challenge Cup, Women",
+     32
+    ],
+    [
+     "Japan - SV League, Women",
+     26
+    ],
+    [
+     "Russia - Superliga",
+     24
+    ],
+    [
+     "International - CEV Cup, Women",
+     24
+    ],
+    [
+     "Japan - SV League",
+     24
+    ],
+    [
+     "Russia - Superliga, Women",
+     21
+    ],
+    [
+     "Germany - 1st Bundesliga",
+     20
+    ],
+    [
+     "Poland - I Liga",
+     18
+    ],
+    [
+     "Spain - Superliga",
+     18
+    ],
+    [
+     "Italy - SuperLega",
+     18
+    ],
+    [
+     "Romania - Div 1",
+     18
+    ],
+    [
+     "Portugal - Liga A1, Main round",
+     18
+    ],
+    [
+     "Italy - Serie A2, Women",
+     17
+    ],
+    [
+     "China - China Volleyball League",
+     16
+    ],
+    [
+     "Germany - 2. Bundesliga, Women",
+     16
+    ],
+    [
+     "Argentina - Superliga",
+     15
+    ],
+    [
+     "Germany - 2. Bundesliga South",
+     15
+    ],
+    [
+     "Poland - I Liga, Women",
+     14
+    ],
+    [
+     "Turkiye - 1. Lig, Women, Group A",
+     14
+    ],
+    [
+     "Germany - 2. Bundesliga North",
+     14
+    ],
+    [
+     "France - Ligue A",
+     14
+    ],
+    [
+     "Italy - Serie A1, Women",
+     14
+    ],
+    [
+     "Peru - Liga Peruana, Women",
+     14
+    ],
+    [
+     "Sweden - Elitserien",
+     13
+    ],
+    [
+     "France - Ligue A, Women",
+     13
+    ],
+    [
+     "Italy - Serie A2",
+     13
+    ],
+    [
+     "Republic of Korea - V League, Women",
+     12
+    ],
+    [
+     "Denmark - VolleyLigaen, Women",
+     12
+    ],
+    [
+     "Turkiye - 1. Lig, Women, Group B",
+     12
+    ],
+    [
+     "Serbia - Superliga",
+     12
+    ],
+    [
+     "Serbia - Superliga, Women",
+     12
+    ],
+    [
+     "Germany - 1. Bundesliga, Women",
+     12
+    ],
+    [
+     "Greece - Volley League",
+     12
+    ],
+    [
+     "France - Ligue B",
+     12
+    ],
+    [
+     "Turkiye - VVSL Lig, Women",
+     12
+    ],
+    [
+     "Spain - Superliga 2, Women, Group B",
+     12
+    ],
+    [
+     "Greece - Pre League, Women",
+     12
+    ],
+    [
+     "Czechia - Extraliga Women",
+     12
+    ],
+    [
+     "Spain - Superliga 2, Group A",
+     12
+    ],
+    [
+     "Czechia - Extraliga",
+     12
+    ],
+    [
+     "Spain - Superliga 2, Women, Group A",
+     12
+    ],
+    [
+     "Spain - Superliga, Women",
+     12
+    ],
+    [
+     "Spain - Superliga 2, Group B",
+     12
+    ],
+    [
+     "Spain - Superliga 2, Group C",
+     12
+    ],
+    [
+     "Italy - Serie A3, White",
+     12
+    ],
+    [
+     "Turkiye - 1. Lig",
+     12
+    ],
+    [
+     "Portugal - Campeonato Nacional, Women",
+     12
+    ],
+    [
+     "Israel - Premier League",
+     11
+    ],
+    [
+     "Finland - Mestaruusliiga",
+     11
+    ],
+    [
+     "Sweden - Elitserien Women",
+     11
+    ],
+    [
+     "Bulgaria - Super League",
+     11
+    ],
+    [
+     "Greece - A1, Women",
+     11
+    ],
+    [
+     "Croatia - Superliga",
+     11
+    ],
+    [
+     "Spain - Superliga 2, Women, Group C",
+     11
+    ],
+    [
+     "Austria - Volley League",
+     10
+    ],
+    [
+     "Czechia - 1. Liga, Group A",
+     10
+    ],
+    [
+     "Denmark - VolleyLigaen",
+     10
+    ],
+    [
+     "Belgium - 1st League",
+     10
+    ],
+    [
+     "Romania - Div 1, Women",
+     10
+    ]
+   ]
+  },
+  "snooker": {
+   "events": 32,
+   "liveEvents": 0,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0.0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {
+      "<24h": [
+       24,
+       0
+      ],
+      "1-3d": [
+       8,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0.0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {
+      "<24h": [
+       24,
+       0
+      ],
+      "1-3d": [
+       8,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    }
+   },
+   "uncoveredLeagues": [
+    [
+     "International - UK Championship Qualifiers 2026",
+     32
+    ]
+   ]
+  },
+  "table-tennis": {
+   "events": 1314,
+   "liveEvents": 30,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 194,
+     "coveragePct": 14.8,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 5,
+     "byTimeToStart": {
+      "live": [
+       30,
+       0
+      ],
+      "<24h": [
+       1008,
+       194
+      ],
+      "1-3d": [
+       276,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 2.7,
+     "marketsPerEventMedian": 3.0,
+     "marketsPerEventMax": 3,
+     "distinctMarkets": 3,
+     "mainMarketMarginAvgPct": 7.79,
+     "topMarkets": [
+      [
+       "ML",
+       194,
+       100.0
+      ],
+      [
+       "Spread",
+       167,
+       86.1
+      ],
+      [
+       "Totals",
+       166,
+       85.6
+      ]
+     ],
+     "allMarkets": [
+      "ML",
+      "Spread",
+      "Totals"
+     ],
+     "leagues": [
+      [
+       "Ukraine - Setka Cup",
+       222,
+       93
+      ],
+      [
+       "Czechia - Czech Liga Pro",
+       142,
+       40
+      ],
+      [
+       "International - TT Cup",
+       113,
+       29
+      ],
+      [
+       "International - TT Elite Series",
+       543,
+       28
+      ],
+      [
+       "International - Challenger Series, Group stage",
+       25,
+       4
+      ]
+     ]
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0.0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {
+      "live": [
+       30,
+       0
+      ],
+      "<24h": [
+       1008,
+       0
+      ],
+      "1-3d": [
+       276,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    }
+   },
+   "uncoveredLeagues": [
+    [
+     "Russia - Liga Pro",
+     100
+    ],
+    [
+     "International - WTT Feeder Dusseldorf II, MS, Qualifying",
+     92
+    ],
+    [
+     "International - WTT Feeder Dusseldorf II, WS, Qualifying",
+     39
+    ],
+    [
+     "Belarus - Liga Pro",
+     18
+    ],
+    [
+     "International - WTT Feeder Dusseldorf II, MD, Qualifying",
+     8
+    ],
+    [
+     "Germany - Challenger Series",
+     6
+    ],
+    [
+     "International - WTT Feeder Dusseldorf II, WD, Qualifying",
+     3
+    ],
+    [
+     "International - Feeder Dusseldorf II, MD",
+     2
+    ],
+    [
+     "International - WTT Feeder Dusseldorf II, XD, Qualifying",
+     1
+    ]
+   ]
+  },
+  "rugby": {
+   "events": 158,
+   "liveEvents": 0,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0.0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {
+      "3-7d": [
+       84,
+       0
+      ],
+      "7d+": [
+       74,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0.0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {
+      "3-7d": [
+       84,
+       0
+      ],
+      "7d+": [
+       74,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    }
+   },
+   "uncoveredLeagues": [
+    [
+     "Rugby Union - Pro D2",
+     16
+    ],
+    [
+     "Rugby Union - France - Top 14",
+     14
+    ],
+    [
+     "Rugby Union Sevens - SVNS, Women",
+     12
+    ],
+    [
+     "Rugby Union Sevens - SVNS",
+     12
+    ],
+    [
+     "Rugby Union - Super Rygbi Cymru",
+     10
+    ],
+    [
+     "Rugby Union - Georgian Big 10",
+     10
+    ],
+    [
+     "Rugby Union - Serie A Elite",
+     10
+    ],
+    [
+     "Rugby Union - Scottish Premier Division",
+     10
+    ],
+    [
+     "Rugby Union - All Ireland League Div 1A",
+     10
+    ],
+    [
+     "Rugby Union - All Ireland League Div 1B",
+     10
+    ],
+    [
+     "Rugby League - Super XIII",
+     10
+    ],
+    [
+     "Rugby Union - English Premiership, Women",
+     8
+    ],
+    [
+     "Rugby Union - United Rugby Championship",
+     8
+    ],
+    [
+     "Rugby Union - RFU Championship",
+     7
+    ],
+    [
+     "Rugby Union - Nations Championship, Placement Matches",
+     5
+    ],
+    [
+     "Rugby Union - English Premiership",
+     5
+    ],
+    [
+     "Rugby Union - Nations Championship, Final",
+     1
+    ]
+   ]
+  },
+  "cricket": {
+   "events": 157,
+   "liveEvents": 1,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0.0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {
+      "live": [
+       1,
+       0
+      ],
+      "<24h": [
+       23,
+       0
+      ],
+      "1-3d": [
+       34,
+       0
+      ],
+      "3-7d": [
+       48,
+       0
+      ],
+      "7d+": [
+       51,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0.0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {
+      "live": [
+       1,
+       0
+      ],
+      "<24h": [
+       23,
+       0
+      ],
+      "1-3d": [
+       34,
+       0
+      ],
+      "3-7d": [
+       48,
+       0
+      ],
+      "7d+": [
+       51,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    }
+   },
+   "uncoveredLeagues": [
+    [
+     "India - Syed Mushtaq Ali Trophy, Elite",
+     32
+    ],
+    [
+     "United Arab Emirates - International League T20",
+     18
+    ],
+    [
+     "India - Senior Womens Interzonal T20",
+     15
+    ],
+    [
+     "Oman - Oman D20 League",
+     9
+    ],
+    [
+     "Australia - Big Bash League, Women",
+     8
+    ],
+    [
+     "Pakistan - Quaid e-Azam Trophy Gold",
+     8
+    ],
+    [
+     "International - ICC World Cup Qualifier, Playoff",
+     8
+    ],
+    [
+     "South Africa - First Class Series South Africa, Group Stage",
+     7
+    ],
+    [
+     "New Zealand - Plunket Shield",
+     6
+    ],
+    [
+     "New Zealand - Hallyburton Johnstone Shield, Women",
+     6
+    ],
+    [
+     "Australia - Sheffield Shield",
+     4
+    ],
+    [
+     "International - T20 Series Australia vs. England",
+     4
+    ],
+    [
+     "South Africa - List-A Series South Africa, Women",
+     4
+    ],
+    [
+     "South Africa - T20 Series South Africa, Women",
+     4
+    ],
+    [
+     "International - T20 Emerging Nations Trophy, Women, Playoffs",
+     3
+    ],
+    [
+     "Zimbabwe - Pro50 Championship",
+     3
+    ],
+    [
+     "International - List A Series South Africa A vs England Lions",
+     3
+    ],
+    [
+     "Australia - Big Bash League, Women, Playoffs",
+     3
+    ],
+    [
+     "International - List-A ACC Asia Cup Rising Stars, Group B",
+     2
+    ],
+    [
+     "International - List-A ACC Asia Cup Rising Stars, Playoffs",
+     2
+    ],
+    [
+     "International - ODI Series South Africa vs Bangladesh",
+     2
+    ],
+    [
+     "International - List-A ACC Asia Cup Rising Stars, Group A",
+     1
+    ],
+    [
+     "South Africa - First Class Shield South Africa, Group Stage",
+     1
+    ],
+    [
+     "International - Test Series New Zealand vs India",
+     1
+    ],
+    [
+     "South Africa - List-A Shield South Africa",
+     1
+    ],
+    [
+     "International - U19 ODI Series Pakistan vs England",
+     1
+    ],
+    [
+     "International - Test Series South Africa vs Bangladesh",
+     1
+    ]
+   ]
+  },
+  "water-polo": {
+   "events": 99,
+   "liveEvents": 0,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0.0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {
+      "<24h": [
+       3,
+       0
+      ],
+      "1-3d": [
+       8,
+       0
+      ],
+      "3-7d": [
+       34,
+       0
+      ],
+      "7d+": [
+       54,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0.0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {
+      "<24h": [
+       3,
+       0
+      ],
+      "1-3d": [
+       8,
+       0
+      ],
+      "3-7d": [
+       34,
+       0
+      ],
+      "7d+": [
+       54,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    }
+   },
+   "uncoveredLeagues": [
+    [
+     "Italy - Serie A1",
+     21
+    ],
+    [
+     "Greece - A1 League",
+     15
+    ],
+    [
+     "Spain - Division de Honor",
+     13
+    ],
+    [
+     "Hungary - OB I",
+     12
+    ],
+    [
+     "International - VRL Premier Liga",
+     9
+    ],
+    [
+     "Croatia - Croatian Championship",
+     5
+    ],
+    [
+     "International - Euro League, Women, Group D",
+     2
+    ],
+    [
+     "International - Euro League, Women, Group C",
+     2
+    ],
+    [
+     "International - Euro League, Women, Group A",
+     2
+    ],
+    [
+     "International - Euro League, Women, Group B",
+     2
+    ],
+    [
+     "International - Champions League, Group D",
+     2
+    ],
+    [
+     "International - Champions League, Group C",
+     2
+    ],
+    [
+     "International - Champions League, Group A",
+     2
+    ],
+    [
+     "International - Champions League, Group B",
+     2
+    ],
+    [
+     "International - Euro Cup, Group C",
+     2
+    ],
+    [
+     "International - Euro Cup, Group A",
+     2
+    ],
+    [
+     "International - Euro Cup, Group B",
+     2
+    ],
+    [
+     "International - Euro Cup, Group D",
+     2
+    ]
+   ]
+  },
+  "futsal": {
+   "events": 176,
+   "liveEvents": 0,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0.0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {
+      "<24h": [
+       17,
+       0
+      ],
+      "1-3d": [
+       16,
+       0
+      ],
+      "3-7d": [
+       74,
+       0
+      ],
+      "7d+": [
+       69,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0.0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {
+      "<24h": [
+       17,
+       0
+      ],
+      "1-3d": [
+       16,
+       0
+      ],
+      "3-7d": [
+       74,
+       0
+      ],
+      "7d+": [
+       69,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    }
+   },
+   "uncoveredLeagues": [
+    [
+     "Slovenia - 1. SFL",
+     20
+    ],
+    [
+     "Spain - Liga Prime, Apertura",
+     17
+    ],
+    [
+     "International Clubs - UEFA Futsal Champions League, Knockout Stage",
+     16
+    ],
+    [
+     "Poland - Ekstraklasa",
+     15
+    ],
+    [
+     "Italy - Serie A",
+     14
+    ],
+    [
+     "Spain - Segunda Division",
+     14
+    ],
+    [
+     "Hungary - NB I",
+     12
+    ],
+    [
+     "Spain - Copa de Espana SM El Rey",
+     12
+    ],
+    [
+     "Romania - Liga 1",
+     8
+    ],
+    [
+     "Russia - Cup",
+     8
+    ],
+    [
+     "Slovakia - Extraliga",
+     7
+    ],
+    [
+     "Serbia - Prva Liga",
+     7
+    ],
+    [
+     "Portugal - 1a Divisao",
+     6
+    ],
+    [
+     "Japan - F League",
+     6
+    ],
+    [
+     "Croatia - HMNL",
+     5
+    ],
+    [
+     "Czechia - 1. Liga",
+     5
+    ],
+    [
+     "Brazil - Gaucho, Serie A, Playoffs",
+     2
+    ],
+    [
+     "Russia - Superliga",
+     2
+    ]
+   ]
+  },
+  "beach-volleyball": {
+   "events": 0,
+   "liveEvents": 0,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {},
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {},
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    }
+   },
+   "uncoveredLeagues": []
+  },
+  "aussie-rules": {
+   "events": 1,
+   "liveEvents": 0,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0.0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {
+      "3-7d": [
+       1,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0.0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {
+      "3-7d": [
+       1,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    }
+   },
+   "uncoveredLeagues": [
+    [
+     "Australia - AFL, Women, Final Series",
+     1
+    ]
+   ]
+  },
+  "floorball": {
+   "events": 0,
+   "liveEvents": 0,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {},
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {},
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    }
+   },
+   "uncoveredLeagues": []
+  },
+  "squash": {
+   "events": 32,
+   "liveEvents": 0,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0.0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {
+      "3-7d": [
+       32,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0.0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {
+      "3-7d": [
+       32,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    }
+   },
+   "uncoveredLeagues": [
+    [
+     "International - Hong Kong Squash Open, Women",
+     16
+    ],
+    [
+     "International - Hong Kong Squash Open",
+     16
+    ]
+   ]
+  },
+  "beach-soccer": {
+   "events": 0,
+   "liveEvents": 0,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {},
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {},
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    }
+   },
+   "uncoveredLeagues": []
+  },
+  "lacrosse": {
+   "events": 0,
+   "liveEvents": 0,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {},
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {},
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    }
+   },
+   "uncoveredLeagues": []
+  },
+  "curling": {
+   "events": 0,
+   "liveEvents": 0,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {},
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {},
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    }
+   },
+   "uncoveredLeagues": []
+  },
+  "padel": {
+   "events": 19,
+   "liveEvents": 0,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0.0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {
+      "<24h": [
+       12,
+       0
+      ],
+      "1-3d": [
+       7,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0.0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {
+      "<24h": [
+       12,
+       0
+      ],
+      "1-3d": [
+       7,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    }
+   },
+   "uncoveredLeagues": [
+    [
+     "International - Mexico Major",
+     11
+    ],
+    [
+     "International - Mexico Major, Women",
+     8
+    ]
+   ]
+  },
+  "bandy": {
+   "events": 102,
+   "liveEvents": 0,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0.0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {
+      "<24h": [
+       1,
+       0
+      ],
+      "1-3d": [
+       23,
+       0
+      ],
+      "3-7d": [
+       31,
+       0
+      ],
+      "7d+": [
+       47,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0.0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {
+      "<24h": [
+       1,
+       0
+      ],
+      "1-3d": [
+       23,
+       0
+      ],
+      "3-7d": [
+       31,
+       0
+      ],
+      "7d+": [
+       47,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    }
+   },
+   "uncoveredLeagues": [
+    [
+     "Sweden - Elitserien",
+     28
+    ],
+    [
+     "Sweden - Allsvenskan",
+     21
+    ],
+    [
+     "Russia - Superliga",
+     20
+    ],
+    [
+     "Norway - Eliteserien",
+     17
+    ],
+    [
+     "Finland - Bandyliiga",
+     16
+    ]
+   ]
+  },
+  "gaelic-football": {
+   "events": 0,
+   "liveEvents": 0,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {},
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {},
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    }
+   },
+   "uncoveredLeagues": []
+  },
+  "beach-handball": {
+   "events": 0,
+   "liveEvents": 0,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {},
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {},
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    }
+   },
+   "uncoveredLeagues": []
+  },
+  "athletics": {
+   "events": 0,
+   "liveEvents": 0,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {},
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {},
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    }
+   },
+   "uncoveredLeagues": []
+  },
+  "badminton": {
+   "events": 113,
+   "liveEvents": 0,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0.0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {
+      "<24h": [
+       24,
+       0
+      ],
+      "1-3d": [
+       5,
+       0
+      ],
+      "3-7d": [
+       84,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0.0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {
+      "<24h": [
+       24,
+       0
+      ],
+      "1-3d": [
+       5,
+       0
+      ],
+      "3-7d": [
+       84,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    }
+   },
+   "uncoveredLeagues": [
+    [
+     "International - Welsh International Open, MS, Qualifying",
+     32
+    ],
+    [
+     "International - Welsh International Open, WS, Qualifying",
+     12
+    ],
+    [
+     "International - Welsh International Open, MD, Qualifying",
+     10
+    ],
+    [
+     "International - Syed Modi India International, MS, Qualifying",
+     8
+    ],
+    [
+     "International - Welsh International Open, MS",
+     8
+    ],
+    [
+     "International - Welsh International Open, WS",
+     8
+    ],
+    [
+     "International - Welsh International Open, WD",
+     6
+    ],
+    [
+     "International - Syed Modi India International, WS, Qualifying",
+     4
+    ],
+    [
+     "International - Syed Modi India International, WD, Qualifying",
+     4
+    ],
+    [
+     "International - Syed Modi India International, MD, Qualifying",
+     4
+    ],
+    [
+     "International - Syed Modi India International, XD, Qualifying",
+     4
+    ],
+    [
+     "International - Welsh International Open, XD, Qualifying",
+     4
+    ],
+    [
+     "International - Welsh International Open, XD",
+     4
+    ],
+    [
+     "International - Welsh International Open, MD",
+     3
+    ],
+    [
+     "International - Welsh International Open, WD, Qualifying",
+     2
+    ]
+   ]
+  },
+  "cross-country": {
+   "events": 13,
+   "liveEvents": 0,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0.0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {
+      "3-7d": [
+       13,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0.0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {
+      "3-7d": [
+       13,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    }
+   },
+   "uncoveredLeagues": [
+    [
+     "Cross-Country - Ruka 1.2km Sprint Classic Women",
+     7
+    ],
+    [
+     "Cross-Country - Ruka 10km Interval Start Classic Women",
+     6
+    ]
+   ]
+  },
+  "alpine-skiing": {
+   "events": 0,
+   "liveEvents": 0,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {},
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {},
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    }
+   },
+   "uncoveredLeagues": []
+  },
+  "biathlon": {
+   "events": 4,
+   "liveEvents": 0,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0.0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {
+      "3-7d": [
+       4,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0.0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {
+      "3-7d": [
+       4,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    }
+   },
+   "uncoveredLeagues": [
+    [
+     "Biathlon - Kontiolahti 20km Individual Men",
+     2
+    ],
+    [
+     "Biathlon - Kontiolahti 15km Individual Women",
+     2
+    ]
+   ]
+  },
+  "ski-jumping": {
+   "events": 0,
+   "liveEvents": 0,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {},
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {},
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    }
+   },
+   "uncoveredLeagues": []
+  },
+  "golf": {
+   "events": 10,
+   "liveEvents": 0,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0.0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {
+      "<24h": [
+       10,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0.0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {
+      "<24h": [
+       10,
+       0
+      ]
+     },
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    }
+   },
+   "uncoveredLeagues": [
+    [
+     "Golf - PGA - The RSM Classic - 4th Round",
+     10
+    ]
+   ]
+  },
+  "cycling": {
+   "events": 0,
+   "liveEvents": 0,
+   "byBookmaker": {
+    "Bet365": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {},
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    },
+    "iFortuna CZ": {
+     "eventsWithOdds": 0,
+     "coveragePct": 0,
+     "liveWithOdds": 0,
+     "leaguesWithOdds": 0,
+     "byTimeToStart": {},
+     "marketsPerEventAvg": 0,
+     "marketsPerEventMedian": 0,
+     "marketsPerEventMax": 0,
+     "distinctMarkets": 0,
+     "mainMarketMarginAvgPct": null,
+     "topMarkets": [],
+     "allMarkets": [],
+     "leagues": []
+    }
+   },
+   "uncoveredLeagues": []
+  }
+ },
+ "errors": [
+  "table-tennis: rate-limit rezerva: zbývá 1499",
+  "rugby: rate-limit rezerva: zbývá 1496",
+  "cricket: rate-limit rezerva: zbývá 1496",
+  "water-polo: rate-limit rezerva: zbývá 1496",
+  "futsal: rate-limit rezerva: zbývá 1496",
+  "aussie-rules: rate-limit rezerva: zbývá 1496",
+  "squash: rate-limit rezerva: zbývá 1496",
+  "padel: rate-limit rezerva: zbývá 1496",
+  "bandy: rate-limit rezerva: zbývá 1496",
+  "badminton: rate-limit rezerva: zbývá 1496",
+  "cross-country: rate-limit rezerva: zbývá 1496",
+  "biathlon: rate-limit rezerva: zbývá 1496",
+  "golf: rate-limit rezerva: zbývá 1496"
+ ],
+ "apiRequests": 1544,
+ "rateLimitRemaining": 1496
+}
