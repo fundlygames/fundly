@@ -1389,9 +1389,11 @@ body.limited .limited-only { display: inline-flex; }
   .bet-filters:not(.bf-open) .bf-grid { grid-template-columns: 1fr; }
   .bet-filters:not(.bf-open) .bf-grid .field:not(:first-child) { display: none; }
   .bet-filters:not(.bf-open) #leagueChips { display: none !important; }
-  .bet-filters .bf-quick:not(#leagueChips) { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; touch-action: pan-x; }
-  .bet-filters .bf-quick:not(#leagueChips)::-webkit-scrollbar { display: none; }
-  .bet-filters .bf-quick .filter-chip { flex: 0 0 auto; }
+  /* rychlé filtry se na telefonu zalomí do řádků (žádné vodorovné posouvání); Obnovit jen ikona */
+  .bet-filters .bf-quick:not(#leagueChips) { flex-wrap: wrap; gap: 6px; }
+  .bet-filters .bf-quick .filter-chip { flex: 0 0 auto; height: 32px; padding: 0 11px; font-size: .8125rem; }
+  .bet-filters #betRefresh span { display: none; }
+  .bet-filters #betRefresh { padding: 0 10px; }
   .bf-more-btn[aria-expanded="true"] { color: var(--accent); border-color: var(--accent-border-soft); background: var(--accent-tint); }
 }
 
@@ -1549,15 +1551,9 @@ body.limited .limited-only { display: inline-flex; }
 @media (max-width: 1023px) { #view-prehled .first-tip-card { order: -3; } }
 
 /* prepínač trhu v seznamu zápasů (Zápas · Dvojitá šance · Počet gólů · …) — vodorovně posuvný */
-.lm-tabs {
-  display: flex; gap: 8px; margin: 0 0 10px; overflow-x: auto; scrollbar-width: none;
-  touch-action: pan-x; -webkit-overflow-scrolling: touch;
-  -webkit-mask-image: linear-gradient(to right, black 0%, black 92%, transparent 100%);
-  mask-image: linear-gradient(to right, black 0%, black 92%, transparent 100%);
-}
+.lm-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
 .lm-tabs[hidden] { display: none; }
-.lm-tabs::-webkit-scrollbar { display: none; }
-.lm-tabs .filter-chip { flex: 0 0 auto; height: 32px; white-space: nowrap; }
+.lm-tabs .filter-chip { flex: 0 0 auto; height: 32px; padding: 0 11px; font-size: .8125rem; white-space: nowrap; }
 .m-na { color: var(--text-muted); font-size: .8125rem; min-width: 60px; text-align: center; align-self: center; }
 .mk-cats { margin: 4px 6px 10px; }
 
