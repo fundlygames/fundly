@@ -1518,7 +1518,7 @@ function sportName(slug, fallback) {
 let activeSport = "football";
 let slip = []; // {id, match, pick, odds}
 let sportEvents = []; // loaded matches of the active sport
-const filters = { q: "", date: "", league: "", odds: "", live: false, high: false };
+const filters = { q: "", date: "", league: "", odds: "", live: false, high: false, soon: false };
 
 const sportTabs = document.getElementById("sportTabs");
 const matchList = document.getElementById("matchList");
@@ -1778,7 +1778,13 @@ const PICK_LABELS = {
   home: "1", draw: "X", away: "2", over: "dashjs.pick.over", under: "dashjs.pick.under", yes: "dashjs.pick.yes", no: "dashjs.pick.no",
   odd: "dashjs.pick.odd", even: "dashjs.pick.even", "1X": "1X", "12": "12", "X2": "X2",
 };
+// Česko/Slovensko: remíza = „0“ (1 · 0 · 2, dvojitá šance 10 · 12 · 02) — jak jsou lidé zvyklí
+// z Tipsportu a Fortuny; ostatní jazyky X.
+function czSkMarks() { try { return ["cs", "sk"].includes(FUNDLY_I18N.getLang()); } catch (e) { return false; } }
+function drawMark() { return czSkMarks() ? "0" : "X"; }
+const CZSK_PICKS = { draw: "0", "1X": "10", X2: "02" };
 function pickLabel(field) {
+  if (czSkMarks() && CZSK_PICKS[field]) return CZSK_PICKS[field];
   const v = PICK_LABELS[field];
   return v ? (v.startsWith("dashjs.") ? ft(v) : v) : field;
 }
@@ -1899,6 +1905,11 @@ function visibleEvents() {
   }
   if (filters.high) {
     list = list.filter((m) => m.odds.some((o) => o !== null && o >= 2.5 && o <= ODDS_MAX));
+  }
+  // „Začíná brzy“ (jako „Následuje“ u Tipsportu): pre-match zápasy s výkopem do 3 hodin
+  if (filters.soon) {
+    const now = Date.now(), until = now + 3 * 3600e3;
+    list = list.filter((m) => { const t = new Date(m.date).getTime(); return !m.live && t > now && t <= until; });
   }
   // odds-watch: chip "Sledované" (#qWatched) nastavuje filters.watched — viz js/odds-watch.js
   if (filters.watched && window.FundlyOddsWatch) {
@@ -2188,7 +2199,7 @@ async function loadPickStats(id) {
   }
 }
 function pickBarsHtml(m, parts, title, sub) {
-  const labels = m.odds[1] === null ? ["1", "2"] : ["1", "X", "2"];
+  const labels = m.odds[1] === null ? ["1", "2"] : ["1", drawMark(), "2"];
   const names = m.odds[1] === null ? [m.home, m.away] : [m.home, ft("dashjs.ps.draw"), m.away];
   const max = Math.max(...parts.map((p) => p.pct));
   return `<div class="ps-head"><b>${title}</b>${sub ? `<span>${sub}</span>` : ""}</div>
@@ -2415,7 +2426,7 @@ function matchRowHtml(m) {
           const id = `${m.id}|${m.main || "ML"}|0|${field}`;
           const sel = slip.some((s) => s.id === id);
           const out = !oddPlayable(o);
-          const lbl = m.odds[1] === null ? (i === 0 ? "1" : "2") : ["1", "X", "2"][i];
+          const lbl = m.odds[1] === null ? (i === 0 ? "1" : "2") : ["1", drawMark(), "2"][i];
           return `<button class="odd-btn ${sel ? "selected" : ""}" data-pick="${id}"
             ${out ? `disabled title="${oddsOutsideTitle()}"` : ""}>
             <small>${lbl}</small><b>${o.toFixed(2)}${ow ? ow.trendHtml(m, i) : ""}</b>
@@ -2767,6 +2778,13 @@ if (sportTabs) {
     filters.date = filters.date === "dnes" ? "" : "dnes";
     fDate.value = filters.date;
     qToday.setAttribute("aria-pressed", String(filters.date === "dnes"));
+    renderMatches();
+  });
+
+  const qSoon = document.getElementById("qSoon");
+  if (qSoon) qSoon.addEventListener("click", () => {
+    filters.soon = !filters.soon;
+    qSoon.setAttribute("aria-pressed", String(filters.soon));
     renderMatches();
   });
 

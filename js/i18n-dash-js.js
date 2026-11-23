@@ -526,9 +526,9 @@ FUNDLY_I18N.extend("cs", { dashjs: {
   sportPick: "Sport",
   firstTip: {
     title: "Tvůj první tip za minutu", sub: "Tři kroky a jsi ve hře.",
-    s1: "Vyber zápas, kterému rozumíš.", s2: "Klepni na kurz (1 = domácí, X = remíza, 2 = hosté).", s3: "Vklad 1 % kapitálu je připravený — klepni na Podat tip.",
+    s1: "Vyber zápas, kterému rozumíš.", s2: "Klepni na kurz (1 = domácí, 0 = remíza, 2 = hosté).", s3: "Vklad 1 % kapitálu je připravený — klepni na Podat tip.",
     cta: "Vybrat zápas",
-    hint1: "Klepni na kurz u zápasu, kterému rozumíš — 1 = domácí, X = remíza, 2 = hosté.",
+    hint1: "Klepni na kurz u zápasu, kterému rozumíš — 1 = domácí, 0 = remíza, 2 = hosté.",
     hint2: "Tip je připravený níž. Vklad 1 % kapitálu je předvyplněný — klepni na Podat tip.",
   },
   lim: {
