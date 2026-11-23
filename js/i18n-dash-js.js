@@ -55,7 +55,7 @@ FUNDLY_I18N.extend("en", { dashjs: {
     "mixed-martial-arts": "MMA", wrestling: "Wrestling",
   },
   market: {
-    ml: "Match winner", threeWay: "Result in regular time", dnb: "Draw no bet", dc: "Double chance", dcHt: "Double chance · 1st half",
+    ml: "Match winner", totalsGoals: "Total goals (Asian lines)", threeWay: "Result in regular time", dnb: "Draw no bet", dc: "Double chance", dcHt: "Double chance · 1st half",
     spread: "Asian handicap", euroHcp: "European handicap", totals: "Total points (over / under)",
     goalsOu: "Goals (over / under)", btts: "Both teams to score", spreadHt: "Handicap · 1st half",
     totalsHt: "Total · 1st half", winnerHt: "Winner · 1st half", oddEven: "Total goals odd / even",
@@ -64,6 +64,7 @@ FUNDLY_I18N.extend("en", { dashjs: {
     altAsian: "Asian handicap (alt. line)", alt1hAsian: "Handicap · 1st half (alt. line)",
   },
   pick: { over: "Over", under: "Under", yes: "Yes", no: "No", odd: "Odd", even: "Even" },
+  mcat: { all: "All", main: "Match", goals: "Goals / points", halves: "Halves", hcp: "Handicaps" },
   lm: { main: "Match", dc: "Double chance", goals: "Total goals", points: "Total points", btts: "Both teams score", spread: "Handicap", ht: "1st half", none: "–", aria: "Odds shown in the list" },
   bet: {
     allLeagues: "All leagues",
@@ -271,15 +272,16 @@ FUNDLY_I18N.extend("cs", { dashjs: {
     "mixed-martial-arts": "MMA", wrestling: "Wrestling",
   },
   market: {
-    ml: "Vítěz zápasu", threeWay: "Výsledek v základní hrací době", dnb: "Bez remízy", dc: "Dvojitá šance", dcHt: "Dvojitá šance · 1. poločas",
-    spread: "Asijský handicap", euroHcp: "Evropský handicap", totals: "Počet bodů (více / méně)",
-    goalsOu: "Počet gólů (více / méně)", btts: "Oba týmy skórují", spreadHt: "Handicap · 1. poločas",
-    totalsHt: "Počet gólů/bodů · 1. poločas", winnerHt: "Vítěz · 1. poločas", oddEven: "Počet gólů lichý / sudý",
+    ml: "Výsledek zápasu", totalsGoals: "Počet gólů v zápasu (asijské linie)", threeWay: "Výsledek zápasu v základní hrací době", dnb: "Výsledek zápasu bez remízy", dc: "Neprohra / nebude remíza", dcHt: "Neprohra / nebude remíza · 1. poločas",
+    spread: "Handicap v zápasu (asijský)", euroHcp: "Handicap v zápasu (evropský)", totals: "Počet bodů v zápasu",
+    goalsOu: "Počet gólů v zápasu", btts: "Každý tým dá gól", spreadHt: "Handicap v 1. poločasu",
+    totalsHt: "Počet gólů/bodů v 1. poločasu", winnerHt: "Výsledek 1. poločasu", oddEven: "Počet gólů lichý / sudý",
     oddEvenHt: "Lichý / sudý · 1. poločas", oddEven2h: "Lichý / sudý · 2. poločas", altGoalLine: "Počet bodů (alt. linie)",
     altTotalGoals: "Počet gólů (alt. linie)", alt1hGoalLine: "Počet gólů/bodů · 1. poločas (alt. linie)",
     altAsian: "Asijský handicap (alt. linie)", alt1hAsian: "Handicap · 1. poločas (alt. linie)",
   },
   pick: { over: "Více", under: "Méně", yes: "Ano", no: "Ne", odd: "Lichý", even: "Sudý" },
+  mcat: { all: "Vše", main: "Zápas", goals: "Góly / body", halves: "Poločasy", hcp: "Handicapy" },
   lm: { main: "Zápas", dc: "Dvojitá šance", goals: "Počet gólů", points: "Počet bodů", btts: "Každý tým dá gól", spread: "Handicap", ht: "1. poločas", none: "–", aria: "Kurzy zobrazené v seznamu" },
   bet: {
     allLeagues: "Všechny ligy",

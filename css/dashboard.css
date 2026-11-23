@@ -1559,3 +1559,4 @@ body.limited .limited-only { display: inline-flex; }
 .lm-tabs::-webkit-scrollbar { display: none; }
 .lm-tabs .filter-chip { flex: 0 0 auto; height: 32px; white-space: nowrap; }
 .m-na { color: var(--text-muted); font-size: .8125rem; min-width: 60px; text-align: center; align-self: center; }
+.mk-cats { margin: 4px 6px 10px; }

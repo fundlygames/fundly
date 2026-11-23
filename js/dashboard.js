@@ -1784,7 +1784,14 @@ function pickLabel(field) {
 }
 const PICK_FIELDS = ["home", "draw", "away", "over", "under", "yes", "no", "odd", "even", "1X", "12", "X2"];
 
-function marketLabel(name) { return MARKET_LABELS[name] ? ft(MARKET_LABELS[name]) : name; }
+function marketLabel(name) {
+  // u gólových sportů (fotbal, hokej…) jsou "Totals" / "Alternative Goal Line" góly, ne body
+  if (GOAL_SPORTS.has(activeSport)) {
+    if (name === "Totals") return ft("dashjs.market.totalsGoals");
+    if (name === "Alternative Goal Line") return ft("dashjs.market.altTotalGoals");
+  }
+  return MARKET_LABELS[name] ? ft(MARKET_LABELS[name]) : name;
+}
 
 function oddPlayable(v) {
   const n = parseFloat(v);
@@ -2146,10 +2153,28 @@ function patchSlipOdds(changedIds) {
   document.getElementById("stakeInput")?.dispatchEvent(new Event("input")); // přepočet výhry, vklad zůstává
 }
 
+// kategorie trhů v detailu zápasu (filtry „Vše · Zápas · Góly · Poločasy · Handicapy“ jako u Tipsportu)
+const MARKET_CATS = {
+  main: ["ML", "3-Way Result", "Double Chance", "Draw No Bet"],
+  goals: ["Totals", "Goals Over/Under", "Alternative Goal Line", "Alternative Total Goals", "Both Teams To Score", "Odd/Even"],
+  halves: ["ML HT", "Half Time Result", "Totals HT", "Spread HT", "Double Chance HT", "Odd/Even HT", "Odd/Even 2H",
+    "Alternative 1st Half Goal Line", "Alternative 1st Half Asian Handicap"],
+  hcp: ["Spread", "European Handicap", "Alternative Asian Handicap", "Spread HT", "Alternative 1st Half Asian Handicap"],
+};
+let detailCat = "all";
+let detailCatFor = null;
 function renderMatchDetail(m) {
   setBetChrome(true);
   if (!openGroups) openGroups = new Set(m.markets.slice(0, 3).map((mk) => mk.name));
-  const groups = m.markets.map((mk) => {
+  if (detailCatFor !== String(m.id)) { detailCat = "all"; detailCatFor = String(m.id); }
+  const cats = Object.keys(MARKET_CATS).filter((c) => m.markets.some((mk) => MARKET_CATS[c].includes(mk.name)));
+  if (detailCat !== "all" && !cats.includes(detailCat)) detailCat = "all";
+  const catChips = cats.length > 1
+    ? `<div class="lm-tabs mk-cats" role="group">${["all", ...cats].map((c) =>
+      `<button type="button" class="filter-chip" data-mcat="${c}" aria-pressed="${c === detailCat}">${ft("dashjs.mcat." + c)}</button>`).join("")}</div>`
+    : "";
+  const shown = detailCat === "all" ? m.markets : m.markets.filter((mk) => MARKET_CATS[detailCat].includes(mk.name));
+  const groups = shown.map((mk) => {
     const rows = mk.odds.slice(0, 8).map((row, ri) => marketRowButtons(m, mk.name, row, ri)).join("");
     if (!rows) return "";
     return `<details class="mk-acc" data-mk="${mk.name}" ${openGroups.has(mk.name) ? "open" : ""}>
@@ -2174,7 +2199,15 @@ function renderMatchDetail(m) {
       <div class="detail-teams">${m.home} <span>vs</span> ${m.away}</div>
       <div class="m-time">${m.live ? `<span class="live">● LIVE${liveScore(m)}</span>${liveClock(m) ? ` · ${liveClock(m)}` : ""} · ` : ""}${m.live ? "" : `${fmtTime(m.date)} · `}${ftp("dashjs.bet.markets", m.markets.length)}</div>
     </div>
+    ${catChips}
     <div class="mk-accs">${groups || `<p class="bet-msg">${ft("dashjs.bet.noMoreMarkets")}</p>`}</div>`;
+
+  matchList.querySelectorAll("[data-mcat]").forEach((b) => b.addEventListener("click", () => {
+    detailCat = b.dataset.mcat;
+    // ve filtru rozbalit všechny jeho trhy (je jich pár), ve „Vše“ zůstanou rozbalené první 3
+    if (detailCat !== "all") MARKET_CATS[detailCat].forEach((n) => openGroups.add(n));
+    renderMatchDetail(m);
+  }));
 
   document.getElementById("backToList").addEventListener("click", () => {
     detailMatch = null;
