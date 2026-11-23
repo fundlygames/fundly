@@ -13,14 +13,14 @@
   <meta name="apple-mobile-web-app-title" content="Fundly" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   <link rel="icon" type="image/png" href="assets/logo.png" />
-  <link rel="stylesheet" href="css/style.css?v=20261123d" />
-  <link rel="stylesheet" href="css/dashboard.css?v=20261123d" />
-  <link rel="stylesheet" href="css/certificate.css?v=20261123d" />
-  <link rel="stylesheet" href="css/tools.css?v=20261123d" /><!-- Nástroje + Deník tipů (js/tools.js, js/journal.js) -->
-  <link rel="stylesheet" href="css/academy.css?v=20261123d" />
-  <link rel="stylesheet" href="css/analytics.css?v=20261123d" />
-  <link rel="stylesheet" href="css/recap.css?v=20261123d" />
-  <link rel="stylesheet" href="css/odds-watch.css?v=20261123d" />
+  <link rel="stylesheet" href="css/style.css?v=20261123i" />
+  <link rel="stylesheet" href="css/dashboard.css?v=20261123i" />
+  <link rel="stylesheet" href="css/certificate.css?v=20261123i" />
+  <link rel="stylesheet" href="css/tools.css?v=20261123i" /><!-- Nástroje + Deník tipů (js/tools.js, js/journal.js) -->
+  <link rel="stylesheet" href="css/academy.css?v=20261123i" />
+  <link rel="stylesheet" href="css/analytics.css?v=20261123i" />
+  <link rel="stylesheet" href="css/recap.css?v=20261123i" />
+  <link rel="stylesheet" href="css/odds-watch.css?v=20261123i" />
   <!-- Měření (Meta Pixel, Microsoft Clarity, Google Analytics): tady jen fronty volání.
        Skutečné skripty načte js/consent.js AŽ po souhlasu s cookies (zákon č. 127/2005 Sb.). -->
   <script>
@@ -33,10 +33,10 @@
     fbq('track', 'PageView');
     window.clarity = window.clarity || function(){(window.clarity.q = window.clarity.q || []).push(arguments)};
   </script>
-  <script src="js/consent.js?v=20261123d"></script>
+  <script src="js/consent.js?v=20261123i"></script>
   <!-- backend (Supabase/Whop) — defer, page works without it too (demo mode) -->
-  <script defer src="js/config.js?v=20261123d"></script>
-  <script defer src="js/whop.js?v=20261123d"></script>
+  <script defer src="js/config.js?v=20261123i"></script>
+  <script defer src="js/whop.js?v=20261123i"></script>
 </head>
 <body class="with-sidebar">
 
@@ -349,6 +349,7 @@
             <span class="bf-label" data-i18n="dash.quick_filters">Quick filters:</span>
             <button class="filter-chip" id="qLive" aria-pressed="false"><span class="live-dot" aria-hidden="true"></span><span data-i18n="dash.live">LIVE</span></button>
             <button class="filter-chip" id="qToday" data-i18n="dash.today" aria-pressed="false">Today</button>
+            <button class="filter-chip" id="qSoon" data-i18n="dash.soon" aria-pressed="false" title="&lt; 3 h">Starting soon</button>
             <button class="filter-chip" id="qHigh" data-i18n="dash.high_odds" aria-pressed="false">High odds</button>
             <button class="filter-chip" id="qWatched" aria-pressed="false"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3.2l2.7 5.5 6.1.9-4.4 4.3 1 6.1L12 17.1 6.6 20l1-6.1-4.4-4.3 6.1-.9z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><span data-i18n="ow.watched">Watched</span><span class="ow-count" id="qWatchedCount" hidden></span></button>
             <button class="filter-chip" id="betRefresh" style="margin-left:auto">
@@ -971,26 +972,27 @@
 
   <div id="toastLayer" class="toast-layer" aria-live="polite"></div>
 
-  <script src="js/packages.js?v=20261123d"></script>
-  <script src="js/i18n.js?v=20261123d"></script>
-  <script src="js/i18n-dash.js?v=20261123d"></script>
-  <script src="js/i18n-dash-js.js?v=20261123d"></script>
-  <script src="js/portfolio.js?v=20261123d"></script>
-  <script src="js/odds-watch.js?v=20261123d"></script>
-  <script src="js/journal.js?v=20261123d"></script>
-  <script src="js/tools.js?v=20261123d"></script>
-  <script src="js/recap.js?v=20261123d"></script>
-  <script src="js/dashboard.js?v=20261123d"></script>
-  <script src="js/analytics.js?v=20261123d"></script>
-  <script src="js/tour.js?v=20261123d"></script>
-  <script src="js/certificate.js?v=20261123d"></script>
-  <script src="js/share-card.js?v=20261123d"></script>
-  <script src="js/academy.js?v=20261123d"></script>
-  <script src="js/referral.js?v=20261123d"></script>
-  <script src="js/promo-banner.js?v=20261123d"></script>
-  <script src="js/track.js?v=20261123d"></script>
-  <script src="js/pwa.js?v=20261123d"></script>
-  <script src="js/push.js?v=20261123d"></script>
-  <script src="js/telegram-widget.js?v=20261123d"></script>
+  <script src="js/packages.js?v=20261123i"></script>
+  <script src="js/i18n.js?v=20261123i"></script>
+  <script src="js/i18n-dash.js?v=20261123i"></script>
+  <script src="js/i18n-dash-js.js?v=20261123i"></script>
+  <script src="js/portfolio.js?v=20261123i"></script>
+  <script src="js/league-names.js?v=20261123i"></script>
+  <script src="js/odds-watch.js?v=20261123i"></script>
+  <script src="js/journal.js?v=20261123i"></script>
+  <script src="js/tools.js?v=20261123i"></script>
+  <script src="js/recap.js?v=20261123i"></script>
+  <script src="js/dashboard.js?v=20261123i"></script>
+  <script src="js/analytics.js?v=20261123i"></script>
+  <script src="js/tour.js?v=20261123i"></script>
+  <script src="js/certificate.js?v=20261123i"></script>
+  <script src="js/share-card.js?v=20261123i"></script>
+  <script src="js/academy.js?v=20261123i"></script>
+  <script src="js/referral.js?v=20261123i"></script>
+  <script src="js/promo-banner.js?v=20261123i"></script>
+  <script src="js/track.js?v=20261123i"></script>
+  <script src="js/pwa.js?v=20261123i"></script>
+  <script src="js/push.js?v=20261123i"></script>
+  <script src="js/telegram-widget.js?v=20261123i"></script>
 </body>
 </html>

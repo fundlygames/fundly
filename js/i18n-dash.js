@@ -182,7 +182,8 @@ FUNDLY_I18N.extend("en", { dash: {
   "buy_a_challenge": "Buy a Challenge",
   "clear_all": "Clear all",
   "pay_activation_fee_80": "Pay activation fee — $80",
-  "high_odds": "High odds"
+  "high_odds": "High odds",
+  "soon": "Starting soon"
 } });
 FUNDLY_I18N.extend("cs", { dash: {
   "fundly": "fundly",
@@ -366,7 +367,8 @@ FUNDLY_I18N.extend("cs", { dash: {
   "buy_a_challenge": "Koupit výzvu",
   "clear_all": "Vymazat vše",
   "pay_activation_fee_80": "Zaplatit aktivační poplatek — $80",
-  "high_odds": "Vysoké kurzy"
+  "high_odds": "Vysoké kurzy",
+  "soon": "Začíná brzy"
 } });
 // Novinky + přístup po neúspěchu (přidáno 2026-11-15)
 FUNDLY_I18N.extend("en", { dash: {

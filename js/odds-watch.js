@@ -68,7 +68,8 @@
     const v = [num(arr[0]), num(arr[1]), num(arr[2])];
     return v[0] && v[2] ? v : null;
   }
-  const pickLbl = (i, twoWay) => (twoWay ? (i === 0 ? "1" : "2") : ["1", "X", "2"][i]);
+  const drawLbl = () => { try { return ["cs", "sk"].includes(FUNDLY_I18N.getLang()) ? "0" : "X"; } catch (e) { return "X"; } };
+  const pickLbl = (i, twoWay) => (twoWay ? (i === 0 ? "1" : "2") : ["1", drawLbl(), "2"][i]);
   const fmtPct = (p) => (p > 0 ? "+" : p < 0 ? "−" : "") + Math.abs(p).toLocaleString(locale(), { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " %";
   // globály z dashboard.js — skript se načítá před ním, takže jen za běhu a opatrně
   function loadedEvents() { try { return Array.isArray(sportEvents) ? sportEvents : []; } catch (e) { return []; } }

@@ -1518,7 +1518,7 @@ function sportName(slug, fallback) {
 let activeSport = "football";
 let slip = []; // {id, match, pick, odds}
 let sportEvents = []; // loaded matches of the active sport
-const filters = { q: "", date: "", league: "", odds: "", live: false, high: false };
+const filters = { q: "", date: "", league: "", odds: "", live: false, high: false, soon: false };
 
 const sportTabs = document.getElementById("sportTabs");
 const matchList = document.getElementById("matchList");
@@ -1778,7 +1778,13 @@ const PICK_LABELS = {
   home: "1", draw: "X", away: "2", over: "dashjs.pick.over", under: "dashjs.pick.under", yes: "dashjs.pick.yes", no: "dashjs.pick.no",
   odd: "dashjs.pick.odd", even: "dashjs.pick.even", "1X": "1X", "12": "12", "X2": "X2",
 };
+// Česko/Slovensko: remíza = „0“ (1 · 0 · 2, dvojitá šance 10 · 12 · 02) — jak jsou lidé zvyklí
+// z Tipsportu a Fortuny; ostatní jazyky X.
+function czSkMarks() { try { return ["cs", "sk"].includes(FUNDLY_I18N.getLang()); } catch (e) { return false; } }
+function drawMark() { return czSkMarks() ? "0" : "X"; }
+const CZSK_PICKS = { draw: "0", "1X": "10", X2: "02" };
 function pickLabel(field) {
+  if (czSkMarks() && CZSK_PICKS[field]) return CZSK_PICKS[field];
   const v = PICK_LABELS[field];
   return v ? (v.startsWith("dashjs.") ? ft(v) : v) : field;
 }
@@ -1798,6 +1804,15 @@ function oddPlayable(v) {
   return !Number.isNaN(n) && n >= ODDS_MIN && n <= ODDS_MAX;
 }
 
+// zobrazovaný název soutěže (cs/sk: „1. anglická liga“ — js/league-names.js); interně se dál
+// pracuje s původním názvem z odds-api (filtry, řazení, tikety)
+function leagueName(name) { return window.FundlyLeagues ? FundlyLeagues.display(name) : name; }
+// jména jednotlivců z odds-api jsou „Příjmení, Jméno“ (MMA, tenis, šipky…) → „Jméno Příjmení“
+function teamName(name) {
+  const mm = /^([^,]+),\s*(.+)$/.exec(String(name || ""));
+  return mm ? `${mm[2]} ${mm[1]}` : name;
+}
+
 // fills the league select + quick chips from the loaded matches (top leagues
 // first, by match count)
 function refreshLeagueOptions() {
@@ -1807,14 +1822,14 @@ function refreshLeagueOptions() {
   sportEvents.forEach((m) => { if (m.league) counts[m.league] = (counts[m.league] || 0) + 1; });
   const leagues = Object.keys(counts).sort((a, b) => homeLeagueRank(a) - homeLeagueRank(b) || counts[b] - counts[a] || a.localeCompare(b));
   sel.innerHTML = `<option value="">${ft("dashjs.bet.allLeagues")}</option>` +
-    leagues.map((l) => `<option value="${l.replace(/"/g, "&quot;")}">${l}</option>`).join("");
+    leagues.map((l) => `<option value="${l.replace(/"/g, "&quot;")}">${esc(leagueName(l))}</option>`).join("");
   sel.value = leagues.includes(current) ? current : "";
   filters.league = sel.value;
 
   const chips = document.getElementById("leagueChips");
   if (chips) {
     chips.innerHTML = leagues.slice(0, 8).map((l) =>
-      `<button class="filter-chip" data-league="${l.replace(/"/g, "&quot;")}" aria-pressed="${l === filters.league}">${l} · ${counts[l]}</button>`
+      `<button class="filter-chip" data-league="${l.replace(/"/g, "&quot;")}" aria-pressed="${l === filters.league}">${esc(leagueName(l))} · ${counts[l]}</button>`
     ).join("");
     chips.hidden = leagues.length === 0;
   }
@@ -1878,7 +1893,7 @@ function visibleEvents() {
   let list = sportEvents;
   if (filters.q) {
     const q = filters.q.toLowerCase();
-    list = list.filter((m) => `${m.home} ${m.away} ${m.league}`.toLowerCase().includes(q));
+    list = list.filter((m) => `${m.home} ${m.away} ${m.league} ${leagueName(m.league)}`.toLowerCase().includes(q));
   }
   if (filters.date === "7d" || filters.date === "20d") {
     // časové pásmo: příštích 7 / 20 dní
@@ -1899,6 +1914,11 @@ function visibleEvents() {
   }
   if (filters.high) {
     list = list.filter((m) => m.odds.some((o) => o !== null && o >= 2.5 && o <= ODDS_MAX));
+  }
+  // „Začíná brzy“ (jako „Následuje“ u Tipsportu): pre-match zápasy s výkopem do 3 hodin
+  if (filters.soon) {
+    const now = Date.now(), until = now + 3 * 3600e3;
+    list = list.filter((m) => { const t = new Date(m.date).getTime(); return !m.live && t > now && t <= until; });
   }
   // odds-watch: chip "Sledované" (#qWatched) nastavuje filters.watched — viz js/odds-watch.js
   if (filters.watched && window.FundlyOddsWatch) {
@@ -2188,8 +2208,8 @@ async function loadPickStats(id) {
   }
 }
 function pickBarsHtml(m, parts, title, sub) {
-  const labels = m.odds[1] === null ? ["1", "2"] : ["1", "X", "2"];
-  const names = m.odds[1] === null ? [m.home, m.away] : [m.home, ft("dashjs.ps.draw"), m.away];
+  const labels = m.odds[1] === null ? ["1", "2"] : ["1", drawMark(), "2"];
+  const names = m.odds[1] === null ? [teamName(m.home), teamName(m.away)] : [teamName(m.home), ft("dashjs.ps.draw"), teamName(m.away)];
   const max = Math.max(...parts.map((p) => p.pct));
   return `<div class="ps-head"><b>${title}</b>${sub ? `<span>${sub}</span>` : ""}</div>
     <div class="ps-bars">${parts.map((p, i) => `
@@ -2270,8 +2290,9 @@ function renderMatchDetail(m) {
       </button>
     </div>
     <div class="detail-head">
-      <div class="m-league">${m.league}</div>
-      <div class="detail-teams">${m.home} <span>vs</span> ${m.away}</div>
+      <div class="m-league">${leagueName(m.league)}</div>
+      <div class="detail-teams">${teamName(m.home)} <span>vs</span> ${teamName(m.away)}</div>
+      ${window.FundlyLeagues && FundlyLeagues.venue(m.league) ? `<div class="m-venue"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0119 9.5C19 14.8 12 21 12 21z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="9.5" r="2.5" stroke="currentColor" stroke-width="2"/></svg> ${esc(FundlyLeagues.venue(m.league))}</div>` : ""}
       <div class="m-time">${m.live ? `<span class="live">● LIVE${liveScore(m)}</span>${liveClock(m) ? ` · ${liveClock(m)}` : ""} · ` : ""}${m.live ? "" : `${fmtTime(m.date)} · `}${ftp("dashjs.bet.markets", m.markets.length)}</div>
     </div>
     <div class="ps-box" id="pickStats" data-ev="${esc(String(m.id))}" hidden></div>
@@ -2404,8 +2425,8 @@ function matchRowHtml(m) {
     <div class="match-head" role="button" tabindex="0" aria-label="${ftf("dashjs.bet.openDetail", { home: m.home, away: m.away })}">
       ${ow ? ow.starHtml(m) : ""}
       <div class="m-info">
-        <div class="m-league">${m.league}</div>
-        <div class="m-teams">${m.home} – ${m.away}</div>
+        <div class="m-league">${leagueName(m.league)}</div>
+        <div class="m-teams">${teamName(m.home)} – ${teamName(m.away)}</div>
         <div class="m-time">${m.live ? `<span class="live">● LIVE${liveScore(m)}</span>${liveClock(m) ? ` · ${liveClock(m)}` : ""}` : fmtTime(m.date)}${extra > 0 ? ` · ${ftp("dashjs.bet.moreMarkets", extra)}` : ""}</div>
       </div>
       <div class="m-odds">
@@ -2415,7 +2436,7 @@ function matchRowHtml(m) {
           const id = `${m.id}|${m.main || "ML"}|0|${field}`;
           const sel = slip.some((s) => s.id === id);
           const out = !oddPlayable(o);
-          const lbl = m.odds[1] === null ? (i === 0 ? "1" : "2") : ["1", "X", "2"][i];
+          const lbl = m.odds[1] === null ? (i === 0 ? "1" : "2") : ["1", drawMark(), "2"][i];
           return `<button class="odd-btn ${sel ? "selected" : ""}" data-pick="${id}"
             ${out ? `disabled title="${oddsOutsideTitle()}"` : ""}>
             <small>${lbl}</small><b>${o.toFixed(2)}${ow ? ow.trendHtml(m, i) : ""}</b>
@@ -2449,7 +2470,7 @@ function resolvePick(id) {
     pick = `${marketLabel(marketName)}${hdp}: ${pickLabel(field)}`;
   }
   return {
-    id, match: `${m.home} – ${m.away}`, pick, odds,
+    id, match: `${teamName(m.home)} – ${teamName(m.away)}`, pick, odds,
     eventId: m.id, // číslo z odds-api, text "fx-…" u vlastních zápasů
     sport: activeSport,
     league: m.league,
@@ -2767,6 +2788,13 @@ if (sportTabs) {
     filters.date = filters.date === "dnes" ? "" : "dnes";
     fDate.value = filters.date;
     qToday.setAttribute("aria-pressed", String(filters.date === "dnes"));
+    renderMatches();
+  });
+
+  const qSoon = document.getElementById("qSoon");
+  if (qSoon) qSoon.addEventListener("click", () => {
+    filters.soon = !filters.soon;
+    qSoon.setAttribute("aria-pressed", String(filters.soon));
     renderMatches();
   });
 
