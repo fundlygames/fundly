@@ -10,7 +10,8 @@ export type Selection = {
 };
 
 export type Period = { home: number; away: number } | null | undefined;
-export type Scores = { ft: Period; p1: Period };
+// reg = skóre po řádné hrací době (jen pro "3-Way Result"; chybí-li, bere se ft)
+export type Scores = { ft: Period; p1: Period; reg?: Period };
 
 const HT_MARKETS = new Set([
   "ML HT", "Half Time Result", "Totals HT", "Spread HT", "Odd/Even HT",
@@ -26,6 +27,8 @@ const SPREAD_MARKETS = new Set([
 ]);
 const ODD_EVEN_MARKETS = new Set(["Odd/Even", "Odd/Even HT", "Odd/Even 2H"]);
 const DOUBLE_CHANCE_MARKETS = new Set(["Double Chance", "Double Chance HT"]);
+// 1X2 v ZÁKLADNÍ hrací době (hokej, basketbal, házená) — remíza po řádné době = remíza
+const THREE_WAY_MARKETS = new Set(["3-Way Result"]);
 
 // Sporty, kde zdroj výsledků (odds-api) hlásí skóre v JINÉ jednotce než linie trhu — takové trhy
 // neumíme spravedlivě vyhodnotit, proto jsou povolené jen uvedené (ověřeno na datech 15. 11. 2026):
@@ -53,7 +56,7 @@ export function settleSelection(sel: Selection, scores: Scores): "won" | "lost" 
   // trh, který u tohoto sportu nejde spravedlivě vyhodnotit → vklad zpět (nikdy špatný výsledek)
   if (!isGradeableMarket(sel.sport, market)) return "push";
   const isHt = HT_MARKETS.has(market);
-  const period = isHt ? scores.p1 : scores.ft;
+  const period = isHt ? scores.p1 : THREE_WAY_MARKETS.has(market) ? (scores.reg ?? scores.ft) : scores.ft;
   if (!period || typeof period.home !== "number" || typeof period.away !== "number") return "push";
   const finalHome = period.home, finalAway = period.away;
   const total = finalHome + finalAway;
@@ -65,6 +68,11 @@ export function settleSelection(sel: Selection, scores: Scores): "won" | "lost" 
       return sel.field === "draw" ? "won" : "lost";
     }
     const winner = finalHome > finalAway ? "home" : "away";
+    return sel.field === winner ? "won" : "lost";
+  }
+
+  if (THREE_WAY_MARKETS.has(market)) {
+    const winner = finalHome === finalAway ? "draw" : finalHome > finalAway ? "home" : "away";
     return sel.field === winner ? "won" : "lost";
   }
 

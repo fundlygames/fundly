@@ -28,6 +28,16 @@ export function finalScore(ev: any): Score | null {
   return { home: afterOt.home, away: afterOt.away };
 }
 
+// Skóre po ŘÁDNÉ hrací době (bez prodloužení a nájezdů) — pro trh "3-Way Result"
+// (hokej / basketbal / házená 1X2 v základní době: remíza po 60 min = remíza, i když se
+// pak hraje prodloužení). odds-api: periods.ft = řádná doba.
+// deno-lint-ignore no-explicit-any
+export function regulationScore(ev: any): Score | null {
+  const periods = (ev && ev.scores && ev.scores.periods) || {};
+  const reg = periods.ft || (ev && ev.scores) || null;
+  return num(reg) ? { home: reg.home, away: reg.away } : null;
+}
+
 // Skóre 1. poločasu pro HT trhy. Basketbal / americký fotbal s ČTVRTINAMI (p1–p4):
 // poločas = p1 + p2 (dřív se bralo jen p1 = 1. čtvrtina → HT trhy se vyhodnocovaly špatně).
 // Formát s poločasy (NCAA basketbal: jen p1, p2) a ostatní sporty: p1.

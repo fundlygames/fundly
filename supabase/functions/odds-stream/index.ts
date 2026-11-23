@@ -26,7 +26,7 @@ const MARKETS = [
   "Alternative Goal Line", "Alternative Total Goals", "Alternative 1st Half Goal Line",
   "Both Teams To Score", "Spread", "Spread HT", "Alternative Asian Handicap",
   "Alternative 1st Half Asian Handicap", "European Handicap", "Draw No Bet",
-  "Double Chance", "Double Chance HT", "Odd/Even", "Odd/Even HT", "Odd/Even 2H",
+  "Double Chance", "Double Chance HT", "Odd/Even", "Odd/Even HT", "Odd/Even 2H", "3-Way Result",
 ];
 const MARKET_SET = new Set(MARKETS);
 

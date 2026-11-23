@@ -42,7 +42,7 @@ const LIVE_RESCAN_S = 600; // jak často znovu projít VŠECHNY živé zápasy, 
 const STALE_MAX_S = 6 * 3600; // starší data už raději nevracet
 
 const apiKey = Deno.env.get("ODDS_API_KEY") ?? "";
-const BOOKMAKERS = (Deno.env.get("ODDS_API_BOOKMAKER") ?? "Bet365,Tipsport.cz").split(",").map((b) => b.trim()).join(",");
+const BOOKMAKERS = (Deno.env.get("ODDS_API_BOOKMAKER") ?? "Bet365,iFortuna CZ").split(",").map((b) => b.trim()).join(",");
 const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
 // Trhy, které dashboard umí vyhodnotit (= GRADEABLE_MARKETS v js/dashboard.js). odds-api
@@ -53,7 +53,7 @@ const GRADEABLE = new Set([
   "Alternative Goal Line", "Alternative Total Goals", "Alternative 1st Half Goal Line",
   "Both Teams To Score", "Spread", "Spread HT", "Alternative Asian Handicap",
   "Alternative 1st Half Asian Handicap", "European Handicap", "Draw No Bet",
-  "Double Chance", "Double Chance HT", "Odd/Even", "Odd/Even HT", "Odd/Even 2H",
+  "Double Chance", "Double Chance HT", "Odd/Even", "Odd/Even HT", "Odd/Even 2H", "3-Way Result",
 ]);
 const ALLOWED_BMS = new Set(BOOKMAKERS.split(","));
 // deno-lint-ignore no-explicit-any

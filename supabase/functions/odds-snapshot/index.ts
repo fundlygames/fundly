@@ -41,7 +41,7 @@ serve(async (req) => {
   // Plán je omezený na max 2 bookmakery — stejný fallback pořadí jako
   // js/dashboard.js (loadSportEvents), ať se snapshoty berou ze stejného
   // zdroje kurzů, ze kterého hráč reálně sázel.
-  const bookmakers = (Deno.env.get("ODDS_API_BOOKMAKER") ?? "Bet365,Tipsport.cz").split(",").map((b) => b.trim());
+  const bookmakers = (Deno.env.get("ODDS_API_BOOKMAKER") ?? "Bet365,iFortuna CZ").split(",").map((b) => b.trim());
   if (!apiKey) return jsonResponse({ skipped: true, reason: "ODDS_API_KEY not set" });
 
   try {

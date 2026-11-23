@@ -109,3 +109,9 @@
 .ow-lg-val { color: var(--text-muted); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
 .ow-lg-val b { color: var(--text-primary); }
 .ow-lg-chg { color: var(--text-secondary); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; font-weight: 600; }
+
+/* ---------- šipky pohybu kurzu v tlačítku kurzu (↗ roste / ↘ klesá za 24 h) ---------- */
+.odd-tr { font-style: normal; font-size: .6875rem; font-weight: 700; margin-left: 3px; vertical-align: 1px; }
+.odd-tr.up { color: var(--accent); }
+.odd-tr.down { color: var(--danger); }
+.odd-was { color: var(--text-muted); font-weight: 500; opacity: .8; }

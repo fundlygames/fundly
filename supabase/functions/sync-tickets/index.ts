@@ -147,7 +147,7 @@ serve(async (req) => {
     // dopadne, a pak si vezmu 90 % zpátky", což je zaručený zisk na úkor
     // skutečného rizika.
     const apiKey = Deno.env.get("ODDS_API_KEY");
-    const bookmakers = (Deno.env.get("ODDS_API_BOOKMAKER") ?? "Bet365,Tipsport.cz").split(",").map((b) => b.trim());
+    const bookmakers = (Deno.env.get("ODDS_API_BOOKMAKER") ?? "Bet365,iFortuna CZ").split(",").map((b) => b.trim());
     const enforce = Deno.env.get("TICKET_ADMISSION_ENFORCE") !== "false";
     const nowMs = Date.now();
     const nowIso = new Date(nowMs).toISOString();

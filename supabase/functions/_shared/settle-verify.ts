@@ -8,7 +8,7 @@
 // uložený zůstatek $27,665, bez jakéhokoli tiketu, co by ten rozdíl vysvětlil).
 import { settleSelection, type Selection } from "./settle.ts";
 import { customEventResult, isCustomEventId } from "./custom-events.ts";
-import { finalScore, halfScore } from "./final-score.ts";
+import { finalScore, halfScore, regulationScore } from "./final-score.ts";
 
 const API_BASE = "https://api.odds-api.io/v3";
 // stejná bezpečná rezerva jako settle-tickets/index.ts a js/portfolio.js —
@@ -22,7 +22,7 @@ export type VerifySelection = Selection & {
 };
 
 type Period = { home: number; away: number } | null;
-type EventResult = { found: true; status: string; ft: Period; p1: Period } | { found: false };
+type EventResult = { found: true; status: string; ft: Period; p1: Period; reg?: Period } | { found: false };
 
 async function fetchEventResult(id: string, apiKey: string): Promise<EventResult> {
   if (isCustomEventId(id)) return await customEventResult(id); // vlastní zápas z custom_events
@@ -35,6 +35,7 @@ async function fetchEventResult(id: string, apiKey: string): Promise<EventResult
     const periods = ev.scores && ev.scores.periods;
     const ft = finalScore(ev); // vč. prodloužení u sportů, kde to trhy tak počítají
     const p1 = halfScore(ev); // 1. poločas (u čtvrtin p1+p2)
+    const reg = regulationScore(ev); // řádná hrací doba (trh "3-Way Result")
     const hasFt = ft && typeof ft.home === "number" && typeof ft.away === "number";
     const hasP1 = p1 && typeof p1.home === "number" && typeof p1.away === "number";
     return {
@@ -42,6 +43,7 @@ async function fetchEventResult(id: string, apiKey: string): Promise<EventResult
       status: ev.status,
       ft: hasFt ? { home: ft.home, away: ft.away } : null,
       p1: hasP1 ? { home: p1.home, away: p1.away } : null,
+      reg,
     };
   } catch {
     return { found: false };
@@ -75,7 +77,7 @@ export async function verifyTicketOutcome(
     if (!ev || !ev.found) return stale ? "push" : null;
     if (ev.status !== "settled") return stale ? "push" : null;
     if (!ev.ft) return "push";
-    return settleSelection(s, { ft: ev.ft, p1: ev.p1 });
+    return settleSelection(s, { ft: ev.ft, p1: ev.p1, reg: ev.reg });
   });
   if (results.some((r) => r === null)) return null; // ještě nerozhodnuto
 
