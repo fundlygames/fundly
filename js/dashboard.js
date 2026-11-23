@@ -1993,9 +1993,13 @@ function marketRowButtons(m, marketName, row, ri) {
       const sel = slip.some((s) => s.id === id);
       const out = !oddPlayable(val);
       const small = row.label ? ft("dashjs.common.odds") : pickLabel(f);
+      // hlavní trh: kurz před 24 h přeškrtnutý + šipka (jako „1.75 ↘ 1.53“ u Tipsportu)
+      const ow = window.FundlyOddsWatch;
+      const fi = ["home", "draw", "away"].indexOf(f);
+      const from = ow && marketName === (m.main || "ML") && ri === 0 && fi >= 0 ? ow.trendFrom(m, fi) : null;
       return `<button class="odd-btn ${sel ? "selected" : ""}" data-pick="${id}"
         ${out ? `disabled title="${oddsOutsideTitle()}"` : ""}>
-        <small>${small}</small><b>${val.toFixed(2)}</b>
+        <small>${small}${from ? ` <s class="odd-was">${from.toFixed(2)}</s>` : ""}</small><b>${val.toFixed(2)}${from ? ow.trendHtml(m, fi) : ""}</b>
       </button>`;
     }).join("");
   if (!btns) return "";
@@ -2196,6 +2200,8 @@ function renderMatches() {
     return;
   }
   matchList.innerHTML = list.map(matchRowHtml).join("");
+  // šipky pohybu kurzu (↗ ↘) — dotáhne referenční kurzy a řádky jednou překreslí
+  if (window.FundlyOddsWatch && FundlyOddsWatch.ensureTrends) FundlyOddsWatch.ensureTrends(list.slice(0, 120));
 }
 
 // jeden řádek zápasu v seznamu (sdílí renderMatches a živý patch jednoho řádku)
@@ -2223,7 +2229,7 @@ function matchRowHtml(m) {
           const lbl = m.odds[1] === null ? (i === 0 ? "1" : "2") : ["1", "X", "2"][i];
           return `<button class="odd-btn ${sel ? "selected" : ""}" data-pick="${id}"
             ${out ? `disabled title="${oddsOutsideTitle()}"` : ""}>
-            <small>${lbl}</small><b>${o.toFixed(2)}</b>
+            <small>${lbl}</small><b>${o.toFixed(2)}${ow ? ow.trendHtml(m, i) : ""}</b>
           </button>`;
         }).join("")}
         <span class="m-chev" aria-hidden="true">

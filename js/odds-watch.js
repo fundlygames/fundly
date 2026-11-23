@@ -38,6 +38,7 @@
       failed: "Odds history is unavailable right now.",
       openNow: "Opening → now", now: "now", kickoff: "kick-off", draw: "Draw",
       alertTitle: "Odds moved: {match}", alertLine: "{pick}: {from} → {to} ({pct})",
+      trendUp: "Odds rising (24 h ago {from})", trendDown: "Odds falling (24 h ago {from})",
     } });
     FUNDLY_I18N.extend("cs", { ow: {
       watch: "Sledovat", watching: "Sledováno", watched: "Sledované",
@@ -49,6 +50,7 @@
       failed: "Historie kurzu teď není dostupná.",
       openNow: "Otevírací → teď", now: "teď", kickoff: "začátek", draw: "Remíza",
       alertTitle: "Kurz se pohnul: {match}", alertLine: "{pick}: {from} → {to} ({pct})",
+      trendUp: "Kurz roste (před 24 h {from})", trendDown: "Kurz klesá (před 24 h {from})",
     } });
   }
   function tr(k, vars) {
@@ -434,6 +436,60 @@
     }
   }
 
+  // ---------- trend kurzu v seznamu (šipky ↗ ↘ jako u Tipsportu) ----------
+  // Referenční kurz = nejstarší uložený kurz za posledních 24 h (odds_history ukládá řádek jen
+  // při změně). Jen hlavní trh ML zápasů z odds-api — historie jiných trhů se neukládá.
+  const TREND_WINDOW_MS = 24 * 3600 * 1000;
+  const trendRef = new Map(); // "id|bookie" → [h, d, a]
+  const trendAsked = new Set(); // id, pro která už dotaz proběhl (i bez výsledku)
+  let trendBusy = false;
+  async function ensureTrends(events) {
+    if (trendBusy || !backendOk()) return;
+    const ids = (events || []).filter((m) => chartable(m) && (m.main || "ML") === "ML" && !trendAsked.has(String(m.id))).map((m) => String(m.id));
+    if (!ids.length) return;
+    trendBusy = true;
+    let got = false;
+    try {
+      const since = new Date(Date.now() - TREND_WINDOW_MS).toISOString();
+      for (let i = 0; i < ids.length; i += 60) {
+        const chunk = ids.slice(i, i + 60);
+        chunk.forEach((id) => trendAsked.add(id));
+        const rows = await restGet("odds_history", {
+          select: "event_id,bookie,home,draw,away", event_id: `in.(${chunk.join(",")})`, ts: "gte." + since, order: "ts.asc", limit: "4000",
+        }).catch(() => []);
+        for (const r of Array.isArray(rows) ? rows : []) {
+          const k = `${r.event_id}|${r.bookie}`;
+          if (trendRef.has(k)) continue; // první (nejstarší) řádek v okně
+          const v = validOdds([r.home, r.draw, r.away]);
+          if (v) { trendRef.set(k, v); got = true; }
+        }
+      }
+    } finally {
+      trendBusy = false;
+    }
+    if (got) rerender();
+  }
+  // -1 / 0 / 1 pro kurz i (0 = 1, 1 = X, 2 = 2) proti referenci
+  function trendDir(m, i) {
+    if (!m || (m.main || "ML") !== "ML") return 0;
+    const ref = trendRef.get(`${m.id}|${m.bookmaker}`);
+    const cur = m.odds && m.odds[i];
+    if (!ref || !ref[i] || !cur) return 0;
+    const d = cur - ref[i];
+    return Math.abs(d) < 0.01 ? 0 : d > 0 ? 1 : -1;
+  }
+  function trendHtml(m, i) {
+    const d = trendDir(m, i);
+    if (!d) return "";
+    const ref = trendRef.get(`${m.id}|${m.bookmaker}`)[i];
+    const t = esc(tr(d > 0 ? "trendUp" : "trendDown", { from: ref.toFixed(2) }));
+    return `<i class="odd-tr ${d > 0 ? "up" : "down"}" title="${t}" aria-label="${t}">${d > 0 ? "↗" : "↘"}</i>`;
+  }
+  function trendFrom(m, i) {
+    const d = trendDir(m, i);
+    return d ? trendRef.get(`${m.id}|${m.bookmaker}`)[i] : null;
+  }
+
   // ---------- napojení na DOM ----------
   function init() {
     const ml = document.getElementById("matchList");
@@ -481,5 +537,5 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();
 
-  window.FundlyOddsWatch = { starHtml, rowClass, mountDetail, isWatched, toggle, check, _buildSeries: buildSeries, _chartHtml: chartHtml };
+  window.FundlyOddsWatch = { starHtml, rowClass, mountDetail, isWatched, toggle, check, ensureTrends, trendHtml, trendDir, trendFrom, _buildSeries: buildSeries, _chartHtml: chartHtml };
 })();
