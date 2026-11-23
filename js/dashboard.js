@@ -1804,6 +1804,10 @@ function oddPlayable(v) {
   return !Number.isNaN(n) && n >= ODDS_MIN && n <= ODDS_MAX;
 }
 
+// zobrazovaný název soutěže (cs/sk: „1. anglická liga“ — js/league-names.js); interně se dál
+// pracuje s původním názvem z odds-api (filtry, řazení, tikety)
+function leagueName(name) { return window.FundlyLeagues ? FundlyLeagues.display(name) : name; }
+
 // fills the league select + quick chips from the loaded matches (top leagues
 // first, by match count)
 function refreshLeagueOptions() {
@@ -1813,14 +1817,14 @@ function refreshLeagueOptions() {
   sportEvents.forEach((m) => { if (m.league) counts[m.league] = (counts[m.league] || 0) + 1; });
   const leagues = Object.keys(counts).sort((a, b) => homeLeagueRank(a) - homeLeagueRank(b) || counts[b] - counts[a] || a.localeCompare(b));
   sel.innerHTML = `<option value="">${ft("dashjs.bet.allLeagues")}</option>` +
-    leagues.map((l) => `<option value="${l.replace(/"/g, "&quot;")}">${l}</option>`).join("");
+    leagues.map((l) => `<option value="${l.replace(/"/g, "&quot;")}">${esc(leagueName(l))}</option>`).join("");
   sel.value = leagues.includes(current) ? current : "";
   filters.league = sel.value;
 
   const chips = document.getElementById("leagueChips");
   if (chips) {
     chips.innerHTML = leagues.slice(0, 8).map((l) =>
-      `<button class="filter-chip" data-league="${l.replace(/"/g, "&quot;")}" aria-pressed="${l === filters.league}">${l} · ${counts[l]}</button>`
+      `<button class="filter-chip" data-league="${l.replace(/"/g, "&quot;")}" aria-pressed="${l === filters.league}">${esc(leagueName(l))} · ${counts[l]}</button>`
     ).join("");
     chips.hidden = leagues.length === 0;
   }
@@ -1884,7 +1888,7 @@ function visibleEvents() {
   let list = sportEvents;
   if (filters.q) {
     const q = filters.q.toLowerCase();
-    list = list.filter((m) => `${m.home} ${m.away} ${m.league}`.toLowerCase().includes(q));
+    list = list.filter((m) => `${m.home} ${m.away} ${m.league} ${leagueName(m.league)}`.toLowerCase().includes(q));
   }
   if (filters.date === "7d" || filters.date === "20d") {
     // časové pásmo: příštích 7 / 20 dní
@@ -2281,7 +2285,7 @@ function renderMatchDetail(m) {
       </button>
     </div>
     <div class="detail-head">
-      <div class="m-league">${m.league}</div>
+      <div class="m-league">${leagueName(m.league)}</div>
       <div class="detail-teams">${m.home} <span>vs</span> ${m.away}</div>
       <div class="m-time">${m.live ? `<span class="live">● LIVE${liveScore(m)}</span>${liveClock(m) ? ` · ${liveClock(m)}` : ""} · ` : ""}${m.live ? "" : `${fmtTime(m.date)} · `}${ftp("dashjs.bet.markets", m.markets.length)}</div>
     </div>
@@ -2415,7 +2419,7 @@ function matchRowHtml(m) {
     <div class="match-head" role="button" tabindex="0" aria-label="${ftf("dashjs.bet.openDetail", { home: m.home, away: m.away })}">
       ${ow ? ow.starHtml(m) : ""}
       <div class="m-info">
-        <div class="m-league">${m.league}</div>
+        <div class="m-league">${leagueName(m.league)}</div>
         <div class="m-teams">${m.home} – ${m.away}</div>
         <div class="m-time">${m.live ? `<span class="live">● LIVE${liveScore(m)}</span>${liveClock(m) ? ` · ${liveClock(m)}` : ""}` : fmtTime(m.date)}${extra > 0 ? ` · ${ftp("dashjs.bet.moreMarkets", extra)}` : ""}</div>
       </div>
